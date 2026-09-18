@@ -1,0 +1,1 @@
+console.log("News page loaded successfully.");

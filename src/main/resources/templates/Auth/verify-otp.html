@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Xác thực OTP - MedCare Hospital</title>
+
+    <link rel="stylesheet" href="/Css/Auth/verify-otp.css">
+</head>
+
+<body>
+
+<div class="page-container">
+
+    <!-- KHUNG NGOÀI -->
+    <div class="auth-wrapper">
+
+        <!-- BRAND -->
+        <div class="brand">
+
+            <div class="brand-icon">
+                +
+            </div>
+
+            <div class="brand-text">
+                <strong>MedCare Hospital</strong>
+
+                <span>
+                    HỆ THỐNG QUẢN LÝ BỆNH VIỆN
+                </span>
+            </div>
+
+        </div>
+
+
+        <!-- KHUNG FORM -->
+        <div class="verify-card">
+
+            <div class="card-icon">
+                🔐
+            </div>
+
+            <h1>
+                Xác thực OTP
+            </h1>
+
+            <p class="description">
+                Nhập mã OTP đã được gửi đến email
+                của bạn để tiếp tục.
+            </p>
+
+
+            <form id="verifyOtpForm">
+
+                <!-- EMAIL -->
+                <div class="form-group">
+
+                    <label for="Email">
+                        Email
+                    </label>
+
+                    <input
+                            type="email"
+                            id="Email"
+                            readonly>
+
+                </div>
+
+
+                <!-- OTP -->
+                <div class="form-group">
+
+                    <label for="OTP">
+                        Mã OTP
+                    </label>
+
+                    <input
+                            type="text"
+                            id="OTP"
+                            maxlength="6"
+                            inputmode="numeric"
+                            placeholder="Nhập mã OTP 6 số"
+                            autocomplete="one-time-code"
+                            required>
+
+                    <small class="otp-note">
+                        Mã OTP có hiệu lực trong 2 phút.
+                    </small>
+
+                </div>
+
+
+                <!-- MESSAGE -->
+                <div id="message"
+                     class="message">
+                </div>
+
+
+                <!-- BUTTON -->
+                <button
+                        type="submit"
+                        id="verifyButton">
+
+                    Xác thực
+
+                </button>
+
+            </form>
+
+
+            <a href="/auth/login"
+               class="back-login">
+
+                ← Quay lại đăng nhập
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/Js/Auth/verify-otp.js"></script>
+
+</body>
+</html>

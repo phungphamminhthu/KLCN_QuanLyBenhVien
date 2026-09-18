@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Đăng nhập - MedCare Hospital</title>
+
+    <link rel="stylesheet" href="/Css/Auth/login.css">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <!-- ================= LEFT ================= -->
+    <div class="login-left">
+
+        <div class="hospital-info">
+
+            <div class="logo">
+                <span>✚</span>
+            </div>
+
+            <h1>MedCare Hospital</h1>
+
+            <h2>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</h2>
+
+            <p>
+                Giải pháp quản lý bệnh viện hiện đại,
+                hiệu quả và an toàn.
+            </p>
+
+            <div class="feature-list">
+
+                <div class="feature">
+                    <span>✓</span>
+                    <span>Chuyên nghiệp</span>
+                </div>
+
+                <div class="feature">
+                    <span>✓</span>
+                    <span>Hiệu quả</span>
+                </div>
+
+                <div class="feature">
+                    <span>✓</span>
+                    <span>An toàn</span>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="doctor-image">
+            <img src="/Images/doctor_login.jpg" alt="Doctor">
+        </div>
+    </div>
+
+
+    <!-- ================= RIGHT ================= -->
+    <div class="login-right">
+
+        <div class="login-box">
+
+            <div class="login-header">
+
+                <h2>Đăng nhập</h2>
+
+                <p>
+                    Đăng nhập để tiếp tục sử dụng hệ thống
+                </p>
+
+            </div>
+
+
+            <!-- FORM -->
+            <form id="loginForm">
+
+                <!-- Username -->
+                <div class="form-group">
+
+                    <label for="TenDangNhap">
+                        Tên đăng nhập hoặc Email
+                    </label>
+
+                    <input
+                            type="text"
+                            id="TenDangNhap"
+                            name="TenDangNhap"
+                            placeholder="Nhập tên đăng nhập hoặc email"
+                            autocomplete="username"
+                            required>
+
+                </div>
+
+
+                <!-- Password -->
+                <div class="form-group">
+
+                    <label for="MatKhau">
+                        Mật khẩu
+                    </label>
+
+                    <div class="password-wrapper">
+
+                        <input
+                                type="password"
+                                id="MatKhau"
+                                name="MatKhau"
+                                placeholder="Nhập mật khẩu"
+                                autocomplete="current-password"
+                                required>
+
+                        <button
+                                type="button"
+                                id="togglePassword"
+                                class="toggle-password">
+
+                            <svg id="passwordIcon" viewBox="0 0 24 24">
+
+                                <!-- Mắt có mí: mật khẩu đang bị ẩn -->
+                                <path
+                                        d="M5 12
+                   C7 14.5, 9.5 15.5, 12 15.5
+                   C14.5 15.5, 17 14.5, 19 12"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.8"
+                                        stroke-linecap="round"
+                                />
+
+                                <path
+                                        d="M7 14 L6 15.5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.5"
+                                        stroke-linecap="round"
+                                />
+
+                                <path
+                                        d="M17 14 L18 15.5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.5"
+                                        stroke-linecap="round"
+                                />
+
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Remember + Forgot -->
+                <div class="login-options">
+
+                    <label class="remember">
+
+                        <input
+                                type="checkbox"
+                                id="rememberLogin">
+
+                        <span>Nhớ đăng nhập</span>
+
+                    </label>
+
+                    <a href="/auth/forgot-password">
+                        Quên mật khẩu?
+                    </a>
+
+                </div>
+
+
+                <!-- Error -->
+                <div
+                        id="loginError"
+                        class="login-message error">
+                </div>
+
+
+                <!-- Button -->
+                <button
+                        type="submit"
+                        id="loginButton"
+                        class="login-button">
+
+                    Đăng nhập
+
+                </button>
+
+            </form>
+
+
+
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="/Js/Auth/login.js"></script>
+
+</body>
+</html>

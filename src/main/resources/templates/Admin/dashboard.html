@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+  <title>Dashboard quản trị - MedCare Hospital</title>
+
+  <link
+          rel="stylesheet"
+          href="/Css/Admin/dashboard.css">
+
+</head>
+
+<body>
+
+<div class="admin-layout">
+
+
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
+
+  <aside class="sidebar">
+
+    <!-- Logo -->
+
+    <div class="sidebar-logo">
+
+      <div class="logo-icon">
+        +
+      </div>
+
+      <div class="logo-text">
+
+        <strong>MedCare Hospital</strong>
+
+        <span>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</span>
+
+      </div>
+
+    </div>
+
+
+    <!-- Menu -->
+
+    <nav class="sidebar-menu">
+
+      <a
+              href="/Admin/dashboard"
+              class="menu-item active">
+
+        <span class="menu-icon">▦</span>
+
+        <span>Dashboard</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">♙</span>
+
+        <span>Quản lý tài khoản</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">◇</span>
+
+        <span>Phân quyền</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">▥</span>
+
+        <span>Quản lý khoa</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">⚗</span>
+
+        <span>Quản lý thuốc</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">▣</span>
+
+        <span>Quản lý tin tức</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">▥</span>
+
+        <span>Báo cáo & Thống kê</span>
+
+      </a>
+
+
+      <a href="#" class="menu-item">
+
+        <span class="menu-icon">▤</span>
+
+        <span>Audit Log</span>
+
+      </a>
+
+    </nav>
+
+
+    <!-- Logout -->
+
+    <div class="sidebar-bottom">
+
+      <button
+              type="button"
+              id="logoutButton"
+              class="logout-button">
+
+        <span>⇥</span>
+
+        <span>Đăng xuất</span>
+
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
+
+  <main class="main-content">
+
+
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <header class="top-header">
+
+
+      <!-- Search -->
+
+      <div class="search-box">
+
+                <span class="search-icon">
+                    ⌕
+                </span>
+
+        <input
+                type="text"
+                placeholder="Tìm kiếm bệnh nhân, bác sĩ, hồ sơ bệnh án...">
+
+      </div>
+
+
+      <!-- User -->
+
+      <div class="header-right">
+
+
+        <!-- Notification -->
+
+        <button
+                class="notification-button"
+                type="button">
+
+          ♧
+
+          <span class="notification-dot"></span>
+
+        </button>
+
+
+        <div class="header-divider"></div>
+
+
+        <!-- User information -->
+
+        <div class="admin-user">
+
+          <div class="admin-avatar">
+            AD
+          </div>
+
+          <div class="admin-info">
+
+            <strong id="adminName">
+              Quản trị viên (Admin)
+            </strong>
+
+            <span id="adminEmail">
+                            admin@benhvienabc.vn
+                        </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- =================================================
+         CONTENT
+    ================================================== -->
+
+    <section class="dashboard-content">
+
+
+      <!-- Page title -->
+
+      <div class="page-header">
+
+        <div>
+
+          <h1>
+            Dashboard quản trị
+          </h1>
+
+          <p>
+            Tổng quan hoạt động của bệnh viện
+          </p>
+
+        </div>
+
+
+        <div class="page-actions">
+
+          <div class="today-badge">
+
+            <span class="status-dot"></span>
+
+            Hôm nay:
+            <strong>24/10/2023</strong>
+
+          </div>
+
+
+          <button class="report-button">
+
+            Tải báo cáo
+
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           STATISTICS
+      ================================================== -->
+
+      <div class="statistics-grid">
+
+
+        <!-- Patients -->
+
+        <div class="stat-card">
+
+          <div class="stat-top">
+
+                        <span>
+                            Tổng bệnh nhân
+                        </span>
+
+            <div class="stat-icon blue">
+              ♧
+            </div>
+
+          </div>
+
+          <strong class="stat-number">
+            12.580
+          </strong>
+
+          <span class="stat-change positive">
+                        +3.2% ↑
+                    </span>
+
+        </div>
+
+
+        <!-- Doctors -->
+
+        <div class="stat-card">
+
+          <div class="stat-top">
+
+                        <span>
+                            Tổng bác sĩ
+                        </span>
+
+            <div class="stat-icon green">
+              ♙
+            </div>
+
+          </div>
+
+          <strong class="stat-number">
+            128
+          </strong>
+
+          <span class="stat-change green-text">
+                        24 đang trực
+                    </span>
+
+        </div>
+
+
+        <!-- Appointments -->
+
+        <div class="stat-card">
+
+          <div class="stat-top">
+
+                        <span>
+                            Lịch khám hôm nay
+                        </span>
+
+            <div class="stat-icon orange">
+              □
+            </div>
+
+          </div>
+
+          <strong class="stat-number">
+            356
+          </strong>
+
+          <span class="stat-change neutral">
+                        Đã đặt trước
+                    </span>
+
+        </div>
+
+
+        <!-- Revenue -->
+
+        <div class="stat-card">
+
+          <div class="stat-top">
+
+                        <span>
+                            Doanh thu
+                        </span>
+
+            <div class="stat-icon purple">
+              $
+            </div>
+
+          </div>
+
+          <strong class="stat-number">
+            458.6
+            <small>triệu</small>
+          </strong>
+
+          <span class="stat-change positive">
+                        +12.5% ↑
+                    </span>
+
+        </div>
+
+
+        <!-- Visits -->
+
+        <div class="stat-card">
+
+          <div class="stat-top">
+
+                        <span>
+                            Lượt khám
+                        </span>
+
+            <div class="stat-icon green">
+              ✓
+            </div>
+
+          </div>
+
+          <strong class="stat-number">
+            1.248
+          </strong>
+
+          <span class="stat-change positive">
+                        +4.5% ↑
+                    </span>
+
+        </div>
+
+
+        <!-- Waiting -->
+
+        <div class="stat-card">
+
+          <div class="stat-top">
+
+                        <span>
+                            Đang chờ
+                        </span>
+
+            <div class="stat-icon light-blue">
+              ◷
+            </div>
+
+          </div>
+
+          <strong class="stat-number">
+            892
+          </strong>
+
+          <span class="stat-change neutral">
+                        Tại các phòng khám
+                    </span>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           MIDDLE CONTENT
+      ================================================== -->
+
+      <div class="dashboard-grid">
+
+
+        <!-- =================================================
+             VISITS CHART
+        ================================================== -->
+
+        <div class="dashboard-card visits-card">
+
+          <div class="card-header">
+
+            <div>
+
+              <h3>
+                Lượt khám theo ngày
+              </h3>
+
+              <p>
+                7 ngày gần nhất
+              </p>
+
+            </div>
+
+            <button class="more-button">
+              •••
+            </button>
+
+          </div>
+
+
+          <div class="bar-chart">
+
+            <div class="bar-item">
+
+              <div
+                      class="bar"
+                      style="height: 55%;">
+              </div>
+
+              <span>T2</span>
+
+            </div>
+
+
+            <div class="bar-item">
+
+              <div
+                      class="bar"
+                      style="height: 68%;">
+              </div>
+
+              <span>T3</span>
+
+            </div>
+
+
+            <div class="bar-item">
+
+              <div
+                      class="bar"
+                      style="height: 85%;">
+              </div>
+
+              <span>T4</span>
+
+            </div>
+
+
+            <div class="bar-item">
+
+              <div
+                      class="bar"
+                      style="height: 76%;">
+              </div>
+
+              <span>T5</span>
+
+            </div>
+
+
+            <div class="bar-item active-bar">
+
+              <div
+                      class="bar"
+                      style="height: 88%;">
+              </div>
+
+              <span>T6</span>
+
+            </div>
+
+
+            <div class="bar-item">
+
+              <div
+                      class="bar"
+                      style="height: 60%;">
+              </div>
+
+              <span>T7</span>
+
+            </div>
+
+
+            <div class="bar-item">
+
+              <div
+                      class="bar"
+                      style="height: 42%;">
+              </div>
+
+              <span>CN</span>
+
+            </div>
+
+          </div>
+
+
+          <div class="chart-footer">
+
+                        <span>
+                            Trung bình: 178 ca/ngày
+                        </span>
+
+            <strong>
+              Cao điểm: T6
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PATIENT DISTRIBUTION
+        ================================================== -->
+
+        <div class="dashboard-card department-card">
+
+          <div class="card-header">
+
+            <div>
+
+              <h3>
+                Phân bố bệnh nhân theo khoa
+              </h3>
+
+              <p>
+                Tháng hiện tại
+              </p>
+
+            </div>
+
+            <button class="more-button">
+              •••
+            </button>
+
+          </div>
+
+
+          <div class="donut-container">
+
+            <div class="donut-chart">
+
+              <div class="donut-center">
+
+                <strong>
+                  1.248
+                </strong>
+
+                <span>
+                                    Bệnh nhân
+                                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="legend">
+
+            <div>
+              <span class="legend-dot blue-dot"></span>
+              Nội khoa: 38%
+            </div>
+
+            <div>
+              <span class="legend-dot sky-dot"></span>
+              Ngoại khoa: 25%
+            </div>
+
+            <div>
+              <span class="legend-dot green-dot"></span>
+              Nhi khoa: 22%
+            </div>
+
+            <div>
+              <span class="legend-dot orange-dot"></span>
+              Tai mũi họng: 15%
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             RECENT ACTIVITIES
+        ================================================== -->
+
+        <div class="dashboard-card activity-card">
+
+          <div class="card-header">
+
+            <h3>
+              Hoạt động gần đây
+            </h3>
+
+            <a href="#">
+              Xem tất cả
+            </a>
+
+          </div>
+
+
+          <div class="activity-list">
+
+
+            <div class="activity-item">
+
+              <div class="activity-icon blue-icon">
+                ♙
+              </div>
+
+              <div class="activity-content">
+
+                <strong>
+                  Nguyễn Văn A đã đăng ký tài khoản bệnh nhân mới
+                </strong>
+
+                <p>
+                  5 phút trước
+                  <span>• Thành công</span>
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="activity-item">
+
+              <div class="activity-icon purple-icon">
+                ▣
+              </div>
+
+              <div class="activity-content">
+
+                <strong>
+                  Bác sĩ Trần B đã kê đơn thuốc mới cho BN-00234
+                </strong>
+
+                <p>
+                  12 phút trước
+                  <span>• Khoa Tim mạch</span>
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="activity-item">
+
+              <div class="activity-icon green-icon">
+                ♙
+              </div>
+
+              <div class="activity-content">
+
+                <strong>
+                  Thêm mới Bác sĩ Lê C vào danh sách nhân sự
+                </strong>
+
+                <p>
+                  25 phút trước
+                  <span>• Bởi Admin</span>
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="activity-item">
+
+              <div class="activity-icon orange-icon">
+                □
+              </div>
+
+              <div class="activity-content">
+
+                <strong>
+                  Kết quả xét nghiệm máu mới đã được tải lên cho BN-00129
+                </strong>
+
+                <p>
+                  40 phút trước
+                  <span>• Chờ duyệt</span>
+                </p>
+
+              </div>
+
+            </div>
+
+
+            <div class="activity-item">
+
+              <div class="activity-icon red-icon">
+                △
+              </div>
+
+              <div class="activity-content">
+
+                <strong>
+                  Cảnh báo: Kho thuốc Paracetamol 500mg sắp hết hàng
+                </strong>
+
+                <p>
+                  1 giờ trước
+                  <span>• Hệ thống</span>
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <a
+                  href="#"
+                  class="audit-link">
+
+            + Xuất nhật ký Audit Log
+
+          </a>
+
+        </div>
+
+
+        <!-- =================================================
+             REVENUE
+        ================================================== -->
+
+        <div class="dashboard-card revenue-card">
+
+          <div class="card-header">
+
+            <div>
+
+              <h3>
+                Doanh thu theo tháng
+              </h3>
+
+              <p>
+                Biến động 6 tháng đầu năm (triệu VNĐ)
+              </p>
+
+            </div>
+
+            <span class="growth-badge">
+                            Tăng trưởng 18.2%
+                        </span>
+
+          </div>
+
+
+          <div class="revenue-chart">
+
+            <div class="line-chart">
+
+              <svg
+                      viewBox="0 0 700 220"
+                      preserveAspectRatio="none">
+
+                <path
+                        d="M0 180
+                                           C80 165, 120 150, 175 120
+                                           C230 90, 270 90, 350 130
+                                           C420 165, 470 155, 525 90
+                                           C575 35, 630 45, 700 65"
+                        fill="none"
+                        stroke="#2563eb"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                />
+
+                <path
+                        d="M0 180
+                                           C80 165, 120 150, 175 120
+                                           C230 90, 270 90, 350 130
+                                           C420 165, 470 155, 525 90
+                                           C575 35, 630 45, 700 65
+                                           L700 220
+                                           L0 220 Z"
+                        fill="#dbeafe"
+                        opacity="0.6"
+                />
+
+              </svg>
+
+            </div>
+
+
+            <div class="month-labels">
+
+              <span>Tháng 5</span>
+
+              <span>Tháng 6</span>
+
+              <span>Tháng 7</span>
+
+              <span>Tháng 8</span>
+
+              <span>Tháng 9</span>
+
+              <strong>Tháng 10</strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<script src="/Js/Auth/logout.js"></script>
+<script src="/Js/Admin/dashboard.js"></script>
+
+</body>
+
+</html>
