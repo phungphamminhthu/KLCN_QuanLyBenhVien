@@ -316,6 +316,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         data.VaiTro
                     );
 
+                    localStorage.setItem(
+                        "AnhDaiDien",
+                        data.AnhDaiDien || ""
+                    );
+
 
                     // Xóa phiên cũ trong sessionStorage
                     sessionStorage.removeItem("Token");

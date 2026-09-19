@@ -49,6 +49,8 @@ public class SecurityConfig {
 
                                 // ===== TEST EMAIL =====
                                 "/api/test-email",
+                                // ===== UPLOAD ẢNH R2 =====
+                                "/api/images/**",
                                 // ===== TRANG GIAO DIỆN =====
                                 "/Admin/**"
                         ).permitAll()

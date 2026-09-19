@@ -10,6 +10,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const adminEmail =
         document.getElementById("adminEmail");
 
+    const adminAvatar =
+        document.getElementById("adminAvatar");
+
 
     /*
      * Ưu tiên localStorage
@@ -36,6 +39,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const VaiTro =
         localStorage.getItem("VaiTro")
         || sessionStorage.getItem("VaiTro");
+
+
+    const AnhDaiDien =
+        localStorage.getItem("AnhDaiDien")
+        || sessionStorage.getItem("AnhDaiDien");
 
 
     /* =====================================================
@@ -83,6 +91,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
         adminEmail.textContent =
             Email;
+    }
+
+
+    /* =====================================================
+       HIỂN THỊ ẢNH ĐẠI DIỆN
+    ====================================================== */
+
+    if (AnhDaiDien && adminAvatar) {
+
+        adminAvatar.src =
+            "http://localhost:8080/api/images/view?fileKey="
+            + encodeURIComponent(AnhDaiDien);
+
+    } else if (adminAvatar) {
+
+        // Chưa có ảnh đại diện
+        adminAvatar.src =
+            "/Images/default-avatar.jpg";
     }
 
 });

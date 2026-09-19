@@ -3,9 +3,64 @@ document.addEventListener("DOMContentLoaded", function () {
     const LogoutButton =
         document.getElementById("logoutButton");
 
-    const LogoutModal =
-        document.getElementById("logoutModal");
 
+    // Không có nút logout thì bỏ qua
+    if (!LogoutButton) {
+        return;
+    }
+
+
+    // =====================================================
+    // TẠO POPUP ĐĂNG XUẤT
+    // =====================================================
+
+    const LogoutModal =
+        document.createElement("div");
+
+    LogoutModal.id = "logoutModal";
+
+    LogoutModal.innerHTML = `
+        <div class="logout-overlay">
+
+            <div class="logout-popup">
+
+                <div class="logout-icon">
+                    ⇥
+                </div>
+
+                <h3>Đăng xuất</h3>
+
+                <p>
+                    Bạn có chắc chắn muốn đăng xuất không?
+                </p>
+
+                <div class="logout-actions">
+
+                    <button
+                        type="button"
+                        id="cancelLogout"
+                        class="cancel-logout">
+                        Hủy
+                    </button>
+
+                    <button
+                        type="button"
+                        id="confirmLogout"
+                        class="confirm-logout">
+                        Đăng xuất
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(LogoutModal);
+
+
+    // Lấy các button trong popup
     const CancelLogout =
         document.getElementById("cancelLogout");
 
@@ -13,96 +68,100 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("confirmLogout");
 
 
-    // Nếu dashboard không có popup
-    // thì không thực hiện
-    if (
-        !LogoutButton ||
-        !LogoutModal ||
-        !CancelLogout ||
-        !ConfirmLogout
-    ) {
-        return;
-    }
-
-
-    // ==============================
-    // BẤM ĐĂNG XUẤT
-    // ==============================
+    // =====================================================
+    // BẤM NÚT ĐĂNG XUẤT
+    // =====================================================
 
     LogoutButton.addEventListener(
         "click",
         function () {
 
-            LogoutModal.classList.add("show");
+            LogoutModal
+                .querySelector(".logout-overlay")
+                .classList.add("show");
 
         }
     );
 
 
-    // ==============================
+    // =====================================================
     // BẤM HỦY
-    // ==============================
+    // =====================================================
 
     CancelLogout.addEventListener(
         "click",
         function () {
 
-            LogoutModal.classList.remove("show");
+            LogoutModal
+                .querySelector(".logout-overlay")
+                .classList.remove("show");
 
         }
     );
 
 
-    // ==============================
+    // =====================================================
     // BẤM RA NGOÀI POPUP
-    // ==============================
+    // =====================================================
 
-    LogoutModal.addEventListener(
-        "click",
-        function (event) {
+    LogoutModal
+        .querySelector(".logout-overlay")
+        .addEventListener(
+            "click",
+            function (event) {
 
-            if (
-                event.target === LogoutModal ||
-                event.target.classList.contains(
-                    "logout-overlay"
-                )
-            ) {
+                if (
+                    event.target ===
+                    event.currentTarget
+                ) {
 
-                LogoutModal.classList.remove("show");
+                    event.currentTarget
+                        .classList.remove("show");
+
+                }
 
             }
-
-        }
-    );
+        );
 
 
-    // ==============================
+    // =====================================================
     // XÁC NHẬN ĐĂNG XUẤT
-    // ==============================
+    // =====================================================
 
     ConfirmLogout.addEventListener(
         "click",
         function () {
 
-            // Xóa localStorage
+            // ==============================
+            // XÓA LOCAL STORAGE
+            // ==============================
+
             localStorage.removeItem("Token");
             localStorage.removeItem("MaNguoiDung");
             localStorage.removeItem("TenDangNhap");
             localStorage.removeItem("HoTen");
             localStorage.removeItem("Email");
             localStorage.removeItem("VaiTro");
+            localStorage.removeItem("AnhDaiDien");
 
 
-            // Xóa sessionStorage
+            // ==============================
+            // XÓA SESSION STORAGE
+            // ==============================
+
             sessionStorage.removeItem("Token");
             sessionStorage.removeItem("MaNguoiDung");
             sessionStorage.removeItem("TenDangNhap");
             sessionStorage.removeItem("HoTen");
             sessionStorage.removeItem("Email");
             sessionStorage.removeItem("VaiTro");
+            sessionStorage.removeItem("AnhDaiDien");
 
 
-            // Chuyển về trang đăng nhập
+            // ==============================
+            // VỀ TRANG LOGIN
+            // ==============================
+
             window.location.href =
                 "/auth/login";
 

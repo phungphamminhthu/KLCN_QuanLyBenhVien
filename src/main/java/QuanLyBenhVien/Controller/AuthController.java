@@ -140,6 +140,12 @@ public class AuthController {
             );
 
             response.put(
+                    "AnhDaiDien",
+                    NguoiDung.getAnhDaiDien()
+            );
+
+
+            response.put(
                     "Token",
                     Token
             );
