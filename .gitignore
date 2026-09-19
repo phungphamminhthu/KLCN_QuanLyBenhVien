@@ -34,4 +34,4 @@ build/
 
 ###Email###
 # Local configuration - DO NOT COMMIT
-application-local.properties
+**/application-local.properties
