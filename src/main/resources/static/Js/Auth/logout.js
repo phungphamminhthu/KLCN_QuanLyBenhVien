@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             <div class="logout-popup">
 
-                <div class="logout-icon">
+                <div>
                     ⇥
                 </div>
 
