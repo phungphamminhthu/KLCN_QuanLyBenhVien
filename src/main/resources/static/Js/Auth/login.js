@@ -329,6 +329,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     sessionStorage.removeItem("HoTen");
                     sessionStorage.removeItem("Email");
                     sessionStorage.removeItem("VaiTro");
+                    sessionStorage.removeItem("AnhDaiDien");
 
                 } else {
 
@@ -367,6 +368,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         data.VaiTro
                     );
 
+                    // Lưu fileKey ảnh đại diện
+                    sessionStorage.setItem(
+                        "AnhDaiDien",
+                        data.AnhDaiDien || ""
+                    );
+
 
                     // Xóa dữ liệu localStorage cũ
                     localStorage.removeItem("Token");
@@ -375,6 +382,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     localStorage.removeItem("HoTen");
                     localStorage.removeItem("Email");
                     localStorage.removeItem("VaiTro");
+                    localStorage.removeItem("AnhDaiDien");
                 }
 
 
