@@ -1,25 +1,57 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-    /* =====================================================
-       LẤY THÔNG TIN ADMIN ĐÃ ĐĂNG NHẬP
-    ====================================================== */
+    /*
+    ==================================================
+    QUẢN LÝ MENU SIDEBAR
+    ==================================================
+    */
 
-    const adminName =
+    const MenuParents =
+        document.querySelectorAll(".menu-parent");
+
+
+    MenuParents.forEach(function (MenuParent) {
+
+        MenuParent.addEventListener("click", function () {
+
+            const MenuGroup =
+                this.closest(".menu-group");
+
+            if (!MenuGroup) {
+                return;
+            }
+
+            /*
+            Đóng/mở menu hiện tại
+            */
+            MenuGroup.classList.toggle("open");
+
+        });
+
+    });
+
+
+    /*
+    ==================================================
+    THÔNG TIN ADMIN
+    ==================================================
+    */
+
+    const AdminName =
         document.getElementById("adminName");
 
-    const adminEmail =
+    const AdminEmail =
         document.getElementById("adminEmail");
 
-    const adminAvatar =
+    const AdminAvatar =
         document.getElementById("adminAvatar");
 
 
     /*
-     * Ưu tiên localStorage
-     * nếu người dùng chọn "Nhớ đăng nhập".
-     *
-     * Nếu không có thì lấy từ sessionStorage.
-     */
+    ==================================================
+    LẤY THÔNG TIN ĐĂNG NHẬP
+    ==================================================
+    */
 
     const Token =
         localStorage.getItem("Token")
@@ -46,23 +78,28 @@ document.addEventListener("DOMContentLoaded", function () {
         || sessionStorage.getItem("AnhDaiDien");
 
 
-    /* =====================================================
-       KIỂM TRA ĐĂNG NHẬP
-    ====================================================== */
+    /*
+    ==================================================
+    KIỂM TRA ĐĂNG NHẬP
+    ==================================================
+    */
 
     if (!Token) {
 
         alert("Vui lòng đăng nhập.");
 
-        window.location.href = "/auth/login";
+        window.location.href =
+            "/auth/login";
 
         return;
     }
 
 
-    /* =====================================================
-       KIỂM TRA ROLE
-    ====================================================== */
+    /*
+    ==================================================
+    KIỂM TRA QUYỀN ADMIN
+    ==================================================
+    */
 
     if (VaiTro !== "ADMIN") {
 
@@ -70,45 +107,73 @@ document.addEventListener("DOMContentLoaded", function () {
             "Bạn không có quyền truy cập trang quản trị."
         );
 
-        window.location.href = "/auth/login";
+        window.location.href =
+            "/auth/login";
 
         return;
     }
 
 
-    /* =====================================================
-       HIỂN THỊ THÔNG TIN ADMIN
-    ====================================================== */
+    /*
+    ==================================================
+    HIỂN THỊ THÔNG TIN ADMIN
+    ==================================================
+    */
 
-    if (HoTen) {
+    if (HoTen && AdminName) {
 
-        adminName.textContent =
-            HoTen + " (Admin)";
+        AdminName.textContent =
+            HoTen;
+
     }
 
 
-    if (Email) {
+    if (Email && AdminEmail) {
 
-        adminEmail.textContent =
+        AdminEmail.textContent =
             Email;
+
     }
 
 
-    /* =====================================================
-       HIỂN THỊ ẢNH ĐẠI DIỆN
-    ====================================================== */
+    /*
+    ==================================================
+    HIỂN THỊ AVATAR TỪ CLOUDFLARE R2
+    ==================================================
+    */
 
-    if (AnhDaiDien && adminAvatar) {
+    if (AnhDaiDien && AdminAvatar) {
 
-        adminAvatar.src =
+        AdminAvatar.src =
             "http://localhost:8080/api/images/view?fileKey="
             + encodeURIComponent(AnhDaiDien);
 
-    } else if (adminAvatar) {
+    } else if (AdminAvatar) {
 
-        // Chưa có ảnh đại diện
-        adminAvatar.src =
+        AdminAvatar.src =
             "/Images/default-avatar.jpg";
+
+    }
+
+
+    /*
+    ==================================================
+    XỬ LÝ LỖI AVATAR
+    ==================================================
+    */
+
+    if (AdminAvatar) {
+
+        AdminAvatar.addEventListener(
+            "error",
+            function () {
+
+                this.src =
+                    "/Images/default-avatar.jpg";
+
+            }
+        );
+
     }
 
 });
