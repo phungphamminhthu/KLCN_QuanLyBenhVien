@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Trang chủ bác sĩ - Bệnh viện ABC</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="/Css/BacSi/trang-chu.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <div class="logo-icon">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+
+            <div>
+                <h2>BỆNH VIỆN ABC</h2>
+                <span>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</span>
+            </div>
+
+        </div>
+
+
+        <nav class="menu">
+
+            <!-- TỔNG QUAN -->
+            <a href="/auth/bac-si/trang-chu"
+               class="menu-item active">
+
+                <i class="fa-solid fa-table-cells-large"></i>
+
+                <span>Tổng quan</span>
+
+            </a>
+
+
+            <!-- KHÁM BỆNH -->
+            <div class="menu-group">
+
+                <div class="menu-item">
+
+                    <i class="fa-solid fa-user-doctor"></i>
+
+                    <span>Khám bệnh</span>
+
+                    <i class="fa-solid fa-chevron-down arrow"></i>
+
+                </div>
+
+
+                <div class="submenu">
+
+                    <a href="/auth/bac-si/kham-benh">
+                        Danh sách chờ khám
+                    </a>
+
+                    <a href="/auth/bac-si/lich-su-kham">
+                        Lịch sử khám
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- CHỈ ĐỊNH -->
+            <a href="#"
+               class="menu-item">
+
+                <i class="fa-solid fa-file-medical"></i>
+
+                <span>Chỉ định</span>
+
+            </a>
+
+
+            <!-- KẾT QUẢ -->
+            <a href="#"
+               class="menu-item">
+
+                <i class="fa-solid fa-flask-vial"></i>
+
+                <span>Kết quả cận lâm sàng</span>
+
+            </a>
+
+
+            <!-- ĐƠN THUỐC -->
+            <a href="#"
+               class="menu-item">
+
+                <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+                <span>Đơn thuốc</span>
+
+            </a>
+
+
+            <!-- HỒ SƠ -->
+            <a href="#"
+               class="menu-item">
+
+                <i class="fa-regular fa-user"></i>
+
+                <span>Hồ sơ cá nhân</span>
+
+            </a>
+
+        </nav>
+
+
+        <!-- ĐĂNG XUẤT -->
+        <button id="btnLogout"
+                type="button"
+                class="logout">
+
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+            <span>Đăng xuất</span>
+
+        </button>
+
+    </aside>
+
+
+    <!-- ================= MAIN ================= -->
+    <main class="main">
+
+
+        <!-- ================= HEADER ================= -->
+        <header class="header">
+
+            <div class="search-box">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                        type="text"
+                        placeholder="Tìm kiếm bệnh nhân, hồ sơ..."
+                >
+
+            </div>
+
+
+            <div class="header-right">
+
+                <div class="notification">
+
+                    <i class="fa-regular fa-bell"></i>
+
+                    <span></span>
+
+                </div>
+
+
+                <div class="doctor">
+
+                    <div class="doctor-text">
+
+                        <strong id="doctorName">
+                            Bác sĩ
+                        </strong>
+
+                        <small>
+                            Bác sĩ điều trị
+                        </small>
+
+                    </div>
+
+
+                    <div class="avatar"
+                         id="doctorAvatar">
+
+                        BS
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ================= CONTENT ================= -->
+        <section class="content">
+
+
+            <!-- ================= WELCOME ================= -->
+            <div class="welcome">
+
+                <div>
+
+                    <p class="welcome-small">
+                        TỔNG QUAN
+                    </p>
+
+
+                    <h1>
+
+                        Xin chào,
+
+                        <span id="welcomeDoctorName">
+                            Bác sĩ
+                        </span>
+
+                    </h1>
+
+
+                    <p>
+                        Theo dõi hoạt động khám bệnh của bạn trong ngày hôm nay.
+                    </p>
+
+                </div>
+
+
+                <div class="today">
+
+                    <i class="fa-regular fa-calendar"></i>
+
+                    <div>
+
+                        <span>
+                            Hôm nay
+                        </span>
+
+                        <strong id="currentDate">
+                            --/--/----
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= THỐNG KÊ ================= -->
+            <div class="statistics">
+
+
+                <!-- CHỜ KHÁM -->
+                <div class="stat-card">
+
+                    <div>
+
+                        <span class="stat-title">
+                            BỆNH NHÂN CHỜ KHÁM
+                        </span>
+
+                        <strong id="waitingCount">
+                            0
+                        </strong>
+
+                        <small>
+                            Đã được tiếp nhận
+                        </small>
+
+                    </div>
+
+
+                    <div class="stat-icon orange">
+
+                        <i class="fa-regular fa-clock"></i>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ĐANG KHÁM -->
+                <div class="stat-card">
+
+                    <div>
+
+                        <span class="stat-title">
+                            ĐANG KHÁM
+                        </span>
+
+                        <strong id="examiningCount">
+                            0
+                        </strong>
+
+                        <small>
+                            Hồ sơ đang thực hiện
+                        </small>
+
+                    </div>
+
+
+                    <div class="stat-icon blue">
+
+                        <i class="fa-solid fa-stethoscope"></i>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ĐÃ KHÁM -->
+                <div class="stat-card">
+
+                    <div>
+
+                        <span class="stat-title">
+                            ĐÃ KHÁM
+                        </span>
+
+                        <strong id="completedCount">
+                            0
+                        </strong>
+
+                        <small>
+                            Hoàn thành hôm nay
+                        </small>
+
+                    </div>
+
+
+                    <div class="stat-icon green">
+
+                        <i class="fa-solid fa-check"></i>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= THAO TÁC NHANH ================= -->
+            <div class="section-card">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Thao tác nhanh
+                        </h2>
+
+                        <p>
+                            Truy cập nhanh các chức năng dành cho bác sĩ
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="quick-actions">
+
+
+                    <!-- KHÁM BỆNH -->
+                    <a href="/auth/bac-si/kham-benh"
+                       class="quick-card">
+
+                        <div class="quick-icon blue">
+
+                            <i class="fa-solid fa-user-doctor"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h3>
+                                Khám bệnh
+                            </h3>
+
+                            <p>
+                                Xem danh sách bệnh nhân chờ và thực hiện khám.
+                            </p>
+
+                        </div>
+
+
+                        <i class="fa-solid fa-arrow-right quick-arrow"></i>
+
+                    </a>
+
+
+                    <!-- CHỈ ĐỊNH -->
+                    <a href="#"
+                       class="quick-card">
+
+                        <div class="quick-icon purple">
+
+                            <i class="fa-solid fa-file-medical"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h3>
+                                Chỉ định
+                            </h3>
+
+                            <p>
+                                Tạo và theo dõi các chỉ định cận lâm sàng.
+                            </p>
+
+                        </div>
+
+
+                        <i class="fa-solid fa-arrow-right quick-arrow"></i>
+
+                    </a>
+
+
+                    <!-- KẾT QUẢ -->
+                    <a href="#"
+                       class="quick-card">
+
+                        <div class="quick-icon green">
+
+                            <i class="fa-solid fa-flask-vial"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h3>
+                                Kết quả
+                            </h3>
+
+                            <p>
+                                Theo dõi kết quả xét nghiệm và cận lâm sàng.
+                            </p>
+
+                        </div>
+
+
+                        <i class="fa-solid fa-arrow-right quick-arrow"></i>
+
+                    </a>
+
+
+                    <!-- ĐƠN THUỐC -->
+                    <a href="#"
+                       class="quick-card">
+
+                        <div class="quick-icon orange">
+
+                            <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <h3>
+                                Đơn thuốc
+                            </h3>
+
+                            <p>
+                                Quản lý đơn thuốc trong quá trình khám.
+                            </p>
+
+                        </div>
+
+
+                        <i class="fa-solid fa-arrow-right quick-arrow"></i>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================= BỆNH NHÂN CHỜ KHÁM ================= -->
+            <div class="section-card">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+
+                            <i class="fa-solid fa-list-ul"></i>
+
+                            Bệnh nhân chờ khám
+
+                        </h2>
+
+
+                        <p>
+                            Danh sách bệnh nhân đã được tiếp nhận
+                        </p>
+
+                    </div>
+
+
+                    <a href="/auth/bac-si/kham-benh"
+                       class="view-all">
+
+                        Xem tất cả
+
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </a>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                        <tr>
+
+                            <th>
+                                STT
+                            </th>
+
+                            <th>
+                                BỆNH NHÂN
+                            </th>
+
+                            <th>
+                                GIỜ KHÁM
+                            </th>
+
+                            <th>
+                                LÝ DO KHÁM
+                            </th>
+
+                            <th>
+                                TRẠNG THÁI
+                            </th>
+
+                            <th>
+                                THAO TÁC
+                            </th>
+
+                        </tr>
+
+                        </thead>
+
+
+                        <tbody id="patientTableBody">
+                        </tbody>
+
+                    </table>
+
+
+                    <!-- LOADING -->
+                    <div id="loadingState"
+                         class="table-state">
+
+                        <div class="spinner"></div>
+
+                        <span>
+                            Đang tải dữ liệu...
+                        </span>
+
+                    </div>
+
+
+                    <!-- EMPTY -->
+                    <div id="emptyState"
+                         class="table-state hidden">
+
+                        <i class="fa-regular fa-calendar-check"></i>
+
+                        <strong>
+                            Không có bệnh nhân chờ khám
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script src="/Js/BacSi/trang-chu.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Khám bệnh - Bệnh viện ABC</title>
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <link rel="stylesheet" href="/Css/BacSi/bacsi-khambenh.css">
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+
+    <div class="logo">
+      <div class="logo-box">
+        <i class="fa-solid fa-plus"></i>
+      </div>
+
+      <div>
+        <h2>BỆNH VIỆN ABC</h2>
+        <span>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</span>
+      </div>
+    </div>
+
+
+    <nav class="menu">
+
+      <!-- TỔNG QUAN -->
+      <a class="menu-item"
+         href="/auth/bac-si/trang-chu">
+
+        <i class="fa-solid fa-table-cells-large"></i>
+        <span>Tổng quan</span>
+
+      </a>
+
+
+      <!-- KHÁM BỆNH -->
+      <div class="menu-parent">
+
+        <div class="menu-item">
+
+          <i class="fa-solid fa-user-doctor"></i>
+
+          <span>Khám bệnh</span>
+
+          <i class="fa-solid fa-chevron-down arrow"></i>
+
+        </div>
+
+
+        <div class="submenu">
+
+          <a href="/auth/bac-si/kham-benh"
+             class="submenu-item active">
+
+            Danh sách chờ khám
+
+          </a>
+
+
+          <a href="/auth/bac-si/lich-su-kham"
+             class="submenu-item">
+
+            Lịch sử khám
+          </a>
+
+        </div>
+
+      </div>
+
+
+      <!-- CHỈ ĐỊNH -->
+      <a class="menu-item" href="#">
+
+        <i class="fa-solid fa-file-medical"></i>
+
+        <span>Chỉ định</span>
+
+      </a>
+
+
+      <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+      <a class="menu-item" href="#">
+
+        <i class="fa-solid fa-flask-vial"></i>
+
+        <span>Kết quả cận lâm sàng</span>
+
+      </a>
+
+
+      <!-- ĐƠN THUỐC -->
+      <a class="menu-item" href="#">
+
+        <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+        <span>Đơn thuốc</span>
+
+      </a>
+
+
+      <!-- HỒ SƠ CÁ NHÂN -->
+      <a class="menu-item" href="#">
+
+        <i class="fa-regular fa-user"></i>
+
+        <span>Hồ sơ cá nhân</span>
+
+      </a>
+
+    </nav>
+
+
+    <!-- ĐĂNG XUẤT -->
+    <button class="logout"
+            id="btnLogout"
+            type="button">
+
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+      Đăng xuất
+
+    </button>
+
+  </aside>
+
+
+  <!-- ================= MAIN ================= -->
+  <main class="main">
+
+    <!-- ================= HEADER ================= -->
+    <header class="header">
+
+      <div class="header-search">
+
+        <i class="fa-solid fa-magnifying-glass"></i>
+
+        <input
+                type="text"
+                placeholder="Tìm kiếm bệnh nhân, mã bệnh nhân..."
+        >
+
+      </div>
+
+
+      <div class="header-right">
+
+        <div class="notification">
+
+          <i class="fa-regular fa-bell"></i>
+
+          <span></span>
+
+        </div>
+
+
+        <div class="doctor-info">
+
+          <div>
+
+            <strong id="doctorName">
+              Bác sĩ
+            </strong>
+
+            <small>
+              Bác sĩ điều trị
+            </small>
+
+          </div>
+
+
+          <div class="avatar"
+               id="doctorAvatar">
+
+            BS
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- ================= CONTENT ================= -->
+    <section class="content">
+
+
+      <!-- BREADCRUMB -->
+      <div class="breadcrumb">
+
+        Khám bệnh
+
+        <i class="fa-solid fa-chevron-right"></i>
+
+        <strong>
+          Danh sách chờ khám
+        </strong>
+
+      </div>
+
+
+      <!-- ================= PAGE TITLE ================= -->
+      <div class="page-title">
+
+        <div>
+
+          <h1>
+            Danh sách bệnh nhân chờ khám
+          </h1>
+
+          <p>
+            Theo dõi và thực hiện khám cho các bệnh nhân
+            đã được tiếp nhận trong ngày
+          </p>
+
+        </div>
+
+
+        <button id="btnRefresh"
+                type="button"
+                class="btn btn-outline">
+
+          <i class="fa-solid fa-rotate-right"></i>
+
+          Làm mới danh sách
+
+        </button>
+
+      </div>
+
+
+      <!-- ================= STATISTICS ================= -->
+      <div class="statistics">
+
+
+        <!-- CHỜ KHÁM -->
+        <div class="stat-card">
+
+          <div>
+
+            <span>
+              BỆNH NHÂN CHỜ KHÁM
+            </span>
+
+            <strong id="waitingCount">
+              0
+            </strong>
+
+            <small>
+              Đã được tiếp nhận
+            </small>
+
+          </div>
+
+
+          <div class="stat-icon orange">
+
+            <i class="fa-regular fa-clock"></i>
+
+          </div>
+
+        </div>
+
+
+        <!-- ĐANG KHÁM -->
+        <div class="stat-card">
+
+          <div>
+
+            <span>
+              ĐANG KHÁM
+            </span>
+
+            <strong id="examiningCount">
+              0
+            </strong>
+
+            <small>
+              Hồ sơ đang xử lý
+            </small>
+
+          </div>
+
+
+          <div class="stat-icon blue">
+
+            <i class="fa-solid fa-stethoscope"></i>
+
+          </div>
+
+        </div>
+
+
+        <!-- ĐÃ HOÀN THÀNH -->
+        <div class="stat-card">
+
+          <div>
+
+            <span>
+              ĐÃ HOÀN THÀNH
+            </span>
+
+            <strong id="completedCount">
+              0
+            </strong>
+
+            <small>
+              Trong ngày hôm nay
+            </small>
+
+          </div>
+
+
+          <div class="stat-icon green">
+
+            <i class="fa-solid fa-check"></i>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= TABLE CARD ================= -->
+      <div class="card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h2>
+
+              <i class="fa-solid fa-list"></i>
+
+              Hàng đợi khám hôm nay
+
+            </h2>
+
+
+            <p>
+              Danh sách bệnh nhân đã tiếp nhận
+              và đang chờ bác sĩ khám
+            </p>
+
+          </div>
+
+
+          <div class="today">
+
+            <i class="fa-regular fa-calendar"></i>
+
+            <span id="currentDate"></span>
+
+          </div>
+
+        </div>
+
+
+        <!-- SEARCH -->
+        <div class="table-tools">
+
+          <div class="search-box">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+                    id="patientSearch"
+                    type="text"
+                    placeholder="Tìm mã bệnh nhân, họ tên..."
+            >
+
+          </div>
+
+        </div>
+
+
+        <!-- ================= TABLE ================= -->
+        <div class="table-container">
+
+          <table>
+
+            <thead>
+
+            <tr>
+
+              <th>STT</th>
+
+              <th>BỆNH NHÂN</th>
+
+              <th>NGÀY SINH</th>
+
+              <th>GIỚI TÍNH</th>
+
+              <th>GIỜ KHÁM</th>
+
+              <th>LÝ DO KHÁM</th>
+
+              <th>TRẠNG THÁI</th>
+
+              <th>THAO TÁC</th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody id="patientTableBody">
+            </tbody>
+
+          </table>
+
+
+          <!-- LOADING -->
+          <div id="loadingState"
+               class="state">
+
+            <div class="spinner"></div>
+
+            Đang tải danh sách bệnh nhân...
+
+          </div>
+
+
+          <!-- EMPTY -->
+          <div id="emptyState"
+               class="state hidden">
+
+            <i class="fa-regular fa-calendar-check empty-icon"></i>
+
+            <strong>
+              Không có bệnh nhân đang chờ
+            </strong>
+
+            <span>
+              Hiện tại chưa có bệnh nhân trong hàng đợi.
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+        <div class="table-footer">
+
+          Tổng cộng:
+
+          <strong id="totalPatients">
+            0
+          </strong>
+
+          bệnh nhân
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- MODAL KHÁM BỆNH -->
+<!-- ================================================= -->
+
+<div id="examModal"
+     class="modal-overlay hidden">
+
+  <div class="modal">
+
+
+    <!-- ================= HEADER MODAL ================= -->
+    <div class="modal-header">
+
+      <div>
+
+        <span>
+          KHÁM BỆNH
+        </span>
+
+        <h2>
+          Hồ sơ khám bệnh
+        </h2>
+
+      </div>
+
+
+      <button id="btnCloseModal"
+              type="button">
+
+        <i class="fa-solid fa-xmark"></i>
+
+      </button>
+
+    </div>
+
+
+    <!-- ================= THÔNG TIN BỆNH NHÂN ================= -->
+    <div class="patient-card">
+
+      <div class="patient-avatar">
+
+        <i class="fa-regular fa-user"></i>
+
+      </div>
+
+
+      <div class="patient-info">
+
+        <h3 id="modalPatientName">
+          ---
+        </h3>
+
+
+        <div>
+
+          <span>
+
+            Mã BN:
+
+            <strong id="modalPatientId">
+              ---
+            </strong>
+
+          </span>
+
+
+          <span>
+
+            Ngày sinh:
+
+            <strong id="modalBirthDate">
+              ---
+            </strong>
+
+          </span>
+
+
+          <span>
+
+            Giới tính:
+
+            <strong id="modalGender">
+              ---
+            </strong>
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <span id="modalStatus"
+            class="badge badge-blue">
+
+        Đang khám
+
+      </span>
+
+    </div>
+
+
+    <!-- ================= FORM KHÁM ================= -->
+    <div class="exam-card">
+
+      <div class="section-title">
+
+        <div class="section-icon">
+
+          <i class="fa-solid fa-notes-medical"></i>
+
+        </div>
+
+
+        <div>
+
+          <h3>
+            Thông tin khám bệnh
+          </h3>
+
+          <p>
+            Nhập thông tin chẩn đoán và điều trị
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <form id="examForm">
+
+
+        <!-- TRIỆU CHỨNG -->
+        <div class="form-group">
+
+          <label for="trieuChung">
+            Triệu chứng
+          </label>
+
+          <textarea
+                  id="trieuChung"
+                  rows="3"
+                  placeholder="Nhập triệu chứng..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- CHẨN ĐOÁN -->
+        <div class="form-group">
+
+          <label for="chanDoan">
+            Chẩn đoán
+          </label>
+
+          <textarea
+                  id="chanDoan"
+                  rows="3"
+                  placeholder="Nhập chẩn đoán..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- KẾT LUẬN -->
+        <div class="form-group">
+
+          <label for="ketLuan">
+            Kết luận
+          </label>
+
+          <textarea
+                  id="ketLuan"
+                  rows="3"
+                  placeholder="Nhập kết luận..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- HƯỚNG ĐIỀU TRỊ -->
+        <div class="form-group">
+
+          <label for="huongDieuTri">
+            Hướng điều trị
+          </label>
+
+          <textarea
+                  id="huongDieuTri"
+                  rows="3"
+                  placeholder="Nhập hướng điều trị..."
+          ></textarea>
+
+        </div>
+
+
+        <!-- TÁI KHÁM -->
+        <div class="form-row">
+
+
+          <div class="form-group">
+
+            <label for="ngayTaiKham">
+              Ngày tái khám
+            </label>
+
+            <input
+                    id="ngayTaiKham"
+                    type="date"
+            >
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="ghiChuTaiKham">
+              Ghi chú tái khám
+            </label>
+
+            <input
+                    id="ghiChuTaiKham"
+                    type="text"
+                    placeholder="Nhập ghi chú..."
+            >
+
+          </div>
+
+        </div>
+
+      </form>
+
+    </div>
+
+
+    <!-- ================= FOOTER ================= -->
+    <div class="modal-footer">
+
+      <button
+              id="btnCancelExam"
+              type="button"
+              class="btn btn-outline">
+
+        Đóng
+
+      </button>
+
+
+      <button
+              id="btnSaveMedicalRecord"
+              type="button"
+              class="btn btn-light-blue">
+
+        <i class="fa-regular fa-floppy-disk"></i>
+
+        Lưu hồ sơ
+
+      </button>
+
+
+      <button
+              id="btnCompleteExam"
+              type="button"
+              class="btn btn-primary">
+
+        <i class="fa-solid fa-check"></i>
+
+        Hoàn tất khám
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ================= TOAST ================= -->
+
+<div id="toast"
+     class="toast hidden">
+
+  <div id="toastIcon"
+       class="toast-icon">
+
+    <i class="fa-solid fa-check"></i>
+
+  </div>
+
+
+  <div>
+
+    <strong id="toastTitle">
+      Thành công
+    </strong>
+
+    <span id="toastMessage"></span>
+
+  </div>
+
+</div>
+
+
+<script src="/Js/BacSi/bacsi-khambenh.js"></script>
+
+</body>
+</html>
