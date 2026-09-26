@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Tiếp Nhận - MedCare Hospital</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+        --primary: #4F46E5;
+        --primary-light: #EEF2FF;
+        --sidebar-width: 260px;
+        --text-dark: #1E293B;
+        --text-muted: #64748B;
+    }
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background-color: #F8FAFC;
+        color: var(--text-dark);
+        margin: 0;
+        padding: 0;
+    }
+    .sidebar {
+        width: var(--sidebar-width);
+        min-height: 100vh;
+        background: #FFFFFF;
+        border-right: 1px solid #E2E8F0;
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        z-index: 100;
+    }
+    .sidebar-brand {
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid #F1F5F9;
+    }
+    .sidebar-brand i {
+        font-size: 26px;
+        color: var(--primary);
+    }
+    .sidebar-brand h5 {
+        margin: 0;
+        font-weight: 700;
+        color: var(--primary);
+        letter-spacing: -0.5px;
+    }
+    .nav-menu {
+        padding: 16px 12px;
+    }
+    .nav-item-link {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        color: var(--text-muted);
+        text-decoration: none;
+        margin-bottom: 6px;
+        transition: all 0.2s;
+    }
+    .nav-item-link:hover, .nav-item-link.active {
+        color: var(--primary);
+        background-color: var(--primary-light);
+    }
+    .nav-item-link i {
+        font-size: 18px;
+    }
+    .user-footer {
+        padding: 16px 20px;
+        border-top: 1px solid #E2E8F0;
+    }
+    .main-container {
+        margin-left: var(--sidebar-width);
+        padding: 30px;
+    }
+    .stat-card {
+        background: #FFFFFF;
+        border-radius: 14px;
+        border: 1px solid #E2E8F0;
+        padding: 20px;
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .table-custom {
+        background: #FFFFFF;
+        border-radius: 14px;
+        border: 1px solid #E2E8F0;
+        overflow: hidden;
+    }
+    .table-custom th {
+        background-color: #F8FAFC;
+        font-weight: 600;
+        color: var(--text-muted);
+        padding: 14px 16px;
+        border-bottom: 1px solid #E2E8F0;
+    }
+    .table-custom td {
+        padding: 14px 16px;
+        vertical-align: middle;
+        border-bottom: 1px solid #F1F5F9;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div>
+    <div class="sidebar-brand">
+      <i class="fa-solid fa-hospital"></i>
+      <div>
+        <h5>MedCare Hospital</h5>
+        <small class="text-muted" style="font-size: 11px;">Phân hệ Tiếp Nhận</small>
+      </div>
+    </div>
+    <div class="nav-menu">
+      <a href="/TiepNhan/dashboard" class="nav-item-link active">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>Tổng quan tiếp đón</span>
+      </a>
+      <a href="/TiepNhan/checkin" class="nav-item-link">
+        <i class="fa-solid fa-address-card"></i>
+        <span>Tiếp nhận & Cấp STT</span>
+      </a>
+      <a href="/TiepNhan/patients" class="nav-item-link">
+        <i class="fa-solid fa-users"></i>
+        <span>Tra cứu hồ sơ bệnh nhân</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="user-footer d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-weight: 600;">
+        TN
+      </div>
+      <div>
+        <div class="fw-semibold small">Nhân viên tiếp nhận</div>
+        <div class="text-muted" style="font-size: 11px;">tiepnhan@medcare.vn</div>
+      </div>
+    </div>
+    <a href="/auth/login" class="text-danger" title="Đăng xuất">
+      <i class="fa-solid fa-right-from-bracket fs-5"></i>
+    </a>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h3 class="fw-bold mb-1">Bàn Tiếp Đón & Phân Tuyến Bệnh Nhân</h3>
+      <p class="text-muted mb-0">Theo dõi lưu lượng bệnh nhân và tiến độ cấp phát số thứ tự khám</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/TiepNhan/checkin" class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2" style="background-color: var(--primary); border: none;">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>Tiếp nhận bệnh nhân mới</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small fw-medium">TỔNG TIẾP NHẬN HÔM NAY</span>
+            <h2 class="fw-bold mt-2 mb-0">142</h2>
+          </div>
+          <div class="stat-icon bg-primary-subtle text-primary">
+            <i class="fa-solid fa-hospital-user"></i>
+          </div>
+        </div>
+        <div class="small text-success mt-2">
+          <i class="fa-solid fa-arrow-trend-up"></i> +12% so với hôm qua
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small fw-medium">ĐANG CHỜ GỌI KHÁM</span>
+            <h2 class="fw-bold mt-2 mb-0 text-warning">28</h2>
+          </div>
+          <div class="stat-icon bg-warning-subtle text-warning">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+        </div>
+        <div class="small text-muted mt-2">
+          Tại sảnh tiếp đón tầng 1
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small fw-medium">ĐANG KHÁM TẠI PHÒNG</span>
+            <h2 class="fw-bold mt-2 mb-0 text-info">16</h2>
+          </div>
+          <div class="stat-icon bg-info-subtle text-info">
+            <i class="fa-solid fa-stethoscope"></i>
+          </div>
+        </div>
+        <div class="small text-muted mt-2">
+          12 buồng khám đang mở
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-3">
+      <div class="stat-card">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <span class="text-muted small fw-medium">ĐÃ HOÀN THÀNH</span>
+            <h2 class="fw-bold mt-2 mb-0 text-success">98</h2>
+          </div>
+          <div class="stat-icon bg-success-subtle text-success">
+            <i class="fa-solid fa-check-circle"></i>
+          </div>
+        </div>
+        <div class="small text-muted mt-2">
+          Đã thanh toán & cấp phát thuốc
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bảng danh sách hàng đợi gần nhất -->
+  <div class="table-custom p-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold m-0"><i class="fa-solid fa-list-ol text-primary me-2"></i>Danh sách số thứ tự tiếp đón gần nhất</h5>
+      <span class="badge bg-light text-dark border">Cập nhật theo thời gian thực</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+        <tr>
+          <th>STT</th>
+          <th>Mã Bệnh Nhân</th>
+          <th>Họ và Tên</th>
+          <th>Thời gian cấp</th>
+          <th>Chuyên khoa khám</th>
+          <th>Phòng phân bổ</th>
+          <th>Trạng thái</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td><span class="badge bg-primary fs-6 px-3 py-1">042</span></td>
+          <td>BN-2026-00142</td>
+          <td class="fw-semibold">Nguyễn Thị Mai</td>
+          <td>08:15:20</td>
+          <td>Khoa Nội Tim Mạch</td>
+          <td>Phòng 102 - P. Khám Nội</td>
+          <td><span class="badge bg-warning text-dark">Chờ gọi tên</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge bg-primary fs-6 px-3 py-1">041</span></td>
+          <td>BN-2026-00141</td>
+          <td class="fw-semibold">Trần Văn Bình</td>
+          <td>08:12:05</td>
+          <td>Khoa Tai Mũi Họng</td>
+          <td>Phòng 204 - P. Khám TMH</td>
+          <td><span class="badge bg-info text-dark">Đang vào khám</span></td>
+        </tr>
+        <tr>
+          <td><span class="badge bg-secondary fs-6 px-3 py-1">040</span></td>
+          <td>BN-2026-00140</td>
+          <td class="fw-semibold">Lê Hoàng Nam</td>
+          <td>08:08:44</td>
+          <td>Khoa Chấn Thương</td>
+          <td>Phòng 105 - Ngoại Chấn Thương</td>
+          <td><span class="badge bg-success">Đã hoàn thành</span></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
