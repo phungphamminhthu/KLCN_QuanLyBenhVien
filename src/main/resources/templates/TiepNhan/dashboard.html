@@ -3,306 +3,1257 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Tiếp Nhận - MedCare Hospital</title>
+  <title>Dashboard Tiếp Nhận - BỆNH VIỆN ABC</title>
+  <!-- Google Font: Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Font Awesome Icons -->
+  <!-- Font Awesome Free 6 -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     :root {
         --primary: #4F46E5;
-        --primary-light: #EEF2FF;
-        --sidebar-width: 260px;
-        --text-dark: #1E293B;
-        --text-muted: #64748B;
+        --primary-soft: #EEF2FF;
+        --sidebar-w: 240px;
+        --bg-body: #F4F6FB;
+        --text-title: #1E293B;
+        --text-sub: #64748B;
+        --border-color: #E2E8F0;
     }
+
+    * {
+        box-sizing: border-box;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
     body {
-        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        background-color: #F8FAFC;
-        color: var(--text-dark);
+        background-color: var(--bg-body);
+        color: var(--text-title);
         margin: 0;
         padding: 0;
+        font-size: 13px;
     }
+
+    /* ===== SIDEBAR ===== */
     .sidebar {
-        width: var(--sidebar-width);
+        width: var(--sidebar-w);
         min-height: 100vh;
         background: #FFFFFF;
-        border-right: 1px solid #E2E8F0;
+        border-right: 1px solid var(--border-color);
         position: fixed;
         top: 0;
         left: 0;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        z-index: 100;
+        z-index: 1000;
     }
-    .sidebar-brand {
-        padding: 24px;
+
+    .brand-section {
+        padding: 20px 16px 14px;
         display: flex;
         align-items: center;
         gap: 12px;
-        border-bottom: 1px solid #F1F5F9;
     }
-    .sidebar-brand i {
-        font-size: 26px;
-        color: var(--primary);
-    }
-    .sidebar-brand h5 {
-        margin: 0;
-        font-weight: 700;
-        color: var(--primary);
-        letter-spacing: -0.5px;
-    }
-    .nav-menu {
-        padding: 16px 12px;
-    }
-    .nav-item-link {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-weight: 500;
-        color: var(--text-muted);
-        text-decoration: none;
-        margin-bottom: 6px;
-        transition: all 0.2s;
-    }
-    .nav-item-link:hover, .nav-item-link.active {
-        color: var(--primary);
-        background-color: var(--primary-light);
-    }
-    .nav-item-link i {
-        font-size: 18px;
-    }
-    .user-footer {
-        padding: 16px 20px;
-        border-top: 1px solid #E2E8F0;
-    }
-    .main-container {
-        margin-left: var(--sidebar-width);
-        padding: 30px;
-    }
-    .stat-card {
-        background: #FFFFFF;
-        border-radius: 14px;
-        border: 1px solid #E2E8F0;
-        padding: 20px;
-        transition: transform 0.2s;
-    }
-    .stat-card:hover {
-        transform: translateY(-2px);
-    }
-    .stat-icon {
-        width: 48px;
-        height: 48px;
-        border-radius: 10px;
+
+    .brand-logo-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background-color: var(--primary);
+        color: #fff;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 20px;
+        font-weight: 800;
+        flex-shrink: 0;
     }
-    .table-custom {
+
+    .brand-title {
+        font-size: 14.5px;
+        font-weight: 800;
+        color: var(--primary);
+        margin: 0;
+        line-height: 1.2;
+        letter-spacing: -0.2px;
+    }
+
+    .brand-sub {
+        font-size: 10px;
+        color: var(--text-sub);
+        margin: 0;
+    }
+
+    .sidebar-menu {
+        padding: 0 12px;
+    }
+
+    /* Tiêu đề nhóm menu: Trở về màu xám đen trung tính, icon xám */
+    .nav-group-title {
+        padding: 12px 10px 4px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1E293B;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .nav-group-title i {
+        color: #64748B;
+        font-size: 13px;
+    }
+
+    /* Menu chính (Dashboard, Hồ sơ cá nhân) */
+    .nav-item-main {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        color: #475569;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+        margin-bottom: 2px;
+        transition: all 0.15s;
+    }
+
+    .nav-item-main:hover {
+        color: var(--primary);
+        background-color: var(--primary-soft);
+    }
+
+    .nav-item-main.active {
+        color: var(--primary);
+        background-color: var(--primary-soft);
+        font-weight: 700;
+    }
+
+    .nav-item-main.active i {
+        color: var(--primary);
+    }
+
+    /* Menu phụ bên trong nhóm */
+    .nav-item-sub {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 12px 7px 30px;
+        color: var(--text-sub);
+        text-decoration: none;
+        font-size: 12.5px;
+        font-weight: 500;
+        border-radius: 6px;
+        margin-bottom: 1px;
+        transition: all 0.15s;
+    }
+
+    .nav-item-sub:hover {
+        color: var(--primary);
+        background-color: var(--primary-soft);
+    }
+
+    .nav-item-sub.active {
+        color: var(--primary);
+        font-weight: 700;
+        background-color: var(--primary-soft);
+    }
+
+    .sidebar-logout {
+        padding: 16px 20px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .sidebar-logout a {
+        color: #64748B;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .main-wrapper {
+        margin-left: var(--sidebar-w);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .topbar {
+        height: 60px;
+        background: #FFFFFF;
+        border-bottom: 1px solid var(--border-color);
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .search-container {
+        width: 400px;
+        position: relative;
+    }
+
+    .search-container input {
+        width: 100%;
+        height: 38px;
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 20px;
+        padding-left: 36px;
+        padding-right: 16px;
+        font-size: 12px;
+        outline: none;
+    }
+
+    .search-container i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94A3B8;
+        font-size: 13px;
+    }
+
+    .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .bell-box {
+        position: relative;
+        cursor: pointer;
+        color: #64748B;
+        font-size: 16px;
+    }
+
+    .bell-dot {
+        width: 7px;
+        height: 7px;
+        background-color: #EF4444;
+        border-radius: 50%;
+        position: absolute;
+        top: -2px;
+        right: -2px;
+        border: 1.5px solid #fff;
+    }
+
+    .user-profile {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #E2E8F0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #64748B;
+        font-size: 18px;
+    }
+
+    /* CONTENT AREA */
+    .page-content {
+        padding: 20px 24px;
+    }
+
+    .header-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .dashboard-heading {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0F172A;
+        margin: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .btn-header {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        padding: 6px 12px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+
+    /* 6 MINI KPI STAT CARDS */
+    .kpi-card {
+        background: #FFFFFF;
+        border-radius: 12px;
+        border: 1px solid #EDF2F7;
+        padding: 14px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 94px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .kpi-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .kpi-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #475569;
+        line-height: 1.25;
+        max-width: 80px;
+    }
+
+    .kpi-icon-pill {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+    }
+
+    .kpi-value {
+        font-size: 22px;
+        font-weight: 800;
+        color: #0F172A;
+        margin: 0;
+        line-height: 1;
+    }
+
+    /* CARD CONTAINERS */
+    .content-card {
         background: #FFFFFF;
         border-radius: 14px;
         border: 1px solid #E2E8F0;
-        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        padding: 16px 18px;
+        margin-bottom: 20px;
     }
+
+    .content-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .header-with-icon {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .icon-circle-header {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+
+    .filter-select {
+        font-size: 11.5px;
+        padding: 4px 10px;
+        border-radius: 7px;
+        border: 1px solid #CBD5E1;
+        color: #475569;
+        background-color: #fff;
+        outline: none;
+    }
+
+    /* ===== BẢNG HÀNG ĐỢI: KHÔNG BỊ SCROLL NGANG ===== */
+    .table-responsive-custom {
+        width: 100%;
+        overflow-x: hidden;
+    }
+
+    .table-custom {
+        width: 100%;
+        table-layout: fixed;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
     .table-custom th {
         background-color: #F8FAFC;
-        font-weight: 600;
-        color: var(--text-muted);
-        padding: 14px 16px;
+        color: #64748B;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 8px 4px;
+        border-top: 1px solid #E2E8F0;
         border-bottom: 1px solid #E2E8F0;
+        text-align: left;
     }
+
     .table-custom td {
-        padding: 14px 16px;
-        vertical-align: middle;
+        padding: 8px 4px;
         border-bottom: 1px solid #F1F5F9;
+        font-size: 11px;
+        vertical-align: middle;
+        color: #334155;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .badge-stt-purple {
+        background-color: #4F46E5;
+        color: #fff;
+        font-weight: 700;
+        font-size: 10.5px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        display: inline-block;
+    }
+
+    .avatar-initial {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 10px;
+        margin-right: 6px;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 3px 6px;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+
+    .btn-action-call-compact {
+        background-color: #4F46E5;
+        color: #fff;
+        border: none;
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 3px 6px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .btn-action-call-compact:hover { background-color: #4338CA; }
+
+    /* RIGHT PANEL: LỊCH KHÁM SẮP TỚI */
+    .schedule-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+
+    .schedule-stt-box {
+        background-color: #4F46E5;
+        color: #fff;
+        border-radius: 8px;
+        padding: 3px 6px;
+        text-align: center;
+        min-width: 40px;
+    }
+
+    .schedule-stt-box.gray {
+        background-color: #EEF2F6;
+        color: #475569;
+    }
+
+    .badge-status-green {
+        background: #DCFCE7;
+        color: #15803D;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 8px;
+    }
+
+    .badge-status-yellow {
+        background: #FEF3C7;
+        color: #B45309;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 8px;
+    }
+
+    /* DEPARTMENT PROGRESS CARDS */
+    .dept-card {
+        background: #FFFFFF;
+        border: 1px solid #EDF2F7;
+        border-radius: 10px;
+        padding: 10px 12px;
+        flex: 1;
+    }
+
+    /* TIMELINE ACTIVITY */
+    .timeline-item {
+        position: relative;
+        padding-left: 18px;
+        padding-bottom: 14px;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 4px;
+        top: 8px;
+        bottom: -4px;
+        width: 2px;
+        background: #E2E8F0;
+    }
+
+    .timeline-item:last-child::before {
+        display: none;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 4px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
     }
   </style>
 </head>
 <body>
 
-<!-- Sidebar -->
+<!-- ===== 1. SIDEBAR BÊN TRÁI ===== -->
 <div class="sidebar">
   <div>
-    <div class="sidebar-brand">
-      <i class="fa-solid fa-hospital"></i>
+    <!-- Brand -->
+    <div class="brand-section">
+      <div class="brand-logo-icon">
+        <i class="fa-solid fa-plus"></i>
+      </div>
       <div>
-        <h5>MedCare Hospital</h5>
-        <small class="text-muted" style="font-size: 11px;">Phân hệ Tiếp Nhận</small>
+        <h6 class="brand-title">BỆNH VIỆN ABC</h6>
+        <p class="brand-sub">Vì sức khỏe cộng đồng</p>
       </div>
     </div>
-    <div class="nav-menu">
-      <a href="/TiepNhan/dashboard" class="nav-item-link active">
-        <i class="fa-solid fa-chart-pie"></i>
-        <span>Tổng quan tiếp đón</span>
+
+    <!-- Menu items gom trong class sidebar-menu để thẳng hàng 100% -->
+    <div class="sidebar-menu">
+      <!-- Dashboard Link: Thẳng hàng với các ô bên dưới -->
+      <a href="/TiepNhan/dashboard" class="nav-item-main active">
+        <i class="fa-solid fa-house" style="font-size: 14px;"></i>
+        <span>Dashboard</span>
       </a>
-      <a href="/TiepNhan/checkin" class="nav-item-link">
-        <i class="fa-solid fa-address-card"></i>
-        <span>Tiếp nhận & Cấp STT</span>
+
+      <!-- Nhóm Tiếp nhận (Màu chữ trung tính chuẩn) -->
+      <div class="nav-group-title">
+        <i class="fa-solid fa-user-group"></i>
+        <span>Tiếp nhận</span>
+      </div>
+      <a href="/TiepNhan/checkin" class="nav-item-sub">
+        <i class="fa-solid fa-plus" style="font-size: 10px;"></i>
+        <span>Tiếp nhận bệnh nhân</span>
       </a>
-      <a href="/TiepNhan/patients" class="nav-item-link">
-        <i class="fa-solid fa-users"></i>
-        <span>Tra cứu hồ sơ bệnh nhân</span>
+      <a href="/TiepNhan/patients" class="nav-item-sub">
+        <i class="fa-solid fa-magnifying-glass" style="font-size: 10px;"></i>
+        <span>Tra cứu bệnh nhân</span>
       </a>
+
+      <!-- Nhóm Đặt lịch khám -->
+      <div class="nav-group-title">
+        <i class="fa-regular fa-calendar-check"></i>
+        <span>Đặt lịch khám</span>
+      </div>
+      <a href="javascript:void(0)" class="nav-item-sub">
+        <i class="fa-solid fa-bars" style="font-size: 10px;"></i>
+        <span>Danh sách lịch khám</span>
+      </a>
+
+      <!-- Nhóm Hàng đợi -->
+      <div class="nav-group-title">
+        <i class="fa-solid fa-list-ol"></i>
+        <span>Hàng đợi</span>
+      </div>
+      <a href="javascript:void(0)" class="nav-item-sub">
+        <i class="fa-solid fa-clock-rotate-left" style="font-size: 10px;"></i>
+        <span>Quản lý hàng đợi</span>
+      </a>
+
+      <!-- Nhóm Thanh toán -->
+      <div class="nav-group-title">
+        <i class="fa-regular fa-credit-card"></i>
+        <span>Thanh toán</span>
+      </div>
+      <a href="javascript:void(0)" class="nav-item-sub">
+        <i class="fa-regular fa-circle-check" style="font-size: 10px;"></i>
+        <span>Thanh toán</span>
+      </a>
+      <a href="javascript:void(0)" class="nav-item-sub">
+        <i class="fa-solid fa-clock-rotate-left" style="font-size: 10px;"></i>
+        <span>Lịch sử thanh toán</span>
+      </a>
+
+      <!-- Nhóm Lịch sử -->
+      <div class="nav-group-title">
+        <i class="fa-regular fa-folder"></i>
+        <span>Lịch sử</span>
+      </div>
+      <a href="javascript:void(0)" class="nav-item-sub">
+        <i class="fa-regular fa-clock" style="font-size: 10px;"></i>
+        <span>Lịch sử tiếp nhận</span>
+      </a>
+
+      <!-- Nhóm Hồ sơ cá nhân -->
+      <div class="pt-2">
+        <a href="javascript:void(0)" class="nav-item-main">
+          <i class="fa-regular fa-user" style="font-size: 14px;"></i>
+          <span>Hồ sơ cá nhân</span>
+        </a>
+      </div>
     </div>
   </div>
 
-  <div class="user-footer d-flex justify-content-between align-items-center">
-    <div class="d-flex align-items-center gap-2">
-      <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-weight: 600;">
-        TN
-      </div>
-      <div>
-        <div class="fw-semibold small">Nhân viên tiếp nhận</div>
-        <div class="text-muted" style="font-size: 11px;">tiepnhan@medcare.vn</div>
-      </div>
-    </div>
-    <a href="/auth/login" class="text-danger" title="Đăng xuất">
-      <i class="fa-solid fa-right-from-bracket fs-5"></i>
+  <!-- Đăng xuất -->
+  <div class="sidebar-logout">
+    <a href="/auth/login" class="text-muted">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      <span>Đăng xuất</span>
     </a>
   </div>
 </div>
 
-<!-- Main Content -->
-<div class="main-container">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-      <h3 class="fw-bold mb-1">Bàn Tiếp Đón & Phân Tuyến Bệnh Nhân</h3>
-      <p class="text-muted mb-0">Theo dõi lưu lượng bệnh nhân và tiến độ cấp phát số thứ tự khám</p>
+<!-- ===== 2. KHU VỰC NỘI DUNG CHÍNH ===== -->
+<div class="main-wrapper">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="search-container">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" placeholder="Tìm kiếm bệnh nhân, mã lịch, mã hồ sơ...">
     </div>
-    <div class="d-flex gap-2">
-      <a href="/TiepNhan/checkin" class="btn btn-primary d-flex align-items-center gap-2 px-3 py-2" style="background-color: var(--primary); border: none;">
-        <i class="fa-solid fa-user-plus"></i>
-        <span>Tiếp nhận bệnh nhân mới</span>
-      </a>
-    </div>
-  </div>
-
-  <!-- 4 Stat Cards -->
-  <div class="row g-3 mb-4">
-    <div class="col-12 col-md-3">
-      <div class="stat-card">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-muted small fw-medium">TỔNG TIẾP NHẬN HÔM NAY</span>
-            <h2 class="fw-bold mt-2 mb-0">142</h2>
-          </div>
-          <div class="stat-icon bg-primary-subtle text-primary">
-            <i class="fa-solid fa-hospital-user"></i>
-          </div>
-        </div>
-        <div class="small text-success mt-2">
-          <i class="fa-solid fa-arrow-trend-up"></i> +12% so với hôm qua
-        </div>
+    <div class="topbar-right">
+      <div class="bell-box">
+        <i class="fa-regular fa-bell"></i>
+        <span class="bell-dot"></span>
       </div>
-    </div>
-    <div class="col-12 col-md-3">
-      <div class="stat-card">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-muted small fw-medium">ĐANG CHỜ GỌI KHÁM</span>
-            <h2 class="fw-bold mt-2 mb-0 text-warning">28</h2>
-          </div>
-          <div class="stat-icon bg-warning-subtle text-warning">
-            <i class="fa-solid fa-clock"></i>
-          </div>
+      <div class="user-profile">
+        <div class="user-avatar">
+          <i class="fa-regular fa-user"></i>
         </div>
-        <div class="small text-muted mt-2">
-          Tại sảnh tiếp đón tầng 1
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-3">
-      <div class="stat-card">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-muted small fw-medium">ĐANG KHÁM TẠI PHÒNG</span>
-            <h2 class="fw-bold mt-2 mb-0 text-info">16</h2>
-          </div>
-          <div class="stat-icon bg-info-subtle text-info">
-            <i class="fa-solid fa-stethoscope"></i>
-          </div>
-        </div>
-        <div class="small text-muted mt-2">
-          12 buồng khám đang mở
-        </div>
-      </div>
-    </div>
-    <div class="col-12 col-md-3">
-      <div class="stat-card">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-muted small fw-medium">ĐÃ HOÀN THÀNH</span>
-            <h2 class="fw-bold mt-2 mb-0 text-success">98</h2>
-          </div>
-          <div class="stat-icon bg-success-subtle text-success">
-            <i class="fa-solid fa-check-circle"></i>
-          </div>
-        </div>
-        <div class="small text-muted mt-2">
-          Đã thanh toán & cấp phát thuốc
+        <div style="line-height: 1.2;">
+          <div class="fw-bold" style="font-size: 13px;">Nguyễn Thị Lan</div>
+          <div class="text-muted" style="font-size: 11px;">Nhân viên tiếp nhận</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Bảng danh sách hàng đợi gần nhất -->
-  <div class="table-custom p-4 mb-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h5 class="fw-bold m-0"><i class="fa-solid fa-list-ol text-primary me-2"></i>Danh sách số thứ tự tiếp đón gần nhất</h5>
-      <span class="badge bg-light text-dark border">Cập nhật theo thời gian thực</span>
+  <!-- Page Content -->
+  <div class="page-content">
+    <!-- Header Row -->
+    <div class="header-title-row">
+      <h4 class="dashboard-heading">Dashboard</h4>
+      <div class="header-actions">
+        <div class="btn-header">
+          <i class="fa-regular fa-calendar text-primary"></i>
+          <span id="header-date-display">Đang cập nhật ngày...</span>
+        </div>
+        <button class="btn-header" onclick="loadDashboardRealData();">
+          <i class="fa-solid fa-arrows-rotate text-primary"></i>
+          <span>Làm mới dữ liệu</span>
+        </button>
+      </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-        <tr>
-          <th>STT</th>
-          <th>Mã Bệnh Nhân</th>
-          <th>Họ và Tên</th>
-          <th>Thời gian cấp</th>
-          <th>Chuyên khoa khám</th>
-          <th>Phòng phân bổ</th>
-          <th>Trạng thái</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td><span class="badge bg-primary fs-6 px-3 py-1">042</span></td>
-          <td>BN-2026-00142</td>
-          <td class="fw-semibold">Nguyễn Thị Mai</td>
-          <td>08:15:20</td>
-          <td>Khoa Nội Tim Mạch</td>
-          <td>Phòng 102 - P. Khám Nội</td>
-          <td><span class="badge bg-warning text-dark">Chờ gọi tên</span></td>
-        </tr>
-        <tr>
-          <td><span class="badge bg-primary fs-6 px-3 py-1">041</span></td>
-          <td>BN-2026-00141</td>
-          <td class="fw-semibold">Trần Văn Bình</td>
-          <td>08:12:05</td>
-          <td>Khoa Tai Mũi Họng</td>
-          <td>Phòng 204 - P. Khám TMH</td>
-          <td><span class="badge bg-info text-dark">Đang vào khám</span></td>
-        </tr>
-        <tr>
-          <td><span class="badge bg-secondary fs-6 px-3 py-1">040</span></td>
-          <td>BN-2026-00140</td>
-          <td class="fw-semibold">Lê Hoàng Nam</td>
-          <td>08:08:44</td>
-          <td>Khoa Chấn Thương</td>
-          <td>Phòng 105 - Ngoại Chấn Thương</td>
-          <td><span class="badge bg-success">Đã hoàn thành</span></td>
-        </tr>
-        </tbody>
-      </table>
+
+    <!-- 6 Mini KPI Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-2">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Tổng BN hôm nay</span>
+            <div class="kpi-icon-pill" style="background: #EEF2FF; color: #4F46E5;">
+              <i class="fa-solid fa-user-group"></i>
+            </div>
+          </div>
+          <h3 class="kpi-value" id="kpi-tong-bn">0</h3>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Lịch hẹn hôm nay</span>
+            <div class="kpi-icon-pill" style="background: #F0FDF4; color: #16A34A;">
+              <i class="fa-regular fa-calendar-check"></i>
+            </div>
+          </div>
+          <h3 class="kpi-value" id="kpi-lich-hen">0</h3>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">BN đang chờ</span>
+            <div class="kpi-icon-pill" style="background: #FFFBEB; color: #D97706;">
+              <i class="fa-regular fa-hourglass-half"></i>
+            </div>
+          </div>
+          <h3 class="kpi-value" id="kpi-dang-cho">0</h3>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Đang trong phòng khám</span>
+            <div class="kpi-icon-pill" style="background: #F0FDFA; color: #0D9488;">
+              <i class="fa-solid fa-stethoscope"></i>
+            </div>
+          </div>
+          <h3 class="kpi-value" id="kpi-dang-kham">0</h3>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Chờ thanh toán</span>
+            <div class="kpi-icon-pill" style="background: #FEF2F2; color: #DC2626;">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+          </div>
+          <h3 class="kpi-value" id="kpi-cho-tt">0</h3>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <div class="kpi-card">
+          <div class="kpi-top">
+            <span class="kpi-label">Đã thanh toán</span>
+            <div class="kpi-icon-pill" style="background: #FAF5FF; color: #9333EA;">
+              <i class="fa-regular fa-circle-check"></i>
+            </div>
+          </div>
+          <h3 class="kpi-value" id="kpi-da-tt">0</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mid Section: Left Table + Right Next Schedule -->
+    <div class="row g-3 mb-4">
+      <!-- Bảng Hàng Đợi Khám Hiện Tại -->
+      <div class="col-lg-8 col-xl-8">
+        <div class="content-card h-100 mb-0">
+          <div class="content-card-header">
+            <div class="header-with-icon">
+              <div class="icon-circle-header" style="background: #EEF2FF; color: #4F46E5;">
+                <i class="fa-solid fa-hospital-user"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold m-0" style="font-size: 13.5px;">Hàng Đợi Khám Hiện Tại</h6>
+                <small class="text-muted" style="font-size: 10.5px;">Số thứ tự (STT) tự động sinh và hiển thị chỉ đọc</small>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <select class="filter-select">
+                <option>Tất cả phòng</option>
+                <option>P.101</option>
+                <option>P.102</option>
+                <option>P.201</option>
+              </select>
+              <select class="filter-select">
+                <option>Tất cả trạng thái</option>
+                <option>Chờ gọi vào</option>
+                <option>Đang khám</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive-custom">
+            <table class="table-custom">
+              <thead>
+              <tr>
+                <th style="width: 8%;">STT</th>
+                <th style="width: 14%;">MÃ BN</th>
+                <th style="width: 25%;">BỆNH NHÂN</th>
+                <th style="width: 19%;">KHOA & BS</th>
+                <th style="width: 9%; text-align: center;">PHÒNG</th>
+                <th style="width: 8%;">GIỜ</th>
+                <th style="width: 17%; text-align: center;">TRẠNG THÁI</th>
+              </tr>
+              </thead>
+              <tbody id="hang-doi-table-body">
+              <!-- Dữ liệu thực từ MySQL sẽ được nạp vào đây -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+            <span class="text-muted" id="table-record-count" style="font-size: 11px;">Đang tải danh sách hàng đợi...</span>
+            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none" style="font-size: 11.5px;">Xem toàn bộ &rarr;</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cột Lịch Khám Sắp Tới bên phải -->
+      <div class="col-lg-4 col-xl-4">
+        <div class="content-card h-100 mb-0">
+          <div class="content-card-header">
+            <div class="header-with-icon">
+              <div class="icon-circle-header" style="background: #EEF2FF; color: #4F46E5;">
+                <i class="fa-regular fa-calendar-days"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold m-0" style="font-size: 13.5px;">Lịch Khám Sắp Tới</h6>
+                <small class="text-muted" style="font-size: 10.5px;">STT đã cấp từ cổng đặt lịch</small>
+              </div>
+            </div>
+            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none" style="font-size: 11.5px;">Tất cả</a>
+          </div>
+
+          <div id="lich-kham-sap-toi-container">
+            <div class="schedule-item">
+              <div class="schedule-stt-box">
+                <div style="font-size: 8.5px; opacity: 0.85;">STT</div>
+                <div class="fw-bold" style="font-size: 12px;">#002</div>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold" style="font-size: 12px;">Phạm Văn Nam</span>
+                  <span class="badge-status-green">Đang khám</span>
+                </div>
+                <div class="text-muted mt-1" style="font-size: 10.5px;">
+                  <strong>08:30</strong> • BS.CKII Lê Hoàng Nam<br>
+                  Phòng khám Nội (P.101)
+                </div>
+              </div>
+            </div>
+
+            <div class="schedule-item">
+              <div class="schedule-stt-box gray">
+                <div style="font-size: 8.5px;">STT</div>
+                <div class="fw-bold" style="font-size: 12px;">#003</div>
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span class="fw-bold" style="font-size: 12px;">Phạm Văn Nam</span>
+                  <span class="badge-status-yellow">Chờ gọi vào</span>
+                </div>
+                <div class="text-muted mt-1" style="font-size: 10.5px;">
+                  <strong>09:00</strong> • BS.CKII Lê Hoàng Nam<br>
+                  Phòng khám Nội (P.101)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center text-muted mt-2" style="font-size: 10px; font-style: italic;">
+            * STT được cấp cố định từ thời điểm bệnh nhân hoàn tất đặt lịch.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section: Tình hình khoa + Hoạt động gần đây -->
+    <div class="row g-3">
+      <!-- Tình Hình Tiếp Nhận Theo Khoa Hôm Nay -->
+      <div class="col-lg-8">
+        <div class="content-card h-100 mb-0">
+          <div class="content-card-header">
+            <div class="header-with-icon">
+              <div class="icon-circle-header" style="background: #F0FDF4; color: #16A34A;">
+                <i class="fa-solid fa-chart-simple"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold m-0" style="font-size: 13.5px;">Tình Hình Tiếp Nhận Theo Khoa Hôm Nay</h6>
+                <small class="text-muted" style="font-size: 10.5px;">Thống kê ca tiếp nhận thực tế từ đầu ngày</small>
+              </div>
+            </div>
+            <button class="btn btn-light border py-1 px-2 text-muted" style="font-size: 10.5px;">Cập nhật mỗi 5 phút</button>
+          </div>
+
+          <div class="d-flex gap-2">
+            <!-- NỘI TỔNG QUÁT -->
+            <div class="dept-card">
+              <div class="d-flex justify-content-between">
+                <span class="fw-bold" style="font-size: 10.5px;">NỘI TỔNG QUÁT</span>
+                <span class="fw-bold text-primary fs-5">3</span>
+              </div>
+              <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar" style="width: 88%; background-color: #4F46E5;"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-2" style="font-size: 10px;">
+                <span class="text-muted">Công suất: 88%</span>
+                <span class="text-success fw-bold">Tốt</span>
+              </div>
+            </div>
+
+            <!-- TIM MẠCH -->
+            <div class="dept-card">
+              <div class="d-flex justify-content-between">
+                <span class="fw-bold" style="font-size: 10.5px;">TIM MẠCH</span>
+                <span class="fw-bold text-primary fs-5">0</span>
+              </div>
+              <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar" style="width: 20%; background-color: #4F46E5;"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-2" style="font-size: 10px;">
+                <span class="text-muted">Công suất: 20%</span>
+                <span class="text-primary fw-bold">Ổn định</span>
+              </div>
+            </div>
+
+            <!-- NHI KHOA -->
+            <div class="dept-card">
+              <div class="d-flex justify-content-between">
+                <span class="fw-bold" style="font-size: 10.5px;">NHI KHOA</span>
+                <span class="fw-bold text-warning fs-5">0</span>
+              </div>
+              <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar bg-warning" style="width: 10%;"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-2" style="font-size: 10px;">
+                <span class="text-muted">Công suất: 10%</span>
+                <span class="text-warning fw-bold">Bình thường</span>
+              </div>
+            </div>
+
+            <!-- SẢN PHỤ KHOA -->
+            <div class="dept-card">
+              <div class="d-flex justify-content-between">
+                <span class="fw-bold" style="font-size: 10.5px;">SẢN PHỤ KHOA</span>
+                <span class="fw-bold text-info fs-5">0</span>
+              </div>
+              <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar bg-info" style="width: 15%;"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-2" style="font-size: 10px;">
+                <span class="text-muted">Công suất: 15%</span>
+                <span class="text-info fw-bold">Ổn định</span>
+              </div>
+            </div>
+
+            <!-- TAI MŨI HỌNG -->
+            <div class="dept-card">
+              <div class="d-flex justify-content-between">
+                <span class="fw-bold" style="font-size: 10.5px;">TAI MŨI HỌNG</span>
+                <span class="fw-bold text-secondary fs-5">0</span>
+              </div>
+              <div class="progress mt-2" style="height: 5px;">
+                <div class="progress-bar bg-secondary" style="width: 10%;"></div>
+              </div>
+              <div class="d-flex justify-content-between mt-2" style="font-size: 10px;">
+                <span class="text-muted">Công suất: 10%</span>
+                <span class="text-secondary fw-bold">Thấp</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hoạt Động Gần Đây -->
+      <div class="col-lg-4">
+        <div class="content-card h-100 mb-0">
+          <div class="content-card-header mb-3">
+            <div class="header-with-icon">
+              <div class="icon-circle-header" style="background: #FFFBEB; color: #D97706;">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+              </div>
+              <div>
+                <h6 class="fw-bold m-0" style="font-size: 13.5px;">Hoạt Động Gần Đây</h6>
+                <small class="text-muted" style="font-size: 10.5px;">Nhật ký sự kiện tiếp nhận</small>
+              </div>
+            </div>
+            <span class="badge bg-success rounded-circle p-1"> </span>
+          </div>
+
+          <!-- Timeline Items -->
+          <div class="timeline-item">
+            <span class="timeline-dot bg-primary"></span>
+            <div style="font-size: 11.5px; line-height: 1.4;">
+              Đã tiếp nhận bệnh nhân <strong>Phạm Văn Nam</strong> vào hàng đợi <span class="badge bg-light text-primary border">STT #003</span>
+            </div>
+            <small class="text-muted" style="font-size: 10px;">
+              <i class="fa-regular fa-clock me-1"></i>Vừa xong • Quầy Tiếp nhận
+            </small>
+          </div>
+
+          <div class="timeline-item">
+            <span class="timeline-dot bg-success"></span>
+            <div style="font-size: 11.5px; line-height: 1.4;">
+              Hệ thống kích hoạt phòng khám <strong>P.101</strong> cho ca khám <span class="badge bg-light text-dark border">STT #002</span>
+            </div>
+            <small class="text-muted" style="font-size: 10px;">
+              <i class="fa-regular fa-clock me-1"></i>15 phút trước • Điều phối tự động
+            </small>
+          </div>
+
+          <div class="timeline-item border-0 pb-0">
+            <span class="timeline-dot bg-info"></span>
+            <div style="font-size: 11.5px; line-height: 1.4;">
+              Bác sĩ <strong>BS.CKII Lê Hoàng Nam</strong> bắt đầu ca khám tại <strong>P.101</strong>
+            </div>
+            <small class="text-muted" style="font-size: 10px;">
+              <i class="fa-regular fa-clock me-1"></i>30 phút trước • Hệ thống
+            </small>
+          </div>
+
+          <div class="text-center mt-3 pt-2">
+            <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none" style="font-size: 11.5px;">Xem lịch sử chi tiết &rsaquo;</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GỌI BỆNH NHÂN & PHÁT LOA -->
+<div class="modal fade" id="modalGoiKham" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: 14px; border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+      <div class="modal-header" style="background-color: var(--primary); color: #fff; border-radius: 14px 14px 0 0;">
+        <h6 class="modal-title fw-bold"><i class="fa-solid fa-bullhorn me-2"></i> Hệ Thống Gọi Loa Tiếp Nhận</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center p-4">
+        <div class="badge bg-light text-primary border px-3 py-2 fs-6 mb-2" id="modal-stt">STT #002</div>
+        <h4 class="fw-bold mb-1" id="modal-ten">Phạm Văn Nam</h4>
+        <p class="text-muted mb-3" id="modal-phong">Vào phòng khám P.101</p>
+        <div class="alert alert-info py-2" style="font-size: 12px;">
+          <i class="fa-solid fa-volume-high me-1 text-primary"></i> Đang phát loa phát thanh gọi bệnh nhân vào phòng...
+        </div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center pb-4 pt-0">
+        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Đóng</button>
+        <button type="button" class="btn btn-primary px-4" style="background-color: var(--primary);" onclick="replayVoice()">
+          <i class="fa-solid fa-rotate-right me-1"></i> Gọi lại lần nữa
+        </button>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Bootstrap Bundle JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Script nạp dữ liệu từ API và xử lý gọi bệnh nhân -->
+<script>
+  let globalQueueData = [];
+  let currentCallItem = null;
+
+  // 1. Tự động cập nhật thứ, ngày/tháng/năm lên thanh Header
+  function updateCurrentHeaderDate() {
+      const days = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+      const now = new Date();
+      const dayName = days[now.getDay()];
+      const d = String(now.getDate()).padStart(2, '0');
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const y = now.getFullYear();
+
+      const dateEl = document.getElementById('header-date-display');
+      if (dateEl) {
+          dateEl.innerText = `${dayName}, ${d}/${m}/${y}`;
+      }
+  }
+
+  // 2. Nạp dữ liệu thống kê và danh sách hàng đợi từ API
+  async function loadDashboardRealData() {
+      try {
+          const response = await fetch('/api/tiepnhan/dashboard-data');
+          if (!response.ok) return;
+          const data = await response.json();
+
+          // Cập nhật 6 thẻ KPI
+          const elTongBn = document.getElementById('kpi-tong-bn');
+          const elLichHen = document.getElementById('kpi-lich-hen');
+          const elDangCho = document.getElementById('kpi-dang-cho');
+          const elDangKham = document.getElementById('kpi-dang-kham');
+          const elChoTT = document.getElementById('kpi-cho-tt');
+          const elDaTT = document.getElementById('kpi-da-tt');
+
+          if (elTongBn) elTongBn.innerText = data.tongBnHienTai ?? 0;
+          if (elLichHen) elLichHen.innerText = data.lichHenHomNay ?? 0;
+          if (elDangCho) elDangCho.innerText = data.bnDangCho ?? 0;
+          if (elDangKham) elDangKham.innerText = data.dangTrongPhongKham ?? 0;
+          if (elChoTT) elChoTT.innerText = data.choThanhToan ?? 0;
+          if (elDaTT) elDaTT.innerText = data.daThanhToan ?? 0;
+
+          // Lưu danh sách hàng đợi và áp dụng bộ lọc hiển thị
+          globalQueueData = data.hangDoiKham || [];
+          applyFiltersAndRender();
+      } catch (error) {
+          console.error("Lỗi khi tải dữ liệu Dashboard:", error);
+      }
+  }
+
+  // 3. Render bảng Hàng Đợi Khám
+  function renderQueueTable(list) {
+      const tbody = document.getElementById('hang-doi-table-body');
+      const recordCountEl = document.getElementById('table-record-count');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+      if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-3">Không có ca khám nào phù hợp bộ lọc</td></tr>`;
+          if (recordCountEl) recordCountEl.innerText = `Hiển thị 0 bệnh nhân`;
+          return;
+      }
+
+      list.forEach(item => {
+          let statusBg = 'background: #F1F5F9; color: #475569;';
+          if (item.trangThai === 'Đang khám') {
+              statusBg = 'background: #EDE9FE; color: #6D28D9;';
+          } else if (item.trangThai.includes('Chờ') || item.trangThai.includes('gọi')) {
+              statusBg = 'background: #FEF3C7; color: #B45309;';
+          } else if (item.trangThai === 'Đã hủy') {
+              statusBg = 'background: #FEE2E2; color: #B91C1C;';
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+              <td><span class="badge-stt-purple">${item.stt}</span></td>
+              <td class="fw-bold text-primary" style="font-size: 11px;">${item.maBn}</td>
+              <td>
+                  <div class="d-flex align-items-center">
+                      <span class="avatar-initial" style="background-color: #4F46E5;">${item.tenBenhNhan ? item.tenBenhNhan.charAt(0) : 'B'}</span>
+                      <div style="line-height: 1.2; overflow: hidden;">
+                          <div class="fw-bold text-truncate" style="font-size: 11.5px;">${item.tenBenhNhan}</div>
+                          <div class="text-muted" style="font-size: 10px;">${item.thongTinPhu}</div>
+                      </div>
+                  </div>
+              </td>
+              <td>
+                  <div class="fw-semibold text-truncate" style="font-size: 11px;">${item.khoa}</div>
+                  <div class="text-muted text-truncate" style="font-size: 10px;">${item.bacSi}</div>
+              </td>
+              <td style="text-align: center;"><span class="badge bg-light text-dark border px-1 py-1" style="font-size: 10.5px;">${item.phong}</span></td>
+              <td style="font-size: 11px;">${item.gioHen}</td>
+              <td style="text-align: center;">
+                  <div class="d-flex flex-column align-items-center gap-1">
+                      <span class="status-pill" style="${statusBg}">• ${item.trangThai}</span>
+                      <button class="btn-action-call-compact mt-1" onclick="handleCallPatient('${item.stt}', '${item.tenBenhNhan}', '${item.phong}')">
+                          <i class="fa-solid fa-bullhorn"></i> Gọi vào
+                      </button>
+                  </div>
+              </td>
+          `;
+          tbody.appendChild(tr);
+      });
+
+      if (recordCountEl) {
+          recordCountEl.innerText = `Hiển thị ${list.length} bệnh nhân trong hàng đợi hôm nay`;
+      }
+  }
+
+  // 4. Lọc dữ liệu theo Dropdown và Ô tìm kiếm
+  function applyFiltersAndRender() {
+      const roomSelect = document.querySelectorAll('.filter-select')[0];
+      const statusSelect = document.querySelectorAll('.filter-select')[1];
+      const searchInput = document.querySelector('.search-container input');
+
+      const selectedRoom = roomSelect ? roomSelect.value : 'Tất cả phòng';
+      const selectedStatus = statusSelect ? statusSelect.value : 'Tất cả trạng thái';
+      const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      const filtered = globalQueueData.filter(item => {
+          const matchRoom = (selectedRoom === 'Tất cả phòng' || selectedRoom === 'Tất cả phòng khám') ? true : item.phong.includes(selectedRoom);
+          const matchStatus = (selectedStatus === 'Tất cả trạng thái') ? true : item.trangThai.toLowerCase().includes(selectedStatus.toLowerCase());
+          const matchSearch = !searchText ? true : (
+              (item.tenBenhNhan && item.tenBenhNhan.toLowerCase().includes(searchText)) ||
+              (item.maBn && item.maBn.toLowerCase().includes(searchText)) ||
+              (item.stt && item.stt.toLowerCase().includes(searchText))
+          );
+          return matchRoom && matchStatus && matchSearch;
+      });
+
+      renderQueueTable(filtered);
+  }
+
+  // 5. Hàm gọi loa và hiển thị Modal
+  function handleCallPatient(stt, ten, phong) {
+      currentCallItem = { stt, ten, phong };
+
+      // Gán thông tin lên modal
+      document.getElementById('modal-stt').innerText = `STT ${stt}`;
+      document.getElementById('modal-ten').innerText = ten;
+      document.getElementById('modal-phong').innerText = `Vào phòng khám ${phong}`;
+
+      // Mở modal
+      const modalEl = document.getElementById('modalGoiKham');
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+
+      // Phát âm thanh giọng đọc tiếng Việt
+      speakAnnouncement(stt, ten, phong);
+  }
+
+  // Phát lại âm thanh khi bấm nút "Gọi lại lần nữa"
+  function replayVoice() {
+      if (currentCallItem) {
+          speakAnnouncement(currentCallItem.stt, currentCallItem.ten, currentCallItem.phong);
+      }
+  }
+
+  // Gọi phát thanh giọng đọc qua Web Speech API
+  function speakAnnouncement(stt, ten, phong) {
+      if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel(); // Ngắt giọng đọc cũ nếu đang phát
+          const cleanStt = stt.replace('#', '');
+          const text = `Xin mời bệnh nhân ${ten}, số thứ tự ${cleanStt}, vào phòng khám ${phong}`;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'vi-VN';
+          utterance.rate = 0.9; // Tốc độ vừa phải, rõ ràng
+          window.speechSynthesis.speak(utterance);
+      }
+  }
+
+  // Khởi chạy khi trang tải xong
+  document.addEventListener('DOMContentLoaded', () => {
+      updateCurrentHeaderDate();
+      loadDashboardRealData();
+
+      // Lắng nghe sự kiện lọc
+      document.querySelectorAll('.filter-select').forEach(select => {
+          select.addEventListener('change', applyFiltersAndRender);
+      });
+
+      // Lắng nghe ô tìm kiếm
+      const searchInput = document.querySelector('.search-container input');
+      if (searchInput) {
+          searchInput.addEventListener('input', applyFiltersAndRender);
+      }
+  });
+</script>
 </body>
 </html>

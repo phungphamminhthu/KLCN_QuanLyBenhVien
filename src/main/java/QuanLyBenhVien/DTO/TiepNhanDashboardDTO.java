@@ -1,0 +1,76 @@
+package QuanLyBenhVien.DTO;
+
+import java.util.List;
+
+public class TiepNhanDashboardDTO {
+    // 6 chỉ số thống kê
+    private long tongBnHienTai;
+    private long lichHenHomNay;
+    private long bnDangCho;
+    private long dangTrongPhongKham;
+    private long choThanhToan;
+    private long daThanhToan;
+
+    // Danh sách hàng đợi khám
+    private List<HangDoiItemDTO> hangDoiKham;
+
+    // Constructors, Getters & Setters
+    public TiepNhanDashboardDTO() {}
+
+    public long getTongBnHienTai() { return tongBnHienTai; }
+    public void setTongBnHienTai(long tongBnHienTai) { this.tongBnHienTai = tongBnHienTai; }
+
+    public long getLichHenHomNay() { return lichHenHomNay; }
+    public void setLichHenHomNay(long lichHenHomNay) { this.lichHenHomNay = lichHenHomNay; }
+
+    public long getBnDangCho() { return bnDangCho; }
+    public void setBnDangCho(long bnDangCho) { this.bnDangCho = bnDangCho; }
+
+    public long getDangTrongPhongKham() { return dangTrongPhongKham; }
+    public void setDangTrongPhongKham(long dangTrongPhongKham) { this.dangTrongPhongKham = dangTrongPhongKham; }
+
+    public long getChoThanhToan() { return choThanhToan; }
+    public void setChoThanhToan(long choThanhToan) { this.choThanhToan = choThanhToan; }
+
+    public long getDaThanhToan() { return daThanhToan; }
+    public void setDaThanhToan(long daThanhToan) { this.daThanhToan = daThanhToan; }
+
+    public List<HangDoiItemDTO> getHangDoiKham() { return hangDoiKham; }
+    public void setHangDoiKham(List<HangDoiItemDTO> hangDoiKham) { this.hangDoiKham = hangDoiKham; }
+
+    public static class HangDoiItemDTO {
+        private String stt;
+        private String maBn;
+        private String tenBenhNhan;
+        private String thongTinPhu; // Ví dụ: 1982 • Nam (BHYT)
+        private String khoa;
+        private String bacSi;
+        private String phong;
+        private String gioHen;
+        private String thoiGianCho;
+        private String trangThai;
+
+        public HangDoiItemDTO() {}
+
+        public String getStt() { return stt; }
+        public void setStt(String stt) { this.stt = stt; }
+        public String getMaBn() { return maBn; }
+        public void setMaBn(String maBn) { this.maBn = maBn; }
+        public String getTenBenhNhan() { return tenBenhNhan; }
+        public void setTenBenhNhan(String tenBenhNhan) { this.tenBenhNhan = tenBenhNhan; }
+        public String getThongTinPhu() { return thongTinPhu; }
+        public void setThongTinPhu(String thongTinPhu) { this.thongTinPhu = thongTinPhu; }
+        public String getKhoa() { return khoa; }
+        public void setKhoa(String khoa) { this.khoa = khoa; }
+        public String getBacSi() { return bacSi; }
+        public void setBacSi(String bacSi) { this.bacSi = bacSi; }
+        public String getPhong() { return phong; }
+        public void setPhong(String phong) { this.phong = phong; }
+        public String getGioHen() { return gioHen; }
+        public void setGioHen(String gioHen) { this.gioHen = gioHen; }
+        public String getThoiGianCho() { return thoiGianCho; }
+        public void setThoiGianCho(String thoiGianCho) { this.thoiGianCho = thoiGianCho; }
+        public String getTrangThai() { return trangThai; }
+        public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+    }
+}

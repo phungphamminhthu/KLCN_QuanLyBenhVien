@@ -46,13 +46,15 @@ public class SecurityConfig {
                                 "/Js/**",
                                 "/Images/**",
                                 "/api/auth/**",
+                                "/api/tiepnhan/**",
 
                                 // ===== TEST EMAIL =====
                                 "/api/test-email",
                                 // ===== UPLOAD ẢNH R2 =====
                                 "/api/images/**",
                                 // ===== TRANG GIAO DIỆN =====
-                                "/Admin/**"
+                                "/Admin/**",
+                                "/TiepNhan/**"
                         ).permitAll()
 
                         // ===== API/TRANG KHÁC =====

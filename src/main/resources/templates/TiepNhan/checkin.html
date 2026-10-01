@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiếp nhận bệnh nhân - BỆNH VIỆN ABC</title>
+    <!-- Google Font: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Free 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+          --primary: #4F46E5;
+          --primary-hover: #4338CA;
+          --primary-soft: #EEF2FF;
+          --sidebar-w: 240px;
+          --bg-body: #F8FAFC;
+          --text-title: #0F172A;
+          --text-sub: #64748B;
+          --border-color: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-title); margin: 0; padding: 0; font-size: 13px; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+          width: var(--sidebar-w);
+          min-height: 100vh;
+          background: #FFFFFF;
+          border-right: 1px solid var(--border-color);
+          position: fixed;
+          top: 0;
+          left: 0;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          z-index: 1000;
+        }
+        .brand-section { padding: 20px 16px 14px; display: flex; align-items: center; gap: 12px; }
+        .brand-logo-icon { width: 38px; height: 38px; border-radius: 50%; background-color: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; flex-shrink: 0; }
+        .brand-title { font-size: 14.5px; font-weight: 800; color: var(--primary); margin: 0; line-height: 1.2; letter-spacing: -0.2px; }
+        .brand-sub { font-size: 10px; color: var(--text-sub); margin: 0; }
+
+        .sidebar-menu {
+          padding: 0 12px;
+        }
+
+        /* Tiêu đề nhóm menu mặc định */
+        .nav-group-title {
+          padding: 12px 10px 4px;
+          font-size: 12px;
+          font-weight: 700;
+          color: #1E293B;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .nav-group-title i {
+          color: #64748B;
+          font-size: 13px;
+        }
+
+        /* Khi nhóm đang active -> đổi sang màu tím đồng bộ */
+        .nav-group-title.active {
+          color: var(--primary) !important;
+        }
+        .nav-group-title.active i {
+          color: var(--primary) !important;
+        }
+
+        /* Menu chính (Dashboard, Hồ sơ cá nhân) */
+        .nav-item-main {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 12px;
+          color: #475569;
+          text-decoration: none;
+          font-size: 13px;
+          font-weight: 600;
+          border-radius: 8px;
+          margin-bottom: 2px;
+          transition: all 0.15s;
+        }
+        .nav-item-main:hover {
+          color: var(--primary);
+          background-color: var(--primary-soft);
+        }
+        .nav-item-main.active {
+          color: var(--primary);
+          background-color: var(--primary-soft);
+          font-weight: 700;
+        }
+        .nav-item-main.active i {
+          color: var(--primary);
+        }
+
+        /* Menu con (Tiếp nhận bệnh nhân, Tra cứu...) */
+        .nav-item-sub {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 7px 12px 7px 30px;
+          color: var(--text-sub);
+          text-decoration: none;
+          font-size: 12.5px;
+          font-weight: 500;
+          border-radius: 6px;
+          margin-bottom: 1px;
+          transition: all 0.15s;
+        }
+        .nav-item-sub:hover {
+          color: var(--primary);
+          background-color: var(--primary-soft);
+        }
+        .nav-item-sub.active {
+          color: var(--primary);
+          font-weight: 700;
+          background-color: var(--primary-soft);
+        }
+
+        .sidebar-logout { padding: 16px 20px; border-top: 1px solid var(--border-color); }
+        .sidebar-logout a { color: #64748B; text-decoration: none; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+
+        /* ===== MAIN WRAPPER ===== */
+        .main-wrapper { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
+        .topbar { height: 60px; background: #FFFFFF; border-bottom: 1px solid var(--border-color); padding: 0 28px; display: flex; align-items: center; justify-content: space-between; }
+        .search-topbar { width: 440px; position: relative; }
+        .search-topbar input { width: 100%; height: 38px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 20px; padding-left: 36px; padding-right: 16px; font-size: 12.5px; outline: none; }
+        .search-topbar i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 13px; }
+
+        /* ===== PAGE CONTENT ===== */
+        .page-content { padding: 20px 28px; }
+        .breadcrumb-nav { font-size: 12px; color: var(--text-sub); margin-bottom: 12px; }
+        .breadcrumb-nav a { text-decoration: none; color: var(--text-sub); }
+        .page-header-row { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .header-icon-box { width: 38px; height: 38px; border-radius: 10px; background: var(--primary-soft); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .page-title { font-size: 18px; font-weight: 800; color: #0F172A; margin: 0; line-height: 1.2; }
+        .page-subtitle { font-size: 11.5px; color: var(--text-sub); margin: 0; }
+
+        /* ===== CARD DESIGN ===== */
+        .figma-card {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 20px 22px;
+          margin-bottom: 20px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.015);
+        }
+        .card-heading {
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #0F172A;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 16px;
+        }
+
+        /* Radio Group */
+        .search-radio-group { display: flex; align-items: center; gap: 24px; margin-bottom: 14px; font-size: 12.5px; font-weight: 500; color: #475569; }
+        .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+
+        /* Search input row */
+        .search-bar-wrap { position: relative; flex-grow: 1; }
+        .search-bar-wrap input {
+          width: 100%;
+          height: 42px;
+          background: #FFFFFF;
+          border: 1px solid #CBD5E1;
+          border-radius: 10px;
+          padding-left: 38px;
+          padding-right: 16px;
+          font-size: 13px;
+          outline: none;
+        }
+        .search-bar-wrap input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .search-bar-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94A3B8; font-size: 14px; }
+        .btn-search-figma {
+          height: 42px;
+          background-color: var(--primary);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          padding: 0 24px;
+          font-weight: 600;
+          font-size: 13px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .btn-search-figma:hover { background-color: var(--primary-hover); }
+
+        /* Avatar & Info Grid */
+        .avatar-placeholder {
+          width: 84px;
+          height: 84px;
+          border-radius: 50%;
+          background: #E2E8F0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #94A3B8;
+          font-size: 38px;
+        }
+        .info-label { font-size: 11.5px; color: #64748B; margin-bottom: 8px; }
+        .info-val { font-size: 12.5px; font-weight: 600; color: #0F172A; margin-bottom: 8px; }
+
+        /* Action Buttons */
+        .btn-action-primary {
+          background-color: var(--primary);
+          color: #fff;
+          font-weight: 600;
+          font-size: 12.5px;
+          padding: 9px 18px;
+          border-radius: 8px;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .btn-action-primary:hover { background-color: var(--primary-hover); }
+
+        .btn-action-outline {
+          background-color: #FFFFFF;
+          border: 1px solid #CBD5E1;
+          color: #475569;
+          font-weight: 600;
+          font-size: 12.5px;
+          padding: 9px 16px;
+          border-radius: 8px;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .btn-action-outline:hover { background-color: #F8FAFC; color: var(--primary); }
+
+        /* Stepper Bar */
+        .stepper-wrap { display: flex; align-items: center; justify-content: space-between; margin: 16px 8px 24px; position: relative; }
+        .stepper-wrap::before {
+          content: '';
+          position: absolute;
+          top: 13px;
+          left: 14px;
+          right: 14px;
+          height: 2px;
+          background: #E2E8F0;
+          z-index: 1;
+        }
+        .step-item { position: relative; z-index: 2; text-align: center; }
+        .step-circle {
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: #FFFFFF;
+          border: 2px solid #CBD5E1;
+          color: #64748B;
+          font-weight: 700;
+          font-size: 11.5px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 6px;
+        }
+        .step-circle.completed { background: var(--primary); border-color: var(--primary); color: #fff; }
+        .step-circle.active { background: #3B82F6; border-color: #3B82F6; color: #fff; }
+        .step-title { font-size: 10.5px; font-weight: 600; color: #64748B; }
+        .step-item.active .step-title { color: #3B82F6; font-weight: 700; }
+
+        /* Status alert box */
+        .status-alert-green {
+          background: #ECFDF5;
+          border: 1px solid #A7F3D0;
+          border-radius: 10px;
+          padding: 12px 14px;
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .status-alert-green i { color: #10B981; font-size: 18px; margin-top: 2px; }
+
+        /* Tables */
+        .figma-table { width: 100%; border-collapse: collapse; }
+        .figma-table th { font-size: 11px; font-weight: 700; color: #64748B; padding: 10px 8px; border-bottom: 1px solid #E2E8F0; }
+        .figma-table td { font-size: 12px; color: #334155; padding: 11px 8px; border-bottom: 1px solid #F1F5F9; vertical-align: middle; }
+
+        /* Badges */
+        .badge-green { background: #DCFCE7; color: #15803D; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+        .badge-blue { background: #DBEAFE; color: #1E40AF; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+        .badge-purple { background: #F3E8FF; color: #7E22CE; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+        .badge-gray { background: #F1F5F9; color: #475569; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+        .badge-yellow { background: #FEF3C7; color: #B45309; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; }
+        .btn-view-link { border: 1px solid #E2E8F0; background: #fff; color: #4F46E5; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 6px; text-decoration: none; }
+        .btn-view-link:hover { background: var(--primary-soft); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <div>
+        <!-- Brand -->
+        <div class="brand-section">
+            <div class="brand-logo-icon"><i class="fa-solid fa-plus"></i></div>
+            <div>
+                <h6 class="brand-title">BỆNH VIỆN ABC</h6>
+                <p class="brand-sub">Vì sức khỏe cộng đồng</p>
+            </div>
+        </div>
+
+        <!-- Sidebar Menu List: Thẳng hàng 100% -->
+        <div class="sidebar-menu">
+            <a href="/TiepNhan/dashboard" class="nav-item-main">
+                <i class="fa-solid fa-house" style="font-size: 14px;"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Nhóm Tiếp nhận: Có class active để sáng màu tím -->
+            <div class="nav-group-title active">
+                <i class="fa-solid fa-user-group"></i>
+                <span>Tiếp nhận</span>
+            </div>
+            <a href="/TiepNhan/checkin" class="nav-item-sub active">
+                <i class="fa-solid fa-plus" style="font-size: 10px;"></i>
+                <span>Tiếp nhận bệnh nhân</span>
+            </a>
+            <a href="/TiepNhan/patients" class="nav-item-sub">
+                <i class="fa-solid fa-magnifying-glass" style="font-size: 10px;"></i>
+                <span>Tra cứu bệnh nhân</span>
+            </a>
+
+            <div class="nav-group-title">
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>Đặt lịch khám</span>
+            </div>
+            <a href="javascript:void(0)" class="nav-item-sub">
+                <i class="fa-solid fa-bars" style="font-size: 10px;"></i>
+                <span>Danh sách lịch khám</span>
+            </a>
+
+            <div class="nav-group-title">
+                <i class="fa-solid fa-list-ol"></i>
+                <span>Hàng đợi</span>
+            </div>
+            <a href="javascript:void(0)" class="nav-item-sub">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size: 10px;"></i>
+                <span>Quản lý hàng đợi</span>
+            </a>
+
+            <div class="nav-group-title">
+                <i class="fa-regular fa-credit-card"></i>
+                <span>Thanh toán</span>
+            </div>
+            <a href="javascript:void(0)" class="nav-item-sub">
+                <i class="fa-regular fa-circle-check" style="font-size: 10px;"></i>
+                <span>Thanh toán</span>
+            </a>
+            <a href="javascript:void(0)" class="nav-item-sub">
+                <i class="fa-solid fa-clock-rotate-left" style="font-size: 10px;"></i>
+                <span>Lịch sử thanh toán</span>
+            </a>
+
+            <div class="nav-group-title">
+                <i class="fa-regular fa-folder"></i>
+                <span>Lịch sử</span>
+            </div>
+            <a href="javascript:void(0)" class="nav-item-sub">
+                <i class="fa-regular fa-clock" style="font-size: 10px;"></i>
+                <span>Lịch sử tiếp nhận</span>
+            </a>
+
+            <div class="pt-2">
+                <a href="javascript:void(0)" class="nav-item-main">
+                    <i class="fa-regular fa-user" style="font-size: 14px;"></i>
+                    <span>Hồ sơ cá nhân</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-logout">
+        <a href="/auth/login" class="text-muted"><i class="fa-solid fa-arrow-right-from-bracket"></i><span>Đăng xuất</span></a>
+    </div>
+</div>
+
+<!-- MAIN WRAPPER -->
+<div class="main-wrapper">
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="search-topbar">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Tìm kiếm bệnh nhân, mã lịch, mã hồ sơ...">
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <i class="fa-regular fa-bell text-muted fs-5 cursor-pointer"></i>
+            <div class="d-flex align-items-center gap-2">
+                <div class="avatar-placeholder" style="width: 34px; height: 34px; font-size: 16px;"><i class="fa-regular fa-user"></i></div>
+                <div style="line-height: 1.2;">
+                    <div class="fw-bold" style="font-size: 12.5px;">Nguyễn Thị Lan</div>
+                    <small class="text-primary" style="font-size: 10.5px;">Nhân viên tiếp nhận</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="page-content">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-nav">
+            <a href="/TiepNhan/dashboard">Trang chủ</a> &rsaquo; <span class="text-dark fw-semibold">Tiếp nhận bệnh nhân</span>
+        </div>
+
+        <!-- Header Row -->
+        <div class="page-header-row">
+            <div class="header-icon-box">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <div>
+                <h4 class="page-title">Tiếp nhận bệnh nhân</h4>
+                <p class="page-subtitle">Tra cứu lịch khám và thực hiện tiếp nhận bệnh nhân</p>
+            </div>
+        </div>
+
+        <!-- 1. KHUNG TÌM KIẾM THEO -->
+        <div class="figma-card">
+            <div class="fw-bold mb-2" style="font-size: 13px;">Tìm kiếm theo</div>
+            <div class="search-radio-group">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="searchType" id="typeMaBn" value="maBn" checked>
+                    <label class="form-check-label" for="typeMaBn">Mã bệnh nhân</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="searchType" id="typeHoTen" value="hoTen">
+                    <label class="form-check-label" for="typeHoTen">Họ tên</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="searchType" id="typeSdt" value="sdt">
+                    <label class="form-check-label" for="typeSdt">Số điện thoại</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="searchType" id="typeMaLich" value="maLich">
+                    <label class="form-check-label" for="typeMaLich">Mã lịch khám</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="searchType" id="typeCccd" value="cccd">
+                    <label class="form-check-label" for="typeCccd">CCCD</label>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <div class="search-bar-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="inputKeyword" placeholder="Nhập mã bệnh nhân (ví dụ: BN-2026-001)...">
+                </div>
+                <button class="btn-search-figma" onclick="handleSearchPatient()">
+                    <i class="fa-solid fa-magnifying-glass"></i> Tra cứu
+                </button>
+            </div>
+        </div>
+
+        <!-- 2. HÀNG GIỮA: THÔNG TIN BỆNH NHÂN (TRÁI) & TRẠNG THÁI TIẾP NHẬN (PHẢI) -->
+        <div class="row g-3">
+            <!-- Cột trái: Thông tin bệnh nhân & lịch khám -->
+            <div class="col-lg-8">
+                <div class="figma-card h-100 mb-0">
+                    <div class="card-heading">
+                        <i class="fa-regular fa-user text-primary"></i> Thông tin bệnh nhân & lịch khám
+                    </div>
+
+                    <div class="row align-items-center mb-3">
+                        <div class="col-auto">
+                            <div class="avatar-placeholder">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="row g-2">
+                                <!-- Thông tin hành chính bên trái -->
+                                <div class="col-md-6">
+                                    <div class="d-flex"><span class="info-label w-50">Mã bệnh nhân:</span><span class="info-val text-primary" id="dispMaBn">BN-2026-001</span></div>
+                                    <div class="d-flex"><span class="info-label w-50">Họ tên:</span><span class="info-val" id="dispHoTen">Phạm Văn Nam</span></div>
+                                    <div class="d-flex"><span class="info-label w-50">Ngày sinh:</span><span class="info-val" id="dispNgaySinh">15/05/2004</span></div>
+                                    <div class="d-flex"><span class="info-label w-50">Giới tính:</span><span class="info-val" id="dispGioiTinh">Nam</span></div>
+                                    <div class="d-flex"><span class="info-label w-50">Số điện thoại:</span><span class="info-val" id="dispSdt">0987 654 321</span></div>
+                                    <div class="d-flex"><span class="info-label w-50">Địa chỉ:</span><span class="info-val" id="dispDiaChi">123 Nguyễn Văn Cừ, Quận 1, TP.HCM</span></div>
+                                </div>
+
+                                <!-- Cột thông tin ca khám: Tự chuyển đổi thông minh -->
+                                <div class="col-md-6" id="boxLichHen">
+                                    <!-- 1. Giao diện khi bệnh nhân ĐÃ CÓ LỊCH HẸN HÔM NAY -->
+                                    <div id="viewCoLich">
+                                        <div class="d-flex"><span class="info-label w-50">Khoa khám:</span><span class="info-val text-primary" id="dispKhoa">Nội tổng quát</span></div>
+                                        <div class="d-flex"><span class="info-label w-50">Bác sĩ:</span><span class="info-val" id="dispBacSi">BS.CKII Lê Hoàng Nam</span></div>
+                                        <div class="d-flex"><span class="info-label w-50">Ngày khám:</span><span class="info-val" id="dispNgayKham">Hôm nay</span></div>
+                                        <div class="d-flex"><span class="info-label w-50">Giờ khám:</span><span class="info-val" id="dispGioKham">08:00</span></div>
+                                        <div class="d-flex"><span class="info-label w-50">Lý do khám:</span><span class="info-val" id="dispLyDo">Đau bụng, đầy hơi</span></div>
+                                        <div class="d-flex"><span class="info-label w-50">Trạng thái lịch:</span><span class="badge-green" id="dispTrangThai"><i class="fa-solid fa-check"></i> Đã xác nhận</span></div>
+                                    </div>
+
+                                    <!-- 2. Giao diện khi là BỆNH NHÂN VÃNG LAI (Mặc định ẩn) -->
+                                    <div id="viewVangLai" style="display: none;">
+                                        <div class="mb-2">
+                                            <span class="badge bg-warning text-dark"><i class="fa-solid fa-person-walking me-1"></i> Bệnh nhân vãng lai (Chưa có lịch)</span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="info-label mb-1">Chọn chuyên khoa khám:</label>
+                                            <select class="form-select form-select-sm" id="selectChuyenKhoa" style="font-size: 12px; font-weight: 600;">
+                                                <option value="Nội tổng quát" selected>Nội tổng quát (P.101)</option>
+                                                <option value="Tai mũi họng">Tai mũi họng (P.102)</option>
+                                                <option value="Nhi khoa">Nhi khoa (P.201)</option>
+                                                <option value="Sản phụ khoa">Sản phụ khoa (P.202)</option>
+                                                <option value="Tim mạch">Tim mạch (P.301)</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="info-label mb-1">Lý do / Triệu chứng khám:</label>
+                                            <input type="text" class="form-control form-control-sm" id="inputTrieuChung" placeholder="Nhập triệu chứng khám..." style="font-size: 12px;" value="Tiếp nhận trực tiếp tại quầy">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dãy nút bấm thao tác -->
+                    <div class="d-flex flex-wrap gap-2 pt-3 border-top">
+                        <button class="btn-action-primary" onclick="doTiepNhan()">
+                            <i class="fa-solid fa-user-check"></i> Tiếp nhận bệnh nhân
+                        </button>
+                        <button class="btn-action-outline" onclick="window.print()">
+                            <i class="fa-solid fa-print"></i> In phiếu tiếp nhận
+                        </button>
+                        <button class="btn-action-outline" onclick="alert('Mở form cập nhật thông tin!')">
+                            <i class="fa-regular fa-pen-to-square"></i> Chỉnh sửa thông tin
+                        </button>
+                        <button class="btn-action-outline" onclick="alert('Chức năng đặt lại lịch hẹn!')">
+                            <i class="fa-regular fa-calendar-xmark"></i> Đặt lại lịch hẹn
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Trạng thái tiếp nhận (Stepper) -->
+            <div class="col-lg-4">
+                <div class="figma-card h-100 mb-0">
+                    <div class="card-heading">
+                        <i class="fa-regular fa-id-badge text-primary"></i> Trạng thái tiếp nhận
+                    </div>
+
+                    <!-- Stepper 5 bước -->
+                    <div class="stepper-wrap">
+                        <div class="step-item" id="step-1">
+                            <div class="step-circle completed"><i class="fa-solid fa-check" style="font-size: 10px;"></i></div>
+                            <div class="step-title">Lịch hẹn</div>
+                        </div>
+                        <div class="step-item active" id="step-2">
+                            <div class="step-circle active">2</div>
+                            <div class="step-title">Tiếp nhận</div>
+                        </div>
+                        <div class="step-item" id="step-3">
+                            <div class="step-circle">3</div>
+                            <div class="step-title">Khám</div>
+                        </div>
+                        <div class="step-item" id="step-4">
+                            <div class="step-circle">4</div>
+                            <div class="step-title">Kết quả</div>
+                        </div>
+                        <div class="step-item" id="step-5">
+                            <div class="step-circle">5</div>
+                            <div class="step-title">Thanh toán</div>
+                        </div>
+                    </div>
+
+                    <!-- Alert thông báo màu xanh -->
+                    <div class="status-alert-green" id="stepper-alert-box">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div>
+                            <div class="fw-bold" style="font-size: 12.5px; color: #065F46;" id="stepper-alert-title">Sẵn sàng tiếp nhận bệnh nhân</div>
+                            <div class="text-muted" style="font-size: 11px;" id="stepper-alert-desc">Nhấn nút "Tiếp nhận bệnh nhân" để cấp số thứ tự vào hàng đợi.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. HÀNG DƯỚI: 2 BẢNG THỐNG KÊ (LỊCH SỬ TIẾP NHẬN & LỊCH HẸN TRONG NGÀY) -->
+        <div class="row g-3 mt-1">
+            <!-- Bảng 1: Lịch sử tiếp nhận gần đây -->
+            <div class="col-lg-7">
+                <div class="figma-card mb-0">
+                    <div class="card-heading">
+                        <i class="fa-regular fa-file-lines text-primary"></i> Lịch sử tiếp nhận gần đây
+                    </div>
+                    <div class="table-responsive">
+                        <table class="figma-table">
+                            <thead>
+                            <tr>
+                                <th>MÃ BỆNH NHÂN</th>
+                                <th>HỌ TÊN</th>
+                                <th>NGÀY TIẾP NHẬN</th>
+                                <th>KHOA</th>
+                                <th>TRẠNG THÁI</th>
+                                <th>THAO TÁC</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="fw-bold">BN00124</td>
+                                <td>Lê Thị Mai</td>
+                                <td>24/09/2026 09:15</td>
+                                <td>Nội tổng quát</td>
+                                <td><span class="badge-green">Đã tiếp nhận</span></td>
+                                <td><a href="javascript:void(0)" class="btn-view-link"><i class="fa-regular fa-eye"></i> Xem</a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">BN00123</td>
+                                <td>Trần Văn Hùng</td>
+                                <td>24/09/2026 08:42</td>
+                                <td>Ngoại khoa</td>
+                                <td><span class="badge-blue">Đang khám</span></td>
+                                <td><a href="javascript:void(0)" class="btn-view-link"><i class="fa-regular fa-eye"></i> Xem</a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">BN00122</td>
+                                <td>Phạm Thị Lan</td>
+                                <td>23/09/2026 14:20</td>
+                                <td>Sản phụ khoa</td>
+                                <td><span class="badge-purple">Đã thanh toán</span></td>
+                                <td><a href="javascript:void(0)" class="btn-view-link"><i class="fa-regular fa-eye"></i> Xem</a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">BN00121</td>
+                                <td>Hoàng Đức Anh</td>
+                                <td>23/09/2026 10:05</td>
+                                <td>Nội tổng quát</td>
+                                <td><span class="badge-gray">Đã khám</span></td>
+                                <td><a href="javascript:void(0)" class="btn-view-link"><i class="fa-regular fa-eye"></i> Xem</a></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">BN00120</td>
+                                <td>Vũ Thị Hà</td>
+                                <td>22/09/2026 16:37</td>
+                                <td>Nhi khoa</td>
+                                <td><span class="badge-purple">Đã thanh toán</span></td>
+                                <td><a href="javascript:void(0)" class="btn-view-link"><i class="fa-regular fa-eye"></i> Xem</a></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-2">
+                        <span class="text-muted" style="font-size: 11px;">Hiển thị 1 - 5 trong 20 kết quả</span>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-secondary btn-sm" disabled>&lsaquo;</button>
+                            <button class="btn btn-primary btn-sm">1</button>
+                            <button class="btn btn-outline-secondary btn-sm">2</button>
+                            <button class="btn btn-outline-secondary btn-sm">3</button>
+                            <button class="btn btn-outline-secondary btn-sm">4</button>
+                            <button class="btn btn-outline-secondary btn-sm">&rsaquo;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng 2: Lịch hẹn trong ngày -->
+            <div class="col-lg-5">
+                <div class="figma-card mb-0">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="card-heading m-0">
+                            <i class="fa-regular fa-calendar-days text-primary"></i> Lịch hẹn trong ngày
+                        </div>
+                        <a href="javascript:void(0)" class="text-primary fw-bold text-decoration-none" style="font-size: 11.5px;">Xem tất cả</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="figma-table">
+                            <thead>
+                            <tr>
+                                <th>GIỜ HẸN</th>
+                                <th>MÃ BN</th>
+                                <th>HỌ TÊN</th>
+                                <th>KHOA</th>
+                                <th>BÁC SĨ</th>
+                                <th>TRẠNG THÁI</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td class="fw-bold">08:00</td>
+                                <td>BN-2026-001</td>
+                                <td>Phạm Văn Nam</td>
+                                <td>Nội tổng quát</td>
+                                <td>Bs. Lê Hoàng Nam</td>
+                                <td><span class="badge-green">Đã xác nhận</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">08:30</td>
+                                <td>BN00126</td>
+                                <td>Lê Thị Mai</td>
+                                <td>Nội tổng quát</td>
+                                <td>Bs. Nguyễn Văn Hùng</td>
+                                <td><span class="badge-yellow">Chờ khám</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">09:00</td>
+                                <td>BN00127</td>
+                                <td>Trần Văn Bình</td>
+                                <td>Ngoại khoa</td>
+                                <td>Bs. Phạm Quốc Tuấn</td>
+                                <td><span class="badge-yellow">Chờ khám</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">09:30</td>
+                                <td>BN00128</td>
+                                <td>Phạm Thị Lan</td>
+                                <td>Sản phụ khoa</td>
+                                <td>Bs. Lê Thị Hương</td>
+                                <td><span class="badge-yellow">Chờ khám</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">10:00</td>
+                                <td>BN00129</td>
+                                <td>Vũ Văn Nam</td>
+                                <td>Nội tổng quát</td>
+                                <td>Bs. Trần Văn Minh</td>
+                                <td><span class="badge-yellow">Chờ khám</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    let currentMaLichKham = null; // Lưu mã lịch hẹn nếu có sẵn
+
+    // Thay đổi placeholder theo radio button được chọn
+    document.querySelectorAll('input[name="searchType"]').forEach(radio => {
+      radio.addEventListener('change', function() {
+        const input = document.getElementById('inputKeyword');
+        switch (this.value) {
+          case 'maBn': input.placeholder = 'Nhập mã bệnh nhân (ví dụ: BN-2026-001)...'; break;
+          case 'hoTen': input.placeholder = 'Nhập họ tên bệnh nhân (ví dụ: Phạm Văn Nam)...'; break;
+          case 'sdt': input.placeholder = 'Nhập số điện thoại bệnh nhân...'; break;
+          case 'maLich': input.placeholder = 'Nhập mã lịch khám (ví dụ: LK001)...'; break;
+          case 'cccd': input.placeholder = 'Nhập số căn cước công dân...'; break;
+        }
+      });
+    });
+
+    // 1. Tìm kiếm thông tin bệnh nhân từ REST API
+    async function handleSearchPatient() {
+      const kw = document.getElementById('inputKeyword').value.trim();
+      if (!kw) {
+        alert("Vui lòng nhập từ khóa tra cứu!");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/tiepnhan/patient-search?keyword=${encodeURIComponent(kw)}`);
+        if (!res.ok) {
+          alert("Không tìm thấy bệnh nhân phù hợp với từ khóa: " + kw);
+          return;
+        }
+        const data = await res.json();
+
+        // Điền thông tin hành chính
+        document.getElementById('dispMaBn').innerText = data.MaBenhNhan;
+        document.getElementById('dispHoTen').innerText = data.HoTen;
+        document.getElementById('dispGioiTinh').innerText = data.GioiTinh || 'Nam';
+        document.getElementById('dispSdt').innerText = data.SoDienThoai || '---';
+        if (data.NgaySinh) {
+          document.getElementById('dispNgaySinh').innerText = data.NgaySinh.split('T')[0];
+        }
+
+        // Tự động phân luồng hiển thị: Khách có lịch hẹn vs Khách vãng lai
+        const viewCoLich = document.getElementById('viewCoLich');
+        const viewVangLai = document.getElementById('viewVangLai');
+
+        if (data.coLichHen && data.lichHen) {
+          // BỆNH NHÂN CÓ LỊCH HẸN TRƯỚC
+          currentMaLichKham = data.lichHen.MaLichKham;
+          viewCoLich.style.display = 'block';
+          viewVangLai.style.display = 'none';
+
+          document.getElementById('dispKhoa').innerText = data.lichHen.ChuyenKhoa || 'Nội tổng quát';
+          document.getElementById('dispBacSi').innerText = data.lichHen.TenBacSi || 'BS.CKII Lê Hoàng Nam';
+          document.getElementById('dispGioKham').innerText = data.lichHen.GioKham || '08:00';
+          document.getElementById('dispLyDo').innerText = data.lichHen.LyDoKham || 'Đau bụng, đầy hơi';
+          document.getElementById('dispTrangThai').innerHTML = `<i class="fa-solid fa-check"></i> ${data.lichHen.TrangThai}`;
+        } else {
+          // BỆNH NHÂN VÃNG LAI
+          currentMaLichKham = null;
+          viewCoLich.style.display = 'none';
+          viewVangLai.style.display = 'block';
+        }
+
+        resetStepper();
+        document.getElementById('stepper-alert-title').innerText = "Sẵn sàng tiếp nhận bệnh nhân";
+        document.getElementById('stepper-alert-desc').innerText = `Đã tìm thấy thông tin ${data.HoTen} (${data.coLichHen ? 'Có lịch hẹn trước' : 'Khách vãng lai'}).`;
+      } catch (e) {
+        console.error(e);
+        alert("Lỗi khi kết nối tìm kiếm bệnh nhân!");
+      }
+    }
+
+    // Bấm Enter trong ô input tra cứu
+    document.getElementById('inputKeyword').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSearchPatient();
+      }
+    });
+
+    // 2. Tiếp nhận bệnh nhân & tự động chuyển ca hẹn kế tiếp
+    async function doTiepNhan() {
+      const maBn = document.getElementById('dispMaBn').innerText.trim();
+      const hoTen = document.getElementById('dispHoTen').innerText.trim();
+
+      if (!maBn || maBn === '---') {
+        alert("Vui lòng tra cứu bệnh nhân trước khi thực hiện Tiếp nhận!");
+        return;
+      }
+
+      const chuyenKhoa = currentMaLichKham
+        ? document.getElementById('dispKhoa').innerText
+        : document.getElementById('selectChuyenKhoa').value;
+
+      const trieuChung = currentMaLichKham
+        ? document.getElementById('dispLyDo').innerText
+        : document.getElementById('inputTrieuChung').value;
+
+      try {
+        const res = await fetch('/api/tiepnhan/checkin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            maBenhNhan: maBn,
+            maLichKham: currentMaLichKham,
+            chuyenKhoa: chuyenKhoa,
+            trieuChung: trieuChung
+          })
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+
+          // 1. Cập nhật Stepper sang bước 3 (Khám) để người dùng thấy thay đổi trực quan
+          const step2 = document.getElementById('step-2');
+          const step3 = document.getElementById('step-3');
+          if (step2 && step3) {
+            step2.className = 'step-item';
+            step2.querySelector('.step-circle').className = 'step-circle completed';
+            step2.querySelector('.step-circle').innerHTML = '<i class="fa-solid fa-check" style="font-size: 10px;"></i>';
+
+            step3.className = 'step-item active';
+            step3.querySelector('.step-circle').className = 'step-circle active';
+            step3.querySelector('.step-circle').innerText = '3';
+          }
+
+          // 2. Cập nhật thông báo alert box
+          const alertTitle = document.getElementById('stepper-alert-title');
+          const alertDesc = document.getElementById('stepper-alert-desc');
+          if (alertTitle) alertTitle.innerText = `Đã cấp số ${result.stt} vào hàng đợi`;
+          if (alertDesc) alertDesc.innerText = `Bệnh nhân ${hoTen} đã chuyển sang trạng thái "Chờ gọi vào".`;
+
+          // 3. Thông báo thành công
+          alert(`✅ Tiếp nhận thành công!\n- Bệnh nhân: ${hoTen}\n- Số thứ tự cấp: ${result.stt}\n- Vui lòng hướng dẫn bệnh nhân vào phòng chờ khám!`);
+
+          // 4. Đợi 2 giây để quan sát trạng thái xong mới nạp ca tiếp theo
+          setTimeout(() => {
+            loadNextAppointment();
+          }, 2000);
+
+        } else {
+          const errMsg = await res.text();
+          alert("Lỗi tiếp nhận: " + errMsg);
+        }
+      } catch (e) {
+        alert("Lỗi hệ thống khi gửi yêu cầu tiếp nhận!");
+      }
+    }
+
+    // 3. Tự động nạp ca hẹn tiếp theo lên form
+    // 3. Tự động nạp ca hẹn tiếp theo lên form
+    async function loadNextAppointment() {
+      try {
+        const res = await fetch('/api/tiepnhan/next-appointment');
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("Lỗi từ server:", errText);
+          return;
+        }
+        const data = await res.json();
+
+        // Đưa Stepper về lại bước 2 (Tiếp nhận)
+        resetStepper();
+
+        if (data.hasData) {
+          // CÓ CA HẸN TIẾP THEO: Điền thông tin người mới lên form
+          currentMaLichKham = data.MaLichKham;
+          document.getElementById('dispMaBn').innerText = data.formattedMaBn || data.MaBenhNhan;
+          document.getElementById('dispHoTen').innerText = data.HoTen;
+          document.getElementById('dispGioiTinh').innerText = data.GioiTinh || 'Nam';
+          document.getElementById('dispSdt').innerText = data.SoDienThoai || '---';
+          if (data.NgaySinh) {
+            document.getElementById('dispNgaySinh').innerText = String(data.NgaySinh).split('T')[0];
+          }
+
+          document.getElementById('viewCoLich').style.display = 'block';
+          document.getElementById('viewVangLai').style.display = 'none';
+
+          document.getElementById('dispKhoa').innerText = 'Nội tổng quát';
+          document.getElementById('dispBacSi').innerText = 'BS.CKII Lê Hoàng Nam';
+          document.getElementById('dispGioKham').innerText = data.GioKham || '08:30';
+          document.getElementById('dispLyDo').innerText = data.LyDoKham || 'Khám bệnh';
+          document.getElementById('dispTrangThai').innerHTML = `<i class="fa-solid fa-check"></i> ${data.TrangThai || 'Chờ khám'}`;
+
+          document.getElementById('stepper-alert-title').innerText = "Sẵn sàng tiếp nhận ca tiếp theo";
+          document.getElementById('stepper-alert-desc').innerText = `Đã chuyển sang ca hẹn của ${data.HoTen} (${data.GioKham}).`;
+        } else {
+          // HẾT CA HẸN: Làm sạch thông tin trên form để không còn lưu bệnh nhân cũ
+          clearPatientForm();
+          document.getElementById('stepper-alert-title').innerText = "Hết ca hẹn chờ tiếp nhận";
+          document.getElementById('stepper-alert-desc').innerText = "Đã tiếp nhận hết bệnh nhân đặt trước hôm nay. Vui lòng tra cứu hoặc tiếp nhận khách vãng lai.";
+        }
+      } catch (err) {
+        console.error("Lỗi khi loadNextAppointment:", err);
+      }
+    }
+
+    // Đưa Stepper về trạng thái sẵn sàng tiếp nhận (bước 2)
+    function resetStepper() {
+      const step2 = document.getElementById('step-2');
+      const step3 = document.getElementById('step-3');
+      if (step2 && step3) {
+        step2.className = 'step-item active';
+        step2.querySelector('.step-circle').className = 'step-circle active';
+        step2.querySelector('.step-circle').innerText = '2';
+
+        step3.className = 'step-item';
+        step3.querySelector('.step-circle').className = 'step-circle';
+        step3.querySelector('.step-circle').innerText = '3';
+      }
+    }
+
+    // Xóa form khi không còn ca hẹn
+    function clearPatientForm() {
+      currentMaLichKham = null;
+      document.getElementById('dispMaBn').innerText = '---';
+      document.getElementById('dispHoTen').innerText = '---';
+      document.getElementById('dispNgaySinh').innerText = '---';
+      document.getElementById('dispGioiTinh').innerText = '---';
+      document.getElementById('dispSdt').innerText = '---';
+      document.getElementById('dispDiaChi').innerText = '---';
+      document.getElementById('inputKeyword').value = '';
+
+      document.getElementById('viewCoLich').style.display = 'none';
+      document.getElementById('viewVangLai').style.display = 'block';
+    }
+
+<!--    // Tự động kiểm tra và nạp ca hẹn đầu tiên khi tải trang-->
+<!--    document.addEventListener('DOMContentLoaded', () => {-->
+<!--      loadNextAppointment();-->
+<!--    });-->
+</script>
+</body>
+</html>
