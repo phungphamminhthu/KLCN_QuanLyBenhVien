@@ -3,9 +3,10 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-  <title>Lịch sử khám - Bác sĩ</title>
+  <title>Hồ sơ bệnh nhân - Bệnh viện ABC</title>
 
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
@@ -16,58 +17,72 @@
 
 <body>
 
-<div class="app-layout">
+<div class="app">
 
   <!-- =====================================================
        SIDEBAR
   ====================================================== -->
-
   <aside class="sidebar">
 
-    <div class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-heart-pulse"></i>
+    <!-- LOGO -->
+    <div class="logo">
+
+      <div class="logo-icon">
+        <i class="fa-solid fa-plus"></i>
       </div>
 
       <div>
-        <h2>BỆNH VIỆN</h2>
-        <span>Hệ thống quản lý</span>
+        <h2>BỆNH VIỆN ABC</h2>
+        <span>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</span>
       </div>
+
     </div>
 
 
+    <!-- =================================================
+         MENU
+    ================================================== -->
     <nav class="menu">
 
+      <!-- TỔNG QUAN -->
       <a href="/auth/bac-si/trang-chu"
          class="menu-item">
 
-        <i class="fa-solid fa-house"></i>
+        <i class="fa-solid fa-table-cells-large"></i>
 
         <span>Tổng quan</span>
 
       </a>
 
 
+      <!-- KHÁM BỆNH -->
       <div class="menu-group">
 
         <div class="menu-item active-parent">
 
-          <i class="fa-solid fa-stethoscope"></i>
+          <i class="fa-solid fa-user-doctor"></i>
 
           <span>Khám bệnh</span>
+
+          <i class="fa-solid fa-chevron-down arrow"></i>
 
         </div>
 
 
         <div class="submenu">
 
-          <a href="/auth/bac-si/kham-benh">
+          <a href="/auth/bac-si/kham-benh"
+             class="submenu-item">
+
             Danh sách chờ khám
+
           </a>
 
           <a href="/auth/bac-si/lich-su-kham"
-             class="active">
-            Lịch sử khám
+             class="submenu-item active">
+
+            Hồ sơ bệnh nhân
+
           </a>
 
         </div>
@@ -75,7 +90,8 @@
       </div>
 
 
-      <a href="#"
+      <!-- CHỈ ĐỊNH -->
+      <a href="/auth/bac-si/chi-dinh"
          class="menu-item">
 
         <i class="fa-solid fa-file-medical"></i>
@@ -85,7 +101,8 @@
       </a>
 
 
-      <a href="#"
+      <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+      <a href="/auth/bac-si/ket-qua-can-lam-sang"
          class="menu-item">
 
         <i class="fa-solid fa-flask-vial"></i>
@@ -95,6 +112,7 @@
       </a>
 
 
+      <!-- ĐƠN THUỐC -->
       <a href="#"
          class="menu-item">
 
@@ -105,10 +123,11 @@
       </a>
 
 
+      <!-- HỒ SƠ CÁ NHÂN -->
       <a href="#"
          class="menu-item">
 
-        <i class="fa-solid fa-user-doctor"></i>
+        <i class="fa-regular fa-user"></i>
 
         <span>Hồ sơ cá nhân</span>
 
@@ -116,44 +135,78 @@
 
     </nav>
 
+
+    <!-- =================================================
+         ĐĂNG XUẤT
+    ================================================== -->
+    <button id="btnLogout"
+            type="button"
+            class="logout">
+
+      <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+      <span>Đăng xuất</span>
+
+    </button>
+
   </aside>
 
 
   <!-- =====================================================
        MAIN
   ====================================================== -->
+  <main class="main">
 
-  <main class="main-content">
 
-    <!-- HEADER -->
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+    <header class="header">
 
-    <header class="topbar">
+      <div class="header-search">
 
-      <div class="topbar-title">
+        <i class="fa-solid fa-magnifying-glass"></i>
 
-        <h1>Lịch sử khám</h1>
-
-        <p>
-          Danh sách các ca khám đã hoàn thành
-        </p>
+        <input
+                type="text"
+                placeholder="Tìm kiếm bệnh nhân, hồ sơ..."
+        >
 
       </div>
 
 
-      <div class="doctor-info">
+      <div class="header-right">
 
-        <div class="doctor-avatar"
-             id="doctorAvatar">
-          BS
+        <div class="notification">
+
+          <i class="fa-regular fa-bell"></i>
+
+          <span></span>
+
         </div>
 
-        <div>
 
-          <strong id="doctorName">
-            Bác sĩ
-          </strong>
+        <div class="doctor-info">
 
-          <span>Bác sĩ</span>
+          <div class="doctor-text">
+
+            <strong id="doctorName">
+              Bác sĩ
+            </strong>
+
+            <small>
+              Bác sĩ điều trị
+            </small>
+
+          </div>
+
+
+          <div class="avatar"
+               id="doctorAvatar">
+
+            BS
+
+          </div>
 
         </div>
 
@@ -165,139 +218,236 @@
     <!-- =================================================
          CONTENT
     ================================================== -->
-
     <section class="page-content">
 
-      <!-- TIÊU ĐỀ -->
-
-      <div class="page-heading">
-
-        <div>
-
-          <h2>
-            <i class="fa-solid fa-clock-rotate-left"></i>
-            Lịch sử khám bệnh
-          </h2>
-
-          <p>
-            Xem lại các bệnh nhân đã hoàn thành khám
-          </p>
-
-        </div>
-
-
-        <button
-                type="button"
-                id="btnRefresh"
-                class="btn-refresh">
-
-          <i class="fa-solid fa-rotate"></i>
-
-          Làm mới
-
-        </button>
-
-      </div>
-
 
       <!-- =================================================
-           BỘ LỌC
+           MÀN 1 - DANH SÁCH BỆNH NHÂN
       ================================================== -->
-
-      <div class="filter-card">
-
-        <div class="search-group">
-
-          <label for="patientSearch">
-            Tìm kiếm bệnh nhân
-          </label>
-
-          <div class="input-icon">
-
-            <i class="fa-solid fa-magnifying-glass"></i>
-
-            <input
-                    type="text"
-                    id="patientSearch"
-                    placeholder="Nhập tên hoặc mã bệnh nhân">
-
-          </div>
-
-        </div>
+      <div id="patientListPage">
 
 
-        <div class="date-group">
-
-          <label for="fromDate">
-            Từ ngày
-          </label>
-
-          <input
-                  type="date"
-                  id="fromDate">
-
-        </div>
-
-
-        <div class="date-group">
-
-          <label for="toDate">
-            Đến ngày
-          </label>
-
-          <input
-                  type="date"
-                  id="toDate">
-
-        </div>
-
-
-        <div class="filter-actions">
-
-          <button
-                  type="button"
-                  id="btnFilter"
-                  class="btn-primary">
-
-            <i class="fa-solid fa-filter"></i>
-
-            Lọc
-
-          </button>
-
-
-          <button
-                  type="button"
-                  id="btnClearFilter"
-                  class="btn-secondary">
-
-            Đặt lại
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           TABLE
-      ================================================== -->
-
-      <div class="table-card">
-
-        <div class="table-header">
+        <div class="page-heading">
 
           <div>
 
-            <h3>
-              Danh sách đã khám
-            </h3>
+            <h2>
+
+              <i class="fa-solid fa-hospital-user"></i>
+
+              Danh sách bệnh nhân
+
+            </h2>
 
             <p>
-              Tổng cộng
-              <strong id="totalHistory">0</strong>
-              lượt khám
+              Các bệnh nhân đã từng được bác sĩ khám
+            </p>
+
+          </div>
+
+
+          <button
+                  type="button"
+                  id="btnRefresh"
+                  class="btn-refresh">
+
+            <i class="fa-solid fa-rotate"></i>
+
+            Làm mới
+
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             TÌM KIẾM
+        ================================================== -->
+        <div class="filter-card">
+
+          <div class="search-group">
+
+            <label for="patientSearch">
+              Tìm kiếm bệnh nhân
+            </label>
+
+
+            <div class="input-icon">
+
+              <i class="fa-solid fa-magnifying-glass"></i>
+
+              <input
+                      type="text"
+                      id="patientSearch"
+                      placeholder="Nhập tên hoặc mã bệnh nhân"
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="filter-actions">
+
+            <button
+                    type="button"
+                    class="btn-secondary"
+                    onclick="
+                                    document.getElementById('patientSearch').value = '';
+                                    timKiemBenhNhan();
+                                ">
+
+              <i class="fa-solid fa-rotate-left"></i>
+
+              Đặt lại
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             BẢNG BỆNH NHÂN
+        ================================================== -->
+        <div class="table-card">
+
+          <div class="table-header">
+
+            <div>
+
+              <h3>
+                Danh sách hồ sơ bệnh nhân
+              </h3>
+
+              <p>
+
+                Tổng cộng
+
+                <strong id="totalPatients">
+                  0
+                </strong>
+
+                bệnh nhân
+
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="table-wrapper">
+
+            <table>
+
+              <thead>
+
+              <tr>
+
+                <th>STT</th>
+
+                <th>Bệnh nhân</th>
+
+                <th>Ngày sinh</th>
+
+                <th>Giới tính</th>
+
+                <th>Lần khám gần nhất</th>
+
+                <th>Số lần khám</th>
+
+                <th>Thao tác</th>
+
+              </tr>
+
+              </thead>
+
+
+              <tbody id="patientTableBody">
+              </tbody>
+
+            </table>
+
+
+            <!-- LOADING -->
+            <div
+                    id="loadingState"
+                    class="state-message hidden">
+
+              <i class="fa-solid fa-spinner fa-spin"></i>
+
+              <h3>
+                Đang tải dữ liệu
+              </h3>
+
+              <p>
+                Vui lòng chờ trong giây lát...
+              </p>
+
+            </div>
+
+
+            <!-- EMPTY -->
+            <div
+                    id="emptyState"
+                    class="state-message hidden">
+
+              <i class="fa-regular fa-folder-open"></i>
+
+              <h3>
+                Chưa có hồ sơ bệnh nhân
+              </h3>
+
+              <p>
+                Không tìm thấy bệnh nhân đã hoàn thành khám.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           MÀN 2 - THÔNG TIN BỆNH NHÂN
+      ================================================== -->
+      <div
+              id="patientDetailPage"
+              class="patient-detail-page hidden">
+
+
+        <!-- QUAY LẠI -->
+        <div class="page-heading">
+
+          <div>
+
+            <button
+                    type="button"
+                    id="btnBackPatientList"
+                    class="btn-back">
+
+              <i class="fa-solid fa-arrow-left"></i>
+
+              Quay lại danh sách bệnh nhân
+
+            </button>
+
+
+            <h2>
+
+              <i class="fa-regular fa-folder-open"></i>
+
+              Hồ sơ bệnh nhân
+
+            </h2>
+
+            <p>
+              Thông tin tổng quan của bệnh nhân
             </p>
 
           </div>
@@ -305,61 +455,256 @@
         </div>
 
 
-        <div class="table-wrapper">
-
-          <table>
-
-            <thead>
-
-            <tr>
-
-              <th>STT</th>
-
-              <th>Bệnh nhân</th>
-
-              <th>Ngày khám</th>
-
-              <th>Giờ khám</th>
-
-              <th>Lý do khám</th>
-
-              <th>Trạng thái</th>
-
-              <th>Thao tác</th>
-
-            </tr>
-
-            </thead>
+        <!-- =================================================
+             THÔNG TIN CÁ NHÂN
+        ================================================== -->
+        <div class="patient-profile-card">
 
 
-            <tbody id="historyTableBody"></tbody>
-
-          </table>
+          <div class="patient-profile-top">
 
 
-          <div
-                  id="loadingState"
-                  class="state-message hidden">
+            <div class="patient-profile-avatar">
 
-            <i class="fa-solid fa-spinner fa-spin"></i>
+              <i class="fa-solid fa-user"></i>
 
-            Đang tải dữ liệu...
+            </div>
+
+
+            <div class="patient-profile-name">
+
+              <h2 id="detailPatientName">
+                ---
+              </h2>
+
+              <p>
+                Hồ sơ bệnh nhân
+              </p>
+
+            </div>
+
+
+            <span
+                    class="patient-code"
+                    id="detailPatientCode">
+
+                            ---
+
+                        </span>
 
           </div>
 
 
-          <div
-                  id="emptyState"
-                  class="state-message hidden">
+          <!-- THÔNG TIN -->
+          <div class="patient-information-grid">
 
-            <i class="fa-regular fa-folder-open"></i>
 
-            <h3>Chưa có lịch sử khám</h3>
+            <div class="patient-information-item">
 
-            <p>
-              Không tìm thấy ca khám đã hoàn thành.
-            </p>
+                            <span>
+                                Ngày sinh
+                            </span>
 
+              <strong id="detailBirthDate">
+                ---
+              </strong>
+
+            </div>
+
+
+            <div class="patient-information-item">
+
+                            <span>
+                                Giới tính
+                            </span>
+
+              <strong id="detailGender">
+                ---
+              </strong>
+
+            </div>
+
+
+            <div class="patient-information-item">
+
+                            <span>
+                                Số lần khám
+                            </span>
+
+              <strong id="detailVisitCount">
+                ---
+              </strong>
+
+            </div>
+
+
+            <div class="patient-information-item">
+
+                            <span>
+                                Lần khám gần nhất
+                            </span>
+
+              <strong id="detailLastVisit">
+                ---
+              </strong>
+
+            </div>
+
+
+            <div class="patient-information-item full-width">
+
+                            <span>
+                                Tiền sử bệnh
+                            </span>
+
+              <strong id="detailMedicalHistory">
+                ---
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- =================================================
+             CÁC CHỨC NĂNG
+        ================================================== -->
+        <div class="patient-sections">
+
+
+          <!-- CÁC LẦN KHÁM -->
+          <button
+                  type="button"
+                  id="btnShowVisits"
+                  class="patient-section-card">
+
+            <div class="patient-section-icon">
+
+              <i class="fa-solid fa-stethoscope"></i>
+
+            </div>
+
+
+            <div class="patient-section-content">
+
+              <strong>
+                Các lần khám
+              </strong>
+
+              <span>
+                                Xem lịch sử và hồ sơ từng lần khám
+                            </span>
+
+            </div>
+
+
+            <i class="fa-solid fa-chevron-right patient-section-arrow"></i>
+
+          </button>
+
+
+          <!-- KẾT QUẢ CLS -->
+          <button
+                  type="button"
+                  id="btnShowClinicalResults"
+                  class="patient-section-card">
+
+            <div class="patient-section-icon">
+
+              <i class="fa-solid fa-flask-vial"></i>
+
+            </div>
+
+
+            <div class="patient-section-content">
+
+              <strong>
+                Kết quả cận lâm sàng
+              </strong>
+
+              <span>
+                                Xem xét nghiệm, chẩn đoán hình ảnh và kết quả
+                            </span>
+
+            </div>
+
+
+            <i class="fa-solid fa-chevron-right patient-section-arrow"></i>
+
+          </button>
+
+
+          <!-- ĐƠN THUỐC -->
+          <button
+                  type="button"
+                  id="btnShowPrescriptions"
+                  class="patient-section-card">
+
+            <div class="patient-section-icon">
+
+              <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+            </div>
+
+
+            <div class="patient-section-content">
+
+              <strong>
+                Đơn thuốc
+              </strong>
+
+              <span>
+                                Xem đơn thuốc theo từng lần khám
+                            </span>
+
+            </div>
+
+
+            <i class="fa-solid fa-chevron-right patient-section-arrow"></i>
+
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             KHU VỰC NỘI DUNG ĐƯỢC CHỌN
+        ================================================== -->
+        <div
+                id="patientSectionDetail"
+                class="patient-section-detail hidden">
+
+
+          <div class="section-detail-header">
+
+            <div>
+
+              <h3 id="sectionDetailTitle">
+                ---
+              </h3>
+
+              <p id="sectionDetailDescription">
+              </p>
+
+            </div>
+
+
+            <button
+                    type="button"
+                    id="btnCloseSection"
+                    class="btn-close-section"
+                    title="Đóng">
+
+              <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+          </div>
+
+
+          <div id="sectionDetailContent">
           </div>
 
         </div>
@@ -374,233 +719,8 @@
 
 
 <!-- =========================================================
-     MODAL CHI TIẾT HỒ SƠ
-========================================================= -->
-
-<div
-        id="historyModal"
-        class="modal-overlay hidden">
-
-  <div class="modal">
-
-    <div class="modal-header">
-
-      <div>
-
-        <h2>
-          Chi tiết hồ sơ khám
-        </h2>
-
-        <p>
-          Hồ sơ đã hoàn tất - chỉ xem
-        </p>
-
-      </div>
-
-
-      <button
-              type="button"
-              id="btnCloseModal"
-              class="modal-close">
-
-        <i class="fa-solid fa-xmark"></i>
-
-      </button>
-
-    </div>
-
-
-    <!-- THÔNG TIN BỆNH NHÂN -->
-
-    <div class="patient-info-card">
-
-      <div class="patient-avatar">
-
-        <i class="fa-solid fa-user"></i>
-
-      </div>
-
-
-      <div>
-
-        <h3 id="modalPatientName">
-          ---
-        </h3>
-
-        <div class="patient-meta">
-
-                    <span>
-                        Mã BN:
-                        <strong id="modalPatientId">
-                            ---
-                        </strong>
-                    </span>
-
-          <span>
-                        Ngày sinh:
-                        <strong id="modalBirthDate">
-                            ---
-                        </strong>
-                    </span>
-
-          <span>
-                        Giới tính:
-                        <strong id="modalGender">
-                            ---
-                        </strong>
-                    </span>
-
-        </div>
-
-      </div>
-
-
-      <span class="status-completed">
-                Đã hoàn tất
-            </span>
-
-    </div>
-
-
-    <!-- THÔNG TIN LỊCH -->
-
-    <div class="visit-information">
-
-      <div>
-
-        <span>Ngày khám</span>
-
-        <strong id="modalExamDate">
-          ---
-        </strong>
-
-      </div>
-
-
-      <div>
-
-        <span>Giờ khám</span>
-
-        <strong id="modalExamTime">
-          ---
-        </strong>
-
-      </div>
-
-
-      <div>
-
-        <span>Lý do khám</span>
-
-        <strong id="modalReason">
-          ---
-        </strong>
-
-      </div>
-
-    </div>
-
-
-    <!-- HỒ SƠ -->
-
-    <div class="medical-record">
-
-      <div class="form-group">
-
-        <label>Triệu chứng</label>
-
-        <textarea
-                id="modalSymptoms"
-                readonly></textarea>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>Chẩn đoán</label>
-
-        <textarea
-                id="modalDiagnosis"
-                readonly></textarea>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>Kết luận</label>
-
-        <textarea
-                id="modalConclusion"
-                readonly></textarea>
-
-      </div>
-
-
-      <div class="form-group">
-
-        <label>Hướng điều trị</label>
-
-        <textarea
-                id="modalTreatment"
-                readonly></textarea>
-
-      </div>
-
-
-      <div class="form-row">
-
-        <div class="form-group">
-
-          <label>Ngày tái khám</label>
-
-          <input
-                  type="text"
-                  id="modalReExamDate"
-                  readonly>
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label>Ghi chú tái khám</label>
-
-          <input
-                  type="text"
-                  id="modalReExamNote"
-                  readonly>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div class="modal-footer">
-
-      <button
-              type="button"
-              id="btnModalCloseBottom"
-              class="btn-secondary">
-
-        Đóng
-
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================================================
      TOAST
 ========================================================= -->
-
 <div
         id="toast"
         class="toast hidden">
@@ -613,17 +733,25 @@
 
   </div>
 
+
   <div>
 
-    <strong id="toastTitle"></strong>
+    <strong id="toastTitle">
+    </strong>
 
-    <p id="toastMessage"></p>
+    <p id="toastMessage">
+    </p>
 
   </div>
 
 </div>
 
 
+<!-- =========================================================
+     SCRIPT
+========================================================= -->
+<!-- lich-su-kham.html -->
+<script src="/Js/BacSi/sidebar.js"></script>
 <script src="/Js/BacSi/lich-su-kham.js"></script>
 
 </body>

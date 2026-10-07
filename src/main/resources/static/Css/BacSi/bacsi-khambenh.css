@@ -1,420 +1,63 @@
 /* =====================================================
-   RESET
+   GIAO DIỆN CHUNG PHÂN HỆ BÁC SĨ
 ===================================================== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: #f5f7fb;
-    color: #25324b;
-}
-
-button,
-input,
-textarea {
-    font-family: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-a {
-    color: inherit;
-}
-
-.hidden {
-    display: none !important;
-}
-
-
-/* =====================================================
-   APP
-===================================================== */
-
-.app {
-    display: flex;
-    min-height: 100vh;
-}
-
-
-/* =====================================================
-   SIDEBAR
-===================================================== */
-
-.sidebar {
-    width: 260px;
-    background: #ffffff;
-    border-right: 1px solid #e8edf5;
-
-    display: flex;
-    flex-direction: column;
-
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-
-    z-index: 20;
-}
-
-
-/* =====================================================
-   LOGO
-===================================================== */
-
-.logo {
-    height: 84px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    padding: 0 20px;
-
-    border-bottom: 1px solid #edf0f5;
-}
-
-.logo-box {
-    width: 44px;
-    height: 44px;
-
-    background: #2f6fed;
-    color: white;
-
-    border-radius: 10px;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    font-size: 20px;
-
-    flex-shrink: 0;
-}
-
-.logo h2 {
-    font-size: 17px;
-    color: #2465d8;
-}
-
-.logo span {
-    display: block;
-
-    margin-top: 3px;
-
-    font-size: 12px;
-    color: #7d8aa5;
-}
-
-
-/* =====================================================
-   MENU
-===================================================== */
-
-.menu {
-    padding: 22px 16px;
-    flex: 1;
-}
-
-.menu-item {
-    height: 46px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 13px;
-
-    padding: 0 14px;
-
-    margin-bottom: 5px;
-
-    border-radius: 8px;
-
-    color: #4e596e;
-
-    text-decoration: none;
-
-    font-size: 16px;
-
-    transition: 0.2s;
-}
-
-.menu-item:hover {
-    background: #f2f6ff;
-    color: #2f6fed;
-}
-
-.menu-item.active {
-    background: #eaf2ff;
-    color: #2f6fed;
-}
-
-.menu-item i {
-    width: 20px;
-    text-align: center;
-}
-
-.menu-parent .menu-item {
-    cursor: default;
-}
-
-.menu-parent .arrow {
-    margin-left: auto;
-    font-size: 10px;
-}
-
-
-/* =====================================================
-   SUBMENU
-===================================================== */
-
-.submenu {
-    margin-left: 29px;
-}
-
-.submenu-item {
-    display: block;
-
-    padding: 9px 14px;
-
-    color: #69758a;
-
-    text-decoration: none;
-
-    border-radius: 7px;
-
-    font-size: 14px;
-
-    margin: 3px 0;
-
-    transition: 0.2s;
-}
-
-.submenu-item:hover {
-    color: #2f6fed;
-    background: #f4f7ff;
-}
-
-.submenu-item.active {
-    color: #2f6fed;
-    background: #eaf2ff;
-    font-weight: 600;
-}
-
-
-/* =====================================================
-   LOGOUT
-===================================================== */
-
-.logout {
-    height: 60px;
-
-    border: none;
-    border-top: 1px solid #edf0f5;
-
-    background: white;
-
-    color: #596579;
-
-    text-align: left;
-
-    padding: 0 24px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    font-size: 14px;
-}
-
-.logout:hover {
-    background: #f7f9fc;
-    color: #dc2626;
-}
-
-
-/* =====================================================
-   MAIN
-===================================================== */
-
-.main {
-    flex: 1;
-
-    margin-left: 260px;
-
-    min-width: 0;
-}
-
-
-/* =====================================================
-   HEADER
-===================================================== */
-
-.header {
-    height: 84px;
-
-    background: white;
-
-    border-bottom: 1px solid #e8edf5;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 32px;
-
-    position: sticky;
-    top: 0;
-
-    z-index: 10;
-}
-
-
-/* =====================================================
-   HEADER SEARCH
-===================================================== */
-
-.header-search {
-    width: 430px;
-    height: 42px;
-
-    background: #f5f7fb;
-
-    border-radius: 8px;
-
-    display: flex;
-    align-items: center;
-
-    padding: 0 14px;
-
-    gap: 10px;
-
-    color: #9ba7ba;
-}
-
-.header-search input {
-    border: none;
-    outline: none;
-
-    background: transparent;
-
-    width: 100%;
-
-    color: #39465d;
-
-    font-size: 14px;
-}
-
-.header-search input::placeholder {
-    color: #a4adbd;
-}
-
-
-/* =====================================================
-   HEADER RIGHT
-===================================================== */
-
-.header-right {
-    display: flex;
-    align-items: center;
-
-    gap: 20px;
-}
-
-.notification {
-    position: relative;
-
-    color: #596579;
-
-    cursor: pointer;
-
-    font-size: 17px;
-}
-
-.notification span {
-    position: absolute;
-
-    width: 7px;
-    height: 7px;
-
-    border-radius: 50%;
-
-    background: #f05252;
-
-    top: -3px;
-    right: -3px;
-}
-
-
-/* =====================================================
-   DOCTOR INFO
-===================================================== */
-
-.doctor-info {
-    display: flex;
-    align-items: center;
-
-    gap: 11px;
-}
-
-.doctor-info > div:first-child {
-    display: flex;
-    flex-direction: column;
-
-    text-align: right;
-}
-
-.doctor-info strong {
-    font-size: 14px;
-}
-
-.doctor-info small {
-    font-size: 12px;
-
-    margin-top: 3px;
-
-    color: #8994a7;
-}
-
-.avatar {
-    width: 42px;
-    height: 42px;
-
-    border-radius: 50%;
-
-    background: #e5efff;
-
-    color: #2f6fed;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    font-size: 14px;
-    font-weight: bold;
-}
-
-
-/* =====================================================
-   CONTENT
-===================================================== */
-
-.content {
-    padding: 28px 32px 50px;
-
-    max-width: 1500px;
-
-    margin: auto;
-}
-
+* { margin:0; padding:0; box-sizing:border-box; }
+html { overflow-y:scroll; }
+body { font-family:Arial,Helvetica,sans-serif; background:#f5f8fc; color:#1e293b; }
+button,input,textarea,select { font:inherit; }
+button { cursor:pointer; }
+a { color:inherit; }
+.hidden { display:none !important; }
+.app,.app-layout { display:flex; min-height:100vh; }
+
+/* SIDEBAR */
+.sidebar { width:260px; height:100vh; position:fixed; inset:0 auto 0 0; display:flex; flex-direction:column; padding:24px 16px; background:#fff; border-right:1px solid #e7edf5; overflow-y:auto; z-index:100; }
+
+/* LOGO */
+.logo,.brand { display:flex; align-items:center; gap:12px; padding:0 10px 26px; border-bottom:1px solid #edf1f7; }
+.logo-box,.logo-icon,.brand-icon { width:44px; height:44px; flex:0 0 44px; display:flex; align-items:center; justify-content:center; border-radius:12px; background:#2563eb; color:#fff; font-size:21px; }
+.logo h2,.brand h2 { margin:0; font-size:17px; line-height:1.2; color:#1e40af; }
+.logo span,.brand span { display:block; margin-top:3px; font-size:12px; line-height:1.35; color:#94a3b8; }
+
+/* MENU */
+.menu { margin-top:25px; padding:0; flex:1; }
+.menu-group,.menu-parent { margin-bottom:4px; }
+.menu-item { width:100%; min-height:46px; display:flex; align-items:center; gap:13px; padding:0 15px; margin-bottom:5px; border-radius:9px; color:#64748b; text-decoration:none; font-size:16px; transition:.2s; }
+.menu-item:hover { background:#f1f5f9; color:#2563eb; }
+.menu-item.active { background:#eaf2ff; color:#2563eb; }
+.menu-item.active-parent,.active-parent { color:#2563eb; font-weight:600; }
+.menu-item i:first-child { width:20px; min-width:20px; text-align:center; }
+.menu-group>.menu-item,.menu-parent>.menu-item { cursor:pointer; }
+.menu-item .arrow,.menu-parent .arrow { width:auto; min-width:0; margin-left:auto; font-size:10px; transition:transform .2s ease; }
+.submenu { margin:2px 0 12px 45px; border-left:2px solid #e2e8f0; }
+.submenu a,.submenu-item { display:block; padding:9px 14px; color:#64748b; text-decoration:none; font-size:14px; transition:.2s; }
+.submenu a:hover,.submenu a.active,.submenu-item:hover,.submenu-item.active { color:#2563eb; font-weight:600; }
+.logout { width:100%; min-height:46px; flex-shrink:0; display:flex; align-items:center; gap:13px; padding:15px; border:none; border-top:1px solid #edf1f7; background:transparent; color:#64748b; text-align:left; font-size:14px; }
+.logout i { width:20px; text-align:center; }
+.logout:hover { color:#dc2626; }
+
+/* MAIN + HEADER */
+.main,.main-content { width:calc(100% - 260px); min-width:0; min-height:100vh; margin-left:260px; }
+.header,.topbar { width:100%; height:84px; position:sticky; top:0; display:flex; align-items:center; justify-content:space-between; padding:0 32px; background:#fff; border-bottom:1px solid #e7edf5; z-index:50; }
+
+/* SEARCH */
+.header-search,.header>.search-box,.topbar>.header-search,.topbar>.search-box { width:430px; max-width:50%; height:42px; display:flex; align-items:center; gap:10px; padding:0 14px; background:#f5f7fb; border:1px solid transparent; border-radius:8px; color:#94a3b8; transition:.2s; }
+.header-search:focus-within,.header>.search-box:focus-within,.topbar>.header-search:focus-within,.topbar>.search-box:focus-within { background:#fff; border-color:#2563eb; }
+.header-search i,.header>.search-box i,.topbar>.header-search i,.topbar>.search-box i { flex-shrink:0; color:#94a3b8; font-size:15px; }
+.header-search input,.header>.search-box input,.topbar>.header-search input,.topbar>.search-box input { width:100%; height:100%; border:none; outline:none; background:transparent; color:#334155; font-size:14px; }
+.header-search input::placeholder,.header>.search-box input::placeholder,.topbar>.header-search input::placeholder,.topbar>.search-box input::placeholder { color:#a3afc0; }
+
+/* HEADER RIGHT */
+.header-right { display:flex; align-items:center; gap:20px; margin-left:auto; }
+.notification { position:relative; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border:none; border-radius:8px; background:transparent; color:#64748b; font-size:17px; }
+.notification:hover { background:#f5f8fc; }
+.notification span,.notification-dot { position:absolute; top:6px; right:7px; width:7px; height:7px; border-radius:50%; background:#ef4444; }
+.doctor,.doctor-info { display:flex; align-items:center; gap:11px; }
+.doctor-text,.doctor-info>div:first-child { display:flex; flex-direction:column; text-align:right; }
+.doctor-text strong,.doctor-info strong { display:block; color:#1e293b; font-size:14px; line-height:1.25; }
+.doctor-text small,.doctor-text span,.doctor-info small,.doctor-info span { display:block; margin-top:3px; color:#94a3b8; font-size:12px; line-height:1.25; }
+.avatar,.doctor-avatar { width:42px; height:42px; flex:0 0 42px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:#dbeafe; color:#2563eb; font-size:14px; font-weight:700; }
+.content,.page-content { padding:28px 32px 40px; }
 
 /* =====================================================
    BREADCRUMB
@@ -1318,22 +961,6 @@ tbody tr:hover {
 
 @media (max-width: 1050px) {
 
-    .sidebar {
-        width: 220px;
-    }
-
-    .main {
-        margin-left: 220px;
-    }
-
-    .menu-item {
-        font-size: 14px;
-    }
-
-    .submenu-item {
-        font-size: 13px;
-    }
-
     .statistics {
         grid-template-columns: 1fr;
     }
@@ -1393,3 +1020,606 @@ tbody tr:hover {
         flex-direction: column;
     }
 }
+/* =====================================================
+   TAB KHÁM BỆNH
+   THÔNG TIN KHÁM | CẬN LÂM SÀNG
+===================================================== */
+
+/* Modal rộng hơn để phần CLS không bị đè */
+.modal {
+    width: 900px;
+    max-width: calc(100vw - 40px);
+    overflow-x: hidden;
+}
+
+
+/* =====================================================
+   THANH TAB
+===================================================== */
+
+.exam-tabs {
+    margin: 0 20px;
+    padding: 6px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 6px;
+
+    background: #edf2f8;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.exam-tab {
+    flex: 1;
+
+    min-height: 44px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #68758a;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 9px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.exam-tab i {
+    font-size: 15px;
+}
+
+.exam-tab:hover {
+    background: rgba(255, 255, 255, 0.7);
+    color: #2f6fed;
+}
+
+.exam-tab.active {
+    background: #ffffff;
+    color: #2f6fed;
+
+    box-shadow:
+        0 2px 7px rgba(35, 65, 110, 0.08);
+}
+
+
+/* =====================================================
+   NỘI DUNG TAB
+===================================================== */
+
+.exam-tab-content {
+    display: none;
+}
+
+.exam-tab-content.active {
+    display: block;
+}
+
+.exam-tab-content .exam-card {
+    margin-top: 14px;
+}
+
+
+/* =====================================================
+   CẬN LÂM SÀNG
+===================================================== */
+
+.clinical-section {
+    width: 100%;
+    min-width: 0;
+}
+
+
+/* =====================================================
+   HEADER CẬN LÂM SÀNG
+===================================================== */
+
+.clinical-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 18px;
+}
+
+.clinical-header h3 {
+    margin-bottom: 5px;
+
+    font-size: 15px;
+
+    color: #29364d;
+}
+
+.clinical-header h3 i {
+    margin-right: 7px;
+
+    color: #2f6fed;
+}
+
+.clinical-header p {
+    font-size: 12px;
+
+    color: #8994a7;
+}
+
+
+/* =====================================================
+   FORM TẠO CHỈ ĐỊNH
+===================================================== */
+
+.clinical-order-box {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 2fr)
+        minmax(150px, 0.8fr)
+        auto;
+
+    gap: 14px;
+
+    align-items: end;
+
+    padding: 18px;
+
+    margin-bottom: 15px;
+
+    background: #f8faff;
+
+    border: 1px solid #e4eaf3;
+    border-radius: 10px;
+}
+
+.clinical-field {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+.clinical-field label {
+    font-size: 13px;
+    font-weight: 600;
+
+    color: #556177;
+}
+
+.clinical-field select,
+.clinical-field input {
+    width: 100%;
+    height: 42px;
+
+    padding: 0 11px;
+
+    border: 1px solid #dfe5ee;
+    border-radius: 7px;
+
+    outline: none;
+
+    background: #ffffff;
+
+    color: #364258;
+
+    font-size: 13px;
+
+    transition: 0.2s;
+}
+
+.clinical-field select:focus,
+.clinical-field input:focus {
+    border-color: #2f6fed;
+
+    box-shadow:
+        0 0 0 3px rgba(47, 111, 237, 0.08);
+}
+
+.clinical-field select:disabled,
+.clinical-field input:disabled {
+    background: #f1f4f8;
+
+    color: #8b95a6;
+
+    cursor: not-allowed;
+}
+
+.clinical-create-btn {
+    height: 42px;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   THÔNG TIN DỊCH VỤ ĐANG CHỌN
+===================================================== */
+
+.selected-service-info {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+
+    padding: 14px 16px;
+
+    background: #f7faff;
+
+    border: 1px solid #dfe9fa;
+    border-radius: 9px;
+}
+
+.selected-service-info > div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+}
+
+.selected-service-info span {
+    font-size: 11px;
+
+    color: #8994a7;
+}
+
+.selected-service-info strong {
+    font-size: 13px;
+
+    color: #354258;
+
+    word-break: break-word;
+}
+
+
+/* =====================================================
+   DANH SÁCH CHỈ ĐỊNH
+===================================================== */
+
+.clinical-orders {
+    width: 100%;
+    min-width: 0;
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid #e5eaf2;
+    border-radius: 10px;
+}
+
+.clinical-list-header {
+    min-height: 54px;
+
+    padding: 0 16px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    background: #fbfcfe;
+
+    border-bottom: 1px solid #e9edf4;
+}
+
+.clinical-list-header strong {
+    font-size: 14px;
+
+    color: #354258;
+}
+
+.clinical-refresh {
+    height: 34px;
+
+    padding: 0 11px;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 6px;
+
+    border: 1px solid #dfe5ee;
+    border-radius: 7px;
+
+    background: #ffffff;
+
+    color: #637086;
+
+    font-size: 12px;
+
+    cursor: pointer;
+}
+
+.clinical-refresh:hover {
+    color: #2f6fed;
+
+    border-color: #cbd9f4;
+
+    background: #f6f9ff;
+}
+
+
+/* =====================================================
+   BẢNG CHỈ ĐỊNH
+===================================================== */
+
+.clinical-table-wrapper {
+    width: 100%;
+    max-width: 100%;
+
+    overflow-x: auto;
+
+    overscroll-behavior-x: contain;
+}
+
+.clinical-table {
+    width: 100%;
+
+    min-width: 720px;
+
+    border-collapse: collapse;
+}
+
+.clinical-table thead {
+    background: #f8fafe;
+}
+
+.clinical-table th {
+    padding: 12px;
+
+    border-bottom: 1px solid #e8edf4;
+
+    color: #748096;
+
+    font-size: 11px;
+
+    white-space: nowrap;
+}
+
+.clinical-table td {
+    padding: 13px 12px;
+
+    border-bottom: 1px solid #edf0f5;
+
+    color: #48556b;
+
+    font-size: 13px;
+
+    vertical-align: middle;
+}
+
+.clinical-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.clinical-table tbody tr:hover {
+    background: #f9fbff;
+}
+
+
+/* =====================================================
+   TRẠNG THÁI DANH SÁCH CLS
+===================================================== */
+
+.clinical-state {
+    min-height: 150px;
+
+    padding: 25px;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    text-align: center;
+
+    color: #8a95a7;
+}
+
+.clinical-state > i {
+    margin-bottom: 4px;
+
+    color: #9dacbf;
+
+    font-size: 27px;
+}
+
+.clinical-state strong {
+    color: #566276;
+
+    font-size: 14px;
+}
+
+.clinical-state span {
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   FOOTER MODAL
+===================================================== */
+
+.modal-footer {
+    position: sticky;
+
+    bottom: 0;
+
+    z-index: 5;
+
+    box-shadow:
+        0 -4px 15px rgba(40, 55, 80, 0.04);
+}
+
+
+/* =====================================================
+   FIX TRÀN GIAO DIỆN
+===================================================== */
+
+.exam-card,
+.clinical-section,
+.clinical-orders,
+.clinical-result-section,
+.exam-tab-content {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.exam-card {
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 850px) {
+
+    .modal {
+        width: 100%;
+
+        max-width: calc(100vw - 24px);
+    }
+
+    .clinical-order-box {
+        grid-template-columns:
+            minmax(0, 1fr)
+            minmax(130px, 0.6fr);
+    }
+
+    .clinical-create-btn {
+        grid-column: 1 / -1;
+
+        width: 100%;
+    }
+
+    .selected-service-info {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 600px) {
+
+    .modal-overlay {
+        padding: 6px;
+    }
+
+    .modal {
+        width: 100%;
+        max-width: 100%;
+
+        max-height: 98vh;
+
+        border-radius: 9px;
+    }
+
+    .modal-header {
+        padding: 16px;
+    }
+
+    .patient-card {
+        margin: 12px;
+
+        padding: 14px;
+
+        align-items: flex-start;
+    }
+
+    .patient-info > div {
+        flex-direction: column;
+
+        gap: 6px;
+    }
+
+    .exam-tabs {
+        margin: 0 12px;
+    }
+
+    .exam-tab {
+        min-height: 42px;
+
+        font-size: 12px;
+    }
+
+    .exam-tab i {
+        font-size: 13px;
+    }
+
+    .exam-card {
+        margin: 12px;
+
+        padding: 15px;
+    }
+
+    .clinical-order-box {
+        grid-template-columns: 1fr;
+
+        padding: 14px;
+    }
+
+    .clinical-create-btn {
+        grid-column: auto;
+
+        width: 100%;
+    }
+
+    .selected-service-info {
+        grid-template-columns: 1fr;
+    }
+
+
+    .modal-footer {
+        padding: 12px;
+
+        flex-wrap: wrap;
+    }
+
+    .modal-footer .btn {
+        flex: 1;
+
+        min-width: 120px;
+    }
+}
+/* =========================================================
+   KHAM BENH SUBMENU - MAC DINH DONG
+========================================================= */
+
+.sidebar .submenu {
+    display: none !important;
+}
+
+.sidebar .submenu.open {
+    display: block !important;
+}
+

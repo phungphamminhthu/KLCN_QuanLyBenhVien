@@ -12,9 +12,14 @@ const API_BASE = "/api/bac-si/kham-benh";
 let danhSachBenhNhan = [];
 let lichKhamDangChon = null;
 
+let danhSachDichVu = [];
+let danhSachChiDinh = [];
+
+let hoSoDangKhoa = false;
+
 
 /* =====================================================
-   DOM
+   DOM - DANH SÁCH BỆNH NHÂN
 ===================================================== */
 
 const patientTableBody =
@@ -49,7 +54,7 @@ const currentDate =
 
 
 /* =====================================================
-   MODAL
+   DOM - MODAL
 ===================================================== */
 
 const examModal =
@@ -69,7 +74,7 @@ const btnCompleteExam =
 
 
 /* =====================================================
-   THÔNG TIN BỆNH NHÂN
+   DOM - THÔNG TIN BỆNH NHÂN
 ===================================================== */
 
 const modalPatientName =
@@ -89,7 +94,7 @@ const modalStatus =
 
 
 /* =====================================================
-   FORM
+   DOM - FORM HỒ SƠ
 ===================================================== */
 
 const trieuChung =
@@ -109,6 +114,61 @@ const ngayTaiKham =
 
 const ghiChuTaiKham =
     document.getElementById("ghiChuTaiKham");
+
+
+/* =====================================================
+   DOM - TAB
+===================================================== */
+
+const tabMedicalInfo =
+    document.getElementById("tabMedicalInfo");
+
+const tabClinical =
+    document.getElementById("tabClinical");
+
+const medicalTabContent =
+    document.getElementById("medicalTabContent");
+
+const clinicalTabContent =
+    document.getElementById("clinicalTabContent");
+
+
+/* =====================================================
+   DOM - CẬN LÂM SÀNG
+===================================================== */
+
+const dichVuSelect =
+    document.getElementById("dichVuSelect");
+
+const maPhongChiDinh =
+    document.getElementById("maPhongChiDinh");
+
+const btnCreateOrder =
+    document.getElementById("btnCreateOrder");
+
+const btnRefreshOrders =
+    document.getElementById("btnRefreshOrders");
+
+const selectedServiceInfo =
+    document.getElementById("selectedServiceInfo");
+
+const selectedServiceName =
+    document.getElementById("selectedServiceName");
+
+const selectedServiceType =
+    document.getElementById("selectedServiceType");
+
+const selectedServicePrice =
+    document.getElementById("selectedServicePrice");
+
+const clinicalOrderBody =
+    document.getElementById("clinicalOrderBody");
+
+const clinicalOrderLoading =
+    document.getElementById("clinicalOrderLoading");
+
+const clinicalOrderEmpty =
+    document.getElementById("clinicalOrderEmpty");
 
 
 /* =====================================================
@@ -189,6 +249,7 @@ function hienThiNgayHienTai() {
     const today = new Date();
 
     if (currentDate) {
+
         currentDate.textContent =
             today.toLocaleDateString("vi-VN");
     }
@@ -205,7 +266,8 @@ function formatDate(dateString) {
         return "---";
     }
 
-    const parts = dateString.split("-");
+    const parts =
+        String(dateString).split("-");
 
     if (parts.length !== 3) {
         return dateString;
@@ -225,7 +287,66 @@ function formatTime(time) {
         return "---";
     }
 
-    return time.substring(0, 5);
+    return String(time).substring(0, 5);
+}
+
+
+/* =====================================================
+   FORMAT NGÀY GIỜ
+===================================================== */
+
+function formatDateTime(value) {
+
+    if (!value) {
+        return "---";
+    }
+
+    try {
+
+        const date =
+            new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return value;
+        }
+
+        return date.toLocaleString("vi-VN");
+
+    } catch (error) {
+
+        return value;
+    }
+}
+
+
+/* =====================================================
+   FORMAT TIỀN
+===================================================== */
+
+function formatMoney(value) {
+
+    if (
+        value === null ||
+        value === undefined ||
+        value === ""
+    ) {
+        return "---";
+    }
+
+    const number =
+        Number(value);
+
+    if (Number.isNaN(number)) {
+        return value;
+    }
+
+    return new Intl.NumberFormat(
+        "vi-VN",
+        {
+            style: "currency",
+            currency: "VND"
+        }
+    ).format(number);
 }
 
 
@@ -237,21 +358,25 @@ async function loadThongKe() {
 
     try {
 
-        const data = await apiFetch(
-            `${API_BASE}/thong-ke`
-        );
+        const data =
+            await apiFetch(
+                `${API_BASE}/thong-ke`
+            );
 
         if (waitingCount) {
+
             waitingCount.textContent =
                 data.choKham ?? 0;
         }
 
         if (examiningCount) {
+
             examiningCount.textContent =
                 data.dangKham ?? 0;
         }
 
         if (completedCount) {
+
             completedCount.textContent =
                 data.daHoanThanh ?? 0;
         }
@@ -279,32 +404,64 @@ async function loadThongKe() {
 
 
 /* =====================================================
-   LOAD DANH SÁCH CHỜ KHÁM
+   LOAD DANH SÁCH CHỜ + ĐANG KHÁM
 ===================================================== */
 
-async function loadDanhSachChoKham() {
+async function loadDanhSachBenhNhan() {
 
-    loadingState.classList.remove("hidden");
-    emptyState.classList.add("hidden");
-    patientTableBody.innerHTML = "";
+    if (loadingState) {
+        loadingState.classList.remove("hidden");
+    }
+
+    if (emptyState) {
+        emptyState.classList.add("hidden");
+    }
+
+    if (patientTableBody) {
+        patientTableBody.innerHTML = "";
+    }
 
     try {
 
-        const data = await apiFetch(
-            `${API_BASE}/danh-sach-cho-kham`
-        );
+        const [
+            danhSachCho,
+            danhSachDangKham
+        ] = await Promise.all([
 
-        danhSachBenhNhan =
-            Array.isArray(data)
-                ? data
+            apiFetch(
+                `${API_BASE}/danh-sach-cho-kham`
+            ),
+
+            apiFetch(
+                `${API_BASE}/danh-sach-dang-kham`
+            )
+
+        ]);
+
+        const choKham =
+            Array.isArray(danhSachCho)
+                ? danhSachCho
                 : [];
+
+        const dangKham =
+            Array.isArray(danhSachDangKham)
+                ? danhSachDangKham
+                : [];
+
+        danhSachBenhNhan = [
+            ...dangKham,
+            ...choKham
+        ];
 
         renderDanhSach(
             danhSachBenhNhan
         );
 
-        totalPatients.textContent =
-            danhSachBenhNhan.length;
+        if (totalPatients) {
+
+            totalPatients.textContent =
+                danhSachBenhNhan.length;
+        }
 
     } catch (error) {
 
@@ -331,13 +488,15 @@ async function loadDanhSachChoKham() {
 
     } finally {
 
-        loadingState.classList.add("hidden");
+        if (loadingState) {
+            loadingState.classList.add("hidden");
+        }
     }
 }
 
 
 /* =====================================================
-   LÀM MỚI TOÀN BỘ DỮ LIỆU TRANG
+   LÀM MỚI TOÀN BỘ DỮ LIỆU
 ===================================================== */
 
 async function lamMoiDuLieu() {
@@ -349,7 +508,7 @@ async function lamMoiDuLieu() {
     try {
 
         await Promise.all([
-            loadDanhSachChoKham(),
+            loadDanhSachBenhNhan(),
             loadThongKe()
         ]);
 
@@ -363,28 +522,61 @@ async function lamMoiDuLieu() {
 
 
 /* =====================================================
-   RENDER DANH SÁCH
+   RENDER DANH SÁCH BỆNH NHÂN
 ===================================================== */
 
 function renderDanhSach(list) {
+
+    if (!patientTableBody) {
+        return;
+    }
 
     patientTableBody.innerHTML = "";
 
     if (!list || list.length === 0) {
 
-        emptyState.classList.remove("hidden");
+        if (emptyState) {
+            emptyState.classList.remove("hidden");
+        }
 
-        totalPatients.textContent = "0";
+        if (totalPatients) {
+            totalPatients.textContent = "0";
+        }
 
         return;
     }
 
-    emptyState.classList.add("hidden");
+    if (emptyState) {
+        emptyState.classList.add("hidden");
+    }
 
     list.forEach((benhNhan, index) => {
 
         const row =
             document.createElement("tr");
+
+        const dangKham =
+            benhNhan.trangThai === "DangKham";
+
+        const badgeClass =
+            dangKham
+                ? "badge badge-blue"
+                : "badge badge-orange";
+
+        const tenTrangThai =
+            dangKham
+                ? "Đang khám"
+                : "Chờ khám";
+
+        const tenNut =
+            dangKham
+                ? "Tiếp tục khám"
+                : "Bắt đầu khám";
+
+        const hamXuLy =
+            dangKham
+                ? `tiepTucKham(${benhNhan.maLichKham})`
+                : `batDauKham(${benhNhan.maLichKham})`;
 
         row.innerHTML = `
 
@@ -397,7 +589,9 @@ function renderDanhSach(list) {
                 <div class="patient-name">
 
                     <strong>
-                        ${escapeHtml(benhNhan.hoTen)}
+                        ${escapeHtml(
+                            benhNhan.hoTen
+                        )}
                     </strong>
 
                     <span>
@@ -428,58 +622,70 @@ function renderDanhSach(list) {
                 )}
             </td>
 
-            <td class="reason"
+            <td
+                class="reason"
                 title="${escapeHtml(
                     benhNhan.lyDoKham
-                )}">
-
+                )}"
+            >
                 ${escapeHtml(
                     benhNhan.lyDoKham
                 )}
-
             </td>
 
             <td>
-
-                <span class="badge badge-orange">
-                    Chờ khám
+                <span class="${badgeClass}">
+                    ${tenTrangThai}
                 </span>
-
             </td>
 
             <td>
 
                 <button
+                    type="button"
                     class="action-button"
-                    onclick="batDauKham(${benhNhan.maLichKham})">
-
-                    Bắt đầu khám
-
+                    onclick="${hamXuLy}"
+                >
+                    ${tenNut}
                 </button>
 
             </td>
 
         `;
 
-        patientTableBody.appendChild(row);
+        patientTableBody.appendChild(
+            row
+        );
     });
 
-    totalPatients.textContent =
-        list.length;
+    if (totalPatients) {
+
+        totalPatients.textContent =
+            list.length;
+    }
+}
+/* =====================================================
+   TÌM BỆNH NHÂN THEO LỊCH
+===================================================== */
+
+function timBenhNhanTheoLich(maLichKham) {
+
+    return danhSachBenhNhan.find(
+        item =>
+            Number(item.maLichKham) ===
+            Number(maLichKham)
+    );
 }
 
 
-/* =====================================================
-   BẮT ĐẦU KHÁM
-===================================================== */
+// =========================================================
+// BẮT ĐẦU KHÁM
+// =========================================================
 
 async function batDauKham(maLichKham) {
 
     const patient =
-        danhSachBenhNhan.find(
-            item =>
-                item.maLichKham === maLichKham
-        );
+        timBenhNhanTheoLich(maLichKham);
 
     if (!patient) {
 
@@ -492,15 +698,33 @@ async function batDauKham(maLichKham) {
         return;
     }
 
-    const dongY = confirm(
-        `Bắt đầu khám cho bệnh nhân ${patient.hoTen}?`
-    );
+
+    // Nếu bệnh nhân đã bắt đầu khám rồi
+    // thì chuyển thẳng sang trang khám riêng.
+
+    if (patient.trangThai === "DangKham") {
+
+        tiepTucKham(maLichKham);
+
+        return;
+    }
+
+
+    const dongY =
+        confirm(
+            `Bắt đầu khám cho bệnh nhân ${patient.hoTen}?`
+        );
+
 
     if (!dongY) {
         return;
     }
 
+
     try {
+
+        // Chuyển trạng thái ChoKham -> DangKham
+        // và tạo hồ sơ bệnh án nếu backend đang xử lý như hiện tại.
 
         await apiFetch(
             `${API_BASE}/${maLichKham}/bat-dau`,
@@ -509,33 +733,13 @@ async function batDauKham(maLichKham) {
             }
         );
 
-        lichKhamDangChon =
-            maLichKham;
 
-        dienThongTinBenhNhan(
-            patient
-        );
+        // Không mở modal nữa.
+        // Chuyển sang trang khám bệnh riêng.
 
-        await loadHoSo(
-            maLichKham
-        );
+        window.location.href =
+            `/auth/bac-si/kham-benh/${maLichKham}`;
 
-        moModal();
-
-        showToast(
-            "Bắt đầu khám",
-            "Bắt đầu khám thành công."
-        );
-
-        /*
-            Sau khi bắt đầu:
-            ChoKham -> DangKham
-
-            Vì vậy:
-            Chờ khám giảm
-            Đang khám tăng
-        */
-        await lamMoiDuLieu();
 
     } catch (error) {
 
@@ -547,6 +751,29 @@ async function batDauKham(maLichKham) {
     }
 }
 
+// =========================================================
+// TIẾP TỤC CA ĐANG KHÁM
+// =========================================================
+
+function tiepTucKham(maLichKham) {
+
+    if (!maLichKham) {
+
+        showToast(
+            "Không tìm thấy",
+            "Không tìm thấy mã lịch khám.",
+            true
+        );
+
+        return;
+    }
+
+
+    // Chuyển sang trang khám bệnh riêng.
+
+    window.location.href =
+        `/auth/bac-si/kham-benh/${maLichKham}`;
+}
 
 /* =====================================================
    ĐIỀN THÔNG TIN BỆNH NHÂN
@@ -554,21 +781,33 @@ async function batDauKham(maLichKham) {
 
 function dienThongTinBenhNhan(patient) {
 
-    modalPatientName.textContent =
-        patient.hoTen || "---";
+    if (modalPatientName) {
 
-    modalPatientId.textContent =
-        `BN${String(
-            patient.maBenhNhan
-        ).padStart(6, "0")}`;
+        modalPatientName.textContent =
+            patient.hoTen || "---";
+    }
 
-    modalBirthDate.textContent =
-        formatDate(
-            patient.ngaySinh
-        );
+    if (modalPatientId) {
 
-    modalGender.textContent =
-        patient.gioiTinh || "---";
+        modalPatientId.textContent =
+            `BN${String(
+                patient.maBenhNhan
+            ).padStart(6, "0")}`;
+    }
+
+    if (modalBirthDate) {
+
+        modalBirthDate.textContent =
+            formatDate(
+                patient.ngaySinh
+            );
+    }
+
+    if (modalGender) {
+
+        modalGender.textContent =
+            patient.gioiTinh || "---";
+    }
 }
 
 
@@ -580,27 +819,40 @@ async function loadHoSo(maLichKham) {
 
     try {
 
-        const data = await apiFetch(
-            `${API_BASE}/${maLichKham}/ho-so`
-        );
+        const data =
+            await apiFetch(
+                `${API_BASE}/${maLichKham}/ho-so`
+            );
 
-        trieuChung.value =
-            data.trieuChung || "";
+        if (trieuChung) {
+            trieuChung.value =
+                data.trieuChung || "";
+        }
 
-        chanDoan.value =
-            data.chanDoan || "";
+        if (chanDoan) {
+            chanDoan.value =
+                data.chanDoan || "";
+        }
 
-        ketLuan.value =
-            data.ketLuan || "";
+        if (ketLuan) {
+            ketLuan.value =
+                data.ketLuan || "";
+        }
 
-        huongDieuTri.value =
-            data.huongDieuTri || "";
+        if (huongDieuTri) {
+            huongDieuTri.value =
+                data.huongDieuTri || "";
+        }
 
-        ngayTaiKham.value =
-            data.ngayTaiKham || "";
+        if (ngayTaiKham) {
+            ngayTaiKham.value =
+                data.ngayTaiKham || "";
+        }
 
-        ghiChuTaiKham.value =
-            data.ghiChuTaiKham || "";
+        if (ghiChuTaiKham) {
+            ghiChuTaiKham.value =
+                data.ghiChuTaiKham || "";
+        }
 
         capNhatTrangThaiHoSo(
             data.trangThai
@@ -627,26 +879,32 @@ async function loadHoSo(maLichKham) {
 
 function capNhatTrangThaiHoSo(trangThai) {
 
-    if (trangThai === "HoanTat") {
+    hoSoDangKhoa =
+        trangThai === "HoanTat";
 
-        modalStatus.textContent =
-            "Hoàn tất";
+    if (modalStatus) {
 
-        modalStatus.className =
-            "badge badge-green";
+        if (hoSoDangKhoa) {
 
-        khoaForm(true);
+            modalStatus.textContent =
+                "Hoàn tất";
 
-    } else {
+            modalStatus.className =
+                "badge badge-green";
 
-        modalStatus.textContent =
-            "Đang khám";
+        } else {
 
-        modalStatus.className =
-            "badge badge-blue";
+            modalStatus.textContent =
+                "Đang khám";
 
-        khoaForm(false);
+            modalStatus.className =
+                "badge badge-blue";
+        }
     }
+
+    khoaForm(
+        hoSoDangKhoa
+    );
 }
 
 
@@ -656,34 +914,62 @@ function capNhatTrangThaiHoSo(trangThai) {
 
 function khoaForm(khoa) {
 
-    trieuChung.disabled = khoa;
-    chanDoan.disabled = khoa;
-    ketLuan.disabled = khoa;
-    huongDieuTri.disabled = khoa;
-    ngayTaiKham.disabled = khoa;
-    ghiChuTaiKham.disabled = khoa;
+    if (trieuChung) {
+        trieuChung.disabled = khoa;
+    }
 
-    btnSaveMedicalRecord.disabled =
-        khoa;
+    if (chanDoan) {
+        chanDoan.disabled = khoa;
+    }
 
-    btnCompleteExam.disabled =
-        khoa;
+    if (ketLuan) {
+        ketLuan.disabled = khoa;
+    }
 
-    if (khoa) {
+    if (huongDieuTri) {
+        huongDieuTri.disabled = khoa;
+    }
+
+    if (ngayTaiKham) {
+        ngayTaiKham.disabled = khoa;
+    }
+
+    if (ghiChuTaiKham) {
+        ghiChuTaiKham.disabled = khoa;
+    }
+
+    if (dichVuSelect) {
+        dichVuSelect.disabled = khoa;
+    }
+
+    if (maPhongChiDinh) {
+        maPhongChiDinh.disabled = khoa;
+    }
+
+    if (btnCreateOrder) {
+        btnCreateOrder.disabled = khoa;
+    }
+
+    if (btnSaveMedicalRecord) {
+
+        btnSaveMedicalRecord.disabled =
+            khoa;
 
         btnSaveMedicalRecord.style.display =
-            "none";
+            khoa
+                ? "none"
+                : "inline-flex";
+    }
+
+    if (btnCompleteExam) {
+
+        btnCompleteExam.disabled =
+            khoa;
 
         btnCompleteExam.style.display =
-            "none";
-
-    } else {
-
-        btnSaveMedicalRecord.style.display =
-            "inline-flex";
-
-        btnCompleteExam.style.display =
-            "inline-flex";
+            khoa
+                ? "none"
+                : "inline-flex";
     }
 }
 
@@ -697,22 +983,34 @@ function taoDuLieuHoSo() {
     return {
 
         trieuChung:
-            trieuChung.value.trim(),
+            trieuChung
+                ? trieuChung.value.trim()
+                : "",
 
         chanDoan:
-            chanDoan.value.trim(),
+            chanDoan
+                ? chanDoan.value.trim()
+                : "",
 
         ketLuan:
-            ketLuan.value.trim(),
+            ketLuan
+                ? ketLuan.value.trim()
+                : "",
 
         huongDieuTri:
-            huongDieuTri.value.trim(),
+            huongDieuTri
+                ? huongDieuTri.value.trim()
+                : "",
 
         ngayTaiKham:
-            ngayTaiKham.value || null,
+            ngayTaiKham
+                ? (ngayTaiKham.value || null)
+                : null,
 
         ghiChuTaiKham:
-            ghiChuTaiKham.value.trim()
+            ghiChuTaiKham
+                ? ghiChuTaiKham.value.trim()
+                : ""
     };
 }
 
@@ -724,6 +1022,7 @@ function taoDuLieuHoSo() {
 async function guiYeuCauLuuHoSo() {
 
     if (!lichKhamDangChon) {
+
         throw new Error(
             "Chưa chọn lịch khám."
         );
@@ -800,35 +1099,28 @@ async function hoanTatKham() {
         return;
     }
 
-    const dongY = confirm(
-        "Bạn có chắc muốn hoàn tất khám?\n\n" +
-        "Sau khi hoàn tất, hồ sơ bệnh án sẽ không thể chỉnh sửa."
-    );
+    const dongY =
+        confirm(
+            "Bạn có chắc muốn hoàn tất khám?\n\n" +
+            "Sau khi hoàn tất, hồ sơ bệnh án sẽ không thể chỉnh sửa."
+        );
 
     if (!dongY) {
         return;
     }
 
-    /*
-        Khóa nút tạm thời để tránh
-        người dùng bấm nhiều lần.
-    */
-    btnCompleteExam.disabled = true;
-    btnSaveMedicalRecord.disabled = true;
+    if (btnCompleteExam) {
+        btnCompleteExam.disabled = true;
+    }
+
+    if (btnSaveMedicalRecord) {
+        btnSaveMedicalRecord.disabled = true;
+    }
 
     try {
 
-        /*
-            QUAN TRỌNG:
-            Phải lưu hồ sơ thành công trước.
-            Nếu PUT lỗi thì throw và KHÔNG gọi hoàn tất.
-        */
         await guiYeuCauLuuHoSo();
 
-        /*
-            Sau khi lưu thành công
-            mới chuyển trạng thái sang hoàn tất.
-        */
         await apiFetch(
             `${API_BASE}/${lichKhamDangChon}/hoan-tat`,
             {
@@ -845,13 +1137,6 @@ async function hoanTatKham() {
             "Hoàn tất khám thành công."
         );
 
-        /*
-            DangKham -> DaKham
-
-            Vì vậy:
-            Đang khám giảm
-            Đã hoàn thành tăng
-        */
         await lamMoiDuLieu();
 
     } catch (error) {
@@ -862,11 +1147,595 @@ async function hoanTatKham() {
             true
         );
 
-        /*
-            Nếu lỗi thì cho phép thao tác lại.
-        */
-        btnCompleteExam.disabled = false;
-        btnSaveMedicalRecord.disabled = false;
+        if (!hoSoDangKhoa) {
+
+            if (btnCompleteExam) {
+                btnCompleteExam.disabled = false;
+            }
+
+            if (btnSaveMedicalRecord) {
+                btnSaveMedicalRecord.disabled = false;
+            }
+        }
+    }
+}
+
+
+/* =====================================================
+   CHUYỂN TAB
+===================================================== */
+
+function chuyenTab(tab) {
+
+    const laMedical =
+        tab === "medical";
+
+    if (tabMedicalInfo) {
+
+        tabMedicalInfo.classList.toggle(
+            "active",
+            laMedical
+        );
+    }
+
+    if (tabClinical) {
+
+        tabClinical.classList.toggle(
+            "active",
+            !laMedical
+        );
+    }
+
+    if (medicalTabContent) {
+
+        medicalTabContent.classList.toggle(
+            "active",
+            laMedical
+        );
+    }
+
+    if (clinicalTabContent) {
+
+        clinicalTabContent.classList.toggle(
+            "active",
+            !laMedical
+        );
+    }
+
+    if (
+        !laMedical &&
+        lichKhamDangChon
+    ) {
+
+        loadDanhSachChiDinh(
+            lichKhamDangChon
+        );
+    }
+}
+
+
+/* =====================================================
+   CHUẨN BỊ TAB CẬN LÂM SÀNG
+===================================================== */
+
+async function chuanBiCanLamSang() {
+
+    await Promise.all([
+
+        loadDanhSachDichVu(),
+
+        loadDanhSachChiDinh(
+            lichKhamDangChon
+        )
+
+    ]);
+}
+
+
+/* =====================================================
+   LOAD DANH SÁCH DỊCH VỤ
+===================================================== */
+
+async function loadDanhSachDichVu() {
+
+    if (!dichVuSelect) {
+        return;
+    }
+
+    try {
+
+        const data =
+            await apiFetch(
+                `${API_BASE}/dich-vu`
+            );
+
+        danhSachDichVu =
+            Array.isArray(data)
+                ? data
+                : [];
+
+        renderDanhSachDichVu();
+
+    } catch (error) {
+
+        danhSachDichVu = [];
+
+        renderDanhSachDichVu();
+
+        showToast(
+            "Không thể tải dịch vụ",
+            error.message,
+            true
+        );
+    }
+}
+
+
+/* =====================================================
+   RENDER DỊCH VỤ
+===================================================== */
+
+function renderDanhSachDichVu() {
+
+    if (!dichVuSelect) {
+        return;
+    }
+
+    const giaTriDangChon =
+        dichVuSelect.value;
+
+    dichVuSelect.innerHTML =
+        '<option value="">-- Chọn dịch vụ cận lâm sàng --</option>';
+
+    danhSachDichVu.forEach(
+        dichVu => {
+
+            const option =
+                document.createElement("option");
+
+            option.value =
+                dichVu.maDichVu;
+
+            option.textContent =
+                `${dichVu.tenDichVu || "Dịch vụ"}${
+                    dichVu.gia !== null &&
+                    dichVu.gia !== undefined
+                        ? ` - ${formatMoney(dichVu.gia)}`
+                        : ""
+                }`;
+
+            dichVuSelect.appendChild(
+                option
+            );
+        }
+    );
+
+    if (
+        giaTriDangChon &&
+        danhSachDichVu.some(
+            item =>
+                String(item.maDichVu) ===
+                String(giaTriDangChon)
+        )
+    ) {
+
+        dichVuSelect.value =
+            giaTriDangChon;
+    }
+
+    capNhatThongTinDichVuDangChon();
+}
+
+
+/* =====================================================
+   THÔNG TIN DỊCH VỤ ĐANG CHỌN
+===================================================== */
+
+function capNhatThongTinDichVuDangChon() {
+
+    if (
+        !dichVuSelect ||
+        !selectedServiceInfo
+    ) {
+        return;
+    }
+
+    const maDichVu =
+        dichVuSelect.value;
+
+    if (!maDichVu) {
+
+        selectedServiceInfo.classList.add(
+            "hidden"
+        );
+
+        return;
+    }
+
+    const dichVu =
+        danhSachDichVu.find(
+            item =>
+                String(item.maDichVu) ===
+                String(maDichVu)
+        );
+
+    if (!dichVu) {
+
+        selectedServiceInfo.classList.add(
+            "hidden"
+        );
+
+        return;
+    }
+
+    if (selectedServiceName) {
+
+        selectedServiceName.textContent =
+            dichVu.tenDichVu || "---";
+    }
+
+    if (selectedServiceType) {
+
+        selectedServiceType.textContent =
+            dichVu.loaiDichVu || "---";
+    }
+
+    if (selectedServicePrice) {
+
+        selectedServicePrice.textContent =
+            formatMoney(
+                dichVu.gia
+            );
+    }
+
+    selectedServiceInfo.classList.remove(
+        "hidden"
+    );
+}
+/* =====================================================
+   TẠO CHỈ ĐỊNH
+===================================================== */
+
+async function taoChiDinh() {
+
+    if (!lichKhamDangChon) {
+
+        showToast(
+            "Lỗi",
+            "Chưa chọn lịch khám.",
+            true
+        );
+
+        return;
+    }
+
+    if (hoSoDangKhoa) {
+
+        showToast(
+            "Không thể tạo chỉ định",
+            "Hồ sơ đã hoàn tất.",
+            true
+        );
+
+        return;
+    }
+
+    if (!dichVuSelect) {
+        return;
+    }
+
+    const maDichVu =
+        Number(
+            dichVuSelect.value
+        );
+
+    if (
+        !maDichVu ||
+        Number.isNaN(maDichVu)
+    ) {
+
+        showToast(
+            "Thiếu thông tin",
+            "Vui lòng chọn dịch vụ cận lâm sàng.",
+            true
+        );
+
+        return;
+    }
+
+    let maPhong = null;
+
+    if (
+        maPhongChiDinh &&
+        maPhongChiDinh.value.trim() !== ""
+    ) {
+
+        maPhong =
+            Number(
+                maPhongChiDinh.value
+            );
+
+        if (
+            Number.isNaN(maPhong) ||
+            maPhong <= 0 ||
+            !Number.isInteger(maPhong)
+        ) {
+
+            showToast(
+                "Mã phòng không hợp lệ",
+                "Mã phòng phải là số nguyên lớn hơn 0.",
+                true
+            );
+
+            return;
+        }
+    }
+
+    if (btnCreateOrder) {
+        btnCreateOrder.disabled = true;
+    }
+
+    try {
+
+        const body = {
+            maDichVu: maDichVu,
+            maPhong: maPhong
+        };
+
+        await apiFetch(
+            `${API_BASE}/${lichKhamDangChon}/chi-dinh`,
+            {
+                method: "POST",
+                body: JSON.stringify(body)
+            }
+        );
+
+        showToast(
+            "Tạo chỉ định",
+            "Tạo chỉ định cận lâm sàng thành công."
+        );
+
+        dichVuSelect.value = "";
+
+        if (maPhongChiDinh) {
+            maPhongChiDinh.value = "";
+        }
+
+        capNhatThongTinDichVuDangChon();
+
+        await loadDanhSachChiDinh(
+            lichKhamDangChon
+        );
+
+    } catch (error) {
+
+        showToast(
+            "Không thể tạo chỉ định",
+            error.message,
+            true
+        );
+
+    } finally {
+
+        if (
+            btnCreateOrder &&
+            !hoSoDangKhoa
+        ) {
+
+            btnCreateOrder.disabled = false;
+        }
+    }
+}
+
+
+/* =====================================================
+   LOAD DANH SÁCH CHỈ ĐỊNH
+===================================================== */
+
+async function loadDanhSachChiDinh(
+    maLichKham = lichKhamDangChon
+) {
+
+    if (
+        !maLichKham ||
+        !clinicalOrderBody
+    ) {
+        return;
+    }
+
+    if (clinicalOrderLoading) {
+
+        clinicalOrderLoading.classList.remove(
+            "hidden"
+        );
+    }
+
+    if (clinicalOrderEmpty) {
+
+        clinicalOrderEmpty.classList.add(
+            "hidden"
+        );
+    }
+
+    clinicalOrderBody.innerHTML = "";
+
+    try {
+
+        const data =
+            await apiFetch(
+                `${API_BASE}/${maLichKham}/chi-dinh`
+            );
+
+        danhSachChiDinh =
+            Array.isArray(data)
+                ? data
+                : [];
+
+        renderDanhSachChiDinh();
+
+    } catch (error) {
+
+        danhSachChiDinh = [];
+
+        renderDanhSachChiDinh();
+
+        showToast(
+            "Không thể tải chỉ định",
+            error.message,
+            true
+        );
+
+    } finally {
+
+        if (clinicalOrderLoading) {
+
+            clinicalOrderLoading.classList.add(
+                "hidden"
+            );
+        }
+    }
+}
+
+
+/* =====================================================
+   RENDER DANH SÁCH CHỈ ĐỊNH
+===================================================== */
+
+function renderDanhSachChiDinh() {
+
+    if (!clinicalOrderBody) {
+        return;
+    }
+
+    clinicalOrderBody.innerHTML = "";
+
+    if (
+        !danhSachChiDinh ||
+        danhSachChiDinh.length === 0
+    ) {
+
+        if (clinicalOrderEmpty) {
+
+            clinicalOrderEmpty.classList.remove(
+                "hidden"
+            );
+        }
+
+        return;
+    }
+
+    if (clinicalOrderEmpty) {
+
+        clinicalOrderEmpty.classList.add(
+            "hidden"
+        );
+    }
+
+    danhSachChiDinh.forEach(
+        chiDinh => {
+
+            const row =
+                document.createElement("tr");
+
+            const trangThai =
+                layThongTinTrangThaiChiDinh(
+                    chiDinh.trangThai
+                );
+
+            row.innerHTML = `
+
+                <td>
+
+                    <strong>
+                        ${escapeHtml(
+                            chiDinh.tenDichVu || "---"
+                        )}
+                    </strong>
+
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        chiDinh.loaiDichVu ||
+                        chiDinh.loaiChiDinh ||
+                        "---"
+                    )}
+                </td>
+
+                <td>
+                    ${escapeHtml(
+                        formatDateTime(
+                            chiDinh.ngayChiDinh
+                        )
+                    )}
+                </td>
+
+                <td>
+                    ${
+                        chiDinh.maPhong !== null &&
+                        chiDinh.maPhong !== undefined
+                            ? `P${escapeHtml(
+                                chiDinh.maPhong
+                            )}`
+                            : "---"
+                    }
+                </td>
+
+                <td>
+
+                    <span class="${trangThai.className}">
+                        ${trangThai.text}
+                    </span>
+
+                </td>
+
+            `;
+
+            clinicalOrderBody.appendChild(
+                row
+            );
+        }
+    );
+}
+
+
+/* =====================================================
+   TRẠNG THÁI CHỈ ĐỊNH
+===================================================== */
+
+function layThongTinTrangThaiChiDinh(
+    trangThai
+) {
+
+    switch (trangThai) {
+
+        case "ChoThucHien":
+
+            return {
+                text: "Chờ thực hiện",
+                className: "badge badge-orange"
+            };
+
+        case "DangThucHien":
+
+            return {
+                text: "Đang thực hiện",
+                className: "badge badge-blue"
+            };
+
+        case "DaHoanThanh":
+
+            return {
+                text: "Đã hoàn thành",
+                className: "badge badge-green"
+            };
+
+        default:
+
+            return {
+                text: trangThai || "---",
+                className: "badge badge-blue"
+            };
     }
 }
 
@@ -876,6 +1745,10 @@ async function hoanTatKham() {
 ===================================================== */
 
 function moModal() {
+
+    if (!examModal) {
+        return;
+    }
 
     examModal.classList.remove(
         "hidden"
@@ -888,6 +1761,10 @@ function moModal() {
 
 function dongModal() {
 
+    if (!examModal) {
+        return;
+    }
+
     examModal.classList.add(
         "hidden"
     );
@@ -895,15 +1772,11 @@ function dongModal() {
     document.body.style.overflow =
         "";
 
-    /*
-        Không xóa lichKhamDangChon ở đây.
+    lichKhamDangChon = null;
 
-        Vì bệnh nhân đã chuyển sang DangKham
-        sẽ không còn nằm trong danh sách ChoKham.
+    danhSachChiDinh = [];
 
-        Khi có màn hình "Đang khám" riêng
-        mới xử lý mở lại ca khám đó.
-    */
+    chuyenTab("medical");
 }
 
 
@@ -912,6 +1785,10 @@ function dongModal() {
 ===================================================== */
 
 function timKiemBenhNhan() {
+
+    if (!patientSearch) {
+        return;
+    }
 
     const keyword =
         patientSearch.value
@@ -940,9 +1817,14 @@ function timKiemBenhNhan() {
                         item.maBenhNhan || ""
                     );
 
+                const lyDoKham =
+                    (item.lyDoKham || "")
+                        .toLowerCase();
+
                 return (
                     hoTen.includes(keyword) ||
-                    maBenhNhan.includes(keyword)
+                    maBenhNhan.includes(keyword) ||
+                    lyDoKham.includes(keyword)
                 );
             }
         );
@@ -1017,13 +1899,16 @@ function showToast(
     );
 
     toastTimer =
-        setTimeout(() => {
+        setTimeout(
+            () => {
 
-            toast.classList.add(
-                "hidden"
-            );
+                toast.classList.add(
+                    "hidden"
+                );
 
-        }, 3500);
+            },
+            3500
+        );
 }
 
 
@@ -1050,82 +1935,419 @@ function escapeHtml(value) {
 
 
 /* =====================================================
-   EVENTS
+   EVENTS - TRANG
 ===================================================== */
 
-/*
-    Làm mới:
-    tải cả danh sách + thống kê.
-*/
-btnRefresh.addEventListener(
-    "click",
-    lamMoiDuLieu
-);
+if (btnRefresh) {
+
+    btnRefresh.addEventListener(
+        "click",
+        lamMoiDuLieu
+    );
+}
 
 
-patientSearch.addEventListener(
-    "input",
-    timKiemBenhNhan
-);
+if (patientSearch) {
+
+    patientSearch.addEventListener(
+        "input",
+        timKiemBenhNhan
+    );
+}
 
 
-btnCloseModal.addEventListener(
-    "click",
-    dongModal
-);
+/* =====================================================
+   EVENTS - MODAL
+===================================================== */
+
+if (btnCloseModal) {
+
+    btnCloseModal.addEventListener(
+        "click",
+        dongModal
+    );
+}
 
 
-btnCancelExam.addEventListener(
-    "click",
-    dongModal
-);
+if (btnCancelExam) {
+
+    btnCancelExam.addEventListener(
+        "click",
+        dongModal
+    );
+}
 
 
-btnSaveMedicalRecord.addEventListener(
-    "click",
-    luuHoSo
-);
+if (btnSaveMedicalRecord) {
+
+    btnSaveMedicalRecord.addEventListener(
+        "click",
+        luuHoSo
+    );
+}
 
 
-btnCompleteExam.addEventListener(
-    "click",
-    hoanTatKham
-);
+if (btnCompleteExam) {
+
+    btnCompleteExam.addEventListener(
+        "click",
+        hoanTatKham
+    );
+}
 
 
-/*
-    Click ra ngoài modal
-*/
-examModal.addEventListener(
-    "click",
-    function (event) {
+/* =====================================================
+   EVENTS - TAB
+===================================================== */
 
-        if (
-            event.target === examModal
-        ) {
-            dongModal();
+if (tabMedicalInfo) {
+
+    tabMedicalInfo.addEventListener(
+        "click",
+        function () {
+
+            chuyenTab(
+                "medical"
+            );
         }
-    }
-);
+    );
+}
 
 
-/*
-    ESC đóng modal
-*/
+if (tabClinical) {
+
+    tabClinical.addEventListener(
+        "click",
+        function () {
+
+            chuyenTab(
+                "clinical"
+            );
+        }
+    );
+}
+
+
+/* =====================================================
+   EVENTS - CẬN LÂM SÀNG
+===================================================== */
+
+if (dichVuSelect) {
+
+    dichVuSelect.addEventListener(
+        "change",
+        capNhatThongTinDichVuDangChon
+    );
+}
+
+
+if (btnCreateOrder) {
+
+    btnCreateOrder.addEventListener(
+        "click",
+        taoChiDinh
+    );
+}
+
+
+if (btnRefreshOrders) {
+
+    btnRefreshOrders.addEventListener(
+        "click",
+        function () {
+
+            if (!lichKhamDangChon) {
+
+                showToast(
+                    "Lỗi",
+                    "Chưa chọn lịch khám.",
+                    true
+                );
+
+                return;
+            }
+
+            loadDanhSachChiDinh(
+                lichKhamDangChon
+            );
+        }
+    );
+}
+
+
+/* =====================================================
+   CLICK RA NGOÀI MODAL
+===================================================== */
+
+if (examModal) {
+
+    examModal.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target === examModal
+            ) {
+
+                dongModal();
+            }
+        }
+    );
+}
+
+
+/* =====================================================
+   ESC ĐÓNG MODAL
+===================================================== */
+
 document.addEventListener(
     "keydown",
     function (event) {
 
         if (
             event.key === "Escape" &&
+            examModal &&
             !examModal.classList.contains(
                 "hidden"
             )
         ) {
+
             dongModal();
         }
     }
 );
+/* =====================================================
+   THÔNG TIN BÁC SĨ TRÊN HEADER
+===================================================== */
+
+function hienThiThongTinBacSi() {
+
+    const doctorName =
+        document.getElementById("doctorName");
+
+    const doctorAvatar =
+        document.getElementById("doctorAvatar");
+
+    const hoTen =
+        localStorage.getItem("HoTen")
+        || sessionStorage.getItem("HoTen")
+        || "Bác sĩ";
+
+    if (doctorName) {
+        doctorName.textContent = hoTen;
+    }
+
+    if (doctorAvatar) {
+
+        const words =
+            hoTen.trim().split(/\s+/);
+
+        if (words.length > 0) {
+
+            const lastName =
+                words[words.length - 1];
+
+            doctorAvatar.textContent =
+                lastName
+                    .substring(0, 2)
+                    .toUpperCase();
+        }
+    }
+}
+
+
+/* =====================================================
+   ĐĂNG XUẤT
+===================================================== */
+
+function dangXuat() {
+
+    const dongY =
+        confirm(
+            "Bạn có muốn đăng xuất không?"
+        );
+
+    if (!dongY) {
+        return;
+    }
+
+    /* XÓA LOCAL STORAGE */
+
+    localStorage.removeItem("token");
+    localStorage.removeItem("Token");
+    localStorage.removeItem("HoTen");
+    localStorage.removeItem("VaiTro");
+    localStorage.removeItem("MaNguoiDung");
+    localStorage.removeItem("TenDangNhap");
+    localStorage.removeItem("Email");
+    localStorage.removeItem("AnhDaiDien");
+
+
+    /* XÓA SESSION STORAGE */
+
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("Token");
+    sessionStorage.removeItem("HoTen");
+    sessionStorage.removeItem("VaiTro");
+    sessionStorage.removeItem("MaNguoiDung");
+    sessionStorage.removeItem("TenDangNhap");
+    sessionStorage.removeItem("Email");
+    sessionStorage.removeItem("AnhDaiDien");
+
+
+    /* VỀ TRANG ĐĂNG NHẬP */
+
+    window.location.href =
+        "/auth/login";
+}
+
+
+/* =====================================================
+   KHỞI TẠO SIDEBAR
+===================================================== */
+
+function khoiTaoMenuKhamBenh() {
+
+    /*
+     * HTML mới sử dụng .menu-group.
+     * Vẫn hỗ trợ .menu-parent để tránh lỗi
+     * nếu còn trang nào đang dùng cấu trúc cũ.
+     */
+
+    const menuGroup =
+        document.querySelector(
+            ".menu-group, .menu-parent"
+        );
+
+    if (!menuGroup) {
+        return;
+    }
+
+    const children =
+        Array.from(
+            menuGroup.children
+        );
+
+    const menuButton =
+        children.find(
+            element =>
+                element.classList.contains(
+                    "menu-item"
+                )
+        );
+
+    const submenu =
+        children.find(
+            element =>
+                element.classList.contains(
+                    "submenu"
+                )
+        );
+
+    if (
+        !menuButton ||
+        !submenu
+    ) {
+        return;
+    }
+
+    const arrow =
+        menuButton.querySelector(
+            ".arrow"
+        );
+
+    /*
+     * Trang khám bệnh nằm trong menu Khám bệnh,
+     * vì vậy mặc định submenu được mở.
+     */
+
+    let isOpen = true;
+
+
+    function capNhatMenu() {
+
+        submenu.style.display =
+            isOpen
+                ? ""
+                : "none";
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
+
+        if (arrow) {
+
+            arrow.style.transform =
+                isOpen
+                    ? "rotate(0deg)"
+                    : "rotate(-90deg)";
+        }
+    }
+
+
+    function toggleMenu() {
+
+        isOpen = !isOpen;
+
+        capNhatMenu();
+    }
+
+
+    menuButton.style.cursor =
+        "pointer";
+
+    menuButton.setAttribute(
+        "role",
+        "button"
+    );
+
+    menuButton.setAttribute(
+        "tabindex",
+        "0"
+    );
+
+    if (arrow) {
+
+        arrow.style.transition =
+            "transform 0.2s ease";
+    }
+
+
+    /* CLICK MENU KHÁM BỆNH */
+
+    menuButton.addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+            toggleMenu();
+        }
+    );
+
+
+    /* HỖ TRỢ ENTER / SPACE */
+
+    menuButton.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                toggleMenu();
+            }
+        }
+    );
+
+
+    capNhatMenu();
+}
 
 
 /* =====================================================
@@ -1136,13 +2358,46 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+        /* NGÀY HIỆN TẠI */
+
         hienThiNgayHienTai();
 
-        /*
-            Khi vừa mở trang:
-            - tải danh sách chờ
-            - tải 3 số thống kê
-        */
+
+        /* THÔNG TIN BÁC SĨ */
+
+        hienThiThongTinBacSi();
+
+
+        /* TAB MẶC ĐỊNH */
+
+        chuyenTab(
+            "medical"
+        );
+
+
+        /* SIDEBAR */
+
+        khoiTaoMenuKhamBenh();
+
+
+        /* NÚT ĐĂNG XUẤT */
+
+        const btnLogout =
+            document.getElementById(
+                "btnLogout"
+            );
+
+        if (btnLogout) {
+
+            btnLogout.addEventListener(
+                "click",
+                dangXuat
+            );
+        }
+
+
+        /* LOAD DỮ LIỆU */
+
         lamMoiDuLieu();
     }
 );

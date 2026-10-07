@@ -1,0 +1,580 @@
+```html
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Kết quả cận lâm sàng - Bệnh viện ABC</title>
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          href="/Css/BacSi/ket-qua-can-lam-sang.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+    <aside class="sidebar">
+
+        <!-- LOGO -->
+        <div class="logo">
+
+            <div class="logo-icon">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+
+            <div>
+                <h2>BỆNH VIỆN ABC</h2>
+
+                <span>
+                    HỆ THỐNG QUẢN LÝ BỆNH VIỆN
+                </span>
+            </div>
+
+        </div>
+
+
+        <!-- MENU -->
+        <nav class="menu">
+
+            <!-- TỔNG QUAN -->
+            <a href="/auth/bac-si/trang-chu"
+               class="menu-item">
+
+                <i class="fa-solid fa-table-cells-large"></i>
+
+                <span>Tổng quan</span>
+
+            </a>
+
+
+            <!-- KHÁM BỆNH -->
+            <div class="menu-group">
+
+                <div class="menu-item menu-parent">
+
+                    <i class="fa-solid fa-user-doctor"></i>
+
+                    <span>Khám bệnh</span>
+
+                    <i class="fa-solid fa-chevron-down arrow"></i>
+
+                </div>
+
+                <div class="submenu">
+
+                    <a href="/auth/bac-si/kham-benh"
+                       class="submenu-item">
+                        Danh sách chờ khám
+                    </a>
+
+                    <a href="/auth/bac-si/lich-su-kham"
+                       class="submenu-item">
+                        Hồ sơ bệnh nhân
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- CHỈ ĐỊNH -->
+            <a href="/auth/bac-si/chi-dinh"
+               class="menu-item">
+
+                <i class="fa-solid fa-file-medical"></i>
+
+                <span>Chỉ định</span>
+
+            </a>
+
+
+            <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+            <a href="/auth/bac-si/ket-qua-can-lam-sang"
+               class="menu-item active">
+
+                <i class="fa-solid fa-flask-vial"></i>
+
+                <span>Kết quả cận lâm sàng</span>
+
+            </a>
+
+
+            <!-- ĐƠN THUỐC -->
+            <a href="/auth/bac-si/don-thuoc"
+               class="menu-item">
+
+                <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+                <span>Đơn thuốc</span>
+
+            </a>
+
+
+            <!-- HỒ SƠ CÁ NHÂN -->
+            <a href="/auth/bac-si/ho-so-ca-nhan"
+               class="menu-item">
+
+                <i class="fa-regular fa-user"></i>
+
+                <span>Hồ sơ cá nhân</span>
+
+            </a>
+
+        </nav>
+
+
+        <!-- ĐĂNG XUẤT -->
+        <button id="btnLogout"
+                type="button"
+                class="logout">
+
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+            <span>Đăng xuất</span>
+
+        </button>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+    <main class="main">
+
+        <!-- HEADER -->
+        <header class="header">
+
+            <div class="header-search">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input type="text"
+                       id="headerSearch"
+                       placeholder="Tìm kiếm bệnh nhân, hồ sơ...">
+
+            </div>
+
+
+            <div class="header-right">
+
+                <div class="notification">
+
+                    <i class="fa-regular fa-bell"></i>
+
+                    <span></span>
+
+                </div>
+
+
+                <div class="doctor-info">
+
+                    <div class="doctor-text">
+
+                        <strong id="doctorName">
+                            Bác sĩ
+                        </strong>
+
+                        <small>
+                            Bác sĩ điều trị
+                        </small>
+
+                    </div>
+
+                    <div class="avatar"
+                         id="doctorAvatar">
+                        BS
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- CONTENT -->
+        <section class="content">
+
+            <!-- PAGE TITLE -->
+            <div class="page-title">
+
+                <h1>Kết quả cận lâm sàng</h1>
+
+                <p>
+                    Theo dõi và xem kết quả cận lâm sàng của bệnh nhân.
+                </p>
+
+            </div>
+
+
+            <!-- THỐNG KÊ -->
+            <div class="statistics">
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <span class="stat-title">
+                            TỔNG CHỈ ĐỊNH
+                        </span>
+
+                        <strong id="totalCount">
+                            0
+                        </strong>
+
+                        <small>
+                            Tất cả chỉ định cận lâm sàng
+                        </small>
+
+                    </div>
+
+                    <div class="stat-icon blue">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <span class="stat-title">
+                            CÓ KẾT QUẢ
+                        </span>
+
+                        <strong id="resultCount">
+                            0
+                        </strong>
+
+                        <small>
+                            Kết quả đã được cập nhật
+                        </small>
+
+                    </div>
+
+                    <div class="stat-icon green">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <div>
+
+                        <span class="stat-title">
+                            CHỜ KẾT QUẢ
+                        </span>
+
+                        <strong id="waitingCount">
+                            0
+                        </strong>
+
+                        <small>
+                            Đang chờ bộ phận cận lâm sàng
+                        </small>
+
+                    </div>
+
+                    <div class="stat-icon orange">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DANH SÁCH -->
+            <div class="section-card">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Danh sách kết quả cận lâm sàng
+                        </h2>
+
+                        <p>
+                            Theo dõi các chỉ định và kết quả của bệnh nhân.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TOOLBAR -->
+                <div class="result-toolbar">
+
+                    <div class="search-box">
+
+                        <i class="fa-solid fa-magnifying-glass"></i>
+
+                        <input type="text"
+                               id="searchInput"
+                               placeholder="Tìm theo tên bệnh nhân hoặc dịch vụ...">
+
+                    </div>
+
+
+                    <div class="filter-group">
+
+                        <button type="button"
+                                class="filter-btn active"
+                                data-filter="all">
+                            Tất cả
+                        </button>
+
+                        <button type="button"
+                                class="filter-btn"
+                                data-filter="done">
+                            Có kết quả
+                        </button>
+
+                        <button type="button"
+                                class="filter-btn"
+                                data-filter="waiting">
+                            Chờ kết quả
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TABLE -->
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                        <tr>
+                            <th>STT</th>
+                            <th>BỆNH NHÂN</th>
+                            <th>DỊCH VỤ</th>
+                            <th>NGÀY CHỈ ĐỊNH</th>
+                            <th>NGÀY CÓ KQ</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="resultTableBody">
+
+                        <tr>
+                            <td colspan="7"
+                                class="empty">
+                                Đang tải dữ liệu...
+                            </td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =====================================================
+     MODAL CHI TIẾT
+====================================================== -->
+<div id="detailModal"
+     class="modal-overlay hidden">
+
+    <div class="modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Chi tiết kết quả cận lâm sàng
+                </h2>
+
+                <p>
+                    Thông tin kết quả do bộ phận cận lâm sàng cập nhật.
+                </p>
+
+            </div>
+
+            <button type="button"
+                    id="closeModal"
+                    class="close-btn">
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <!-- THÔNG TIN -->
+            <div class="detail-grid">
+
+                <div class="detail-box">
+
+                    <span>Bệnh nhân</span>
+
+                    <strong id="detailPatient">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-box">
+
+                    <span>Dịch vụ</span>
+
+                    <strong id="detailService">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-box">
+
+                    <span>Ngày chỉ định</span>
+
+                    <strong id="detailOrderDate">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-box">
+
+                    <span>Ngày có kết quả</span>
+
+                    <strong id="detailResultDate">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- NỘI DUNG -->
+            <div class="detail-section">
+
+                <h3>Nội dung kết quả</h3>
+
+                <div id="detailContent"
+                     class="result-text">
+                    —
+                </div>
+
+            </div>
+
+
+            <!-- KẾT LUẬN -->
+            <div class="detail-section">
+
+                <h3>Kết luận</h3>
+
+                <div id="detailConclusion"
+                     class="result-text">
+                    —
+                </div>
+
+            </div>
+
+
+            <!-- FILE -->
+            <div id="fileSection"
+                 class="detail-section hidden">
+
+                <h3>Tệp kết quả</h3>
+
+                <a id="resultFile"
+                   class="file-link"
+                   href="#"
+                   target="_blank">
+
+                    <i class="fa-solid fa-file-arrow-down"></i>
+
+                    Xem tệp kết quả
+
+                </a>
+
+            </div>
+
+
+            <!-- CHỈ SỐ -->
+            <div class="detail-section">
+
+                <h3>Chi tiết chỉ số</h3>
+
+                <div class="table-wrapper detail-table">
+
+                    <table>
+
+                        <thead>
+
+                        <tr>
+                            <th>CHỈ SỐ</th>
+                            <th>GIÁ TRỊ</th>
+                            <th>ĐƠN VỊ</th>
+                            <th>THAM CHIẾU</th>
+                            <th>TRẠNG THÁI</th>
+                        </tr>
+
+                        </thead>
+
+                        <tbody id="detailTableBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- JS DÙNG CHUNG -->
+<script src="/Js/BacSi/sidebar.js"></script>
+
+<!-- JS RIÊNG TRANG KẾT QUẢ -->
+<script src="/Js/BacSi/ket-qua-can-lam-sang.js"></script>
+
+</body>
+</html>

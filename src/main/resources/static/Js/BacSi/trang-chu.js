@@ -56,14 +56,19 @@ function layToken() {
    FETCH CÓ JWT
 ===================================================== */
 
-async function apiFetch(url, options = {}) {
+async function apiFetch(
+    url,
+    options = {}
+) {
 
-    const token = layToken();
+    const token =
+        layToken();
 
     const headers = {
         "Content-Type": "application/json",
         ...(options.headers || {})
     };
+
 
     if (token) {
 
@@ -71,32 +76,44 @@ async function apiFetch(url, options = {}) {
             `Bearer ${token}`;
     }
 
-    const response = await fetch(
-        url,
-        {
-            ...options,
-            headers
-        }
-    );
+
+    const response =
+        await fetch(
+            url,
+            {
+                ...options,
+                headers
+            }
+        );
+
 
     let data = null;
 
+
     const contentType =
-        response.headers.get("content-type");
+        response.headers.get(
+            "content-type"
+        );
+
 
     if (
         contentType &&
-        contentType.includes("application/json")
+        contentType.includes(
+            "application/json"
+        )
     ) {
 
-        data = await response.json();
+        data =
+            await response.json();
 
     } else {
 
         data = {
-            message: await response.text()
+            message:
+                await response.text()
         };
     }
+
 
     if (!response.ok) {
 
@@ -105,6 +122,7 @@ async function apiFetch(url, options = {}) {
             "Không thể xử lý yêu cầu."
         );
     }
+
 
     return data;
 }
@@ -116,12 +134,16 @@ async function apiFetch(url, options = {}) {
 
 function hienThiNgay() {
 
-    const today = new Date();
+    const today =
+        new Date();
+
 
     if (currentDate) {
 
         currentDate.textContent =
-            today.toLocaleDateString("vi-VN");
+            today.toLocaleDateString(
+                "vi-VN"
+            );
     }
 }
 
@@ -137,19 +159,28 @@ function hienThiThongTinBacSi() {
         || sessionStorage.getItem("HoTen")
         || "Bác sĩ";
 
+
     if (doctorName) {
-        doctorName.textContent = hoTen;
+
+        doctorName.textContent =
+            hoTen;
     }
 
+
     if (welcomeDoctorName) {
-        welcomeDoctorName.textContent = hoTen;
+
+        welcomeDoctorName.textContent =
+            hoTen;
     }
 
 
     /* Tạo chữ viết tắt cho avatar */
 
     const words =
-        hoTen.trim().split(/\s+/);
+        hoTen
+            .trim()
+            .split(/\s+/);
+
 
     if (
         doctorAvatar &&
@@ -157,7 +188,10 @@ function hienThiThongTinBacSi() {
     ) {
 
         const lastName =
-            words[words.length - 1];
+            words[
+                words.length - 1
+            ];
+
 
         doctorAvatar.textContent =
             lastName
@@ -175,9 +209,10 @@ async function loadThongKe() {
 
     try {
 
-        const data = await apiFetch(
-            `${API_BASE}/thong-ke`
-        );
+        const data =
+            await apiFetch(
+                `${API_BASE}/thong-ke`
+            );
 
 
         /* BỆNH NHÂN CHỜ KHÁM */
@@ -206,6 +241,7 @@ async function loadThongKe() {
                 data.daHoanThanh ?? 0;
         }
 
+
     } catch (error) {
 
         console.error(
@@ -215,15 +251,23 @@ async function loadThongKe() {
 
 
         if (waitingCount) {
-            waitingCount.textContent = "0";
+
+            waitingCount.textContent =
+                "0";
         }
+
 
         if (examiningCount) {
-            examiningCount.textContent = "0";
+
+            examiningCount.textContent =
+                "0";
         }
 
+
         if (completedCount) {
-            completedCount.textContent = "0";
+
+            completedCount.textContent =
+                "0";
         }
     }
 }
@@ -236,23 +280,34 @@ async function loadThongKe() {
 async function loadWaitingList() {
 
     if (loadingState) {
-        loadingState.classList.remove("hidden");
+
+        loadingState.classList.remove(
+            "hidden"
+        );
     }
+
 
     if (emptyState) {
-        emptyState.classList.add("hidden");
+
+        emptyState.classList.add(
+            "hidden"
+        );
     }
 
+
     if (patientTableBody) {
-        patientTableBody.innerHTML = "";
+
+        patientTableBody.innerHTML =
+            "";
     }
 
 
     try {
 
-        const data = await apiFetch(
-            `${API_BASE}/danh-sach-cho-kham`
-        );
+        const data =
+            await apiFetch(
+                `${API_BASE}/danh-sach-cho-kham`
+            );
 
 
         const list =
@@ -262,9 +317,9 @@ async function loadWaitingList() {
 
 
         /*
-            Trang chủ chỉ hiển thị tối đa
-            5 bệnh nhân chờ khám.
-        */
+         * Trang chủ chỉ hiển thị
+         * tối đa 5 bệnh nhân chờ khám.
+         */
 
         renderPatients(
             list.slice(0, 5)
@@ -280,12 +335,17 @@ async function loadWaitingList() {
 
 
         if (patientTableBody) {
-            patientTableBody.innerHTML = "";
+
+            patientTableBody.innerHTML =
+                "";
         }
 
 
         if (emptyState) {
-            emptyState.classList.remove("hidden");
+
+            emptyState.classList.remove(
+                "hidden"
+            );
         }
 
 
@@ -295,6 +355,7 @@ async function loadWaitingList() {
                 "Không tìm thấy JWT Token."
             );
         }
+
 
     } finally {
 
@@ -319,10 +380,8 @@ async function loadDashboard() {
         loadWaitingList()
     ]);
 }
-
-
 /* =====================================================
-   RENDER DANH SÁCH
+   RENDER DANH SÁCH BỆNH NHÂN
 ===================================================== */
 
 function renderPatients(list) {
@@ -331,10 +390,15 @@ function renderPatients(list) {
         return;
     }
 
-    patientTableBody.innerHTML = "";
+
+    patientTableBody.innerHTML =
+        "";
 
 
-    if (!list || list.length === 0) {
+    if (
+        !list ||
+        list.length === 0
+    ) {
 
         if (emptyState) {
 
@@ -355,69 +419,105 @@ function renderPatients(list) {
     }
 
 
-    list.forEach((patient, index) => {
+    list.forEach(
+        (patient, index) => {
 
-        const tr =
-            document.createElement("tr");
+            const tr =
+                document.createElement(
+                    "tr"
+                );
 
 
-        tr.innerHTML = `
+            tr.innerHTML = `
 
-            <td>
-                ${patient.soThuTu ?? index + 1}
-            </td>
+                <td>
 
-            <td>
+                    ${
+                        patient.soThuTu ??
+                        index + 1
+                    }
 
-                <div class="patient-name">
+                </td>
 
-                    <strong>
-                        ${escapeHtml(patient.hoTen)}
-                    </strong>
 
-                    <span>
-                        BN${String(
-                            patient.maBenhNhan
-                        ).padStart(6, "0")}
+                <td>
+
+                    <div class="patient-name">
+
+                        <strong>
+
+                            ${escapeHtml(
+                                patient.hoTen
+                            )}
+
+                        </strong>
+
+
+                        <span>
+
+                            BN${String(
+                                patient.maBenhNhan
+                            ).padStart(
+                                6,
+                                "0"
+                            )}
+
+                        </span>
+
+                    </div>
+
+                </td>
+
+
+                <td>
+
+                    ${formatTime(
+                        patient.gioKham
+                    )}
+
+                </td>
+
+
+                <td>
+
+                    ${escapeHtml(
+                        patient.lyDoKham
+                    )}
+
+                </td>
+
+
+                <td>
+
+                    <span class="badge">
+                        Chờ khám
                     </span>
 
-                </div>
-
-            </td>
-
-            <td>
-                ${formatTime(patient.gioKham)}
-            </td>
-
-            <td>
-                ${escapeHtml(patient.lyDoKham)}
-            </td>
-
-            <td>
-
-                <span class="badge">
-                    Chờ khám
-                </span>
-
-            </td>
-
-            <td>
-
-                <button
-                    class="action"
-                    onclick="moTrangKhamBenh()">
-
-                    Khám bệnh
-
-                </button>
-
-            </td>
-
-        `;
+                </td>
 
 
-        patientTableBody.appendChild(tr);
-    });
+                <td>
+
+                    <button
+                        type="button"
+                        class="action"
+                        onclick="moTrangKhamBenh()"
+                    >
+
+                        Khám bệnh
+
+                    </button>
+
+                </td>
+
+            `;
+
+
+            patientTableBody.appendChild(
+                tr
+            );
+        }
+    );
 }
 
 
@@ -431,7 +531,12 @@ function formatTime(time) {
         return "---";
     }
 
-    return time.substring(0, 5);
+
+    return String(time)
+        .substring(
+            0,
+            5
+        );
 }
 
 
@@ -449,12 +554,33 @@ function escapeHtml(value) {
         return "";
     }
 
+
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
 }
 
 
@@ -470,47 +596,273 @@ function moTrangKhamBenh() {
 
 
 /* =====================================================
-   LOGOUT
+   ĐĂNG XUẤT
+===================================================== */
+
+function dangXuat() {
+
+    const dongY =
+        confirm(
+            "Bạn có muốn đăng xuất không?"
+        );
+
+
+    if (!dongY) {
+        return;
+    }
+
+
+    /* =================================================
+       XÓA LOCAL STORAGE
+    ================================================= */
+
+    localStorage.removeItem(
+        "token"
+    );
+
+    localStorage.removeItem(
+        "Token"
+    );
+
+    localStorage.removeItem(
+        "HoTen"
+    );
+
+    localStorage.removeItem(
+        "VaiTro"
+    );
+
+    localStorage.removeItem(
+        "MaNguoiDung"
+    );
+
+    localStorage.removeItem(
+        "TenDangNhap"
+    );
+
+    localStorage.removeItem(
+        "Email"
+    );
+
+    localStorage.removeItem(
+        "AnhDaiDien"
+    );
+
+
+    /* =================================================
+       XÓA SESSION STORAGE
+    ================================================= */
+
+    sessionStorage.removeItem(
+        "token"
+    );
+
+    sessionStorage.removeItem(
+        "Token"
+    );
+
+    sessionStorage.removeItem(
+        "HoTen"
+    );
+
+    sessionStorage.removeItem(
+        "VaiTro"
+    );
+
+    sessionStorage.removeItem(
+        "MaNguoiDung"
+    );
+
+    sessionStorage.removeItem(
+        "TenDangNhap"
+    );
+
+    sessionStorage.removeItem(
+        "Email"
+    );
+
+    sessionStorage.removeItem(
+        "AnhDaiDien"
+    );
+
+
+    /* =================================================
+       VỀ TRANG ĐĂNG NHẬP
+    ================================================= */
+
+    window.location.href =
+        "/auth/login";
+}
+
+
+/* =====================================================
+   SỰ KIỆN ĐĂNG XUẤT
 ===================================================== */
 
 if (btnLogout) {
 
     btnLogout.addEventListener(
         "click",
-        function () {
+        dangXuat
+    );
+}
+/* =====================================================
+   SIDEBAR - ĐÓNG / MỞ MENU KHÁM BỆNH
+===================================================== */
 
-            const dongY =
-                confirm(
-                    "Bạn có muốn đăng xuất không?"
-                );
+function khoiTaoMenuKhamBenh() {
 
-            if (!dongY) {
-                return;
-            }
-
-
-            /* XÓA LOCAL STORAGE */
-
-            localStorage.removeItem("token");
-            localStorage.removeItem("Token");
-            localStorage.removeItem("HoTen");
-            localStorage.removeItem("VaiTro");
+    const menuGroup =
+        document.querySelector(
+            ".menu-group, .menu-parent"
+        );
 
 
-            /* XÓA SESSION STORAGE */
-
-            sessionStorage.removeItem("token");
-            sessionStorage.removeItem("Token");
-            sessionStorage.removeItem("HoTen");
-            sessionStorage.removeItem("VaiTro");
+    if (!menuGroup) {
+        return;
+    }
 
 
-            /* VỀ TRANG ĐĂNG NHẬP */
+    const children =
+        Array.from(
+            menuGroup.children
+        );
 
-            window.location.href =
-                "/auth/login";
+
+    const menuButton =
+        children.find(
+            element =>
+                element.classList.contains(
+                    "menu-item"
+                )
+        );
+
+
+    const submenu =
+        children.find(
+            element =>
+                element.classList.contains(
+                    "submenu"
+                )
+        );
+
+
+    if (
+        !menuButton ||
+        !submenu
+    ) {
+        return;
+    }
+
+
+    const arrow =
+        menuButton.querySelector(
+            ".arrow"
+        );
+
+
+    /*
+     * Menu Khám bệnh mặc định mở.
+     */
+
+    let isOpen = true;
+
+
+    function capNhatMenu() {
+
+        submenu.style.display =
+            isOpen
+                ? ""
+                : "none";
+
+
+        menuButton.setAttribute(
+            "aria-expanded",
+            String(isOpen)
+        );
+
+
+        if (arrow) {
+
+            arrow.style.transform =
+                isOpen
+                    ? "rotate(0deg)"
+                    : "rotate(-90deg)";
+        }
+    }
+
+
+    function toggleMenu() {
+
+        isOpen =
+            !isOpen;
+
+        capNhatMenu();
+    }
+
+
+    /* Cho biết menu có thể bấm */
+
+    menuButton.style.cursor =
+        "pointer";
+
+
+    menuButton.setAttribute(
+        "role",
+        "button"
+    );
+
+
+    menuButton.setAttribute(
+        "tabindex",
+        "0"
+    );
+
+
+    /* Hiệu ứng mũi tên */
+
+    if (arrow) {
+
+        arrow.style.transition =
+            "transform 0.2s ease";
+    }
+
+
+    /* Click chuột */
+
+    menuButton.addEventListener(
+        "click",
+        function (event) {
+
+            event.preventDefault();
+
+            toggleMenu();
         }
     );
+
+
+    /* Hỗ trợ bàn phím */
+
+    menuButton.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (
+                event.key === "Enter" ||
+                event.key === " "
+            ) {
+
+                event.preventDefault();
+
+                toggleMenu();
+            }
+        }
+    );
+
+
+    /* Trạng thái ban đầu */
+
+    capNhatMenu();
 }
 
 
@@ -522,16 +874,36 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+        /* HIỂN THỊ NGÀY */
+
         hienThiNgay();
+
+
+        /* THÔNG TIN BÁC SĨ */
 
         hienThiThongTinBacSi();
 
+
+        /* KHỞI TẠO SIDEBAR */
+
+        khoiTaoMenuKhamBenh();
+
+
         /*
-            Load đồng thời:
-            1. Thống kê
-            2. Danh sách bệnh nhân chờ khám
-        */
+         * Load đồng thời:
+         *
+         * 1. Thống kê
+         * 2. Danh sách bệnh nhân chờ khám
+         */
 
         loadDashboard();
     }
 );
+
+
+/* =====================================================
+   ĐƯA HÀM ONCLICK RA WINDOW
+===================================================== */
+
+window.moTrangKhamBenh =
+    moTrangKhamBenh;

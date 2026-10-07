@@ -415,7 +415,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         case "BACSI":
 
                             window.location.href =
-                                "/BacSi/dashboard";
+                                "/auth/bac-si/trang-chu";
 
                             break;
 

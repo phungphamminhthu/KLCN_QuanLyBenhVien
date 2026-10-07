@@ -3,23 +3,28 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Trang chủ bác sĩ - Bệnh viện ABC</title>
 
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-    <link rel="stylesheet" href="/Css/BacSi/trang-chu.css">
+    <link rel="stylesheet"
+          href="/Css/BacSi/trang-chu.css">
 </head>
 
 <body>
 
 <div class="app">
 
-    <!-- ================= SIDEBAR ================= -->
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
     <aside class="sidebar">
 
+        <!-- LOGO -->
         <div class="logo">
 
             <div class="logo-icon">
@@ -34,6 +39,9 @@
         </div>
 
 
+        <!-- =================================================
+             MENU
+        ================================================== -->
         <nav class="menu">
 
             <!-- TỔNG QUAN -->
@@ -63,12 +71,18 @@
 
                 <div class="submenu">
 
-                    <a href="/auth/bac-si/kham-benh">
+                    <a href="/auth/bac-si/kham-benh"
+                       class="submenu-item">
+
                         Danh sách chờ khám
+
                     </a>
 
-                    <a href="/auth/bac-si/lich-su-kham">
-                        Lịch sử khám
+                    <a href="/auth/bac-si/lich-su-kham"
+                       class="submenu-item">
+
+                        Hồ sơ bệnh nhân
+
                     </a>
 
                 </div>
@@ -77,7 +91,7 @@
 
 
             <!-- CHỈ ĐỊNH -->
-            <a href="#"
+            <a href="/auth/bac-si/chi-dinh"
                class="menu-item">
 
                 <i class="fa-solid fa-file-medical"></i>
@@ -87,8 +101,8 @@
             </a>
 
 
-            <!-- KẾT QUẢ -->
-            <a href="#"
+            <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+            <a href="/auth/bac-si/ket-qua-can-lam-sang"
                class="menu-item">
 
                 <i class="fa-solid fa-flask-vial"></i>
@@ -109,7 +123,7 @@
             </a>
 
 
-            <!-- HỒ SƠ -->
+            <!-- HỒ SƠ CÁ NHÂN -->
             <a href="#"
                class="menu-item">
 
@@ -122,7 +136,9 @@
         </nav>
 
 
-        <!-- ĐĂNG XUẤT -->
+        <!-- =================================================
+             ĐĂNG XUẤT
+        ================================================== -->
         <button id="btnLogout"
                 type="button"
                 class="logout">
@@ -136,14 +152,18 @@
     </aside>
 
 
-    <!-- ================= MAIN ================= -->
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
     <main class="main">
 
 
-        <!-- ================= HEADER ================= -->
+        <!-- =================================================
+             HEADER
+        ================================================== -->
         <header class="header">
 
-            <div class="search-box">
+            <div class="header-search">
 
                 <i class="fa-solid fa-magnifying-glass"></i>
 
@@ -166,7 +186,7 @@
                 </div>
 
 
-                <div class="doctor">
+                <div class="doctor-info">
 
                     <div class="doctor-text">
 
@@ -195,11 +215,15 @@
         </header>
 
 
-        <!-- ================= CONTENT ================= -->
+        <!-- =================================================
+             CONTENT
+        ================================================== -->
         <section class="content">
 
 
-            <!-- ================= WELCOME ================= -->
+            <!-- =================================================
+                 WELCOME
+            ================================================== -->
             <div class="welcome">
 
                 <div>
@@ -248,7 +272,9 @@
             </div>
 
 
-            <!-- ================= THỐNG KÊ ================= -->
+            <!-- =================================================
+                 THỐNG KÊ
+            ================================================== -->
             <div class="statistics">
 
 
@@ -341,7 +367,9 @@
             </div>
 
 
-            <!-- ================= THAO TÁC NHANH ================= -->
+            <!-- =================================================
+                 THAO TÁC NHANH
+            ================================================== -->
             <div class="section-card">
 
                 <div class="section-header">
@@ -484,7 +512,9 @@
             </div>
 
 
-            <!-- ================= BỆNH NHÂN CHỜ KHÁM ================= -->
+            <!-- =================================================
+                 BỆNH NHÂN CHỜ KHÁM
+            ================================================== -->
             <div class="section-card">
 
                 <div class="section-header">
@@ -519,6 +549,9 @@
                 </div>
 
 
+                <!-- =================================================
+                     TABLE
+                ================================================== -->
                 <div class="table-wrapper">
 
                     <table>
@@ -562,7 +595,9 @@
                     </table>
 
 
-                    <!-- LOADING -->
+                    <!-- =================================================
+                         LOADING
+                    ================================================== -->
                     <div id="loadingState"
                          class="table-state">
 
@@ -575,7 +610,9 @@
                     </div>
 
 
-                    <!-- EMPTY -->
+                    <!-- =================================================
+                         EMPTY
+                    ================================================== -->
                     <div id="emptyState"
                          class="table-state hidden">
 
@@ -598,8 +635,11 @@
 </div>
 
 
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+<script src="/Js/BacSi/sidebar.js"></script>
 <script src="/Js/BacSi/trang-chu.js"></script>
-
 </body>
 
 </html>

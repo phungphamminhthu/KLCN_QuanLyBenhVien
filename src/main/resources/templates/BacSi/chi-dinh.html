@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Quản lý chỉ định - Bệnh viện ABC</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet"
+          href="/Css/BacSi/chi-dinh.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+    <aside class="sidebar">
+
+        <!-- LOGO -->
+        <div class="logo">
+
+            <div class="logo-icon">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+
+            <div>
+                <h2>BỆNH VIỆN ABC</h2>
+                <span>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</span>
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             MENU
+        ================================================== -->
+        <nav class="menu">
+
+            <!-- TỔNG QUAN -->
+            <a href="/auth/bac-si/trang-chu"
+               class="menu-item">
+
+                <i class="fa-solid fa-table-cells-large"></i>
+
+                <span>Tổng quan</span>
+
+            </a>
+
+
+            <!-- KHÁM BỆNH -->
+            <div class="menu-group">
+
+                <div class="menu-item">
+
+                    <i class="fa-solid fa-user-doctor"></i>
+
+                    <span>Khám bệnh</span>
+
+                    <i class="fa-solid fa-chevron-down arrow"></i>
+
+                </div>
+
+
+                <div class="submenu">
+
+                    <a href="/auth/bac-si/kham-benh"
+                       class="submenu-item">
+
+                        Danh sách chờ khám
+
+                    </a>
+
+                    <a href="/auth/bac-si/lich-su-kham"
+                       class="submenu-item">
+
+                        Hồ sơ bệnh nhân
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <!-- CHỈ ĐỊNH -->
+            <a href="/auth/bac-si/chi-dinh"
+               class="menu-item active">
+
+                <i class="fa-solid fa-file-medical"></i>
+
+                <span>Chỉ định</span>
+
+            </a>
+
+
+            <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+            <a href="/auth/bac-si/ket-qua-can-lam-sang"
+               class="menu-item"
+               id="menuKetQua">
+
+                <i class="fa-solid fa-flask-vial"></i>
+
+                <span>Kết quả cận lâm sàng</span>
+
+            </a>
+
+
+            <!-- ĐƠN THUỐC -->
+            <a href="#"
+               class="menu-item">
+
+                <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+                <span>Đơn thuốc</span>
+
+            </a>
+
+
+            <!-- HỒ SƠ CÁ NHÂN -->
+            <a href="#"
+               class="menu-item">
+
+                <i class="fa-regular fa-user"></i>
+
+                <span>Hồ sơ cá nhân</span>
+
+            </a>
+
+        </nav>
+
+
+        <!-- ĐĂNG XUẤT -->
+        <button id="btnDangXuat"
+                type="button"
+                class="logout">
+
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+            <span>Đăng xuất</span>
+
+        </button>
+
+    </aside>
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+    <main class="main">
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+        <header class="header">
+
+            <div class="header-search">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                        type="text"
+                        id="headerSearch"
+                        placeholder="Tìm kiếm bệnh nhân, hồ sơ..."
+                        autocomplete="off">
+
+            </div>
+
+
+            <div class="header-right">
+
+                <div class="notification">
+
+                    <i class="fa-regular fa-bell"></i>
+
+                    <span></span>
+
+                </div>
+
+
+                <div class="doctor-info">
+
+                    <div class="doctor-text">
+
+                        <strong id="doctorName">
+                            Bác sĩ
+                        </strong>
+
+                        <small>
+                            Bác sĩ điều trị
+                        </small>
+
+                    </div>
+
+
+                    <div class="avatar"
+                         id="doctorAvatar">
+
+                        BS
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             CONTENT
+        ================================================== -->
+        <section class="content">
+
+            <!-- PAGE HEADING -->
+            <div class="page-heading">
+
+                <div>
+
+                    <h1>Quản lý chỉ định</h1>
+
+                    <p>
+                        Theo dõi các chỉ định cận lâm sàng đã tạo cho bệnh nhân.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 THỐNG KÊ
+            ================================================== -->
+            <div class="stat-grid">
+
+                <!-- TỔNG CHỈ ĐỊNH -->
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-list"></i>
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>Tổng chỉ định</span>
+
+                        <strong id="tongChiDinh">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CHỜ THỰC HIỆN -->
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>Chờ thực hiện</span>
+
+                        <strong id="tongChoThucHien">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ĐANG THỰC HIỆN -->
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-rotate"></i>
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>Đang thực hiện</span>
+
+                        <strong id="tongDangThucHien">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ĐÃ HOÀN THÀNH -->
+                <div class="stat-card">
+
+                    <div class="stat-icon">
+                        <i class="fa-solid fa-check"></i>
+                    </div>
+
+                    <div class="stat-content">
+
+                        <span>Đã hoàn thành</span>
+
+                        <strong id="tongDaHoanThanh">
+                            0
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 DANH SÁCH CHỈ ĐỊNH
+            ================================================== -->
+            <div class="content-card">
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2>Danh sách chỉ định</h2>
+
+                        <p>
+                            Danh sách các chỉ định cận lâm sàng của bác sĩ.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FILTER -->
+                <div class="filter-section">
+
+                    <div class="search-box">
+
+                        <i class="fa-solid fa-magnifying-glass"></i>
+
+                        <input
+                                type="text"
+                                id="searchInput"
+                                placeholder="Tìm theo tên bệnh nhân hoặc dịch vụ..."
+                                autocomplete="off">
+
+                    </div>
+
+
+                    <div class="filter-buttons">
+
+                        <button
+                                type="button"
+                                class="filter-btn active"
+                                data-status="ALL">
+                            Tất cả
+                        </button>
+
+                        <button
+                                type="button"
+                                class="filter-btn"
+                                data-status="ChoThucHien">
+                            Chờ thực hiện
+                        </button>
+
+                        <button
+                                type="button"
+                                class="filter-btn"
+                                data-status="DangThucHien">
+                            Đang thực hiện
+                        </button>
+
+                        <button
+                                type="button"
+                                class="filter-btn"
+                                data-status="DaHoanThanh">
+                            Đã hoàn thành
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- TABLE -->
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                        <tr>
+                            <th>STT</th>
+                            <th>Bệnh nhân</th>
+                            <th>Dịch vụ</th>
+                            <th>Ngày chỉ định</th>
+                            <th>Phòng</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+
+                        </thead>
+
+
+                        <tbody id="chiDinhTableBody">
+
+                        <tr>
+
+                            <td colspan="7"
+                                class="loading-cell">
+
+                                Đang tải danh sách chỉ định...
+
+                            </td>
+
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+
+                <div class="table-footer">
+
+                    <span id="tableCount">
+                        Hiển thị 0 chỉ định
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL CHI TIẾT
+========================================================== -->
+<div class="modal-overlay"
+     id="detailModal">
+
+    <div class="detail-modal">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>Chi tiết chỉ định</h2>
+
+                <p>
+                    Thông tin chỉ định cận lâm sàng
+                </p>
+
+            </div>
+
+
+            <button
+                    type="button"
+                    class="modal-close"
+                    id="btnCloseModal">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <div class="detail-grid">
+
+                <div class="detail-item">
+                    <span>Mã chỉ định</span>
+                    <strong id="detailMaChiDinh">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Bệnh nhân</span>
+                    <strong id="detailBenhNhan">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Dịch vụ</span>
+                    <strong id="detailDichVu">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Loại dịch vụ</span>
+                    <strong id="detailLoaiDichVu">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Ngày chỉ định</span>
+                    <strong id="detailNgayChiDinh">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Phòng thực hiện</span>
+                    <strong id="detailPhong">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Ngày khám</span>
+                    <strong id="detailNgayKham">--</strong>
+                </div>
+
+
+                <div class="detail-item">
+                    <span>Trạng thái</span>
+                    <div id="detailTrangThai">--</div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                    type="button"
+                    class="secondary-button"
+                    id="btnDongModal">
+
+                Đóng
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- chi-dinh.html -->
+<script src="/Js/BacSi/sidebar.js"></script>
+<script src="/Js/BacSi/chi-dinh.js"></script>
+
+</body>
+</html>
