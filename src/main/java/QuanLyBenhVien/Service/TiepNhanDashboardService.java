@@ -4,6 +4,8 @@ import QuanLyBenhVien.DTO.TiepNhanDashboardDTO;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,106 +13,428 @@ import java.util.Map;
 @Service
 public class TiepNhanDashboardService {
 
+    private static final ZoneId MUI_GIO =
+            ZoneId.of("Asia/Ho_Chi_Minh");
+
     private final JdbcTemplate jdbcTemplate;
 
-    public TiepNhanDashboardService(JdbcTemplate jdbcTemplate) {
+    public TiepNhanDashboardService(
+            JdbcTemplate jdbcTemplate
+    ) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // =========================================================
+    // DASHBOARD CỦA TẤT CẢ BÁC SĨ TRONG HÔM NAY
+    // =========================================================
+
     public TiepNhanDashboardDTO getDashboardData() {
-        TiepNhanDashboardDTO dto = new TiepNhanDashboardDTO();
 
-        try {
-            // 1. Tổng số ca có lịch hôm nay (không tính lịch hủy)
-            String sqlTongBn = "SELECT COUNT(*) FROM lichdangkykham WHERE DATE(NgayKham) = CURDATE() AND TrangThai != 'DaHuy'";
-            Long tongBn = jdbcTemplate.queryForObject(sqlTongBn, Long.class);
-            dto.setTongBnHienTai(tongBn != null ? tongBn : 0);
+        LocalDate homNay = LocalDate.now(MUI_GIO);
 
-            // 2. Tổng tất cả lịch hẹn hôm nay
-            String sqlLichHen = "SELECT COUNT(*) FROM lichdangkykham WHERE DATE(NgayKham) = CURDATE()";
-            Long lichHen = jdbcTemplate.queryForObject(sqlLichHen, Long.class);
-            dto.setLichHenHomNay(lichHen != null ? lichHen : 0);
+        TiepNhanDashboardDTO dto =
+                new TiepNhanDashboardDTO();
 
-            // 3. Đang chờ khám (TrangThai = 'ChoKham')
-            String sqlChoKham = "SELECT COUNT(*) FROM lichdangkykham WHERE DATE(NgayKham) = CURDATE() AND TrangThai = 'ChoKham'";
-            Long choKham = jdbcTemplate.queryForObject(sqlChoKham, Long.class);
-            dto.setBnDangCho(choKham != null ? choKham : 0);
+        // 1. Tổng bệnh nhân trong ngày, không tính hủy/không đến.
+        String sqlTongBenhNhan = """
+                SELECT COUNT(DISTINCT MaBenhNhan)
+                FROM lichdangkykham
+                WHERE NgayKham = ?
+                  AND TrangThai NOT IN ('DaHuy', 'KhongDen')
+                """;
 
-            // 4. Đang trong phòng khám (TrangThai = 'DangKham')
-            String sqlDangKham = "SELECT COUNT(*) FROM lichdangkykham WHERE DATE(NgayKham) = CURDATE() AND TrangThai = 'DangKham'";
-            Long dangKham = jdbcTemplate.queryForObject(sqlDangKham, Long.class);
-            dto.setDangTrongPhongKham(dangKham != null ? dangKham : 0);
+        dto.setTongBnHienTai(
+                demSoLuong(sqlTongBenhNhan, homNay)
+        );
 
-            // 5. Chờ thanh toán & Đã thanh toán
-            dto.setChoThanhToan(8);
-            dto.setDaThanhToan(112);
+        // 2. Tổng lịch hẹn trong ngày.
+        String sqlLichHen = """
+                SELECT COUNT(*)
+                FROM lichdangkykham
+                WHERE NgayKham = ?
+                """;
 
-            // 6. Truy vấn danh sách hàng đợi khám thực tế hôm nay
-            String sqlHangDoi =
-                    "SELECT l.MaLichKham, l.MaSoThuTu, l.GioKham, l.TrangThai, l.MaBenhNhan, " +
-                            "       nd.HoTen, bn.GioiTinh, YEAR(bn.NgaySinh) AS NamSinh " +
-                            "FROM lichdangkykham l " +
-                            "JOIN benhnhan bn ON l.MaBenhNhan = bn.MaBenhNhan " +
-                            "JOIN nguoidung nd ON bn.MaNguoiDung = nd.MaNguoiDung " +
-                            "WHERE DATE(l.NgayKham) = CURDATE() " +
-                            "ORDER BY l.MaSoThuTu ASC";
+        dto.setLichHenHomNay(
+                demSoLuong(sqlLichHen, homNay)
+        );
 
-            List<Map<String, Object>> rows = jdbcTemplate.queryForList(sqlHangDoi);
-            List<TiepNhanDashboardDTO.HangDoiItemDTO> items = new ArrayList<>();
+        // 3. Số lượt đang chờ.
+        // Loại trừ lượt đã có hồ sơ đang khám hoặc hoàn tất.
+        String sqlDangCho = """
+                SELECT COUNT(*)
+                FROM lichdangkykham l
+                WHERE l.NgayKham = ?
+                  AND l.TrangThai IN (
+                      'ChoKham',
+                      'DaDat',
+                      'DaXacNhan',
+                      'DaGoi',
+                      'DaTiepNhan'
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM hosobenhan h
+                      WHERE h.MaLichKham = l.MaLichKham
+                        AND h.TrangThai IN (
+                            'DangKham',
+                            'HoanTat'
+                        )
+                  )
+                """;
 
-            for (Map<String, Object> r : rows) {
-                TiepNhanDashboardDTO.HangDoiItemDTO item = new TiepNhanDashboardDTO.HangDoiItemDTO();
+        dto.setBnDangCho(
+                demSoLuong(sqlDangCho, homNay)
+        );
 
-                Object sttVal = r.get("MaSoThuTu");
-                item.setStt(sttVal != null ? String.format("#%03d", ((Number) sttVal).intValue()) : "#000");
+        // 4. Số lượt đang trong phòng khám.
+        String sqlDangKham = """
+                SELECT COUNT(*)
+                FROM lichdangkykham l
+                WHERE l.NgayKham = ?
+                  AND l.TrangThai NOT IN ('DaHuy', 'KhongDen')
+                  AND (
+                      l.TrangThai = 'DangKham'
+                      OR EXISTS (
+                          SELECT 1
+                          FROM hosobenhan h
+                          WHERE h.MaLichKham = l.MaLichKham
+                            AND h.TrangThai = 'DangKham'
+                      )
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM hosobenhan h
+                      WHERE h.MaLichKham = l.MaLichKham
+                        AND h.TrangThai = 'HoanTat'
+                  )
+                """;
 
-                Object maBnVal = r.get("MaBenhNhan");
-                item.setMaBn(maBnVal != null ? String.format("BN-2026-%03d", ((Number) maBnVal).intValue()) : "BN-CHUA_CO");
+        dto.setDangTrongPhongKham(
+                demSoLuong(sqlDangKham, homNay)
+        );
 
-                item.setTenBenhNhan((String) r.getOrDefault("HoTen", "Bệnh nhân"));
-
-                String namSinh = String.valueOf(r.getOrDefault("NamSinh", "----"));
-                String gioiTinh = (String) r.getOrDefault("GioiTinh", "Nam");
-                item.setThongTinPhu(namSinh + " • " + gioiTinh + " (BHYT)");
-
-                item.setKhoa("Nội tổng quát");
-                item.setBacSi("BS.CKII Lê Hoàng Nam");
-                item.setPhong("P.101");
-
-                Object gioVal = r.get("GioKham");
-                item.setGioHen(gioVal != null ? gioVal.toString().substring(0, 5) : "--:--");
-                item.setThoiGianCho("15 phút");
-
-                String tt = (String) r.getOrDefault("TrangThai", "ChoKham");
-                if ("ChoKham".equalsIgnoreCase(tt)) {
-                    item.setTrangThai("Chờ gọi vào");
-                } else if ("DangKham".equalsIgnoreCase(tt)) {
-                    item.setTrangThai("Đang khám");
-                } else if ("DaHuy".equalsIgnoreCase(tt)) {
-                    item.setTrangThai("Đã hủy");
-                } else {
-                    item.setTrangThai(tt);
-                }
-
-                items.add(item);
-            }
-
-            dto.setHangDoiKham(items);
-
-        } catch (Exception e) {
-            System.err.println("Lỗi nạp dữ liệu dashboard: " + e.getMessage());
-        }
+        dto.setHangDoiKham(
+                layDanhSachTrongNgay(homNay)
+        );
 
         return dto;
     }
 
-    public boolean updateTrangThaiHangDoi(String maLichKham, String trangThaiMoi) {
-        try {
-            String sql = "UPDATE lichdangkykham SET TrangThai = ? WHERE MaLichKham = ?";
-            jdbcTemplate.update(sql, trangThaiMoi, maLichKham);
-            return true;
-        } catch (Exception e) {
+    // =========================================================
+    // HÀM ĐẾM DỮ LIỆU
+    // =========================================================
+
+    private long demSoLuong(
+            String sql,
+            LocalDate ngay
+    ) {
+
+        Long ketQua = jdbcTemplate.queryForObject(
+                sql,
+                Long.class,
+                ngay
+        );
+
+        return ketQua != null ? ketQua : 0L;
+    }
+
+    // =========================================================
+    // DANH SÁCH LỊCH KHÁM TRONG NGÀY
+    // =========================================================
+
+    private List<TiepNhanDashboardDTO.HangDoiItemDTO>
+    layDanhSachTrongNgay(LocalDate ngay) {
+
+        String sql = """
+                SELECT
+                    l.MaLichKham,
+                    l.MaBenhNhan,
+                    l.GioKham,
+                    l.TrangThai,
+
+                    s.SoThuTu,
+
+                    nd.HoTen AS TenBenhNhan,
+                    bn.GioiTinh,
+                    YEAR(bn.NgaySinh) AS NamSinh,
+
+                    k.TenKhoa,
+                    ndBacSi.HoTen AS TenBacSi,
+
+                    (
+                        SELECT p.TenPhong
+                        FROM lichlamviec lv
+                        JOIN phongchuyentrach p
+                          ON p.MaPhong = lv.MaPhong
+                        WHERE lv.MaBacSi = l.MaBacSi
+                          AND lv.NgayLamViec = l.NgayKham
+                          AND l.GioKham >= lv.GioBatDau
+                          AND l.GioKham < lv.GioKetThuc
+                        ORDER BY lv.MaLichLamViec
+                        LIMIT 1
+                    ) AS TenPhong,
+
+                    EXISTS (
+                        SELECT 1
+                        FROM hosobenhan h
+                        WHERE h.MaLichKham = l.MaLichKham
+                          AND h.TrangThai = 'DangKham'
+                    ) AS CoHoSoDangKham,
+
+                    EXISTS (
+                        SELECT 1
+                        FROM hosobenhan h
+                        WHERE h.MaLichKham = l.MaLichKham
+                          AND h.TrangThai = 'HoanTat'
+                    ) AS CoHoSoHoanTat
+
+                FROM lichdangkykham l
+
+                JOIN benhnhan bn
+                  ON bn.MaBenhNhan = l.MaBenhNhan
+
+                JOIN nguoidung nd
+                  ON nd.MaNguoiDung = bn.MaNguoiDung
+
+                JOIN khoa k
+                  ON k.MaKhoa = l.MaKhoa
+
+                JOIN bacsi bs
+                  ON bs.MaBacSi = l.MaBacSi
+
+                JOIN nguoidung ndBacSi
+                  ON ndBacSi.MaNguoiDung = bs.MaNguoiDung
+
+                LEFT JOIN sothutu s
+                  ON s.MaSoThuTu = l.MaSoThuTu
+
+                WHERE l.NgayKham = ?
+
+                ORDER BY
+                    l.GioKham,
+                    l.MaBacSi,
+                    s.SoThuTu,
+                    l.MaLichKham
+                """;
+
+        List<Map<String, Object>> rows =
+                jdbcTemplate.queryForList(sql, ngay);
+
+        List<TiepNhanDashboardDTO.HangDoiItemDTO>
+                danhSach = new ArrayList<>();
+
+        for (Map<String, Object> row : rows) {
+
+            TiepNhanDashboardDTO.HangDoiItemDTO item =
+                    new TiepNhanDashboardDTO.HangDoiItemDTO();
+
+            // Mã thật dùng khi gọi API.
+            item.setMaLichKham(
+                    ((Number) row.get("MaLichKham")).intValue()
+            );
+
+            item.setMaBenhNhan(
+                    ((Number) row.get("MaBenhNhan")).intValue()
+            );
+
+            item.setMaBn(
+                    String.valueOf(item.getMaBenhNhan())
+            );
+
+            Object soThuTu = row.get("SoThuTu");
+
+            item.setStt(
+                    soThuTu instanceof Number
+                            ? String.format(
+                            "#%03d",
+                            ((Number) soThuTu).intValue()
+                    )
+                            : "Chưa có số"
+            );
+
+            item.setTenBenhNhan(
+                    layChuoi(row, "TenBenhNhan", "Chưa có tên")
+            );
+
+            item.setThongTinPhu(
+                    layChuoi(row, "NamSinh", "Chưa có năm sinh")
+                            + " • "
+                            + layChuoi(
+                            row,
+                            "GioiTinh",
+                            "Chưa có giới tính"
+                    )
+            );
+
+            item.setKhoa(
+                    layChuoi(row, "TenKhoa", "Chưa có khoa")
+            );
+
+            item.setBacSi(
+                    layChuoi(row, "TenBacSi", "Chưa có bác sĩ")
+            );
+
+            item.setPhong(
+                    layChuoi(row, "TenPhong", "Chưa phân công")
+            );
+
+            String gioKham =
+                    layChuoi(row, "GioKham", "--:--");
+
+            item.setGioHen(
+                    gioKham.length() >= 5
+                            ? gioKham.substring(0, 5)
+                            : gioKham
+            );
+
+            // Chưa có thời điểm bắt đầu chờ để tính số phút.
+            item.setThoiGianCho("—");
+
+            String trangThai =
+                    layChuoi(row, "TrangThai", "");
+
+            // Trạng thái hồ sơ được ưu tiên,
+            // nhưng giữ nguyên lượt đã hủy hoặc không đến.
+            if (!"DaHuy".equals(trangThai)
+                    && !"KhongDen".equals(trangThai)) {
+
+                if (laDung(row.get("CoHoSoHoanTat"))) {
+                    trangThai = "HoanTat";
+                } else if (laDung(row.get("CoHoSoDangKham"))) {
+                    trangThai = "DangKham";
+                }
+            }
+
+            item.setTrangThai(
+                    hienThiTrangThai(trangThai)
+            );
+
+            danhSach.add(item);
+        }
+
+        return danhSach;
+    }
+
+    // =========================================================
+    // HÀM HỖ TRỢ ĐỌC DỮ LIỆU
+    // =========================================================
+
+    private String layChuoi(
+            Map<String, Object> row,
+            String tenCot,
+            String macDinh
+    ) {
+
+        Object giaTri = row.get(tenCot);
+
+        if (giaTri == null
+                || giaTri.toString().isBlank()) {
+            return macDinh;
+        }
+
+        return giaTri.toString();
+    }
+
+    private boolean laDung(Object giaTri) {
+
+        if (giaTri instanceof Boolean) {
+            return (Boolean) giaTri;
+        }
+
+        if (giaTri instanceof Number) {
+            return ((Number) giaTri).intValue() != 0;
+        }
+
+        return "1".equals(String.valueOf(giaTri));
+    }
+
+    // =========================================================
+    // NHÃN TRẠNG THÁI HIỂN THỊ
+    // =========================================================
+
+    private String hienThiTrangThai(String trangThai) {
+
+        return switch (trangThai) {
+
+            case "ChoKham", "DaDat" -> "Chờ gọi";
+
+            case "DaXacNhan" -> "Lịch đã xác nhận";
+
+            case "DaGoi" -> "Đã gọi";
+
+            case "DaTiepNhan" -> "Đã tiếp nhận";
+
+            case "DangKham" -> "Đang khám";
+
+            case "HoanTat", "HoanThanh", "DaKham" ->
+                    "Hoàn tất";
+
+            case "DaHuy" -> "Đã hủy";
+
+            case "KhongDen" -> "Không đến";
+
+            default -> trangThai.isBlank()
+                    ? "Chưa xác định"
+                    : trangThai;
+        };
+    }
+
+    // =========================================================
+    // GỌI BỆNH NHÂN
+    // Giữ chữ ký hàm để tương thích với Controller hiện tại.
+    // Xác nhận tiếp nhận và bắt đầu khám thuộc về bác sĩ.
+    // =========================================================
+
+    public boolean updateTrangThaiHangDoi(
+            String maLichKham,
+            String trangThaiMoi
+    ) {
+
+        if (!"DaGoi".equals(trangThaiMoi)
+                || maLichKham == null) {
             return false;
         }
+
+        int id;
+
+        try {
+            id = Integer.parseInt(maLichKham.trim());
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        if (id <= 0) {
+            return false;
+        }
+
+        String sql = """
+                UPDATE lichdangkykham l
+                SET TrangThai = 'DaGoi'
+                WHERE l.MaLichKham = ?
+                  AND l.NgayKham = ?
+                  AND l.TrangThai IN (
+                      'ChoKham',
+                      'DaDat',
+                      'DaXacNhan',
+                      'DaGoi'
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM hosobenhan h
+                      WHERE h.MaLichKham = l.MaLichKham
+                        AND h.TrangThai IN (
+                            'DangKham',
+                            'HoanTat'
+                        )
+                  )
+                """;
+
+        int soDongCapNhat = jdbcTemplate.update(
+                sql,
+                id,
+                LocalDate.now(MUI_GIO)
+        );
+
+        return soDongCapNhat > 0;
     }
 }

@@ -22,4 +22,9 @@ public class TiepNhanPageController {
     public String patients() {
         return "TiepNhan/patients";
     }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "TiepNhan/profile";
+    }
 }
