@@ -1836,38 +1836,201 @@ function taoBangChiTietKetQua(list) {
 /* =====================================================
    ĐƠN THUỐC
 ===================================================== */
-
 function hienThiDonThuoc() {
 
     if (!benhNhanDangChon) {
         return;
     }
 
-
     moNoiDungHoSo(
         "Đơn thuốc",
-        `Đơn thuốc của ${benhNhanDangChon.hoTen}`
+        `Chọn lần khám để xem đơn thuốc của ${benhNhanDangChon.hoTen}`
     );
 
+    const list = benhNhanDangChon.danhSachLanKham || [];
 
-    /*
-     * Backend bác sĩ hiện tại chưa có API
-     * lấy danh sách đơn thuốc theo bệnh nhân.
-     *
-     * Không tạo dữ liệu giả.
-     *
-     * Khi backend bổ sung API đơn thuốc,
-     * phần này sẽ gọi dữ liệu thật.
-     */
+    if (list.length === 0) {
+        sectionDetailContent.innerHTML = taoEmptySection(
+            "fa-solid fa-pills",
+            "Chưa có lần khám",
+            "Bệnh nhân chưa có lịch sử khám."
+        );
+        return;
+    }
+
+    sectionDetailContent.innerHTML = `
+        <div class="visit-list">
+            ${list.map(item => `
+                <button
+                    type="button"
+                    class="visit-item"
+                    onclick="xemDonThuocTheoLanKham(${Number(item.maLichKham)})"
+                >
+                    <div class="visit-date">
+                        <strong>${formatDate(item.ngayKham)}</strong>
+                        <span>${formatTime(item.gioKham)}</span>
+                    </div>
+
+                    <div class="visit-summary">
+                        <strong>
+                            ${escapeHtml(item.lyDoKham || "Khám bệnh")}
+                        </strong>
+                        <span>Xem đơn thuốc của lần khám</span>
+                    </div>
+
+                    <i class="fa-solid fa-chevron-right visit-arrow"></i>
+                </button>
+            `).join("")}
+        </div>
+    `;
+}
+async function xemDonThuocTheoLanKham(maLichKham) {
+
+    if (!benhNhanDangChon || !timLanKham(maLichKham)) {
+        return;
+    }
 
     sectionDetailContent.innerHTML =
-        taoEmptySection(
-            "fa-solid fa-pills",
-            "Chưa có dữ liệu đơn thuốc",
-            "Chức năng xem đơn thuốc sẽ hiển thị tại đây khi API đơn thuốc được kết nối."
-        );
-}
+        taoLoadingSection("Đang tải đơn thuốc...");
 
+    try {
+        const data = await apiFetch(
+            `${API_BASE}/${maLichKham}/don-thuoc`
+        );
+
+        sectionDetailTitle.textContent = "Chi tiết đơn thuốc";
+
+        const lanKham = timLanKham(maLichKham);
+
+        sectionDetailDescription.textContent =
+            `Lần khám ${formatDate(lanKham.ngayKham)}`;
+
+        if (!data || data.coDonThuoc === false) {
+            sectionDetailContent.innerHTML = `
+                ${taoEmptySection(
+                    "fa-solid fa-pills",
+                    "Chưa có đơn thuốc",
+                    "Lần khám này chưa được kê đơn thuốc."
+                )}
+
+                <div style="margin-top:18px">
+                    <button type="button"
+                            class="btn-secondary"
+                            onclick="hienThiDonThuoc()">
+                        Quay lại các lần khám
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        const danhSachThuoc =
+            Array.isArray(data.danhSachThuoc)
+                ? data.danhSachThuoc
+                : [];
+
+        sectionDetailContent.innerHTML = `
+            <div class="visit-detail">
+
+                <div class="medical-record-grid">
+                    ${taoMedicalRecordItem(
+                        "Mã đơn thuốc",
+                        data.maDonThuoc,
+                        false
+                    )}
+
+                    ${taoMedicalRecordItem(
+                        "Ngày kê thuốc",
+                        formatDateTime(data.ngayKeThuoc),
+                        false
+                    )}
+
+                    ${taoMedicalRecordItem(
+                        "Chẩn đoán",
+                        data.chanDoan,
+                        true
+                    )}
+
+                    ${taoMedicalRecordItem(
+                        "Ghi chú",
+                        data.ghiChu,
+                        true
+                    )}
+                </div>
+
+                <h3 style="margin:24px 0 14px">
+                    Danh sách thuốc
+                </h3>
+
+                ${
+                    danhSachThuoc.length > 0
+                        ? `
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Tên thuốc</th>
+                                            <th>Số lượng</th>
+                                            <th>Đơn vị</th>
+                                            <th>Liều dùng</th>
+                                            <th>Thời gian dùng</th>
+                                            <th>Hướng dẫn</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        ${danhSachThuoc.map((thuoc, index) => `
+                                            <tr>
+                                                <td>${index + 1}</td>
+                                                <td>${escapeHtml(thuoc.tenThuoc || "---")}</td>
+                                                <td>${escapeHtml(thuoc.soLuong ?? "---")}</td>
+                                                <td>${escapeHtml(thuoc.donViTinh || "---")}</td>
+                                                <td>${escapeHtml(thuoc.lieuDung || "---")}</td>
+                                                <td>${escapeHtml(thuoc.thoiGianDung ?? "---")}</td>
+                                                <td>${escapeHtml(thuoc.huongDanSuDung || "---")}</td>
+                                            </tr>
+                                        `).join("")}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `
+                        : taoEmptySection(
+                            "fa-solid fa-pills",
+                            "Không có chi tiết thuốc",
+                            "Đơn thuốc chưa có thuốc trong danh sách."
+                        )
+                }
+
+                <div style="margin-top:18px">
+                    <button type="button"
+                            class="btn-secondary"
+                            onclick="hienThiDonThuoc()">
+                        Quay lại các lần khám
+                    </button>
+                </div>
+
+            </div>
+        `;
+
+    } catch (error) {
+
+        console.error(error);
+
+        sectionDetailContent.innerHTML =
+            taoEmptySection(
+                "fa-solid fa-triangle-exclamation",
+                "Không thể tải đơn thuốc",
+                error.message
+            );
+
+        showToast(
+            "Lỗi tải đơn thuốc",
+            error.message,
+            true
+        );
+    }
+}
 
 /* =====================================================
    MỞ NỘI DUNG HỒ SƠ
@@ -2641,3 +2804,4 @@ window.xemCanLamSangTheoLanKham =
 
 window.xemKetQuaChiDinh =
     xemKetQuaChiDinh;
+window.xemDonThuocTheoLanKham = xemDonThuocTheoLanKham;

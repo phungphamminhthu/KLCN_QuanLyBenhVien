@@ -2,7 +2,10 @@ package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.CTDonThuocRequest;
 import QuanLyBenhVien.DTO.DonThuocRequest;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import QuanLyBenhVien.Entity.BacSi;
 import QuanLyBenhVien.Entity.CTDonThuoc;
 import QuanLyBenhVien.Entity.ChiDinhYTe;
@@ -162,6 +165,8 @@ public class KhamBenhService {
 
         kiemTraHoSoDangKham(hoSo);
 
+
+
         hoSo.setTrieuChung(trieuChung);
         hoSo.setChanDoan(chanDoan);
         hoSo.setKetLuan(ketLuan);
@@ -189,6 +194,8 @@ public class KhamBenhService {
                 timHoSoTheoLichKham(maLichKham);
 
         kiemTraHoSoDangKham(hoSo);
+        // Không hoàn tất khám khi CLS chưa đủ kết quả.
+        kiemTraCanLamSangDaHoanThanh(hoSo);
 
         if (!"DangKham".equals(lichKham.getTrangThai())) {
             throw new IllegalStateException(
@@ -269,11 +276,11 @@ public class KhamBenhService {
                     "Chỉ có thể tạo chỉ định khi bệnh nhân đang được khám."
             );
         }
-
         HoSoBenhAn hoSo =
                 timHoSoTheoLichKham(maLichKham);
 
         kiemTraHoSoDangKham(hoSo);
+
 
         DichVuYTe dichVu =
                 dichVuYTeRepository
@@ -506,6 +513,8 @@ public class KhamBenhService {
                 timHoSoTheoLichKham(maLichKham);
 
         kiemTraHoSoDangKham(hoSo);
+        // Kiểm tra CLS trước khi tạo đơn thuốc.
+        kiemTraCanLamSangDaHoanThanh(hoSo);
 
         if (donThuocRepository
                 .findByHoSoBenhAn_MaHoSoBenhAn(
@@ -656,6 +665,7 @@ public class KhamBenhService {
                 );
 
         kiemTraHoSoDangKham(hoSo);
+        kiemTraCanLamSangDaHoanThanh(hoSo);
 
         DonThuoc donThuoc =
                 donThuocRepository
@@ -741,12 +751,15 @@ public class KhamBenhService {
                 );
     }
     // =========================================================
-// 19. LẤY LỊCH SỬ KHÁM CỦA BỆNH NHÂN
+    // =========================================================
+// 19. LẤY LỊCH SỬ KHÁM CỦA BỆNH NHÂN - CÓ PHÂN TRANG
 // =========================================================
     @Transactional(readOnly = true)
-    public List<HoSoBenhAn> layLichSuKham(
+    public Page<HoSoBenhAn> layLichSuKham(
             Integer maBacSi,
-            Integer maLichKham
+            Integer maLichKham,
+            int page,
+            int size
     ) {
 
         // Lịch khám hiện tại phải thuộc bác sĩ đang đăng nhập.
@@ -767,15 +780,45 @@ public class KhamBenhService {
                         .getBenhNhan()
                         .getMaBenhNhan();
 
-        // Chỉ lấy những lần khám đã hoàn tất.
+        // Kiểm tra page và size để tránh giá trị không hợp lệ.
+        if (page < 0) {
+            page = 0;
+        }
+
+        if (size <= 0) {
+            size = 5;
+        }
+
+        // Giới hạn tối đa để tránh client yêu cầu quá nhiều dữ liệu.
+        if (size > 20) {
+            size = 20;
+        }
+
+        // Sắp xếp:
+        // - Ngày khám mới nhất trước
+        // - Nếu cùng ngày thì giờ khám mới nhất trước
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(
+                        Sort.Order.desc("lichDangKyKham.ngayKham"),
+                        Sort.Order.desc("lichDangKyKham.gioKham")
+                )
+        );
+
+        // Chỉ lấy:
+        // - Hồ sơ của đúng bệnh nhân
+        // - Hồ sơ đã hoàn tất
+        // - Không lấy lịch khám hiện tại
+        // - Theo trang được yêu cầu
         return hoSoBenhAnRepository
-                .findByLichDangKyKham_BenhNhan_MaBenhNhanAndTrangThaiOrderByLichDangKyKham_NgayKhamDescLichDangKyKham_GioKhamDesc(
+                .findByLichDangKyKham_BenhNhan_MaBenhNhanAndTrangThaiAndLichDangKyKham_MaLichKhamNot(
                         maBenhNhan,
-                        "HoanTat"
+                        "HoanTat",
+                        maLichKham,
+                        pageable
                 );
     }
-
-
     // =========================================================
 // 20. XEM CHI TIẾT MỘT LẦN KHÁM TRONG LỊCH SỬ
 // =========================================================
@@ -826,6 +869,115 @@ public class KhamBenhService {
 
         return hoSo;
     }
+    // =========================================================
+// 21. LẤY CHỈ ĐỊNH CLS TRONG LỊCH SỬ KHÁM
+// =========================================================
+    @Transactional(readOnly = true)
+    public List<ChiDinhYTe> layChiDinhLichSuKham(
+            Integer maBacSi,
+            Integer maLichKhamHienTai,
+            Integer maHoSoBenhAn
+    ) {
+
+        HoSoBenhAn hoSo = xemChiTietLichSuKham(
+                maBacSi,
+                maLichKhamHienTai,
+                maHoSoBenhAn
+        );
+
+        return chiDinhYTeRepository
+                .findByHoSoBenhAn_MaHoSoBenhAnOrderByNgayChiDinhDesc(
+                        hoSo.getMaHoSoBenhAn()
+                );
+    }
+
+
+    // =========================================================
+// 22. LẤY KẾT QUẢ CLS TRONG LỊCH SỬ KHÁM
+// =========================================================
+    @Transactional(readOnly = true)
+    public Optional<KetQuaDichVu> layKetQuaLichSuKham(
+            Integer maBacSi,
+            Integer maLichKhamHienTai,
+            Integer maHoSoBenhAn,
+            Integer maChiDinh
+    ) {
+
+        HoSoBenhAn hoSo = xemChiTietLichSuKham(
+                maBacSi,
+                maLichKhamHienTai,
+                maHoSoBenhAn
+        );
+
+        chiDinhYTeRepository
+                .findByMaChiDinhAndHoSoBenhAn_MaHoSoBenhAn(
+                        maChiDinh,
+                        hoSo.getMaHoSoBenhAn()
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Chỉ định không thuộc hồ sơ khám này."
+                        )
+                );
+
+        return ketQuaDichVuRepository
+                .findByChiDinhYTe_MaChiDinh(maChiDinh);
+    }
+
+
+    // =========================================================
+// 23. LẤY CHI TIẾT KẾT QUẢ CLS TRONG LỊCH SỬ
+// =========================================================
+    @Transactional(readOnly = true)
+    public List<ChiTietKetQua> layChiTietKetQuaLichSu(
+            Integer maKetQua
+    ) {
+
+        return chiTietKetQuaRepository
+                .findByKetQuaDichVu_MaKetQuaOrderByMaChiTietKetQuaAsc(
+                        maKetQua
+                );
+    }
+
+
+    // =========================================================
+// 24. LẤY ĐƠN THUỐC TRONG LỊCH SỬ KHÁM
+// =========================================================
+    @Transactional(readOnly = true)
+    public Optional<DonThuoc> layDonThuocLichSuKham(
+            Integer maBacSi,
+            Integer maLichKhamHienTai,
+            Integer maHoSoBenhAn
+    ) {
+
+        HoSoBenhAn hoSo = xemChiTietLichSuKham(
+                maBacSi,
+                maLichKhamHienTai,
+                maHoSoBenhAn
+        );
+
+        return donThuocRepository
+                .findByHoSoBenhAn_MaHoSoBenhAn(
+                        hoSo.getMaHoSoBenhAn()
+                );
+    }
+
+
+    // =========================================================
+// 25. LẤY CHI TIẾT THUỐC TRONG ĐƠN LỊCH SỬ
+// =========================================================
+    @Transactional(readOnly = true)
+    public List<CTDonThuoc> layChiTietDonThuocLichSu(
+            Integer maDonThuoc
+    ) {
+
+        return ctDonThuocRepository
+                .findByDonThuoc_MaDonThuocOrderByMaCTDonThuocAsc(
+                        maDonThuoc
+                );
+    }
+
+
 
 
     // =========================================================
@@ -992,6 +1144,66 @@ public class KhamBenhService {
             throw new IllegalStateException(
                     "Hồ sơ bệnh án đã hoàn tất, không thể chỉnh sửa."
             );
+        }
+    }
+
+    // =========================================================
+// KIỂM TRA ĐIỀU KIỆN CẬN LÂM SÀNG
+// TRƯỚC KHI KÊ ĐƠN HOẶC HOÀN TẤT KHÁM
+// =========================================================
+
+    private void kiemTraCanLamSangDaHoanThanh(
+            HoSoBenhAn hoSo
+    ) {
+
+        List<ChiDinhYTe> danhSachChiDinh =
+                chiDinhYTeRepository
+                        .findByHoSoBenhAn_MaHoSoBenhAnOrderByNgayChiDinhDesc(
+                                hoSo.getMaHoSoBenhAn()
+                        );
+
+        // Không có chỉ định CLS thì cho phép tiếp tục.
+        if (danhSachChiDinh.isEmpty()) {
+            return;
+        }
+
+        for (ChiDinhYTe chiDinh : danhSachChiDinh) {
+
+            // Chỉ định phải hoàn thành.
+            if (!"DaHoanThanh".equals(
+                    chiDinh.getTrangThai()
+            )) {
+                throw new IllegalStateException(
+                        "Chưa thể kê đơn hoặc hoàn tất khám. "
+                                + "Vẫn còn chỉ định cận lâm sàng "
+                                + "chưa hoàn thành."
+                );
+            }
+
+            // Phải tồn tại kết quả tương ứng.
+            KetQuaDichVu ketQua =
+                    ketQuaDichVuRepository
+                            .findByChiDinhYTe_MaChiDinh(
+                                    chiDinh.getMaChiDinh()
+                            )
+                            .orElseThrow(() ->
+                                    new IllegalStateException(
+                                            "Chỉ định "
+                                                    + chiDinh.getMaChiDinh()
+                                                    + " chưa có kết quả cận lâm sàng."
+                                    )
+                            );
+
+            // Kết quả phải được hoàn tất.
+            if (!"DaHoanThanh".equals(
+                    ketQua.getTrangThai()
+            )) {
+                throw new IllegalStateException(
+                        "Kết quả cận lâm sàng của chỉ định "
+                                + chiDinh.getMaChiDinh()
+                                + " chưa được hoàn tất."
+                );
+            }
         }
     }
 }

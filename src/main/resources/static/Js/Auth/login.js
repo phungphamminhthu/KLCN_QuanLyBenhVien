@@ -230,8 +230,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 // ĐỌC RESPONSE
                 // ==============================
 
-                const data =
-                    await response.json();
+                const responseText = await response.text();
+
+                let data;
+
+                try {
+                    data = JSON.parse(responseText);
+                } catch {
+                    data = {
+                        message: responseText
+                    };
+                }
 
 
                 // ==============================

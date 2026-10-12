@@ -414,6 +414,18 @@
 
                     </div>
 
+                    <button
+                            type="button"
+                            class="btn-history"
+                            id="btnHistory"
+                    >
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+
+                        <span>
+                             Lịch sử khám
+                        </span>
+                    </button>
+
 
                 </div>
 
@@ -440,20 +452,6 @@
 
                     </button>
 
-
-                    <button
-                            type="button"
-                            class="exam-tab"
-                            id="tabClinical"
-                    >
-
-                        <i class="fa-solid fa-flask-vial"></i>
-
-                        <span>
-                            Cận lâm sàng
-                        </span>
-
-                    </button>
                     <button
                             type="button"
                             class="exam-tab"
@@ -626,8 +624,6 @@
 
 
                     </div>
-
-
                 </div>
 
 
@@ -860,6 +856,7 @@
                         <div>
                             <h3>Đơn thuốc</h3>
 
+
                             <p>
                                 Kê thuốc cho bệnh nhân trong lần khám hiện tại.
                                 Đơn thuốc là không bắt buộc.
@@ -867,7 +864,6 @@
                         </div>
 
                     </div>
-
 
                     <!-- =================================================
                          FORM THÊM THUỐC
@@ -1148,6 +1144,14 @@
 
 
                     <div class="exam-actions-right">
+                        <button
+                                type="button"
+                                class="btn-primary"
+                                id="btnGoClinical"
+                        >
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            Đi đến cận lâm sàng
+                        </button>
 
 
                         <button
@@ -1197,8 +1201,192 @@
 
 </div>
 
+<!-- =====================================================
+     LỊCH SỬ KHÁM - MODAL
+===================================================== -->
+
+<div
+        class="history-overlay hidden"
+        id="historyOverlay"
+>
+
+    <div
+            class="history-modal"
+            id="historyDrawer"
+    >
+
+        <!-- HEADER MODAL -->
+
+        <div class="history-modal-header">
+
+            <div>
+                <h2>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Lịch sử khám
+                </h2>
+
+                <p>
+                    Các lần khám trước của bệnh nhân
+                </p>
+            </div>
+
+            <button
+                    type="button"
+                    class="history-close"
+                    id="btnCloseHistory"
+                    aria-label="Đóng lịch sử khám"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
 
 
+        <!-- NỘI DUNG MODAL -->
+
+        <div class="history-modal-body">
+
+            <!-- =============================================
+                 DANH SÁCH LỊCH SỬ
+            ============================================== -->
+
+            <div
+                    class="history-view"
+                    id="historyListView"
+            >
+
+                <!-- LOADING -->
+
+                <div
+                        class="history-loading hidden"
+                        id="historyLoading"
+                >
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+
+                    <span>
+                        Đang tải lịch sử khám...
+                    </span>
+                </div>
+
+
+                <!-- EMPTY -->
+
+                <div
+                        class="history-empty hidden"
+                        id="historyEmpty"
+                >
+                    <i class="fa-regular fa-folder-open"></i>
+
+                    <h3>
+                        Chưa có lịch sử khám
+                    </h3>
+
+                    <p>
+                        Bệnh nhân chưa có lần khám hoàn tất trước đây.
+                    </p>
+                </div>
+
+
+                <!-- DANH SÁCH -->
+
+                <div
+                        class="history-list"
+                        id="historyList"
+                >
+                </div>
+
+
+                <!-- =========================================
+                     PHÂN TRANG
+                ========================================== -->
+
+                <div
+                        class="history-pagination hidden"
+                        id="historyPagination"
+                >
+
+                    <button
+                            type="button"
+                            class="history-page-btn"
+                            id="btnHistoryPrev"
+                            aria-label="Trang trước"
+                    >
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+
+                    <div
+                            class="history-page-numbers"
+                            id="historyPageNumbers"
+                    >
+                    </div>
+
+
+                    <button
+                            type="button"
+                            class="history-page-btn"
+                            id="btnHistoryNext"
+                            aria-label="Trang sau"
+                    >
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 CHI TIẾT MỘT LẦN KHÁM
+            ============================================== -->
+
+            <div
+                    class="history-view hidden"
+                    id="historyDetailView"
+            >
+
+                <button
+                        type="button"
+                        class="history-back"
+                        id="btnBackHistory"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                    <span>
+                        Quay lại lịch sử
+                    </span>
+                </button>
+
+
+                <!-- LOADING CHI TIẾT -->
+
+                <div
+                        class="history-loading hidden"
+                        id="historyDetailLoading"
+                >
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+
+                    <span>
+                        Đang tải hồ sơ khám...
+                    </span>
+                </div>
+
+
+                <!-- NỘI DUNG CHI TIẾT -->
+
+                <div
+                        class="history-detail"
+                        id="historyDetail"
+                >
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 <!-- =====================================================
      LOADING TOÀN TRANG
 ===================================================== -->

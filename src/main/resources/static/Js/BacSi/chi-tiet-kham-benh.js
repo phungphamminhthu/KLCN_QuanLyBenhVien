@@ -10,6 +10,131 @@ let hoSoHienTai = null;
 let danhSachDichVu = [];
 let danhSachChiDinh = [];
 
+
+// =========================================================
+// KIỂM TRA ĐIỀU KIỆN KÊ ĐƠN / HOÀN TẤT KHÁM
+// =========================================================
+
+async function kiemTraDieuKienCLS() {
+    try {
+        const danhSach = await goiApi(
+            `${API_BASE}/${maLichKham}/chi-dinh`,
+            {
+                method: "GET",
+                headers: taoHeaders()
+            }
+        );
+
+        if (!Array.isArray(danhSach)) {
+            throw new Error("Danh sách chỉ định không hợp lệ.");
+        }
+
+        // Không có chỉ định thì được kê đơn / hoàn tất khám.
+        if (danhSach.length === 0) {
+            return {
+                duocPhep: true,
+                thongBao: ""
+            };
+        }
+
+        for (const chiDinh of danhSach) {
+            const maChiDinh = layGiaTri(
+                chiDinh,
+                ["maChiDinh", "MaChiDinh"]
+            );
+
+            const trangThai = layGiaTri(
+                chiDinh,
+                ["trangThai", "TrangThai"]
+            );
+
+            if (!maChiDinh || trangThai !== "DaHoanThanh") {
+                return {
+                    duocPhep: false,
+                    thongBao:
+                        "Còn chỉ định cận lâm sàng chưa hoàn thành. " +
+                        "Vui lòng đợi kết quả trước khi kê đơn hoặc hoàn tất khám."
+                };
+            }
+
+            const ketQua = await goiApi(
+                `${API_BASE}/${maLichKham}/chi-dinh/${maChiDinh}/ket-qua`,
+                {
+                    method: "GET",
+                    headers: taoHeaders()
+                }
+            );
+
+            const trangThaiKetQua = layGiaTri(
+                ketQua,
+                ["trangThai", "TrangThai"]
+            );
+
+            if (
+                ketQua?.coKetQua !== true ||
+                trangThaiKetQua !== "DaHoanThanh"
+            ) {
+                return {
+                    duocPhep: false,
+                    thongBao:
+                        "Kết quả cận lâm sàng chưa được hoàn tất. " +
+                        "Vui lòng kiểm tra lại trang Cận lâm sàng."
+                };
+            }
+        }
+
+        return {
+            duocPhep: true,
+            thongBao: ""
+        };
+
+    } catch (error) {
+        console.error("Không thể kiểm tra CLS:", error);
+
+        return {
+            duocPhep: false,
+            thongBao:
+                error.message ||
+                "Không thể kiểm tra trạng thái cận lâm sàng."
+        };
+    }
+}
+
+// =========================================================
+// CẬP NHẬT TRẠNG THÁI NÚT TRÊN GIAO DIỆN
+// =========================================================
+
+async function capNhatKhoaCLS() {
+    const ketQua = await kiemTraDieuKienCLS();
+
+    const tabPrescription = getElement("tabPrescription");
+    const btnComplete = getElement("btnComplete");
+
+    const trangThaiHoSo = layGiaTri(
+        hoSoHienTai,
+        ["trangThai", "TrangThai"]
+    );
+
+    const daHoanTat = trangThaiHoSo === "HoanTat";
+
+    if (tabPrescription) {
+        tabPrescription.disabled = !ketQua.duocPhep;
+        tabPrescription.title = ketQua.duocPhep
+            ? "Kê đơn thuốc"
+            : ketQua.thongBao;
+    }
+
+    if (btnComplete) {
+        btnComplete.disabled =
+            !ketQua.duocPhep || daHoanTat;
+
+        btnComplete.title = ketQua.duocPhep
+            ? ""
+            : ketQua.thongBao;
+    }
+
+    return ketQua;
+}
 // =========================================================
 // ĐƠN THUỐC
 // =========================================================
@@ -1039,7 +1164,15 @@ async function hoanTatKham() {
         return;
     }
 
+    const ketQuaCLS = await kiemTraDieuKienCLS();
 
+    if (!ketQuaCLS.duocPhep) {
+        hienThiThongBao(
+            ketQuaCLS.thongBao,
+            "error"
+        );
+        return;
+    }
     const confirmed = window.confirm(
         "Bạn có chắc muốn hoàn tất lần khám này?\n\n"
         + "Sau khi hoàn tất, hồ sơ sẽ chuyển sang trạng thái chỉ đọc."
@@ -1135,7 +1268,24 @@ async function hoanTatKham() {
 // CHUYỂN TAB
 // =========================================================
 
-function chuyenTab(tabName) {
+async function chuyenTab(tabName) {
+
+    // Kiểm tra trước khi mở tab Đơn thuốc.
+    if (tabName === "prescription") {
+        const ketQua = await kiemTraDieuKienCLS();
+
+        if (!ketQua.duocPhep) {
+            hienThiThongBao(
+                ketQua.thongBao,
+                "error"
+            );
+
+            return;
+        }
+    }
+
+    // Giữ nguyên toàn bộ code cũ bên dưới.
+
 
     const medicalButton =
         getElement("tabMedical");
@@ -2889,6 +3039,15 @@ function layDuLieuDonThuoc() {
 // =========================================================
 
 async function luuDonThuoc() {
+    const ketQuaCLS = await kiemTraDieuKienCLS();
+
+    if (!ketQuaCLS.duocPhep) {
+        hienThiThongBao(
+            ketQuaCLS.thongBao,
+            "error"
+        );
+        return;
+    }
 
     if (danhSachThuocDaKe.length === 0) {
 
@@ -3076,6 +3235,1241 @@ function khoaDonThuoc() {
         });
 }
 // =========================================================
+// LỊCH SỬ KHÁM
+// =========================================================
+
+let danhSachLichSuKham = [];
+
+let trangLichSuHienTai = 0;
+let kichThuocTrangLichSu = 5;
+let tongTrangLichSu = 0;
+let tongLichSu = 0;
+
+// =========================================================
+// MỞ MODAL LỊCH SỬ KHÁM
+// =========================================================
+
+async function moLichSuKham() {
+
+    const overlay = getElement("historyOverlay");
+
+    if (!overlay) {
+        return;
+    }
+
+    overlay.classList.remove("hidden");
+
+    document.body.classList.add("history-open");
+
+    hienThiDanhSachLichSu();
+
+    // Mỗi lần mở modal thì quay về trang đầu tiên.
+    trangLichSuHienTai = 0;
+
+    await taiLichSuKham(trangLichSuHienTai);
+}
+
+
+// =========================================================
+// ĐÓNG MODAL LỊCH SỬ KHÁM
+// =========================================================
+
+function dongLichSuKham() {
+
+    const overlay = getElement("historyOverlay");
+
+    overlay?.classList.add("hidden");
+
+    document.body.classList.remove("history-open");
+
+    hienThiDanhSachLichSu();
+}
+// =========================================================
+// CHUYỂN VỀ DANH SÁCH LỊCH SỬ
+// =========================================================
+
+function hienThiDanhSachLichSu() {
+
+    getElement("historyListView")
+        ?.classList.remove("hidden");
+
+    getElement("historyDetailView")
+        ?.classList.add("hidden");
+}
+
+
+// =========================================================
+// CHUYỂN SANG CHI TIẾT LỊCH SỬ
+// =========================================================
+
+function hienThiManHinhChiTietLichSu() {
+
+    getElement("historyListView")
+        ?.classList.add("hidden");
+
+    getElement("historyDetailView")
+        ?.classList.remove("hidden");
+}
+
+
+// =========================================================
+// TẢI DANH SÁCH LỊCH SỬ KHÁM - PHÂN TRANG
+// =========================================================
+
+async function taiLichSuKham(page = 0) {
+
+    const loading = getElement("historyLoading");
+    const empty = getElement("historyEmpty");
+    const list = getElement("historyList");
+    const pagination = getElement("historyPagination");
+
+    loading?.classList.remove("hidden");
+    empty?.classList.add("hidden");
+    pagination?.classList.add("hidden");
+
+    if (list) {
+        list.innerHTML = "";
+    }
+
+    try {
+
+        const data = await goiApi(
+            `${API_BASE}/${maLichKham}/lich-su-kham?page=${page}&size=${kichThuocTrangLichSu}`,
+            {
+                method: "GET",
+                headers: taoHeaders()
+            }
+        );
+
+        danhSachLichSuKham =
+            Array.isArray(data?.content)
+                ? data.content
+                : [];
+
+        trangLichSuHienTai =
+            Number(data?.page) || 0;
+
+        tongTrangLichSu =
+            Number(data?.totalPages) || 0;
+
+        tongLichSu =
+            Number(data?.totalElements) || 0;
+
+        renderLichSuKham();
+
+        renderPhanTrangLichSu();
+
+    } catch (error) {
+
+        console.error(
+            "Không thể tải lịch sử khám:",
+            error
+        );
+
+        if (empty) {
+
+            empty.classList.remove("hidden");
+
+            const title = empty.querySelector("h3");
+            const message = empty.querySelector("p");
+
+            if (title) {
+                title.textContent =
+                    "Không thể tải lịch sử khám";
+            }
+
+            if (message) {
+                message.textContent =
+                    error.message
+                    || "Vui lòng thử lại sau.";
+            }
+        }
+
+    } finally {
+
+        loading?.classList.add("hidden");
+    }
+}
+// =========================================================
+// RENDER DANH SÁCH LỊCH SỬ KHÁM
+// =========================================================
+
+function renderLichSuKham() {
+
+    const list = getElement("historyList");
+    const empty = getElement("historyEmpty");
+
+    if (!list) {
+        return;
+    }
+
+    list.innerHTML = "";
+
+    if (danhSachLichSuKham.length === 0) {
+
+        empty?.classList.remove("hidden");
+
+        const title = empty?.querySelector("h3");
+        const message = empty?.querySelector("p");
+
+        if (title) {
+            title.textContent = "Chưa có lịch sử khám";
+        }
+
+        if (message) {
+            message.textContent =
+                "Bệnh nhân chưa có lần khám nào đã hoàn tất trước đây.";
+        }
+
+        return;
+    }
+
+    empty?.classList.add("hidden");
+
+    danhSachLichSuKham.forEach(item => {
+
+        const maHoSoBenhAn =
+            layGiaTri(
+                item,
+                [
+                    "maHoSoBenhAn",
+                    "MaHoSoBenhAn"
+                ]
+            );
+
+        const ngayKham =
+            layGiaTri(
+                item,
+                [
+                    "ngayKham",
+                    "NgayKham"
+                ]
+            );
+
+        const gioKham =
+            layGiaTri(
+                item,
+                [
+                    "gioKham",
+                    "GioKham"
+                ]
+            );
+
+        const tenKhoa =
+            layGiaTri(
+                item,
+                [
+                    "tenKhoa",
+                    "TenKhoa"
+                ]
+            );
+
+        const tenBacSi =
+            layGiaTri(
+                item,
+                [
+                    "tenBacSi",
+                    "TenBacSi"
+                ]
+            );
+
+        const lyDoKham =
+            layGiaTri(
+                item,
+                [
+                    "lyDoKham",
+                    "LyDoKham"
+                ]
+            );
+
+        const chanDoan =
+            layGiaTri(
+                item,
+                [
+                    "chanDoan",
+                    "ChanDoan"
+                ]
+            );
+
+        const element =
+            document.createElement("div");
+
+        element.className = "history-item";
+
+        element.innerHTML = `
+
+            <div class="history-item-date">
+
+                <div class="history-date-day">
+                    ${escapeHtml(
+                        dinhDangNgay(ngayKham)
+                    )}
+                </div>
+
+                ${
+                    gioKham
+                        ? `
+                            <div class="history-date-time">
+                                ${escapeHtml(
+                                    String(gioKham)
+                                        .substring(0, 5)
+                                )}
+                            </div>
+                        `
+                        : ""
+                }
+
+            </div>
+
+            <div class="history-item-info">
+
+                <div class="history-item-meta">
+
+                    <span>
+                        <i class="fa-solid fa-building"></i>
+                        ${escapeHtml(
+                            tenKhoa || "---"
+                        )}
+                    </span>
+
+                    <span>
+                        <i class="fa-solid fa-user-doctor"></i>
+                        ${
+                            escapeHtml(
+                                tenBacSi
+                                    ? `BS. ${tenBacSi}`
+                                    : "---"
+                            )
+                        }
+                    </span>
+
+                </div>
+
+                ${
+                    lyDoKham
+                        ? `
+                            <div class="history-item-reason">
+                                <strong>Lý do khám:</strong>
+                                ${escapeHtml(lyDoKham)}
+                            </div>
+                        `
+                        : ""
+                }
+
+                <div class="history-item-diagnosis">
+
+                    <strong>Chẩn đoán:</strong>
+
+                    ${escapeHtml(
+                        chanDoan || "Chưa có chẩn đoán"
+                    )}
+
+                </div>
+
+            </div>
+
+            <div class="history-item-action">
+
+                <button
+                    type="button"
+                    class="history-detail-button"
+                >
+                    Xem chi tiết
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+        `;
+
+        element
+            .querySelector(".history-detail-button")
+            ?.addEventListener(
+                "click",
+                () => {
+                    xemChiTietLichSuKham(
+                        maHoSoBenhAn
+                    );
+                }
+            );
+
+        list.appendChild(element);
+    });
+}
+// =========================================================
+// RENDER PHÂN TRANG LỊCH SỬ KHÁM
+// =========================================================
+
+function renderPhanTrangLichSu() {
+
+    const pagination =
+        getElement("historyPagination");
+
+    const pageNumbers =
+        getElement("historyPageNumbers");
+
+    const btnPrev =
+        getElement("btnHistoryPrev");
+
+    const btnNext =
+        getElement("btnHistoryNext");
+
+    if (!pagination || !pageNumbers) {
+        return;
+    }
+
+    pageNumbers.innerHTML = "";
+
+    // Không có dữ liệu thì không hiện phân trang.
+    if (tongLichSu === 0 || tongTrangLichSu === 0) {
+
+        pagination.classList.add("hidden");
+
+        return;
+    }
+
+    pagination.classList.remove("hidden");
+
+    if (btnPrev) {
+        btnPrev.disabled =
+            trangLichSuHienTai <= 0;
+    }
+
+    if (btnNext) {
+        btnNext.disabled =
+            trangLichSuHienTai >= tongTrangLichSu - 1;
+    }
+
+
+    // Hiển thị tối đa 5 nút số trang.
+    let startPage =
+        Math.max(
+            0,
+            trangLichSuHienTai - 2
+        );
+
+    let endPage =
+        Math.min(
+            tongTrangLichSu - 1,
+            startPage + 4
+        );
+
+
+    // Nếu đang ở gần cuối thì lùi startPage lại.
+    startPage =
+        Math.max(
+            0,
+            endPage - 4
+        );
+
+
+    for (
+        let page = startPage;
+        page <= endPage;
+        page++
+    ) {
+
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+
+        button.className =
+            "history-page-number";
+
+        button.textContent =
+            String(page + 1);
+
+
+        if (page === trangLichSuHienTai) {
+
+            button.classList.add("active");
+
+            button.disabled = true;
+        }
+
+
+        button.addEventListener(
+            "click",
+            () => chuyenTrangLichSu(page)
+        );
+
+
+        pageNumbers.appendChild(button);
+    }
+}
+
+
+// =========================================================
+// CHUYỂN TRANG LỊCH SỬ
+// =========================================================
+
+async function chuyenTrangLichSu(page) {
+
+    if (
+        page < 0
+        || page >= tongTrangLichSu
+        || page === trangLichSuHienTai
+    ) {
+        return;
+    }
+
+    await taiLichSuKham(page);
+}
+
+// =========================================================
+// TẢI CHI TIẾT MỘT LẦN KHÁM CŨ
+// =========================================================
+
+async function xemChiTietLichSuKham(maHoSoBenhAn) {
+
+    if (!maHoSoBenhAn) {
+
+        hienThiThongBao(
+            "Không tìm thấy mã hồ sơ bệnh án.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const loading =
+        getElement("historyDetailLoading");
+
+    const detail =
+        getElement("historyDetail");
+
+
+    hienThiManHinhChiTietLichSu();
+
+    loading?.classList.remove("hidden");
+
+    if (detail) {
+        detail.innerHTML = "";
+    }
+
+
+    try {
+
+        const data = await goiApi(
+            `${API_BASE}/${maLichKham}/lich-su-kham/${maHoSoBenhAn}`,
+            {
+                method: "GET",
+                headers: taoHeaders()
+            }
+        );
+
+        renderChiTietLichSuKham(data);
+
+    } catch (error) {
+
+        console.error(
+            "Không thể tải chi tiết lịch sử khám:",
+            error
+        );
+
+        if (detail) {
+
+            detail.innerHTML = `
+
+                <div class="history-detail-empty">
+
+                    <i class="fa-solid fa-circle-exclamation"></i>
+
+                    <p>
+                        ${escapeHtml(
+                            error.message
+                            || "Không thể tải hồ sơ khám."
+                        )}
+                    </p>
+
+                </div>
+
+            `;
+        }
+
+    } finally {
+
+        loading?.classList.add("hidden");
+    }
+}
+
+
+// =========================================================
+// RENDER CHI TIẾT LỊCH SỬ KHÁM
+// =========================================================
+
+function renderChiTietLichSuKham(data) {
+
+    const detail =
+        getElement("historyDetail");
+
+    if (!detail || !data) {
+        return;
+    }
+
+
+    const ngayKham =
+        layGiaTri(
+            data,
+            [
+                "ngayKham",
+                "NgayKham"
+            ]
+        );
+
+    const gioKham =
+        layGiaTri(
+            data,
+            [
+                "gioKham",
+                "GioKham"
+            ]
+        );
+
+    const tenKhoa =
+        layGiaTri(
+            data,
+            [
+                "tenKhoa",
+                "TenKhoa"
+            ]
+        );
+
+    const tenBacSi =
+        layGiaTri(
+            data,
+            [
+                "tenBacSi",
+                "TenBacSi"
+            ]
+        );
+
+    const lyDoKham =
+        layGiaTri(
+            data,
+            [
+                "lyDoKham",
+                "LyDoKham"
+            ]
+        );
+
+    const trieuChung =
+        layGiaTri(
+            data,
+            [
+                "trieuChung",
+                "TrieuChung"
+            ]
+        );
+
+    const chanDoan =
+        layGiaTri(
+            data,
+            [
+                "chanDoan",
+                "ChanDoan"
+            ]
+        );
+
+    const ketLuan =
+        layGiaTri(
+            data,
+            [
+                "ketLuan",
+                "KetLuan"
+            ]
+        );
+
+    const huongDieuTri =
+        layGiaTri(
+            data,
+            [
+                "huongDieuTri",
+                "HuongDieuTri"
+            ]
+        );
+
+    const ngayTaiKham =
+        layGiaTri(
+            data,
+            [
+                "ngayTaiKham",
+                "NgayTaiKham"
+            ]
+        );
+
+    const ghiChuTaiKham =
+        layGiaTri(
+            data,
+            [
+                "ghiChuTaiKham",
+                "GhiChuTaiKham"
+            ]
+        );
+
+
+    const canLamSang =
+        layGiaTri(
+            data,
+            [
+                "canLamSang",
+                "CanLamSang"
+            ]
+        );
+
+
+    const coDonThuocLichSu =
+        layGiaTri(
+            data,
+            [
+                "coDonThuoc",
+                "CoDonThuoc"
+            ]
+        );
+
+
+    const donThuoc =
+        layGiaTri(
+            data,
+            [
+                "donThuoc",
+                "DonThuoc"
+            ]
+        );
+
+
+    detail.innerHTML = `
+
+        <div class="history-detail-head">
+
+            <div class="history-detail-date">
+
+                <i class="fa-regular fa-calendar-check"></i>
+
+                <div>
+
+                    <strong>
+                        ${escapeHtml(dinhDangNgay(ngayKham))}
+                    </strong>
+
+                    ${
+                        gioKham
+                            ? `
+                                <span>
+                                    ${escapeHtml(String(gioKham).substring(0, 5))}
+                                </span>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+            </div>
+
+
+            <div class="history-detail-meta">
+
+                <span>
+                    <i class="fa-solid fa-building"></i>
+                    ${escapeHtml(tenKhoa || "---")}
+                </span>
+
+                <span>
+                    <i class="fa-solid fa-user-doctor"></i>
+                    ${escapeHtml(
+                        tenBacSi
+                            ? `BS. ${tenBacSi}`
+                            : "---"
+                    )}
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <section class="history-section">
+
+            <h3>
+                <i class="fa-regular fa-file-lines"></i>
+                Thông tin khám
+            </h3>
+
+            ${taoDongChiTietLichSu(
+                "Lý do khám",
+                lyDoKham
+            )}
+
+            ${taoDongChiTietLichSu(
+                "Triệu chứng",
+                trieuChung
+            )}
+
+            ${taoDongChiTietLichSu(
+                "Chẩn đoán",
+                chanDoan
+            )}
+
+            ${taoDongChiTietLichSu(
+                "Kết luận",
+                ketLuan
+            )}
+
+            ${taoDongChiTietLichSu(
+                "Hướng điều trị",
+                huongDieuTri
+            )}
+
+        </section>
+
+
+        <section class="history-section">
+
+            <h3>
+                <i class="fa-solid fa-flask-vial"></i>
+                Cận lâm sàng
+            </h3>
+
+            ${renderCanLamSangLichSu(canLamSang)}
+
+        </section>
+
+
+        <section class="history-section">
+
+            <h3>
+                <i class="fa-solid fa-prescription-bottle-medical"></i>
+                Đơn thuốc
+            </h3>
+
+            ${
+                renderDonThuocLichSu(
+                    coDonThuocLichSu,
+                    donThuoc
+                )
+            }
+
+        </section>
+
+
+        <section class="history-section">
+
+            <h3>
+                <i class="fa-regular fa-calendar-check"></i>
+                Tái khám
+            </h3>
+
+            ${
+                ngayTaiKham
+                    ? taoDongChiTietLichSu(
+                        "Ngày tái khám",
+                        dinhDangNgay(ngayTaiKham)
+                    )
+                    : `
+                        <div class="history-section-empty">
+                            Không có lịch tái khám.
+                        </div>
+                    `
+            }
+
+            ${
+                ghiChuTaiKham
+                    ? taoDongChiTietLichSu(
+                        "Ghi chú",
+                        ghiChuTaiKham
+                    )
+                    : ""
+            }
+
+        </section>
+
+    `;
+}
+
+
+// =========================================================
+// TẠO DÒNG THÔNG TIN CHI TIẾT
+// =========================================================
+
+function taoDongChiTietLichSu(label, value) {
+
+    return `
+
+        <div class="history-field">
+
+            <span class="history-field-label">
+                ${escapeHtml(label)}
+            </span>
+
+            <div class="history-field-value">
+                ${escapeHtml(value || "---")}
+            </div>
+
+        </div>
+
+    `;
+}
+
+
+// =========================================================
+// RENDER CẬN LÂM SÀNG LỊCH SỬ
+// =========================================================
+
+function renderCanLamSangLichSu(data) {
+
+    if (!Array.isArray(data) || data.length === 0) {
+
+        return `
+
+            <div class="history-section-empty">
+
+                <i class="fa-solid fa-flask-vial"></i>
+
+                <span>
+                    Không có chỉ định cận lâm sàng.
+                </span>
+
+            </div>
+
+        `;
+    }
+
+
+    return data.map(item => {
+
+        const tenDichVu =
+            layGiaTri(
+                item,
+                [
+                    "tenDichVu",
+                    "TenDichVu",
+                    "dichVuYTe.tenDichVu",
+                    "DichVuYTe.TenDichVu"
+                ]
+            )
+            || "Dịch vụ cận lâm sàng";
+
+
+        const loaiChiDinh =
+            layGiaTri(
+                item,
+                [
+                    "loaiChiDinh",
+                    "LoaiChiDinh"
+                ]
+            );
+
+
+        const ngayChiDinh =
+            layGiaTri(
+                item,
+                [
+                    "ngayChiDinh",
+                    "NgayChiDinh"
+                ]
+            );
+
+
+        const coKetQua =
+            layGiaTri(
+                item,
+                [
+                    "coKetQua",
+                    "CoKetQua"
+                ]
+            );
+
+
+        const ketQua =
+            layGiaTri(
+                item,
+                [
+                    "ketQua",
+                    "KetQua"
+                ]
+            );
+
+
+        let ketQuaHtml = `
+
+            <div class="history-clinical-no-result">
+                Chưa có kết quả.
+            </div>
+
+        `;
+
+
+        if (coKetQua && ketQua) {
+
+            const noiDungKetQua =
+                layGiaTri(
+                    ketQua,
+                    [
+                        "noiDungKetQua",
+                        "NoiDungKetQua"
+                    ]
+                );
+
+            const ketLuanKetQua =
+                layGiaTri(
+                    ketQua,
+                    [
+                        "ketLuan",
+                        "KetLuan"
+                    ]
+                );
+
+            const ngayCoKetQua =
+                layGiaTri(
+                    ketQua,
+                    [
+                        "ngayCoKetQua",
+                        "NgayCoKetQua"
+                    ]
+                );
+
+
+            ketQuaHtml = `
+
+                <div class="history-clinical-result">
+
+                    ${
+                        ngayCoKetQua
+                            ? `
+                                <div>
+                                    <strong>Ngày có kết quả:</strong>
+                                    ${escapeHtml(
+                                        dinhDangNgayGio(ngayCoKetQua)
+                                    )}
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    <div>
+                        <strong>Nội dung kết quả:</strong>
+                        ${escapeHtml(noiDungKetQua || "---")}
+                    </div>
+
+                    <div>
+                        <strong>Kết luận:</strong>
+                        ${escapeHtml(ketLuanKetQua || "---")}
+                    </div>
+
+                </div>
+
+            `;
+        }
+
+
+        return `
+
+            <div class="history-clinical-item">
+
+                <div class="history-clinical-title">
+                    ${escapeHtml(tenDichVu)}
+                </div>
+
+                ${
+                    loaiChiDinh
+                        ? `
+                            <div class="history-clinical-meta">
+                                ${escapeHtml(loaiChiDinh)}
+                            </div>
+                        `
+                        : ""
+                }
+
+                ${
+                    ngayChiDinh
+                        ? `
+                            <div class="history-clinical-meta">
+                                Chỉ định:
+                                ${escapeHtml(
+                                    dinhDangNgayGio(ngayChiDinh)
+                                )}
+                            </div>
+                        `
+                        : ""
+                }
+
+                ${ketQuaHtml}
+
+            </div>
+
+        `;
+
+    }).join("");
+}
+
+
+// =========================================================
+// RENDER ĐƠN THUỐC LỊCH SỬ
+// =========================================================
+
+function renderDonThuocLichSu(
+    coDonThuocLichSu,
+    donThuoc
+) {
+
+    if (!coDonThuocLichSu || !donThuoc) {
+
+        return `
+
+            <div class="history-section-empty">
+
+                <i class="fa-solid fa-pills"></i>
+
+                <span>
+                    Không có đơn thuốc.
+                </span>
+
+            </div>
+
+        `;
+    }
+
+
+    const ghiChu =
+        layGiaTri(
+            donThuoc,
+            [
+                "ghiChu",
+                "GhiChu"
+            ]
+        );
+
+
+    const danhSach =
+        layDanhSachChiTietDonThuoc(
+            donThuoc
+        );
+
+
+    let danhSachHtml = "";
+
+
+    if (danhSach.length === 0) {
+
+        danhSachHtml = `
+
+            <div class="history-section-empty">
+                Không có chi tiết thuốc.
+            </div>
+
+        `;
+
+    } else {
+
+        danhSachHtml =
+            danhSach
+                .map(item => {
+
+                    const thuoc =
+                        chuyenChiTietDonThuoc(item);
+
+
+                    return `
+
+                        <div class="history-medicine-item">
+
+                            <div class="history-medicine-name">
+
+                                <i class="fa-solid fa-capsules"></i>
+
+                                ${escapeHtml(
+                                    thuoc.tenThuoc
+                                )}
+
+                            </div>
+
+
+                            <div class="history-medicine-grid">
+
+                                <div>
+                                    <span>Số lượng</span>
+                                    <strong>
+                                        ${escapeHtml(
+                                            thuoc.soLuong
+                                        )}
+                                        ${escapeHtml(
+                                            thuoc.donViTinh
+                                        )}
+                                    </strong>
+                                </div>
+
+
+                                <div>
+                                    <span>Liều dùng</span>
+                                    <strong>
+                                        ${escapeHtml(
+                                            thuoc.lieuDung || "---"
+                                        )}
+                                    </strong>
+                                </div>
+
+
+                                <div>
+                                    <span>Thời gian dùng</span>
+                                    <strong>
+                                        ${
+                                            thuoc.thoiGianDung
+                                                ? `${escapeHtml(
+                                                    thuoc.thoiGianDung
+                                                )} ngày`
+                                                : "---"
+                                        }
+                                    </strong>
+                                </div>
+
+
+                                <div>
+                                    <span>Hướng dẫn</span>
+                                    <strong>
+                                        ${escapeHtml(
+                                            thuoc.huongDanSuDung
+                                            || "---"
+                                        )}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                })
+                .join("");
+    }
+
+
+    return `
+
+        ${danhSachHtml}
+
+        ${
+            ghiChu
+                ? `
+                    <div class="history-prescription-note">
+
+                        <strong>
+                            Ghi chú đơn thuốc
+                        </strong>
+
+                        <p>
+                            ${escapeHtml(ghiChu)}
+                        </p>
+
+                    </div>
+                `
+                : ""
+        }
+
+    `;
+}
+// =========================================================
 // QUAY VỀ DANH SÁCH CHỜ KHÁM
 // =========================================================
 
@@ -3155,11 +4549,50 @@ function ganSuKien() {
         );
 
 
-    getElement("tabClinical")
-        ?.addEventListener(
-            "click",
-            () => chuyenTab("clinical")
-        );
+    getElement("btnGoClinical")
+        ?.addEventListener("click", async () => {
+
+            if (!maLichKham) {
+                hienThiThongBao(
+                    "Không tìm thấy mã lịch khám.",
+                    "error"
+                );
+                return;
+            }
+
+            const button = getElement("btnGoClinical");
+
+            try {
+                if (button) button.disabled = true;
+
+                // Lưu thông tin khám trước khi chuyển trang
+                const body = layDuLieuHoSoTuForm();
+
+                await goiApi(
+                    `${API_BASE}/${maLichKham}/ho-so`,
+                    {
+                        method: "PUT",
+                        headers: taoHeaders(true),
+                        body: JSON.stringify(body)
+                    }
+                );
+
+                // Chuyển sang trang cận lâm sàng riêng
+                window.location.href =
+                    `/auth/bac-si/kham-benh/${maLichKham}/can-lam-sang`;
+
+            } catch (error) {
+                console.error(error);
+
+                hienThiThongBao(
+                    error.message ||
+                    "Không thể lưu hồ sơ trước khi chuyển trang.",
+                    "error"
+                );
+
+                if (button) button.disabled = false;
+            }
+        });
 
     getElement("tabPrescription")
         ?.addEventListener(
@@ -3222,6 +4655,77 @@ function ganSuKien() {
             "click",
             taoChiDinh
         );
+
+        // ================================
+        // LỊCH SỬ KHÁM
+        // ================================
+
+        getElement("btnHistory")
+            ?.addEventListener(
+                "click",
+                moLichSuKham
+            );
+
+
+        getElement("btnCloseHistory")
+            ?.addEventListener(
+                "click",
+                dongLichSuKham
+            );
+
+
+        getElement("historyOverlay")
+            ?.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target
+                        === getElement("historyOverlay")
+                    ) {
+                        dongLichSuKham();
+                    }
+                }
+            );
+
+
+        getElement("btnBackHistory")
+            ?.addEventListener(
+                "click",
+                hienThiDanhSachLichSu
+            );
+
+        getElement("btnHistoryPrev")
+            ?.addEventListener(
+                "click",
+                () => {
+
+                    if (trangLichSuHienTai > 0) {
+
+                        chuyenTrangLichSu(
+                            trangLichSuHienTai - 1
+                        );
+                    }
+                }
+            );
+
+
+        getElement("btnHistoryNext")
+            ?.addEventListener(
+                "click",
+                () => {
+
+                    if (
+                        trangLichSuHienTai
+                        < tongTrangLichSu - 1
+                    ) {
+
+                        chuyenTrangLichSu(
+                            trangLichSuHienTai + 1
+                        );
+                    }
+                }
+            );
 }
 
 
@@ -3272,7 +4776,27 @@ async function khoiTaoTrang() {
 
 
        // Lấy đơn thuốc hiện tại nếu đã có.
+       // Lấy đơn thuốc hiện tại nếu đã có.
        await taiDonThuoc();
+
+       // Kiểm tra CLS và cập nhật trạng thái các nút.
+       const ketQuaCLS = await capNhatKhoaCLS();
+
+       // Kiểm tra tab được yêu cầu từ URL.
+       const tabDuocChon =
+           new URLSearchParams(window.location.search)
+               .get("tab");
+
+       if (tabDuocChon === "prescription") {
+           if (ketQuaCLS.duocPhep) {
+               await chuyenTab("prescription");
+           } else {
+               hienThiThongBao(
+                   ketQuaCLS.thongBao,
+                   "error"
+               );
+           }
+       }
 
 
     } catch (error) {
@@ -3291,6 +4815,7 @@ async function khoiTaoTrang() {
 
         hienThiLoading(false);
     }
+
 }
 
 

@@ -1,35 +1,50 @@
 package QuanLyBenhVien.Repository;
 
 import QuanLyBenhVien.Entity.HoSoBenhAn;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface HoSoBenhAnRepository
         extends JpaRepository<HoSoBenhAn, Integer> {
 
-    // Tìm hồ sơ bệnh án theo lịch khám
+    // =========================================================
+    // TÌM HỒ SƠ BỆNH ÁN THEO LỊCH KHÁM
+    // =========================================================
     Optional<HoSoBenhAn> findByLichDangKyKham_MaLichKham(
             Integer maLichKham
     );
 
-    // Kiểm tra lịch khám đã có hồ sơ bệnh án hay chưa
+
+    // =========================================================
+    // KIỂM TRA LỊCH KHÁM ĐÃ CÓ HỒ SƠ BỆNH ÁN HAY CHƯA
+    // =========================================================
     boolean existsByLichDangKyKham_MaLichKham(
             Integer maLichKham
     );
 
 
     // =========================================================
-    // LỊCH SỬ KHÁM CỦA BỆNH NHÂN
+    // LỊCH SỬ KHÁM CỦA BỆNH NHÂN - CÓ PHÂN TRANG
     //
-    // Chỉ lấy những hồ sơ đã hoàn tất.
-    // Sắp xếp lần khám mới nhất trước.
+    // Điều kiện:
+    // - Đúng bệnh nhân
+    // - Hồ sơ đã hoàn tất
+    // - Không lấy lịch khám hiện tại
+    // - Phân trang bằng Pageable
+    //
+    // Việc sắp xếp theo ngày khám + giờ khám sẽ được truyền
+    // từ Service thông qua Pageable.
     // =========================================================
-    List<HoSoBenhAn>
-    findByLichDangKyKham_BenhNhan_MaBenhNhanAndTrangThaiOrderByLichDangKyKham_NgayKhamDescLichDangKyKham_GioKhamDesc(
+    Page<HoSoBenhAn>
+    findByLichDangKyKham_BenhNhan_MaBenhNhanAndTrangThaiAndLichDangKyKham_MaLichKhamNot(
             Integer maBenhNhan,
-            String trangThai
+            String trangThai,
+            Integer maLichKham,
+            Pageable pageable
     );
 
 

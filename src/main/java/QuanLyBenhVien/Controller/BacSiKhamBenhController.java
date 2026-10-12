@@ -1,7 +1,7 @@
 package QuanLyBenhVien.Controller;
 
 import QuanLyBenhVien.DTO.DonThuocRequest;
-
+import org.springframework.data.domain.Page;
 import QuanLyBenhVien.Entity.BacSi;
 import QuanLyBenhVien.Entity.CTDonThuoc;
 import QuanLyBenhVien.Entity.ChiDinhYTe;
@@ -855,11 +855,17 @@ public class BacSiKhamBenhController {
 
 
     // =========================================================
-// 21. LỊCH SỬ KHÁM CỦA BỆNH NHÂN ĐANG KHÁM
+// =========================================================
+// 21. LỊCH SỬ KHÁM CỦA BỆNH NHÂN ĐANG KHÁM - PHÂN TRANG
 // =========================================================
     @GetMapping("/{maLichKham}/lich-su-kham")
     public ResponseEntity<?> lichSuKhamBenhNhan(
             @PathVariable Integer maLichKham,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "5") int size,
+
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         try {
@@ -867,25 +873,79 @@ public class BacSiKhamBenhController {
             BacSi bacSi =
                     layBacSiDangNhap(userDetails);
 
-            List<HoSoBenhAn> danhSach =
+            // Lấy lịch sử khám theo trang
+            Page<HoSoBenhAn> trangLichSu =
                     khamBenhService.layLichSuKham(
                             bacSi.getMaBacSi(),
-                            maLichKham
+                            maLichKham,
+                            page,
+                            size
                     );
 
-            List<Map<String, Object>> ketQua =
-                    danhSach.stream()
+            // Chuyển Entity -> JSON cho danh sách của trang hiện tại
+            List<Map<String, Object>> noiDung =
+                    trangLichSu
+                            .getContent()
+                            .stream()
                             .map(this::chuyenLichSuBenhNhanThanhMap)
                             .toList();
 
-            return ResponseEntity.ok(ketQua);
+
+            // =====================================================
+            // RESPONSE PHÂN TRANG
+            // =====================================================
+            Map<String, Object> response =
+                    new LinkedHashMap<>();
+
+            // Danh sách lịch sử của trang hiện tại
+            response.put(
+                    "content",
+                    noiDung
+            );
+
+            // Trang hiện tại.
+            // Spring bắt đầu từ 0.
+            response.put(
+                    "page",
+                    trangLichSu.getNumber()
+            );
+
+            // Số bản ghi tối đa trên một trang
+            response.put(
+                    "size",
+                    trangLichSu.getSize()
+            );
+
+            // Tổng số lần khám cũ
+            response.put(
+                    "totalElements",
+                    trangLichSu.getTotalElements()
+            );
+
+            // Tổng số trang
+            response.put(
+                    "totalPages",
+                    trangLichSu.getTotalPages()
+            );
+
+            // Có phải trang đầu tiên không
+            response.put(
+                    "first",
+                    trangLichSu.isFirst()
+            );
+
+            // Có phải trang cuối cùng không
+            response.put(
+                    "last",
+                    trangLichSu.isLast()
+            );
+
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             return loi(e);
         }
     }
-
-
     // =========================================================
 // 22. XEM CHI TIẾT MỘT LẦN KHÁM TRONG LỊCH SỬ
 // =========================================================
@@ -900,16 +960,143 @@ public class BacSiKhamBenhController {
             BacSi bacSi =
                     layBacSiDangNhap(userDetails);
 
+            Integer maBacSi = bacSi.getMaBacSi();
+
+            // =====================================================
+            // 1. LẤY HỒ SƠ LỊCH SỬ
+            // Đồng thời kiểm tra hồ sơ thuộc đúng bệnh nhân hiện tại
+            // =====================================================
             HoSoBenhAn hoSo =
                     khamBenhService.xemChiTietLichSuKham(
-                            bacSi.getMaBacSi(),
+                            maBacSi,
                             maLichKham,
                             maHoSoBenhAn
                     );
 
-            return ResponseEntity.ok(
-                    chuyenHoSoThanhMap(hoSo)
+            Map<String, Object> response =
+                    chuyenHoSoThanhMap(hoSo);
+
+
+            // =====================================================
+            // 2. LẤY CẬN LÂM SÀNG CỦA LẦN KHÁM CŨ
+            // =====================================================
+            List<ChiDinhYTe> danhSachChiDinh =
+                    khamBenhService.layChiDinhLichSuKham(
+                            maBacSi,
+                            maLichKham,
+                            maHoSoBenhAn
+                    );
+
+            List<Map<String, Object>> canLamSang =
+                    danhSachChiDinh.stream()
+                            .map(chiDinh -> {
+
+                                Map<String, Object> chiDinhMap =
+                                        chuyenChiDinhThanhMap(chiDinh);
+
+                                Optional<KetQuaDichVu> optionalKetQua =
+                                        khamBenhService.layKetQuaLichSuKham(
+                                                maBacSi,
+                                                maLichKham,
+                                                maHoSoBenhAn,
+                                                chiDinh.getMaChiDinh()
+                                        );
+
+                                if (optionalKetQua.isPresent()) {
+
+                                    KetQuaDichVu ketQua =
+                                            optionalKetQua.get();
+
+                                    List<ChiTietKetQua> chiTietKetQua =
+                                            khamBenhService
+                                                    .layChiTietKetQuaLichSu(
+                                                            ketQua.getMaKetQua()
+                                                    );
+
+                                    chiDinhMap.put(
+                                            "coKetQua",
+                                            true
+                                    );
+
+                                    chiDinhMap.put(
+                                            "ketQua",
+                                            chuyenKetQuaThanhMap(
+                                                    ketQua,
+                                                    chiTietKetQua
+                                            )
+                                    );
+
+                                } else {
+
+                                    chiDinhMap.put(
+                                            "coKetQua",
+                                            false
+                                    );
+
+                                    chiDinhMap.put(
+                                            "ketQua",
+                                            null
+                                    );
+                                }
+
+                                return chiDinhMap;
+                            })
+                            .toList();
+
+            response.put(
+                    "canLamSang",
+                    canLamSang
             );
+
+
+            // =====================================================
+            // 3. LẤY ĐƠN THUỐC CỦA LẦN KHÁM CŨ
+            // =====================================================
+            Optional<DonThuoc> optionalDonThuoc =
+                    khamBenhService.layDonThuocLichSuKham(
+                            maBacSi,
+                            maLichKham,
+                            maHoSoBenhAn
+                    );
+
+            if (optionalDonThuoc.isPresent()) {
+
+                DonThuoc donThuoc =
+                        optionalDonThuoc.get();
+
+                List<CTDonThuoc> chiTietDonThuoc =
+                        khamBenhService
+                                .layChiTietDonThuocLichSu(
+                                        donThuoc.getMaDonThuoc()
+                                );
+
+                response.put(
+                        "coDonThuoc",
+                        true
+                );
+
+                response.put(
+                        "donThuoc",
+                        chuyenDonThuocThanhMap(
+                                donThuoc,
+                                chiTietDonThuoc
+                        )
+                );
+
+            } else {
+
+                response.put(
+                        "coDonThuoc",
+                        false
+                );
+
+                response.put(
+                        "donThuoc",
+                        null
+                );
+            }
+
+            return ResponseEntity.ok(response);
 
         } catch (Exception e) {
             return loi(e);
@@ -964,14 +1151,16 @@ public class BacSiKhamBenhController {
                     "lyDoKham",
                     lich.getLyDoKham()
             );
-
+            // Khoa của lần khám
             if (lich.getKhoa() != null) {
+
                 map.put(
                         "tenKhoa",
                         lich.getKhoa().getTenKhoa()
                 );
             }
 
+// Bác sĩ thực hiện lần khám
             if (lich.getBacSi() != null
                     && lich.getBacSi().getNguoiDung() != null) {
 
@@ -982,6 +1171,7 @@ public class BacSiKhamBenhController {
                                 .getHoTen()
                 );
             }
+
         }
 
         return map;
@@ -1144,6 +1334,25 @@ public class BacSiKhamBenhController {
                     "lyDoKham",
                     lich.getLyDoKham()
             );
+            // Khoa của lần khám
+            if (lich.getKhoa() != null) {
+                map.put(
+                        "tenKhoa",
+                        lich.getKhoa().getTenKhoa()
+                );
+            }
+
+// Bác sĩ thực hiện lần khám
+            if (lich.getBacSi() != null
+                    && lich.getBacSi().getNguoiDung() != null) {
+
+                map.put(
+                        "tenBacSi",
+                        lich.getBacSi()
+                                .getNguoiDung()
+                                .getHoTen()
+                );
+            }
 
             if (lich.getBenhNhan() != null) {
 

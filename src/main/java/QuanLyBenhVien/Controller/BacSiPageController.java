@@ -8,6 +8,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class BacSiPageController {
 
 
+    @GetMapping("/auth/bac-si/ho-so-ca-nhan")
+    public String hoSoCaNhan() {
+        return "BacSi/ho-so-ca-nhan";
+    }
+
+
     // =========================================================
     // TRANG CHỦ BÁC SĨ
     // =========================================================
@@ -40,6 +46,17 @@ public class BacSiPageController {
     ) {
 
         return "BacSi/chi-tiet-kham-benh";
+    }
+
+    // =========================================================
+// TRANG CHỈ ĐỊNH CẬN LÂM SÀNG CỦA LƯỢT KHÁM
+// =========================================================
+
+    @GetMapping("/auth/bac-si/kham-benh/{maLichKham}/can-lam-sang")
+    public String trangCanLamSang(
+            @PathVariable Integer maLichKham
+    ) {
+        return "BacSi/chi-dinh-can-lam-sang";
     }
 
 
