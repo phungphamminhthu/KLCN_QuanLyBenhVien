@@ -1,0 +1,80 @@
+
+<aside class="sidebar" th:fragment="sidebar">
+
+    <!-- LOGO -->
+    <div class="logo">
+        <div class="logo-icon">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+
+        <div>
+            <h2>MedCare Hospital</h2>
+            <span>Hệ thống quản lý bệnh viện</span>
+        </div>
+    </div>
+
+    <!-- MENU -->
+    <nav class="menu">
+
+        <!-- TỔNG QUAN -->
+        <a href="/auth/bac-si/trang-chu"
+           class="menu-item"
+           data-path="/auth/bac-si/trang-chu">
+            <i class="fa-solid fa-table-cells-large"></i>
+            <span>Tổng quan</span>
+        </a>
+
+        <!-- KHÁM BỆNH -->
+        <div class="menu-group">
+            <div class="menu-item menu-parent">
+                <i class="fa-solid fa-user-doctor"></i>
+                <span>Khám bệnh</span>
+                <i class="fa-solid fa-chevron-down arrow"></i>
+            </div>
+
+            <div class="submenu">
+                <a href="/auth/bac-si/kham-benh"
+                   class="submenu-item">
+                    Danh sách chờ khám
+                </a>
+
+                <a href="/auth/bac-si/lich-su-kham"
+                   class="submenu-item">
+                    Hồ sơ bệnh nhân
+                </a>
+            </div>
+        </div>
+
+        <!-- CHỈ ĐỊNH -->
+        <a href="/auth/bac-si/chi-dinh"
+           class="menu-item">
+            <i class="fa-solid fa-file-medical"></i>
+            <span>Chỉ định</span>
+        </a>
+
+        <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+        <a href="/auth/bac-si/ket-qua-can-lam-sang"
+           class="menu-item">
+            <i class="fa-solid fa-flask-vial"></i>
+            <span>Kết quả cận lâm sàng</span>
+        </a>
+
+        <!-- HỒ SƠ CÁ NHÂN -->
+        <a href="/auth/bac-si/ho-so-ca-nhan"
+           class="menu-item">
+            <i class="fa-regular fa-user"></i>
+            <span>Hồ sơ cá nhân</span>
+        </a>
+
+    </nav>
+
+    <!-- ĐĂNG XUẤT -->
+    <div class="sidebar-logout">
+        <button type="button"
+                id="logoutButton"
+                class="logout-button">
+            → Đăng xuất
+        </button>
+    </div>
+
+</aside>

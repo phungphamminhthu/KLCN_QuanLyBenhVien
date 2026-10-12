@@ -442,58 +442,39 @@ function hienThiThongBao(
 }
 
 
-// =========================================================
-// HIỂN THỊ THÔNG TIN BÁC SĨ
-// =========================================================
-
-function hienThiThongTinBacSi() {
-
-    const hoTen =
-        localStorage.getItem("HoTen")
-        || sessionStorage.getItem("HoTen")
-        || "Bác sĩ";
-
-    ganText(
-        "doctorName",
-        hoTen,
-        "Bác sĩ"
-    );
-
-
-    const avatar = getElement("doctorAvatar");
-
-    if (!avatar) {
-        return;
-    }
-
-    const words = hoTen
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-    if (words.length === 0) {
-
-        avatar.textContent = "BS";
-
-        return;
-    }
-
-    if (words.length === 1) {
-
-        avatar.textContent =
-            words[0]
-                .substring(0, 2)
-                .toUpperCase();
-
-        return;
-    }
-
-    avatar.textContent =
-        (
-            words[words.length - 2][0]
-            + words[words.length - 1][0]
-        ).toUpperCase();
-}
+//// =========================================================
+//// HIỂN THỊ THÔNG TIN BÁC SĨ
+//// =========================================================
+//
+//function hienThiThongTinBacSi() {
+//    const hoTen =
+//        localStorage.getItem("HoTen")
+//        || sessionStorage.getItem("HoTen")
+//        || "Bác sĩ";
+//
+//    ganText("doctorName", hoTen, "Bác sĩ");
+//
+//    const avatar = getElement("doctorAvatar");
+//
+//    // Header dùng thẻ <img>: giữ ảnh, không gán textContent.
+//    if (avatar instanceof HTMLImageElement) {
+//        avatar.onerror = function () {
+//            this.onerror = null;
+//            this.src = "/Images/default-avatar.png";
+//        };
+//        return;
+//    }
+//
+//    // Nếu trang nào đó dùng avatar dạng div thì hiển thị chữ viết tắt.
+//    if (avatar) {
+//        const words = hoTen.trim().split(/\s+/).filter(Boolean);
+//
+//        avatar.textContent = words.length >= 2
+//            ? (words[words.length - 2][0]
+//                + words[words.length - 1][0]).toUpperCase()
+//            : (words[0] || "BS").substring(0, 2).toUpperCase();
+//    }
+//}
 
 
 // =========================================================

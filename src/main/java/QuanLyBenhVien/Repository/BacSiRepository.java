@@ -12,7 +12,7 @@ public interface BacSiRepository extends JpaRepository<BacSi, Integer> {
     @Query("""
             SELECT b
             FROM BacSi b
-            WHERE b.nguoiDung.MaNguoiDung = :maNguoiDung
+            WHERE b.nguoiDung.maNguoiDung = :maNguoiDung
             """)
     Optional<BacSi> timTheoMaNguoiDung(
             @Param("maNguoiDung") Integer maNguoiDung

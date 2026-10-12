@@ -10,16 +10,6 @@ let danhSachBenhNhan = [];
 let benhNhanDangChon = null;
 
 
-/* =====================================================
-   DOM - THÔNG TIN BÁC SĨ
-===================================================== */
-
-const doctorName =
-    document.getElementById("doctorName");
-
-const doctorAvatar =
-    document.getElementById("doctorAvatar");
-
 
 /* =====================================================
    DOM - DANH SÁCH BỆNH NHÂN
@@ -194,45 +184,45 @@ async function apiFetch(url, options = {}) {
 }
 
 
-/* =====================================================
-   THÔNG TIN BÁC SĨ
-===================================================== */
-
-function hienThiThongTinBacSi() {
-
-    const hoTen =
-        localStorage.getItem("HoTen")
-        || sessionStorage.getItem("HoTen")
-        || "Bác sĩ";
-
-    if (doctorName) {
-
-        doctorName.textContent =
-            hoTen;
-    }
-
-    const words =
-        hoTen
-            .trim()
-            .split(/\s+/);
-
-    if (
-        doctorAvatar &&
-        words.length > 0
-    ) {
-
-        const lastName =
-            words[
-                words.length - 1
-            ];
-
-        doctorAvatar.textContent =
-            lastName
-                .substring(0, 2)
-                .toUpperCase();
-    }
-}
-
+///* =====================================================
+//   THÔNG TIN BÁC SĨ
+//===================================================== */
+//
+//function hienThiThongTinBacSi() {
+//
+//    const hoTen =
+//        localStorage.getItem("HoTen")
+//        || sessionStorage.getItem("HoTen")
+//        || "Bác sĩ";
+//
+//    if (doctorName) {
+//
+//        doctorName.textContent =
+//            hoTen;
+//    }
+//
+//    const words =
+//        hoTen
+//            .trim()
+//            .split(/\s+/);
+//
+//    if (
+//        doctorAvatar &&
+//        words.length > 0
+//    ) {
+//
+//        const lastName =
+//            words[
+//                words.length - 1
+//            ];
+//
+//        doctorAvatar.textContent =
+//            lastName
+//                .substring(0, 2)
+//                .toUpperCase();
+//    }
+//}
+//
 
 /* =====================================================
    LOAD DỮ LIỆU

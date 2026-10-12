@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+    MedCare Hospital
+  </title>
+
+  <!-- FONT AWESOME -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- CSS POPUP ĐĂNG XUẤT -->
+  <link rel="stylesheet"
+        href="/Css/Auth/logout.css">
+
+  <link rel="stylesheet" href="/Css/BacSi/layout.css">
+
+  <!-- CSS RIÊNG CỦA TỪNG TRANG -->
+  <th:block layout:fragment="css"></th:block>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR DÙNG CHUNG -->
+  <aside th:replace="~{BacSi/fragments/sidebar :: sidebar}">
+  </aside>
+
+  <!-- KHU VỰC CHÍNH -->
+  <main class="main">
+
+    <!-- HEADER DÙNG CHUNG -->
+    <header th:replace="~{BacSi/fragments/header :: header}">
+    </header>
+
+    <!-- NỘI DUNG TỪNG TRANG -->
+    <section class="content"
+             layout:fragment="content">
+    </section>
+
+  </main>
+
+</div>
+
+<!-- JS MENU SIDEBAR -->
+<script src="/Js/BacSi/sidebar.js"></script>
+<script th:src="@{/Js/BacSi/layout.js}"></script>
+
+<!-- POPUP ĐĂNG XUẤT DÙNG CHUNG -->
+<script src="/Js/Auth/logout.js"></script>
+
+<!-- JS RIÊNG CỦA TỪNG TRANG -->
+<th:block layout:fragment="js"></th:block>
+
+</body>
+</html>

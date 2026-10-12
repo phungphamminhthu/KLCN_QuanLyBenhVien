@@ -4,32 +4,42 @@
 ========================================= */
 
 .profile-content {
+    display: block;
+    width: 100%;
+    min-width: 0;
     padding: 28px 32px 40px;
+    box-sizing: border-box;
 }
 
 /* TIÊU ĐỀ TRANG */
-
 .page-heading {
+    margin-top: 0;
     margin-bottom: 24px;
 }
 
-.page-eyebrow {
+/*.page-eyebrow {
+    margin-top: 0;
     margin-bottom: 7px;
     color: #2563eb;
     font-size: 12px;
     font-weight: 700;
-}
+}*/
 
 .page-heading h1 {
+    margin-top: 0;
     margin-bottom: 8px;
     color: #1e293b;
     font-size: 26px;
     font-weight: 700;
+    line-height: 1.4;
 }
 
 .page-heading > div > p:last-child {
+    margin-top: 0;
+    margin-bottom: 0;
     color: #64748b;
     font-size: 14px;
+    line-height: 1.5;
 }
 
 /* THÔNG BÁO */
@@ -474,4 +484,25 @@
 
     padding: 18px 24px;
     border-top: 1px solid #edf1f5;
+}
+
+@media (max-width: 760px) {
+    .profile-content {
+        padding: 22px 18px;
+    }
+
+    .profile-summary {
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    .profile-fields,
+    .password-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-card-header {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
 }

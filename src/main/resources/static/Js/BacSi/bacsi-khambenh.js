@@ -2116,44 +2116,44 @@ document.addEventListener(
         }
     }
 );
-/* =====================================================
-   THÔNG TIN BÁC SĨ TRÊN HEADER
-===================================================== */
-
-function hienThiThongTinBacSi() {
-
-    const doctorName =
-        document.getElementById("doctorName");
-
-    const doctorAvatar =
-        document.getElementById("doctorAvatar");
-
-    const hoTen =
-        localStorage.getItem("HoTen")
-        || sessionStorage.getItem("HoTen")
-        || "Bác sĩ";
-
-    if (doctorName) {
-        doctorName.textContent = hoTen;
-    }
-
-    if (doctorAvatar) {
-
-        const words =
-            hoTen.trim().split(/\s+/);
-
-        if (words.length > 0) {
-
-            const lastName =
-                words[words.length - 1];
-
-            doctorAvatar.textContent =
-                lastName
-                    .substring(0, 2)
-                    .toUpperCase();
-        }
-    }
-}
+///* =====================================================
+//   THÔNG TIN BÁC SĨ TRÊN HEADER
+//===================================================== */
+//
+//function hienThiThongTinBacSi() {
+//
+//    const doctorName =
+//        document.getElementById("doctorName");
+//
+//    const doctorAvatar =
+//        document.getElementById("doctorAvatar");
+//
+//    const hoTen =
+//        localStorage.getItem("HoTen")
+//        || sessionStorage.getItem("HoTen")
+//        || "Bác sĩ";
+//
+//    if (doctorName) {
+//        doctorName.textContent = hoTen;
+//    }
+//
+//    if (doctorAvatar) {
+//
+//        const words =
+//            hoTen.trim().split(/\s+/);
+//
+//        if (words.length > 0) {
+//
+//            const lastName =
+//                words[words.length - 1];
+//
+//            doctorAvatar.textContent =
+//                lastName
+//                    .substring(0, 2)
+//                    .toUpperCase();
+//        }
+//    }
+//}
 
 
 /* =====================================================

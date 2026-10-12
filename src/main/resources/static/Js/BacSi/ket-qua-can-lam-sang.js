@@ -1,4 +1,4 @@
-```javascript
+
 const API_BASE = "/api/bac-si/kham-benh";
 
 let danhSachKetQua = [];
@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     khoiTaoModal();
 
-    khoiTaoDangXuat();
+    //khoiTaoDangXuat();
 
     taiDanhSachKetQua();
 
@@ -936,34 +936,34 @@ function dongModal() {
 }
 
 
-/* =====================================================
-   ĐĂNG XUẤT
-===================================================== */
-
-function khoiTaoDangXuat() {
-
-    const button =
-        document.getElementById(
-            "btnLogout"
-        );
-
-
-    if (!button) {
-        return;
-    }
-
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            window.location.href =
-                "/logout";
-
-        }
-    );
-
-}
+///* =====================================================
+//   ĐĂNG XUẤT
+//===================================================== */
+//
+//function khoiTaoDangXuat() {
+//
+//    const button =
+//        document.getElementById(
+//            "btnLogout"
+//        );
+//
+//
+//    if (!button) {
+//        return;
+//    }
+//
+//
+//    button.addEventListener(
+//        "click",
+//        function () {
+//
+//            window.location.href =
+//                "/logout";
+//
+//        }
+//    );
+//
+//}
 
 
 /* =====================================================
@@ -1110,4 +1110,3 @@ async function docJson(response) {
     }
 
 }
-```

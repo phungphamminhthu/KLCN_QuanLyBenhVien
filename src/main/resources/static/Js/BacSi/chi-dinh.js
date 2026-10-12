@@ -3,31 +3,22 @@ const API_BASE = "/api/bac-si/kham-benh";
 let danhSachChiDinh = [];
 let trangThaiDangChon = "ALL";
 
+/* =========================================================
+   KHỞI TẠO TRANG
+========================================================= */
 
 document.addEventListener("DOMContentLoaded", function () {
-
-    hienThiThongTinBacSi();
-
     ganSuKienTimKiem();
-
     ganSuKienBoLoc();
-
     ganSuKienModal();
-
-    ganSuKienDangXuat();
-
-    ganSuKienMenuKetQua();
-
     taiDanhSachChiDinh();
 });
-
 
 /* =========================================================
    TOKEN
 ========================================================= */
 
 function layToken() {
-
     return (
         localStorage.getItem("token") ||
         localStorage.getItem("Token") ||
@@ -36,13 +27,11 @@ function layToken() {
     );
 }
 
-
 /* =========================================================
    FETCH API
 ========================================================= */
 
 async function apiFetch(url, options = {}) {
-
     const token = layToken();
 
     const headers = {
@@ -61,112 +50,73 @@ async function apiFetch(url, options = {}) {
         headers["Content-Type"] = "application/json";
     }
 
-
     const response = await fetch(url, {
         ...options,
         headers
     });
 
-
     if (response.status === 401 || response.status === 403) {
-
         localStorage.removeItem("token");
         localStorage.removeItem("Token");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("Token");
 
         window.location.href = "/login";
 
-        throw new Error(
-            "Phiên đăng nhập đã hết hạn."
-        );
+        throw new Error("Phiên đăng nhập đã hết hạn.");
     }
-
 
     let data = null;
 
-    const contentType =
-        response.headers.get("content-type");
+    const contentType = response.headers.get("content-type");
 
-
-    if (
-        contentType &&
-        contentType.includes("application/json")
-    ) {
-
+    if (contentType && contentType.includes("application/json")) {
         data = await response.json();
-
     } else {
-
         const text = await response.text();
-
-        data = text
-            ? { message: text }
-            : {};
+        data = text ? { message: text } : {};
     }
-
 
     if (!response.ok) {
-
         throw new Error(
-            data?.message ||
-            "Không thể xử lý yêu cầu."
+            data?.message || "Không thể xử lý yêu cầu."
         );
     }
-
 
     return data;
 }
 
-
 /* =========================================================
-   TẢI TẤT CẢ CHỈ ĐỊNH CỦA BÁC SĨ
+   TẢI DANH SÁCH CHỈ ĐỊNH
 ========================================================= */
 
 async function taiDanhSachChiDinh() {
+    const tbody = document.getElementById("chiDinhTableBody");
 
-    const tbody =
-        document.getElementById(
-            "chiDinhTableBody"
-        );
-
+    if (!tbody) return;
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7"
-                class="loading-cell">
+            <td colspan="7" class="loading-cell">
                 Đang tải danh sách chỉ định...
             </td>
         </tr>
     `;
 
-
     try {
+        const data = await apiFetch(`${API_BASE}/chi-dinh`);
 
-        const data =
-            await apiFetch(
-                `${API_BASE}/chi-dinh`
-            );
-
-
-        danhSachChiDinh =
-            Array.isArray(data)
-                ? data
-                : [];
-
+        danhSachChiDinh = Array.isArray(data) ? data : [];
 
         capNhatThongKe();
-
         locVaHienThi();
 
-
     } catch (error) {
-
-        console.error(error);
-
+        console.error("Lỗi tải danh sách chỉ định:", error);
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7"
-                    class="error-cell">
+                <td colspan="7" class="error-cell">
                     ${escapeHtml(
                         error.message ||
                         "Không thể tải danh sách chỉ định."
@@ -175,337 +125,175 @@ async function taiDanhSachChiDinh() {
             </tr>
         `;
 
-
+        capNhatThongKe();
         capNhatSoLuongBang(0);
     }
 }
 
-
 /* =========================================================
-   THỐNG KÊ
+   CẬP NHẬT THỐNG KÊ
 ========================================================= */
 
 function capNhatThongKe() {
+    const tong = danhSachChiDinh.length;
 
-    const tong =
-        danhSachChiDinh.length;
+    const choThucHien = danhSachChiDinh.filter(
+        item => item.trangThai === "ChoThucHien"
+    ).length;
 
+    const dangThucHien = danhSachChiDinh.filter(
+        item => item.trangThai === "DangThucHien"
+    ).length;
 
-    const choThucHien =
-        danhSachChiDinh.filter(
-            item =>
-                item.trangThai ===
-                "ChoThucHien"
-        ).length;
+    const daHoanThanh = danhSachChiDinh.filter(
+        item => item.trangThai === "DaHoanThanh"
+    ).length;
 
-
-    const dangThucHien =
-        danhSachChiDinh.filter(
-            item =>
-                item.trangThai ===
-                "DangThucHien"
-        ).length;
-
-
-    const daHoanThanh =
-        danhSachChiDinh.filter(
-            item =>
-                item.trangThai ===
-                "DaHoanThanh"
-        ).length;
-
-
-    document.getElementById(
-        "tongChiDinh"
-    ).textContent = tong;
-
-
-    document.getElementById(
-        "tongChoThucHien"
-    ).textContent = choThucHien;
-
-
-    document.getElementById(
-        "tongDangThucHien"
-    ).textContent = dangThucHien;
-
-
-    document.getElementById(
-        "tongDaHoanThanh"
-    ).textContent = daHoanThanh;
+    ganText("tongChiDinh", tong);
+    ganText("tongChoThucHien", choThucHien);
+    ganText("tongDangThucHien", dangThucHien);
+    ganText("tongDaHoanThanh", daHoanThanh);
 }
-
 
 /* =========================================================
    TÌM KIẾM
+   Dùng được với ô tìm kiếm của trang và header nếu có.
 ========================================================= */
 
 function ganSuKienTimKiem() {
-
-    const searchInput =
-        document.getElementById(
-            "searchInput"
-        );
-
-
-    const headerSearch =
-        document.getElementById(
-            "headerSearch"
-        );
-
+    const searchInput = document.getElementById("searchInput");
+    const headerSearch = document.getElementById("headerSearch");
 
     if (searchInput) {
-
-        searchInput.addEventListener(
-            "input",
-            function () {
-
-                if (headerSearch) {
-                    headerSearch.value =
-                        searchInput.value;
-                }
-
-                locVaHienThi();
+        searchInput.addEventListener("input", function () {
+            if (headerSearch) {
+                headerSearch.value = searchInput.value;
             }
-        );
+
+            locVaHienThi();
+        });
     }
 
-
     if (headerSearch) {
-
-        headerSearch.addEventListener(
-            "input",
-            function () {
-
-                if (searchInput) {
-                    searchInput.value =
-                        headerSearch.value;
-                }
-
-                locVaHienThi();
+        headerSearch.addEventListener("input", function () {
+            if (searchInput) {
+                searchInput.value = headerSearch.value;
             }
-        );
+
+            locVaHienThi();
+        });
     }
 }
 
-
 /* =========================================================
-   BỘ LỌC
+   BỘ LỌC TRẠNG THÁI
 ========================================================= */
 
 function ganSuKienBoLoc() {
-
-    const buttons =
-        document.querySelectorAll(
-            ".filter-btn"
-        );
-
+    const buttons = document.querySelectorAll(".filter-btn");
 
     buttons.forEach(button => {
+        button.addEventListener("click", function () {
+            buttons.forEach(btn => btn.classList.remove("active"));
 
-        button.addEventListener(
-            "click",
-            function () {
+            button.classList.add("active");
 
-                buttons.forEach(btn =>
-                    btn.classList.remove(
-                        "active"
-                    )
-                );
+            trangThaiDangChon = button.dataset.status || "ALL";
 
-
-                button.classList.add(
-                    "active"
-                );
-
-
-                trangThaiDangChon =
-                    button.dataset.status ||
-                    "ALL";
-
-
-                locVaHienThi();
-            }
-        );
+            locVaHienThi();
+        });
     });
 }
 
-
 /* =========================================================
-   LỌC + HIỂN THỊ
+   LỌC VÀ HIỂN THỊ DANH SÁCH
 ========================================================= */
 
 function locVaHienThi() {
+    const searchInput = document.getElementById("searchInput");
 
-    const searchInput =
-        document.getElementById(
-            "searchInput"
-        );
+    const keyword = chuanHoaChuoi(
+        searchInput ? searchInput.value : ""
+    );
 
+    const ketQua = danhSachChiDinh.filter(item => {
+        const dungTrangThai =
+            trangThaiDangChon === "ALL" ||
+            item.trangThai === trangThaiDangChon;
 
-    const keyword =
-        chuanHoaChuoi(
-            searchInput
-                ? searchInput.value
-                : ""
-        );
+        const hoTen = chuanHoaChuoi(item.hoTen || "");
+        const tenDichVu = chuanHoaChuoi(item.tenDichVu || "");
+        const maBenhNhan = chuanHoaChuoi(item.maBenhNhan || "");
 
+        const dungTuKhoa =
+            !keyword ||
+            hoTen.includes(keyword) ||
+            tenDichVu.includes(keyword) ||
+            maBenhNhan.includes(keyword);
 
-    const ketQua =
-        danhSachChiDinh.filter(
-            item => {
-
-                const dungTrangThai =
-                    trangThaiDangChon ===
-                    "ALL"
-                    ||
-                    item.trangThai ===
-                    trangThaiDangChon;
-
-
-                const hoTen =
-                    chuanHoaChuoi(
-                        item.hoTen || ""
-                    );
-
-
-                const tenDichVu =
-                    chuanHoaChuoi(
-                        item.tenDichVu || ""
-                    );
-
-
-                const maBenhNhan =
-                    chuanHoaChuoi(
-                        item.maBenhNhan || ""
-                    );
-
-
-                const dungTuKhoa =
-                    !keyword
-                    ||
-                    hoTen.includes(keyword)
-                    ||
-                    tenDichVu.includes(keyword)
-                    ||
-                    maBenhNhan.includes(keyword);
-
-
-                return (
-                    dungTrangThai &&
-                    dungTuKhoa
-                );
-            }
-        );
-
+        return dungTrangThai && dungTuKhoa;
+    });
 
     hienThiDanhSach(ketQua);
 }
 
-
 /* =========================================================
-   RENDER TABLE
+   HIỂN THỊ BẢNG
 ========================================================= */
 
 function hienThiDanhSach(danhSach) {
+    const tbody = document.getElementById("chiDinhTableBody");
 
-    const tbody =
-        document.getElementById(
-            "chiDinhTableBody"
-        );
-
+    if (!tbody) return;
 
     if (!danhSach.length) {
-
         tbody.innerHTML = `
             <tr>
-                <td colspan="7"
-                    class="empty-cell">
+                <td colspan="7" class="empty-cell">
                     Không có chỉ định phù hợp.
                 </td>
             </tr>
         `;
 
         capNhatSoLuongBang(0);
-
         return;
     }
 
+    tbody.innerHTML = danhSach
+        .map((item, index) => taoDongChiDinh(item, index))
+        .join("");
 
-    tbody.innerHTML =
-        danhSach
-            .map(
-                (item, index) =>
-                    taoDongChiDinh(
-                        item,
-                        index
-                    )
-            )
-            .join("");
-
-
-    capNhatSoLuongBang(
-        danhSach.length
-    );
-
-
+    capNhatSoLuongBang(danhSach.length);
     ganSuKienNutXem();
 }
 
-
 /* =========================================================
-   TẠO 1 DÒNG
+   TẠO DÒNG CHỈ ĐỊNH
 ========================================================= */
 
-function taoDongChiDinh(
-    item,
-    index
-) {
+function taoDongChiDinh(item, index) {
+    const hoTen = item.hoTen || "Chưa có thông tin";
 
-    const hoTen =
-        item.hoTen ||
-        "Chưa có thông tin";
+    const maBenhNhan = item.maBenhNhan != null
+        ? `BN${item.maBenhNhan}`
+        : "--";
 
-
-    const maBenhNhan =
-        item.maBenhNhan != null
-            ? `BN${item.maBenhNhan}`
-            : "--";
-
-
-    const tenDichVu =
-        item.tenDichVu ||
-        "Chưa xác định";
-
+    const tenDichVu = item.tenDichVu || "Chưa xác định";
 
     const loaiDichVu =
-        item.loaiDichVu ||
-        item.loaiChiDinh ||
-        "";
+        item.loaiDichVu || item.loaiChiDinh || "";
 
+    const ngayChiDinh = dinhDangNgayGio(item.ngayChiDinh);
 
-    const ngayChiDinh =
-        dinhDangNgayGio(
-            item.ngayChiDinh
-        );
-
-
-    const phong =
-        item.maPhong != null
-            ? `Phòng ${item.maPhong}`
-            : "Chưa phân phòng";
-
+    const phong = item.maPhong != null
+        ? `Phòng ${item.maPhong}`
+        : "Chưa phân phòng";
 
     return `
         <tr>
+            <td>${index + 1}</td>
 
             <td>
-                ${index + 1}
-            </td>
-
-
-            <td>
-
                 <span class="patient-name">
                     ${escapeHtml(hoTen)}
                 </span>
@@ -513,86 +301,48 @@ function taoDongChiDinh(
                 <span class="patient-code">
                     ${escapeHtml(maBenhNhan)}
                 </span>
-
             </td>
 
-
             <td>
-
                 <span class="service-name">
-                    ${escapeHtml(
-                        tenDichVu
-                    )}
+                    ${escapeHtml(tenDichVu)}
                 </span>
 
                 ${
                     loaiDichVu
                         ? `
                             <span class="service-type">
-                                ${escapeHtml(
-                                    loaiDichVu
-                                )}
+                                ${escapeHtml(loaiDichVu)}
                             </span>
-                          `
+                        `
                         : ""
                 }
-
             </td>
 
+            <td>${escapeHtml(ngayChiDinh)}</td>
+
+            <td>${escapeHtml(phong)}</td>
+
+            <td>${taoTrangThaiHtml(item.trangThai)}</td>
 
             <td>
-                ${escapeHtml(
-                    ngayChiDinh
-                )}
-            </td>
-
-
-            <td>
-                ${escapeHtml(phong)}
-            </td>
-
-
-            <td>
-                ${taoTrangThaiHtml(
-                    item.trangThai
-                )}
-            </td>
-
-
-            <td>
-
                 <button
                     type="button"
                     class="view-button"
-                    data-id="${escapeHtml(
-                        String(
-                            item.maChiDinh ??
-                            ""
-                        )
-                    )}">
+                    data-id="${escapeHtml(String(item.maChiDinh ?? ""))}">
                     Xem
                 </button>
-
             </td>
-
         </tr>
     `;
 }
 
-
 /* =========================================================
-   TRẠNG THÁI
+   HIỂN THỊ TRẠNG THÁI
 ========================================================= */
 
-function taoTrangThaiHtml(
-    trangThai
-) {
-
-    if (
-        trangThai ===
-        "ChoThucHien"
-    ) {
-
+function taoTrangThaiHtml(trangThai) {
+    if (trangThai === "ChoThucHien") {
         return `
             <span class="status status-waiting">
                 Chờ thực hiện
@@ -600,12 +350,7 @@ function taoTrangThaiHtml(
         `;
     }
 
-
-    if (
-        trangThai ===
-        "DangThucHien"
-    ) {
-
+    if (trangThai === "DangThucHien") {
         return `
             <span class="status status-processing">
                 Đang thực hiện
@@ -613,12 +358,7 @@ function taoTrangThaiHtml(
         `;
     }
 
-
-    if (
-        trangThai ===
-        "DaHoanThanh"
-    ) {
-
+    if (trangThai === "DaHoanThanh") {
         return `
             <span class="status status-completed">
                 Đã hoàn thành
@@ -626,108 +366,64 @@ function taoTrangThaiHtml(
         `;
     }
 
-
     return `
         <span class="status status-default">
-            ${
-                escapeHtml(
-                    trangThai ||
-                    "Chưa xác định"
-                )
-            }
+            ${escapeHtml(trangThai || "Chưa xác định")}
         </span>
     `;
 }
 
-
 /* =========================================================
-   NÚT XEM
+   SỰ KIỆN NÚT XEM CHI TIẾT
 ========================================================= */
 
 function ganSuKienNutXem() {
-
-    const buttons =
-        document.querySelectorAll(
-            ".view-button"
-        );
-
+    const buttons = document.querySelectorAll(".view-button");
 
     buttons.forEach(button => {
+        button.addEventListener("click", function () {
+            const id = button.dataset.id;
 
-        button.addEventListener(
-            "click",
-            function () {
+            const chiDinh = danhSachChiDinh.find(
+                item => String(item.maChiDinh) === String(id)
+            );
 
-                const id =
-                    button.dataset.id;
-
-
-                const chiDinh =
-                    danhSachChiDinh.find(
-                        item =>
-                            String(
-                                item.maChiDinh
-                            ) ===
-                            String(id)
-                    );
-
-
-                if (chiDinh) {
-                    moChiTietChiDinh(
-                        chiDinh
-                    );
-                }
+            if (chiDinh) {
+                moChiTietChiDinh(chiDinh);
             }
-        );
+        });
     });
 }
 
-
 /* =========================================================
-   MODAL CHI TIẾT
+   MỞ MODAL CHI TIẾT
 ========================================================= */
 
-function moChiTietChiDinh(
-    item
-) {
-
+function moChiTietChiDinh(item) {
     ganText(
         "detailMaChiDinh",
-        item.maChiDinh != null
-            ? `CD${item.maChiDinh}`
-            : "--"
+        item.maChiDinh != null ? `CD${item.maChiDinh}` : "--"
     );
-
 
     ganText(
         "detailBenhNhan",
-        item.hoTen ||
-        "Chưa có thông tin"
+        item.hoTen || "Chưa có thông tin"
     );
-
 
     ganText(
         "detailDichVu",
-        item.tenDichVu ||
-        "Chưa xác định"
+        item.tenDichVu || "Chưa xác định"
     );
-
 
     ganText(
         "detailLoaiDichVu",
-        item.loaiDichVu ||
-        item.loaiChiDinh ||
-        "--"
+        item.loaiDichVu || item.loaiChiDinh || "--"
     );
-
 
     ganText(
         "detailNgayChiDinh",
-        dinhDangNgayGio(
-            item.ngayChiDinh
-        )
+        dinhDangNgayGio(item.ngayChiDinh)
     );
-
 
     ganText(
         "detailPhong",
@@ -736,436 +432,141 @@ function moChiTietChiDinh(
             : "Chưa phân phòng"
     );
 
-
     ganText(
         "detailNgayKham",
-        dinhDangNgay(
-            item.ngayKham
-        )
+        dinhDangNgay(item.ngayKham)
     );
 
-
-    const trangThaiElement =
-        document.getElementById(
-            "detailTrangThai"
-        );
-
+    const trangThaiElement = document.getElementById("detailTrangThai");
 
     if (trangThaiElement) {
-
-        trangThaiElement.innerHTML =
-            taoTrangThaiHtml(
-                item.trangThai
-            );
+        trangThaiElement.innerHTML = taoTrangThaiHtml(item.trangThai);
     }
 
-
-    const modal =
-        document.getElementById(
-            "detailModal"
-        );
-
+    const modal = document.getElementById("detailModal");
 
     if (modal) {
-        modal.classList.add(
-            "show"
-        );
+        modal.classList.add("show");
     }
 }
-
 
 /* =========================================================
    ĐÓNG MODAL
 ========================================================= */
 
 function ganSuKienModal() {
-
-    const modal =
-        document.getElementById(
-            "detailModal"
-        );
-
-
-    const closeButton =
-        document.getElementById(
-            "btnCloseModal"
-        );
-
-
-    const closeBottomButton =
-        document.getElementById(
-            "btnDongModal"
-        );
-
+    const modal = document.getElementById("detailModal");
+    const closeButton = document.getElementById("btnCloseModal");
+    const closeBottomButton = document.getElementById("btnDongModal");
 
     if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            dongModal
-        );
+        closeButton.addEventListener("click", dongModal);
     }
-
 
     if (closeBottomButton) {
-
-        closeBottomButton.addEventListener(
-            "click",
-            dongModal
-        );
+        closeBottomButton.addEventListener("click", dongModal);
     }
-
 
     if (modal) {
-
-        modal.addEventListener(
-            "click",
-            function (event) {
-
-                if (
-                    event.target ===
-                    modal
-                ) {
-                    dongModal();
-                }
-            }
-        );
-    }
-
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (
-                event.key ===
-                "Escape"
-            ) {
+        modal.addEventListener("click", function (event) {
+            if (event.target === modal) {
                 dongModal();
             }
-        }
-    );
-}
+        });
+    }
 
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            dongModal();
+        }
+    });
+}
 
 function dongModal() {
-
-    const modal =
-        document.getElementById(
-            "detailModal"
-        );
-
+    const modal = document.getElementById("detailModal");
 
     if (modal) {
-
-        modal.classList.remove(
-            "show"
-        );
+        modal.classList.remove("show");
     }
 }
 
-
 /* =========================================================
-   SỐ LƯỢNG HIỂN THỊ
+   CẬP NHẬT SỐ LƯỢNG BẢNG
 ========================================================= */
 
-function capNhatSoLuongBang(
-    soLuong
-) {
-
-    const element =
-        document.getElementById(
-            "tableCount"
-        );
-
+function capNhatSoLuongBang(soLuong) {
+    const element = document.getElementById("tableCount");
 
     if (element) {
-
-        element.textContent =
-            `Hiển thị ${soLuong} chỉ định`;
+        element.textContent = `Hiển thị ${soLuong} chỉ định`;
     }
 }
 
-
 /* =========================================================
-   THÔNG TIN BÁC SĨ
+   HÀM HỖ TRỢ
 ========================================================= */
 
-function hienThiThongTinBacSi() {
-
-    const hoTen =
-        localStorage.getItem("HoTen") ||
-        localStorage.getItem("hoTen") ||
-        sessionStorage.getItem("HoTen") ||
-        sessionStorage.getItem("hoTen") ||
-        "Bác sĩ";
-
-
-    const nameElement =
-        document.getElementById(
-            "doctorName"
-        );
-
-
-    if (nameElement) {
-        nameElement.textContent =
-            hoTen;
-    }
-
-
-    const avatarElement =
-        document.getElementById(
-            "doctorAvatar"
-        );
-
-
-    if (avatarElement) {
-
-        avatarElement.textContent =
-            layChuCaiDaiDien(
-                hoTen
-            );
-    }
-}
-
-
-/* =========================================================
-   ĐĂNG XUẤT
-========================================================= */
-
-function ganSuKienDangXuat() {
-
-    const button =
-        document.getElementById(
-            "btnDangXuat"
-        );
-
-
-    if (!button) {
-        return;
-    }
-
-
-    button.addEventListener(
-        "click",
-        function () {
-
-            const keys = [
-                "token",
-                "Token",
-                "MaNguoiDung",
-                "maNguoiDung",
-                "TenDangNhap",
-                "tenDangNhap",
-                "HoTen",
-                "hoTen",
-                "Email",
-                "email",
-                "VaiTro",
-                "vaiTro",
-                "AnhDaiDien",
-                "anhDaiDien"
-            ];
-
-
-            keys.forEach(key => {
-                localStorage.removeItem(key);
-                sessionStorage.removeItem(key);
-            });
-
-
-            window.location.href =
-                "/login";
-        }
-    );
-}
-
-
-/* =========================================================
-   MENU KẾT QUẢ CLS
-========================================================= */
-
-function ganSuKienMenuKetQua() {
-
-    const menu =
-        document.getElementById(
-            "menuKetQua"
-        );
-
-
-    if (!menu) {
-        return;
-    }
-}
-
-
-/* =========================================================
-   HELPER
-========================================================= */
-
-function ganText(
-    id,
-    value
-) {
-
-    const element =
-        document.getElementById(id);
-
+function ganText(id, value) {
+    const element = document.getElementById(id);
 
     if (element) {
-
         element.textContent =
-            value == null ||
-            value === ""
+            value == null || value === ""
                 ? "--"
                 : value;
     }
 }
 
-
-function chuanHoaChuoi(
-    value
-) {
-
-    return String(
-        value || ""
-    )
+function chuanHoaChuoi(value) {
+    return String(value || "")
         .toLowerCase()
         .normalize("NFD")
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
+        .replace(/[\u0300-\u036f]/g, "")
         .trim();
 }
 
-
-function dinhDangNgay(
-    value
-) {
-
+function dinhDangNgay(value) {
     if (!value) {
         return "--";
     }
 
+    const text = String(value);
 
-    const text =
-        String(value);
+    const datePart = text.includes("T")
+        ? text.split("T")[0]
+        : text.split(" ")[0];
 
-
-    const datePart =
-        text.includes("T")
-            ? text.split("T")[0]
-            : text.split(" ")[0];
-
-
-    const parts =
-        datePart.split("-");
-
+    const parts = datePart.split("-");
 
     if (parts.length !== 3) {
         return text;
     }
 
-
-    return (
-        `${parts[2]}/` +
-        `${parts[1]}/` +
-        `${parts[0]}`
-    );
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-
-function dinhDangNgayGio(
-    value
-) {
-
+function dinhDangNgayGio(value) {
     if (!value) {
         return "--";
     }
 
+    const text = String(value);
+    const normalized = text.replace(" ", "T");
+    const parts = normalized.split("T");
 
-    const text =
-        String(value);
+    const ngay = dinhDangNgay(parts[0]);
 
-
-    const normalized =
-        text.replace(
-            " ",
-            "T"
-        );
-
-
-    const parts =
-        normalized.split("T");
-
-
-    const ngay =
-        dinhDangNgay(
-            parts[0]
-        );
-
-
-    if (
-        parts.length < 2 ||
-        !parts[1]
-    ) {
+    if (parts.length < 2 || !parts[1]) {
         return ngay;
     }
 
-
-    const gio =
-        parts[1]
-            .substring(0, 5);
-
+    const gio = parts[1].substring(0, 5);
 
     return `${ngay} ${gio}`;
 }
 
-
-function layChuCaiDaiDien(
-    hoTen
-) {
-
-    const words =
-        String(
-            hoTen ||
-            "BS"
-        )
-            .trim()
-            .split(/\s+/)
-            .filter(Boolean);
-
-
-    if (!words.length) {
-        return "BS";
-    }
-
-
-    if (words.length === 1) {
-
-        return words[0]
-            .substring(0, 2)
-            .toUpperCase();
-    }
-
-
-    return (
-        words[words.length - 2][0] +
-        words[words.length - 1][0]
-    ).toUpperCase();
-}
-
-
-function escapeHtml(
-    value
-) {
-
-    return String(
-        value == null
-            ? ""
-            : value
-    )
+function escapeHtml(value) {
+    return String(value == null ? "" : value)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")

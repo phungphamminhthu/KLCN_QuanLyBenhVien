@@ -1,367 +1,327 @@
-
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{BacSi/fragments/layout}">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ sơ cá nhân - Bệnh viện ABC</title>
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <title>Hồ sơ cá nhân</title>
 
-    <link rel="stylesheet" href="/Css/BacSi/trang-chu.css">
-    <link rel="stylesheet" href="/Css/BacSi/ho-so-ca-nhan.css">
+    <!-- CSS RIÊNG CỦA TRANG -->
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/BacSi/ho-so-ca-nhan.css}">
+    </th:block>
 </head>
+
 <body>
 
-<div class="app">
+<div layout:fragment="content" class="profile-content">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="logo">
-            <div class="logo-icon">
-                <i class="fa-solid fa-plus"></i>
+    <!-- TIÊU ĐỀ -->
+    <div class="page-heading">
+        <div>
+<!--            <p class="page-eyebrow">TÀI KHOẢN BÁC SĨ</p>-->
+            <h1>Hồ sơ cá nhân</h1>
+            <p>Quản lý thông tin cá nhân và bảo mật tài khoản</p>
+        </div>
+    </div>
+
+    <!-- THÔNG BÁO -->
+    <div id="message"
+         class="profile-message"
+         hidden>
+    </div>
+
+    <!-- THÔNG TIN TỔNG QUAN -->
+    <div class="profile-summary">
+
+        <div class="profile-summary-avatar">
+            <img id="avatar"
+                 src="/Images/default-avatar.png"
+                 alt="Ảnh đại diện bác sĩ">
+        </div>
+
+        <div class="profile-summary-info">
+
+            <span class="profile-role">
+                <i class="fa-solid fa-user-doctor"></i>
+                BÁC SĨ
+            </span>
+
+            <h2 id="displayName">Đang tải...</h2>
+
+            <p id="displaySpecialty">Chuyên môn</p>
+
+            <div class="department-label">
+                <i class="fa-solid fa-hospital"></i>
+                <span id="displayDepartment">Khoa</span>
             </div>
+
+        </div>
+    </div>
+
+    <!-- HAI CỘT THÔNG TIN -->
+    <div class="profile-grid">
+
+        <!-- THÔNG TIN CÁ NHÂN -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+                <div>
+                    <h2>
+                        <i class="fa-regular fa-id-card"></i>
+                        Thông tin cá nhân
+                    </h2>
+                    <p>Thông tin liên hệ và tài khoản</p>
+                </div>
+
+                <button type="button"
+                        id="editBtn"
+                        class="profile-btn primary">
+                    <i class="fa-solid fa-pen"></i>
+                    Chỉnh sửa
+                </button>
+            </div>
+
+            <form id="profileForm">
+                <div class="profile-card-body">
+
+                    <div class="profile-fields">
+
+                        <div class="profile-field">
+                            <label for="hoTen">Họ và tên</label>
+                            <input id="hoTen"
+                                   type="text"
+                                   maxlength="255"
+                                   required
+                                   disabled>
+                        </div>
+
+                        <div class="profile-field">
+                            <label for="tenDangNhap">Tên đăng nhập</label>
+                            <input id="tenDangNhap"
+                                   type="text"
+                                   disabled>
+                        </div>
+
+                        <div class="profile-field">
+                            <label for="email">Email</label>
+                            <input id="email"
+                                   type="email"
+                                   maxlength="255"
+                                   disabled>
+                        </div>
+
+                        <div class="profile-field">
+                            <label for="soDienThoai">Số điện thoại</label>
+                            <input id="soDienThoai"
+                                   type="tel"
+                                   maxlength="10"
+                                   disabled>
+                        </div>
+
+                    </div>
+
+                    <!-- NÚT LƯU / HỦY -->
+                    <div id="editActions"
+                         class="profile-actions"
+                         hidden>
+
+                        <button type="button"
+                                id="cancelBtn"
+                                class="profile-btn secondary">
+                            Hủy
+                        </button>
+
+                        <button type="submit"
+                                class="profile-btn primary">
+                            <i class="fa-solid fa-check"></i>
+                            Lưu thay đổi
+                        </button>
+
+                    </div>
+
+                </div>
+            </form>
+        </section>
+
+        <!-- THÔNG TIN CHUYÊN MÔN -->
+        <section class="profile-card">
+
+            <div class="profile-card-header">
+                <div>
+                    <h2>
+                        <i class="fa-solid fa-stethoscope"></i>
+                        Thông tin chuyên môn
+                    </h2>
+                    <p>Thông tin công tác của bác sĩ</p>
+                </div>
+            </div>
+
+            <div class="profile-card-body">
+
+                <div class="profile-fields">
+
+                    <div class="profile-field">
+                        <label for="tenKhoa">Khoa</label>
+                        <input id="tenKhoa" disabled>
+                    </div>
+
+                    <div class="profile-field">
+                        <label for="chuyenMon">Chuyên môn</label>
+                        <input id="chuyenMon" disabled>
+                    </div>
+
+                    <div class="profile-field">
+                        <label for="trinhDo">Trình độ</label>
+                        <input id="trinhDo" disabled>
+                    </div>
+
+                    <div class="profile-field">
+                        <label for="soChungChiHanhNghe">
+                            Số chứng chỉ hành nghề
+                        </label>
+                        <input id="soChungChiHanhNghe" disabled>
+                    </div>
+
+                </div>
+
+                <div class="profile-info-note">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>
+                        Thông tin chuyên môn được quản lý bởi bệnh viện.
+                    </span>
+                </div>
+
+            </div>
+        </section>
+
+    </div>
+
+    <!-- BẢO MẬT TÀI KHOẢN -->
+    <section class="profile-card password-section">
+
+        <div class="profile-card-header">
             <div>
-                <h2>BỆNH VIỆN ABC</h2>
-                <span>HỆ THỐNG QUẢN LÝ BỆNH VIỆN</span>
+                <h2>
+                    <i class="fa-solid fa-shield-halved"></i>
+                    Bảo mật tài khoản
+                </h2>
+                <p>Quản lý mật khẩu và bảo vệ tài khoản của bạn</p>
+            </div>
+
+            <button type="button"
+                    id="openPasswordBtn"
+                    class="profile-btn primary">
+                <i class="fa-solid fa-key"></i>
+                Đổi mật khẩu
+            </button>
+        </div>
+
+        <div class="profile-card-body">
+            <div class="profile-info-note" style="margin-top: 0;">
+                <i class="fa-solid fa-circle-info"></i>
+                <span>
+                    Bạn nên thay đổi mật khẩu định kỳ để bảo vệ tài khoản.
+                </span>
             </div>
         </div>
 
-        <nav class="menu">
-            <a href="/auth/bac-si/trang-chu" class="menu-item">
-                <i class="fa-solid fa-table-cells-large"></i>
-                <span>Tổng quan</span>
-            </a>
+    </section>
 
-            <div class="menu-group">
-                <div class="menu-item">
-                    <i class="fa-solid fa-user-doctor"></i>
-                    <span>Khám bệnh</span>
-                    <i class="fa-solid fa-chevron-down arrow"></i>
-                </div>
-                <div class="submenu">
-                    <a href="/auth/bac-si/kham-benh" class="submenu-item">
-                        Danh sách chờ khám
-                    </a>
-                    <a href="/auth/bac-si/lich-su-kham" class="submenu-item">
-                        Hồ sơ bệnh nhân
-                    </a>
-                </div>
-            </div>
+    <!-- MODAL ĐỔI MẬT KHẨU -->
+    <div id="passwordModal"
+         class="password-modal"
+         hidden>
 
-            <a href="/auth/bac-si/chi-dinh" class="menu-item">
-                <i class="fa-solid fa-file-medical"></i>
-                <span>Chỉ định</span>
-            </a>
+        <div class="password-modal-box">
 
-            <a href="/auth/bac-si/ket-qua-can-lam-sang" class="menu-item">
-                <i class="fa-solid fa-flask-vial"></i>
-                <span>Kết quả cận lâm sàng</span>
-            </a>
-
-            <a href="/auth/bac-si/ho-so-ca-nhan"
-               class="menu-item active">
-                <i class="fa-regular fa-user"></i>
-                <span>Hồ sơ cá nhân</span>
-            </a>
-        </nav>
-
-        <button id="btnLogout" type="button" class="logout">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            <span>Đăng xuất</span>
-        </button>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-
-        <!-- HEADER -->
-        <header class="header">
-            <div class="header-search">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text"
-                       placeholder="Tìm kiếm bệnh nhân, hồ sơ...">
-            </div>
-
-            <div class="header-right">
-                <div class="notification">
-                    <i class="fa-regular fa-bell"></i>
-                    <span></span>
-                </div>
-
-                <div class="doctor-info">
-                    <div class="doctor-text">
-                        <strong id="doctorName">Bác sĩ</strong>
-                        <small>Bác sĩ điều trị</small>
-                    </div>
-                    <div class="avatar" id="doctorAvatar">BS</div>
-                </div>
-            </div>
-        </header>
-
-        <!-- CONTENT -->
-        <section class="content profile-content">
-
-            <div class="page-heading">
+            <div class="password-modal-header">
                 <div>
-                    <p class="page-eyebrow">TÀI KHOẢN BÁC SĨ</p>
-                    <h1>Hồ sơ cá nhân</h1>
-                    <p>Quản lý thông tin cá nhân và bảo mật tài khoản</p>
-                </div>
-            </div>
-
-            <div id="message" class="profile-message" hidden></div>
-
-            <!-- THẺ THÔNG TIN TỔNG QUAN -->
-            <div class="profile-summary">
-                <div class="profile-summary-avatar">
-                    <img id="avatar" alt="Ảnh đại diện bác sĩ">
-                </div>
-
-                <div class="profile-summary-info">
-                    <span class="profile-role">
-                        <i class="fa-solid fa-user-doctor"></i>
-                        BÁC SĨ
-                    </span>
-                    <h2 id="displayName">Đang tải...</h2>
-                    <p id="displaySpecialty">Chuyên môn</p>
-                    <div class="department-label">
-                        <i class="fa-solid fa-hospital"></i>
-                        <span id="displayDepartment">Khoa</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="profile-grid">
-
-                <!-- THÔNG TIN CÁ NHÂN -->
-                <section class="profile-card">
-                    <div class="profile-card-header">
-                        <div>
-                            <h2>
-                                <i class="fa-regular fa-id-card"></i>
-                                Thông tin cá nhân
-                            </h2>
-                            <p>Thông tin liên hệ và tài khoản</p>
-                        </div>
-
-                        <button type="button"
-                                id="editBtn"
-                                class="profile-btn primary">
-                            <i class="fa-solid fa-pen"></i>
-                            Chỉnh sửa
-                        </button>
-                    </div>
-
-                    <form id="profileForm">
-                        <div class="profile-card-body">
-                            <div class="profile-fields">
-
-                                <div class="profile-field">
-                                    <label for="hoTen">Họ và tên</label>
-                                    <input id="hoTen"
-                                           type="text"
-                                           maxlength="255"
-                                           required disabled>
-                                </div>
-
-                                <div class="profile-field">
-                                    <label for="tenDangNhap">Tên đăng nhập</label>
-                                    <input id="tenDangNhap"
-                                           type="text" disabled>
-                                </div>
-
-                                <div class="profile-field">
-                                    <label for="email">Email</label>
-                                    <input id="email"
-                                           type="email"
-                                           maxlength="255" disabled>
-                                </div>
-
-                                <div class="profile-field">
-                                    <label for="soDienThoai">Số điện thoại</label>
-                                    <input id="soDienThoai"
-                                           type="tel"
-                                           maxlength="10" disabled>
-                                </div>
-                            </div>
-
-                            <div id="editActions"
-                                 class="profile-actions"
-                                 hidden>
-                                <button type="button"
-                                        id="cancelBtn"
-                                        class="profile-btn secondary">
-                                    Hủy
-                                </button>
-                                <button type="submit"
-                                        class="profile-btn primary">
-                                    <i class="fa-solid fa-check"></i>
-                                    Lưu thay đổi
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </section>
-
-                <!-- THÔNG TIN CHUYÊN MÔN -->
-                <section class="profile-card">
-                    <div class="profile-card-header">
-                        <div>
-                            <h2>
-                                <i class="fa-solid fa-stethoscope"></i>
-                                Thông tin chuyên môn
-                            </h2>
-                            <p>Thông tin công tác của bác sĩ</p>
-                        </div>
-                    </div>
-
-                    <div class="profile-card-body">
-                        <div class="profile-fields">
-
-                            <div class="profile-field">
-                                <label for="tenKhoa">Khoa</label>
-                                <input id="tenKhoa" disabled>
-                            </div>
-
-                            <div class="profile-field">
-                                <label for="chuyenMon">Chuyên môn</label>
-                                <input id="chuyenMon" disabled>
-                            </div>
-
-                            <div class="profile-field">
-                                <label for="trinhDo">Trình độ</label>
-                                <input id="trinhDo" disabled>
-                            </div>
-
-                            <div class="profile-field">
-                                <label for="soChungChiHanhNghe">
-                                    Số chứng chỉ hành nghề
-                                </label>
-                                <input id="soChungChiHanhNghe" disabled>
-                            </div>
-                        </div>
-
-                        <div class="profile-info-note">
-                            <i class="fa-solid fa-circle-info"></i>
-                            Thông tin chuyên môn được quản lý bởi bệnh viện.
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- ĐỔI MẬT KHẨU -->
-
-            <!-- BẢO MẬT TÀI KHOẢN -->
-            <section class="profile-card password-section">
-
-                <div class="profile-card-header">
-                    <div>
-                        <h2>
-                            <i class="fa-solid fa-shield-halved"></i>
-                            Bảo mật tài khoản
-                        </h2>
-                        <p>Quản lý mật khẩu và bảo vệ tài khoản của bạn</p>
-                    </div>
-
-                    <button type="button"
-                            id="openPasswordBtn"
-                            class="profile-btn primary">
+                    <h2>
                         <i class="fa-solid fa-key"></i>
                         Đổi mật khẩu
-                    </button>
+                    </h2>
+                    <p>Nhập thông tin để cập nhật mật khẩu</p>
                 </div>
 
-                <div class="profile-card-body">
-                    <div class="profile-info-note" style="margin-top: 0;">
-                        <i class="fa-solid fa-circle-info"></i>
-                        Bạn nên thay đổi mật khẩu định kỳ để bảo vệ tài khoản.
-                    </div>
-                </div>
-
-            </section>
-
-            <!-- MODAL ĐỔI MẬT KHẨU -->
-            <div id="passwordModal" class="password-modal" hidden>
-                <div class="password-modal-box">
-
-                    <div class="password-modal-header">
-                        <div>
-                            <h2>
-                                <i class="fa-solid fa-key"></i>
-                                Đổi mật khẩu
-                            </h2>
-                            <p>Nhập thông tin để cập nhật mật khẩu</p>
-                        </div>
-
-                        <button type="button"
-                                id="closePasswordBtn"
-                                class="modal-close">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-
-                    <form id="passwordForm">
-                        <div class="password-modal-body">
-
-                            <div class="profile-field">
-                                <label for="matKhauCu">Mật khẩu hiện tại</label>
-                                <input id="matKhauCu"
-                                       type="password"
-                                       autocomplete="current-password"
-                                       required>
-                            </div>
-
-                            <div class="profile-field">
-                                <label for="matKhauMoi">Mật khẩu mới</label>
-                                <input id="matKhauMoi"
-                                       type="password"
-                                       autocomplete="new-password"
-                                       minlength="8"
-                                       required>
-                            </div>
-
-                            <div class="profile-field">
-                                <label for="xacNhanMatKhau">
-                                    Xác nhận mật khẩu mới
-                                </label>
-                                <input id="xacNhanMatKhau"
-                                       type="password"
-                                       autocomplete="new-password"
-                                       required>
-                            </div>
-
-                            <p class="password-hint">
-                                <i class="fa-solid fa-circle-info"></i>
-                                Mật khẩu mới phải có ít nhất 8 ký tự.
-                            </p>
-                        </div>
-
-                        <div class="password-modal-footer">
-                            <button type="button"
-                                    id="cancelPasswordBtn"
-                                    class="profile-btn secondary">
-                                Hủy
-                            </button>
-
-                            <button type="submit"
-                                    class="profile-btn primary">
-                                <i class="fa-solid fa-check"></i>
-                                Xác nhận đổi mật khẩu
-                            </button>
-                        </div>
-                    </form>
-
-                </div>
+                <button type="button"
+                        id="closePasswordBtn"
+                        class="modal-close"
+                        aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
 
+            <form id="passwordForm">
 
-        </section>
-    </main>
+                <div class="password-modal-body">
+
+                    <div class="profile-field">
+                        <label for="matKhauCu">Mật khẩu hiện tại</label>
+                        <input id="matKhauCu"
+                               type="password"
+                               autocomplete="current-password"
+                               required>
+                    </div>
+
+                    <div class="profile-field">
+                        <label for="matKhauMoi">Mật khẩu mới</label>
+                        <input id="matKhauMoi"
+                               type="password"
+                               autocomplete="new-password"
+                               minlength="8"
+                               required>
+                    </div>
+
+                    <div class="profile-field">
+                        <label for="xacNhanMatKhau">
+                            Xác nhận mật khẩu mới
+                        </label>
+                        <input id="xacNhanMatKhau"
+                               type="password"
+                               autocomplete="new-password"
+                               required>
+                    </div>
+
+                    <p class="password-hint">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Mật khẩu mới phải có ít nhất 8 ký tự.
+                    </p>
+
+                </div>
+
+                <div class="password-modal-footer">
+
+                    <button type="button"
+                            id="cancelPasswordBtn"
+                            class="profile-btn secondary">
+                        Hủy
+                    </button>
+
+                    <button type="submit"
+                            class="profile-btn primary">
+                        <i class="fa-solid fa-check"></i>
+                        Xác nhận đổi mật khẩu
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
 </div>
 
-<script src="/Js/BacSi/sidebar.js"></script>
-<script src="/Js/BacSi/ho-so-ca-nhan.js"></script>
+<!-- JS RIÊNG CỦA TRANG -->
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/BacSi/ho-so-ca-nhan.js}"></script>
+</th:block>
+
 </body>
 </html>
