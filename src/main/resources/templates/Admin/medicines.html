@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+  <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+    Quản lý thuốc
+  </title>
+
+  <th:block layout:fragment="css">
+    <link rel="stylesheet" href="/Css/Admin/thuoc.css">
+  </th:block>
+</head>
+
+<body>
+
+<section layout:fragment="content" class="thuoc-content">
+
+  <!-- HEADER -->
+  <div class="thuoc-page-header">
+
+    <div>
+      <h1>Quản lý thuốc</h1>
+      <p>Danh sách thuốc trong kho</p>
+    </div>
+
+    <button type="button"
+            id="addThuocButton"
+            class="btn-primary">
+      <span class="btn-icon">＋</span>
+      Thêm thuốc
+    </button>
+
+  </div>
+
+
+  <!-- FILTER -->
+  <div class="thuoc-filter-card">
+
+    <div class="filter-item filter-search">
+
+      <label>TÌM KIẾM</label>
+
+      <div class="filter-input">
+        <span class="search-icon">⌕</span>
+
+        <input
+                type="text"
+                id="keywordInput"
+                placeholder="Tìm kiếm tên thuốc, mã thuốc, nhà sản xuất..."
+        >
+      </div>
+
+    </div>
+
+
+    <div class="filter-item">
+
+      <label>TRẠNG THÁI</label>
+
+      <select id="statusFilter">
+        <option value="">Tất cả</option>
+        <option value="1">Đang sử dụng</option>
+        <option value="0">Ngừng sử dụng</option>
+      </select>
+
+    </div>
+
+
+    <div class="filter-buttons">
+
+      <button type="button"
+              id="searchButton"
+              class="search-button">
+        Tìm kiếm
+      </button>
+
+      <button type="button"
+              id="resetButton"
+              class="reset-button">
+        ↻
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABLE -->
+  <div class="thuoc-table-card">
+
+    <div class="table-scroll">
+
+      <table class="thuoc-table">
+
+        <thead>
+        <tr>
+          <th class="col-stt">STT</th>
+          <th class="col-ma">MÃ THUỐC</th>
+          <th class="col-name">TÊN THUỐC</th>
+          <th class="col-unit">ĐƠN VỊ</th>
+          <th class="col-manufacturer">NHÀ SẢN XUẤT</th>
+          <th class="col-price">GIÁ BÁN</th>
+          <th class="col-description">MÔ TẢ</th>
+          <th class="col-status">TRẠNG THÁI</th>
+          <th class="col-action">THAO TÁC</th>
+        </tr>
+        </thead>
+
+        <tbody id="thuocTableBody">
+        </tbody>
+
+      </table>
+
+      <!-- EMPTY -->
+      <div id="emptyThuoc" class="empty-thuoc" hidden>
+
+        <div class="empty-icon">
+          💊
+        </div>
+
+        <h3>Không có thuốc</h3>
+
+        <p>
+          Không tìm thấy thuốc phù hợp với điều kiện tìm kiếm.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="table-footer">
+
+      <div id="tableResult">
+        Hiển thị 0 - 0 trên 0 kết quả
+      </div>
+
+      <div id="pagination" class="pagination">
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       MODAL THUỐC
+  ========================== -->
+
+  <div id="thuocModal"
+       class="thuoc-modal"
+       hidden>
+
+    <div class="thuoc-modal-overlay"></div>
+
+    <div class="thuoc-modal-content">
+
+      <div class="thuoc-modal-header">
+
+        <div>
+          <h2 id="thuocModalTitle">
+            Thêm thuốc
+          </h2>
+
+          <p id="thuocModalSubtitle">
+            Nhập thông tin thuốc
+          </p>
+        </div>
+
+        <button type="button"
+                id="closeThuocModal"
+                class="modal-close">
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="thuoc-modal-body">
+
+        <input type="hidden" id="maThuoc">
+
+
+        <!-- TÊN THUỐC -->
+        <div class="form-group">
+
+          <label for="tenThuoc">
+            Tên thuốc <span>*</span>
+          </label>
+
+          <input
+                  type="text"
+                  id="tenThuoc"
+                  maxlength="255"
+                  placeholder="Nhập tên thuốc..."
+          >
+
+          <small id="tenThuocError"
+                 class="field-error">
+          </small>
+
+        </div>
+
+
+        <div class="form-row">
+
+          <!-- ĐƠN VỊ -->
+          <div class="form-group">
+
+            <label for="donViTinh">
+              Đơn vị tính
+            </label>
+
+            <input
+                    type="text"
+                    id="donViTinh"
+                    maxlength="50"
+                    placeholder="Ví dụ: Viên, Chai, Hộp..."
+            >
+
+            <small id="donViTinhError"
+                   class="field-error">
+            </small>
+
+          </div>
+
+
+          <!-- GIÁ -->
+          <div class="form-group">
+
+            <label for="gia">
+              Giá bán <span>*</span>
+            </label>
+
+            <div class="price-input">
+
+              <input
+                      type="number"
+                      id="gia"
+                      min="0"
+                      step="0.01"
+                      placeholder="0"
+              >
+
+              <span>VNĐ</span>
+
+            </div>
+
+            <small id="giaError"
+                   class="field-error">
+            </small>
+
+          </div>
+
+        </div>
+
+
+        <!-- NHÀ SẢN XUẤT -->
+        <div class="form-group">
+
+          <label for="nhaSanXuat">
+            Nhà sản xuất
+          </label>
+
+          <input
+                  type="text"
+                  id="nhaSanXuat"
+                  maxlength="255"
+                  placeholder="Nhập tên nhà sản xuất..."
+          >
+
+          <small id="nhaSanXuatError"
+                 class="field-error">
+          </small>
+
+        </div>
+
+
+        <!-- MÔ TẢ -->
+        <div class="form-group">
+
+          <label for="moTa">
+            Mô tả
+          </label>
+
+          <textarea
+                  id="moTa"
+                  maxlength="255"
+                  rows="4"
+                  placeholder="Nhập mô tả thuốc..."
+          ></textarea>
+
+          <small id="moTaError"
+                 class="field-error">
+          </small>
+
+        </div>
+
+
+        <!-- TRẠNG THÁI -->
+        <div class="form-group">
+
+          <label for="trangThai">
+            Trạng thái <span>*</span>
+          </label>
+
+          <select id="trangThai">
+
+            <option value="1">
+              Đang sử dụng
+            </option>
+
+            <option value="0">
+              Ngừng sử dụng
+            </option>
+
+          </select>
+
+          <small id="trangThaiError"
+                 class="field-error">
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="thuoc-modal-footer">
+
+        <button type="button"
+                id="cancelThuocModal"
+                class="btn-cancel">
+          Hủy
+        </button>
+
+        <button type="button"
+                id="saveThuocButton"
+                class="btn-save">
+          <span>✓</span>
+          Lưu thuốc
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================
+       TOAST
+  ========================== -->
+
+  <div id="thuocToast"
+       class="thuoc-toast">
+
+    <div id="thuocToastIcon"
+         class="toast-icon">
+      ✓
+    </div>
+
+    <div class="toast-content">
+
+      <strong id="thuocToastTitle">
+        Thành công
+      </strong>
+
+      <p id="thuocToastMessage">
+        Thao tác thành công.
+      </p>
+
+    </div>
+
+    <button type="button"
+            id="closeThuocToast"
+            class="toast-close">
+      ×
+    </button>
+
+  </div>
+
+
+  <!-- =========================
+       DELETE CONFIRM
+  ========================== -->
+
+  <div id="deleteConfirmModal"
+       class="delete-modal"
+       hidden>
+
+    <div class="delete-overlay"></div>
+
+    <div class="delete-content">
+
+      <div class="delete-icon">
+        !
+      </div>
+
+      <h3>Xác nhận xóa thuốc</h3>
+
+      <p>
+        Bạn có chắc chắn muốn xóa thuốc
+        <strong id="deleteThuocName"></strong>?
+      </p>
+
+      <p class="delete-warning">
+        Hành động này không thể hoàn tác.
+      </p>
+
+      <div class="delete-actions">
+
+        <button type="button"
+                id="cancelDeleteButton"
+                class="btn-cancel">
+          Hủy
+        </button>
+
+        <button type="button"
+                id="confirmDeleteButton"
+                class="btn-delete-confirm">
+          Xóa thuốc
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/Admin/thuoc.js"></script>
+
+</th:block>
+
+</body>
+</html>

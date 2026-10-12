@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+  <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+    Kho thuốc
+  </title>
+
+  <th:block layout:fragment="css">
+    <link rel="stylesheet"
+          href="/Css/Admin/kho-thuoc.css">
+  </th:block>
+</head>
+
+<body>
+
+<section layout:fragment="content"
+         class="kho-thuoc-content">
+
+  <div class="kho-page-header">
+
+    <div>
+      <h1>Kho thuốc</h1>
+      <p>Quản lý số lượng và lô thuốc trong kho</p>
+    </div>
+
+    <button class="btn-primary"
+            id="btnAddKhoThuoc">
+      <span class="btn-icon">+</span>
+      Nhập thuốc vào kho
+    </button>
+
+  </div>
+
+
+  <!-- FILTER -->
+
+  <div class="kho-filter-card">
+
+    <div class="filter-item">
+
+      <label>Tìm kiếm</label>
+
+      <div class="filter-input">
+
+        <span class="search-icon">⌕</span>
+
+        <input
+                type="text"
+                id="searchKhoThuoc"
+                placeholder="Tên thuốc, số lô..."
+        >
+
+      </div>
+
+    </div>
+
+
+    <div class="filter-item">
+
+      <label>Trạng thái</label>
+
+      <select id="filterTrangThai">
+
+        <option value="">Tất cả</option>
+        <option value="Đủ hàng">Đủ hàng</option>
+        <option value="Sắp hết">Sắp hết</option>
+        <option value="Hết hàng">Hết hàng</option>
+        <option value="Hết hạn">Hết hạn</option>
+
+      </select>
+
+    </div>
+
+
+    <div class="filter-buttons">
+
+      <button
+              class="search-button"
+              id="btnSearch">
+        Tìm kiếm
+      </button>
+
+      <button
+              class="reset-button"
+              id="btnReset">
+        ↻
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABLE -->
+
+  <div class="kho-table-card">
+
+    <div class="table-scroll">
+
+      <table class="kho-table">
+
+        <thead>
+
+        <tr>
+
+          <th class="col-stt">STT</th>
+
+          <th class="col-code">
+            Mã kho
+          </th>
+
+          <th class="col-name">
+            Tên thuốc
+          </th>
+
+          <th class="col-quantity">
+            Tồn kho
+          </th>
+
+          <th class="col-batch">
+            Số lô
+          </th>
+
+          <th class="col-expiry">
+            Hạn sử dụng
+          </th>
+
+          <th class="col-min">
+            Tối thiểu
+          </th>
+
+          <th class="col-status">
+            Trạng thái
+          </th>
+
+          <th class="col-action">
+            Thao tác
+          </th>
+
+        </tr>
+
+        </thead>
+
+        <tbody id="khoThuocTableBody">
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <div
+            class="empty-kho-thuoc"
+            id="emptyKhoThuoc"
+            hidden>
+
+      <div class="empty-icon">
+        💊
+      </div>
+
+      <h3>Không có dữ liệu kho thuốc</h3>
+
+      <p>
+        Chưa có thuốc nào trong kho.
+      </p>
+
+    </div>
+
+
+    <div class="table-footer">
+
+            <span id="tableResult">
+                0 kết quả
+            </span>
+
+      <div
+              class="pagination"
+              id="pagination">
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- MODAL -->
+
+  <div
+          class="kho-modal"
+          id="khoThuocModal"
+          hidden>
+
+    <div
+            class="kho-modal-overlay"
+            data-close-modal>
+    </div>
+
+
+    <div class="kho-modal-content">
+
+      <div class="kho-modal-header">
+
+        <div>
+
+          <h2 id="khoModalTitle">
+            Nhập thuốc vào kho
+          </h2>
+
+          <p id="khoModalSubtitle">
+            Thêm thông tin lô thuốc
+          </p>
+
+        </div>
+
+        <button
+                class="modal-close"
+                id="btnCloseKhoModal">
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="kho-modal-body">
+
+        <form id="khoThuocForm">
+
+          <div class="form-group">
+
+            <label>
+              Thuốc <span>*</span>
+            </label>
+
+            <select
+                    id="maThuoc"
+                    required>
+
+              <option value="">
+                -- Chọn thuốc --
+              </option>
+
+            </select>
+
+            <small
+                    class="field-error"
+                    id="maThuocError">
+            </small>
+
+          </div>
+
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label>
+                Số lượng tồn <span>*</span>
+              </label>
+
+              <input
+                      type="number"
+                      id="soLuongTon"
+                      min="0"
+                      required>
+
+              <small
+                      class="field-error"
+                      id="soLuongTonError">
+              </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Số lượng tối thiểu <span>*</span>
+              </label>
+
+              <input
+                      type="number"
+                      id="soLuongToiThieu"
+                      min="0"
+                      required>
+
+              <small
+                      class="field-error"
+                      id="soLuongToiThieuError">
+              </small>
+
+            </div>
+
+          </div>
+
+
+          <div class="form-row">
+
+            <div class="form-group">
+
+              <label>
+                Số lô <span>*</span>
+              </label>
+
+              <input
+                      type="text"
+                      id="soLo"
+                      maxlength="100"
+                      placeholder="VD: LOT2026001"
+                      required>
+
+              <small
+                      class="field-error"
+                      id="soLoError">
+              </small>
+
+            </div>
+
+
+            <div class="form-group">
+
+              <label>
+                Hạn sử dụng <span>*</span>
+              </label>
+
+              <input
+                      type="date"
+                      id="hanSuDung"
+                      required>
+
+              <small
+                      class="field-error"
+                      id="hanSuDungError">
+              </small>
+
+            </div>
+
+          </div>
+
+        </form>
+
+      </div>
+
+
+      <div class="kho-modal-footer">
+
+        <button
+                type="button"
+                class="btn-cancel"
+                id="btnCancelKho">
+          Hủy
+        </button>
+
+        <button
+                type="button"
+                class="btn-save"
+                id="btnSaveKho">
+          Lưu
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TOAST -->
+
+  <div
+          class="kho-toast"
+          id="khoToast">
+
+    <div class="toast-icon">
+      ✓
+    </div>
+
+    <div class="toast-content">
+
+      <strong id="toastTitle">
+        Thành công
+      </strong>
+
+      <p id="toastMessage">
+        Thao tác thành công.
+      </p>
+
+    </div>
+
+    <button
+            class="toast-close"
+            id="toastClose">
+      ×
+    </button>
+
+  </div>
+
+
+  <!-- DELETE -->
+
+  <div
+          class="delete-modal"
+          id="deleteKhoModal"
+          hidden>
+
+    <div class="delete-overlay"></div>
+
+    <div class="delete-content">
+
+      <div class="delete-icon">
+        !
+      </div>
+
+      <h3>
+        Xóa kho thuốc?
+      </h3>
+
+      <p>
+        Bạn có chắc chắn muốn xóa lô thuốc này?
+      </p>
+
+      <p class="delete-warning">
+        Hành động này không thể hoàn tác.
+      </p>
+
+      <div class="delete-actions">
+
+        <button
+                class="btn-cancel"
+                id="btnCancelDelete">
+          Hủy
+        </button>
+
+        <button
+                class="btn-delete-confirm"
+                id="btnConfirmDelete">
+          Xóa
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/Admin/kho-thuoc.js"></script>
+
+</th:block>
+
+</body>
+</html>

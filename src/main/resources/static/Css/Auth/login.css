@@ -254,11 +254,31 @@ body {
 
 .password-wrapper {
     position: relative;
+
+    width: 100%;
 }
 
 .password-wrapper input {
-    padding-right: 50px;
+    width: 100%;
+
+    padding-right: 52px;
 }
+
+/* ================= ẨN ICON MẶC ĐỊNH TRÌNH DUYỆT ================= */
+
+/* Microsoft Edge */
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+    display: none;
+}
+
+/* Chrome / Chromium */
+.password-wrapper input::-webkit-credentials-auto-fill-button,
+.password-wrapper input::-webkit-textfield-decoration-container {
+    display: none;
+}
+
+/* ================= ICON CUSTOM ================= */
 
 .toggle-password {
     position: absolute;
@@ -276,6 +296,7 @@ body {
     background: transparent;
 
     display: flex;
+
     align-items: center;
     justify-content: center;
 
@@ -286,15 +307,27 @@ body {
     border-radius: 6px;
 
     padding: 0;
+
+    margin: 0;
+
+    z-index: 2;
 }
 
 .toggle-password:hover {
     background: #f1f5f9;
 }
 
+.toggle-password:focus {
+    outline: none;
+}
+
 .toggle-password svg {
     width: 20px;
     height: 20px;
+
+    display: block;
+
+    flex-shrink: 0;
 }
 
 /* ================= OPTIONS ================= */
@@ -358,11 +391,23 @@ body {
 }
 
 .login-message.error {
+    display: block;
+
     background: #fef2f2;
 
     color: #dc2626;
 
     border: 1px solid #fecaca;
+}
+
+.login-message.success {
+    display: block;
+
+    background: #f0fdf4;
+
+    color: #16a34a;
+
+    border: 1px solid #bbf7d0;
 }
 
 /* ================= LOGIN BUTTON ================= */

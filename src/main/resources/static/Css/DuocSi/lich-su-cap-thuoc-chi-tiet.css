@@ -1,0 +1,944 @@
+/* =====================================================
+   PAGE
+===================================================== */
+
+.history-detail-page {
+    min-height: 100%;
+    padding: 28px 32px 40px;
+
+    background: #f8fafc;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.detail-header {
+    display: flex;
+
+    align-items: flex-end;
+    justify-content: space-between;
+
+    gap: 24px;
+
+    margin-bottom: 24px;
+}
+
+
+.detail-header-info {
+    min-width: 0;
+}
+
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+
+.breadcrumb {
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-bottom: 8px;
+
+    font-size: 13px;
+
+    color: #64748b;
+}
+
+
+.breadcrumb a {
+    color: #2563eb;
+
+    text-decoration: none;
+
+    transition: color 0.2s ease;
+}
+
+
+.breadcrumb a:hover {
+    color: #1d4ed8;
+
+    text-decoration: underline;
+}
+
+
+.breadcrumb-separator {
+    color: #94a3b8;
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.detail-header h1 {
+    margin: 0 0 6px;
+
+    color: #1e293b;
+
+    font-size: 24px;
+
+    line-height: 1.25;
+
+    font-weight: 700;
+}
+
+
+.detail-header p {
+    margin: 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   HEADER ACTIONS
+===================================================== */
+
+.header-actions {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+}
+
+
+/* =====================================================
+   BACK BUTTON
+===================================================== */
+
+.back-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 7px;
+
+    height: 42px;
+
+    padding: 0 16px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #475569;
+
+    text-decoration: none;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.1s ease;
+}
+
+
+.back-button:hover {
+    background: #f8fafc;
+
+    border-color: #cbd5e1;
+
+    color: #1e293b;
+}
+
+
+.back-button:active {
+    transform: translateY(1px);
+}
+
+
+/* =====================================================
+   DOWNLOAD BUTTON BASE
+===================================================== */
+
+.download-prescription-button,
+.download-invoice-button {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    height: 42px;
+
+    padding: 0 17px;
+
+    box-sizing: border-box;
+
+    border-radius: 8px;
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease,
+        box-shadow 0.2s ease;
+
+    outline: none;
+}
+
+
+/* =====================================================
+   TẢI ĐƠN THUỐC
+   KHÔNG CÓ TIỀN
+===================================================== */
+
+.download-prescription-button {
+    border: 1px solid #2563eb;
+
+    background: #2563eb;
+}
+
+
+.download-prescription-button:hover {
+    background: #1d4ed8;
+
+    border-color: #1d4ed8;
+
+    box-shadow:
+        0 4px 10px rgba(37, 99, 235, 0.18);
+}
+
+
+.download-prescription-button:active {
+    transform: translateY(1px);
+
+    box-shadow: none;
+}
+
+
+.download-prescription-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+    box-shadow: none;
+}
+
+
+/* =====================================================
+   TẢI HÓA ĐƠN
+   CÓ TỔNG TIỀN
+===================================================== */
+
+.download-invoice-button {
+    border: 1px solid #0f766e;
+
+    background: #0f766e;
+}
+
+
+.download-invoice-button:hover {
+    background: #0d9488;
+
+    border-color: #0d9488;
+
+    box-shadow:
+        0 4px 10px rgba(15, 118, 110, 0.18);
+}
+
+
+.download-invoice-button:active {
+    transform: translateY(1px);
+
+    box-shadow: none;
+}
+
+
+.download-invoice-button:disabled {
+    opacity: 0.65;
+
+    cursor: not-allowed;
+
+    transform: none;
+
+    box-shadow: none;
+}
+
+
+/* =====================================================
+   BUTTON SVG
+===================================================== */
+
+.download-prescription-button svg,
+.download-invoice-button svg,
+.back-button svg {
+    flex-shrink: 0;
+}
+
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+.loading-box {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    min-height: 120px;
+
+    padding: 30px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+/* =====================================================
+   LOADING SPINNER
+===================================================== */
+
+.loading-spinner {
+    width: 18px;
+
+    height: 18px;
+
+    border: 2px solid #dbeafe;
+
+    border-top-color: #2563eb;
+
+    border-radius: 50%;
+
+    animation: detailSpinner 0.8s linear infinite;
+
+    flex-shrink: 0;
+}
+
+
+@keyframes detailSpinner {
+
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+.error-box {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 16px 18px;
+
+    box-sizing: border-box;
+
+    border: 1px solid #fecaca;
+
+    border-radius: 10px;
+
+    background: #fef2f2;
+
+    color: #b91c1c;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   DETAIL CARD
+===================================================== */
+
+.detail-card {
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    box-sizing: border-box;
+
+    overflow: hidden;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+}
+
+
+/* =====================================================
+   CARD HEADER
+===================================================== */
+
+.card-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 16px 20px;
+
+    box-sizing: border-box;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+.card-header h2 {
+    margin: 0 0 3px;
+
+    color: #1e293b;
+
+    font-size: 16px;
+
+    line-height: 1.4;
+
+    font-weight: 700;
+}
+
+
+.card-header p {
+    margin: 0;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+
+    line-height: 1.4;
+}
+
+
+/* =====================================================
+   STATUS BADGE
+===================================================== */
+
+.status-badge {
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    min-width: 68px;
+
+    padding: 5px 10px;
+
+    box-sizing: border-box;
+
+    border-radius: 999px;
+
+    background: #dcfce7;
+
+    color: #15803d;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+.status-badge.waiting {
+    background: #fef3c7;
+
+    color: #b45309;
+}
+
+
+.status-badge.processing {
+    background: #dbeafe;
+
+    color: #1d4ed8;
+}
+
+
+.status-badge.completed {
+    background: #dcfce7;
+
+    color: #15803d;
+}
+
+
+.status-badge.cancelled {
+    background: #fee2e2;
+
+    color: #b91c1c;
+}
+
+
+/* =====================================================
+   INFO GRID
+===================================================== */
+
+.info-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 0;
+
+    padding: 4px 12px 12px;
+
+    box-sizing: border-box;
+}
+
+
+/* =====================================================
+   INFO ITEM
+===================================================== */
+
+.info-item {
+    min-width: 0;
+
+    padding: 13px 10px;
+
+    box-sizing: border-box;
+
+    border-bottom: 1px solid #f1f5f9;
+}
+
+
+.info-item.is-empty {
+    display: none;
+}
+
+
+.info-label {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #64748b;
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
+
+
+.info-item strong {
+    display: block;
+
+    overflow: hidden;
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    font-weight: 400;
+
+    text-overflow: ellipsis;
+}
+
+
+/* =====================================================
+   MÃ BỆNH NHÂN
+===================================================== */
+
+.patient-code-highlight {
+    color: #000000 !important;
+
+    font-weight: 700 !important;
+}
+
+
+/* =====================================================
+   MÃ ĐƠN THUỐC
+===================================================== */
+
+.order-code-highlight {
+    color: #000000 !important;
+
+    font-weight: 700 !important;
+}
+
+
+/* =====================================================
+   MEDICINE TABLE
+===================================================== */
+
+.medicine-table-wrapper {
+    width: 100%;
+
+    overflow-x: auto;
+}
+
+
+.medicine-table {
+    width: 100%;
+
+    min-width: 950px;
+
+    border-collapse: collapse;
+
+    table-layout: auto;
+}
+
+
+/* =====================================================
+   TABLE HEADER
+===================================================== */
+
+.medicine-table thead th {
+    padding: 11px 12px;
+
+    box-sizing: border-box;
+
+    background: #f8fafc;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    color: #475569;
+
+    font-size: 14px;
+
+    line-height: 1.4;
+
+    font-weight: 700;
+
+    text-align: left;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   TABLE BODY
+===================================================== */
+
+.medicine-table tbody td {
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    color: #475569;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    vertical-align: middle;
+}
+
+
+.medicine-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+.medicine-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+/* =====================================================
+   STT
+===================================================== */
+
+.medicine-table th:first-child,
+.medicine-table td:first-child {
+    width: 48px;
+
+    text-align: center;
+}
+
+
+/* =====================================================
+   TÊN THUỐC
+===================================================== */
+
+.medicine-name {
+    color: #000000;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   TOTAL
+===================================================== */
+
+.total-section {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 16px;
+
+    padding: 14px 20px;
+
+    box-sizing: border-box;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+
+.total-section span {
+    color: #64748b;
+
+    font-size: 12px;
+
+    font-weight: 500;
+}
+
+
+.total-section strong {
+    color: #000000;
+
+    font-size: 16px;
+
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   NOTE
+===================================================== */
+
+.note-card {
+    margin-bottom: 0;
+}
+
+
+.note-content {
+    min-height: 50px;
+
+    padding: 15px 20px;
+
+    box-sizing: border-box;
+
+    color: #475569;
+
+    font-size: 14px;
+
+    line-height: 1.6;
+
+    white-space: pre-line;
+}
+
+
+/* =====================================================
+   RESPONSIVE - TABLET
+===================================================== */
+
+@media (max-width: 1000px) {
+
+    .history-detail-page {
+        padding: 24px 20px 35px;
+    }
+
+
+    .detail-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .header-actions {
+        width: 100%;
+
+        justify-content: flex-end;
+
+        flex-wrap: wrap;
+    }
+
+
+    .info-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =====================================================
+   RESPONSIVE - MOBILE
+===================================================== */
+
+@media (max-width: 650px) {
+
+    .history-detail-page {
+        padding: 18px 14px 30px;
+    }
+
+
+    .detail-header h1 {
+        font-size: 23px;
+    }
+
+
+    .detail-header p {
+        font-size: 13px;
+    }
+
+
+    .header-actions {
+        width: 100%;
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 8px;
+    }
+
+
+    .back-button,
+    .download-prescription-button,
+    .download-invoice-button {
+        width: 100%;
+
+        height: 42px;
+
+        padding-left: 8px;
+
+        padding-right: 8px;
+
+        font-size: 12px;
+    }
+
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+
+    .info-item {
+        padding: 12px 10px;
+    }
+
+
+    .card-header {
+        padding: 14px 15px;
+    }
+
+
+    .total-section {
+        padding: 14px 15px;
+    }
+
+
+    .medicine-table {
+        min-width: 900px;
+    }
+
+}
+
+
+/* =====================================================
+   VERY SMALL MOBILE
+===================================================== */
+
+@media (max-width: 450px) {
+
+    .header-actions {
+        grid-template-columns: 1fr;
+    }
+
+
+    .back-button,
+    .download-prescription-button,
+    .download-invoice-button {
+        width: 100%;
+    }
+
+}
+
+
+/* =====================================================
+   VERY SMALL MOBILE
+===================================================== */
+
+@media (max-width: 400px) {
+
+    .history-detail-page {
+        padding-left: 10px;
+
+        padding-right: 10px;
+    }
+
+
+    .detail-header h1 {
+        font-size: 21px;
+    }
+
+
+    .card-header h2 {
+        font-size: 15px;
+    }
+
+}

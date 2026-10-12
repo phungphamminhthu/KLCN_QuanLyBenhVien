@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Danh sách tin tức</title>
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              href="/Css/Admin/danh-sach-tin-tuc.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+<section layout:fragment="content"
+         class="news-content">
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="news-page-header">
+
+        <div>
+
+            <h1>Quản lý tin tức</h1>
+
+            <p>
+                Quản lý các bài viết, tin tức của bệnh viện
+            </p>
+
+        </div>
+
+
+        <button type="button"
+                id="addNewsButton"
+                class="btn-primary">
+
+            <span>＋</span>
+
+            Thêm tin tức
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTER
+    ====================================================== -->
+
+    <div class="news-filter-card">
+
+
+        <!-- TÌM KIẾM -->
+
+        <div class="filter-item filter-search">
+
+            <label>
+                TÌM KIẾM
+            </label>
+
+            <div class="filter-input">
+
+                <span>⌕</span>
+
+                <input
+                        type="text"
+                        id="keywordInput"
+                        placeholder="Tìm kiếm tiêu đề, nội dung...">
+
+            </div>
+
+        </div>
+
+
+        <!-- DANH MỤC -->
+
+        <div class="filter-item">
+
+            <label>
+                DANH MỤC
+            </label>
+
+            <select id="categoryFilter">
+
+                <option value="">
+                    Tất cả danh mục
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- TRẠNG THÁI -->
+
+        <div class="filter-item">
+
+            <label>
+                TRẠNG THÁI
+            </label>
+
+            <select id="statusFilter">
+
+                <option value="">
+                    Tất cả trạng thái
+                </option>
+
+                <option value="Đang hiển thị">
+                    Đang hiển thị
+                </option>
+
+                <option value="Ẩn">
+                    Ẩn
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- BUTTON -->
+
+        <div class="filter-buttons">
+
+            <button
+                    type="button"
+                    id="searchButton"
+                    class="search-button">
+
+                Tìm kiếm
+
+            </button>
+
+            <button
+                    type="button"
+                    id="resetButton"
+                    class="reset-button">
+
+                ↻
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
+
+    <div class="news-table-card">
+
+        <div class="table-scroll">
+
+            <table class="news-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th>
+                        TIÊU ĐỀ
+                    </th>
+
+                    <th>
+                        DANH MỤC
+                    </th>
+
+                    <th>
+                        NGÀY ĐĂNG
+                    </th>
+
+                    <th>
+                        TRẠNG THÁI
+                    </th>
+
+                    <th class="col-action">
+                        THAO TÁC
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="newsTableBody">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="table-footer">
+
+            <div id="tableResult"
+                 class="table-result">
+
+                Hiển thị 0 - 0 trong tổng số 0 bài viết
+
+            </div>
+
+
+            <div id="pagination"
+                 class="pagination">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =====================================================
+         FRAGMENT:
+         THÊM / SỬA TIN TỨC + TOAST
+    ====================================================== -->
+
+    <!--    <div th:replace="~{Admin/fragments/them-tin-tuc :: themTinTuc}">-->
+    <!--    </div>-->
+
+
+</section>
+
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/Admin/danh-sach-tin-tuc.js"></script>
+
+</th:block>
+
+
+</body>
+
+</html>

@@ -14,6 +14,7 @@ public class AuthPageController {
         return "Auth/login";
     }
 
+
     @GetMapping("/forgot-password")
     public String forgotPasswordPage() {
         return "Auth/forgot-password";

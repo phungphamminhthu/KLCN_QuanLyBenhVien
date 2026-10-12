@@ -1,16 +1,18 @@
 package QuanLyBenhVien.Entity;
-import jakarta.persistence.*;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
+import jakarta.persistence.*;
+
 @Entity
 @Table(name = "Nguoidung")
 public class NguoiDung {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaNguoiDung")
-    private Integer MaNguoiDung;
+    private Integer maNguoiDung;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(
@@ -18,99 +20,103 @@ public class NguoiDung {
             nullable = false,
             foreignKey = @ForeignKey(name = "FK_Nguoidung_VaiTro")
     )
-    private VaiTro VaiTro;
+    private VaiTro vaiTro;
 
     @Column(name = "TenDangNhap", nullable = false, unique = true)
-    private String TenDangNhap;
+    private String tenDangNhap;
 
     @Column(name = "MatKhau", nullable = false)
-    private String MatKhau;
+    private String matKhau;
 
     @Column(name = "HoTen", nullable = false)
-    private String HoTen;
+    private String hoTen;
 
     @Column(name = "Email", unique = true)
-    private String Email;
+    private String email;
 
     @Column(name = "SoDienThoai")
-    private String SoDienThoai;
+    private String soDienThoai;
 
     @Column(name = "AnhDaiDien")
-    private String AnhDaiDien;
+    private String anhDaiDien;
 
     @Column(name = "TrangThai", nullable = false)
-    private Boolean TrangThai = true;
+    private Boolean trangThai = true;
 
+
+    // =========================
+    // GETTER / SETTER
+    // =========================
 
     public Integer getMaNguoiDung() {
-        return MaNguoiDung;
+        return maNguoiDung;
     }
 
-    public void setMaNguoiDung(Integer MaNguoiDung) {
-        this.MaNguoiDung = MaNguoiDung;
+    public void setMaNguoiDung(Integer maNguoiDung) {
+        this.maNguoiDung = maNguoiDung;
     }
 
     public VaiTro getVaiTro() {
-        return VaiTro;
+        return vaiTro;
     }
 
-    public void setVaiTro(VaiTro VaiTro) {
-        this.VaiTro = VaiTro;
+    public void setVaiTro(VaiTro vaiTro) {
+        this.vaiTro = vaiTro;
     }
 
     public String getTenDangNhap() {
-        return TenDangNhap;
+        return tenDangNhap;
     }
 
-    public void setTenDangNhap(String TenDangNhap) {
-        this.TenDangNhap = TenDangNhap;
+    public void setTenDangNhap(String tenDangNhap) {
+        this.tenDangNhap = tenDangNhap;
     }
 
     public String getMatKhau() {
-        return MatKhau;
+        return matKhau;
     }
 
-    public void setMatKhau(String MatKhau) {
-        this.MatKhau = MatKhau;
+    public void setMatKhau(String matKhau) {
+        this.matKhau = matKhau;
     }
 
     public String getHoTen() {
-        return HoTen;
+        return hoTen;
     }
 
-    public void setHoTen(String HoTen) {
-        this.HoTen = HoTen;
+    public void setHoTen(String hoTen) {
+        this.hoTen = hoTen;
     }
 
     public String getEmail() {
-        return Email;
+        return email;
     }
 
-    public void setEmail(String Email) {
-        this.Email = Email;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getSoDienThoai() {
-        return SoDienThoai;
+        return soDienThoai;
     }
 
-    public void setSoDienThoai(String SoDienThoai) {
-        this.SoDienThoai = SoDienThoai;
+    public void setSoDienThoai(String soDienThoai) {
+        this.soDienThoai = soDienThoai;
     }
 
     public String getAnhDaiDien() {
-        return AnhDaiDien;
+        return anhDaiDien;
     }
 
-    public void setAnhDaiDien(String AnhDaiDien) {
-        this.AnhDaiDien = AnhDaiDien;
+    public void setAnhDaiDien(String anhDaiDien) {
+        this.anhDaiDien = anhDaiDien;
     }
 
     public Boolean getTrangThai() {
-        return TrangThai;
+        return trangThai;
     }
 
-    public void setTrangThai(Boolean TrangThai) {
-        this.TrangThai = TrangThai;
+    public void setTrangThai(Boolean trangThai) {
+        this.trangThai = trangThai;
     }
 }

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<aside th:fragment="sidebar"
+       class="duocsi-sidebar">
+
+
+    <!-- =====================================================
+         LOGO
+    ====================================================== -->
+
+    <div class="duocsi-sidebar-logo">
+
+        <div class="duocsi-logo-icon">
+            +
+        </div>
+
+
+        <div class="duocsi-logo-text">
+
+            <strong>
+                MedCare Hospital
+            </strong>
+
+            <span>
+                Hệ thống quản lý bệnh viện
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MENU
+    ====================================================== -->
+
+    <nav class="duocsi-sidebar-menu">
+
+
+        <!-- =================================================
+             TỔNG QUAN
+        ================================================== -->
+
+        <a href="/DuocSi/dashboard"
+           class="duocsi-menu-link">
+
+            <span>
+
+                <span class="duocsi-menu-icon">
+                    ⌂
+                </span>
+
+                Tổng quan
+
+            </span>
+
+        </a>
+
+
+        <!-- =================================================
+             ĐƠN THUỐC
+        ================================================== -->
+
+        <div class="duocsi-menu-group">
+
+            <button type="button"
+                    class="duocsi-menu-parent">
+
+                <span>
+
+                    <span class="duocsi-menu-icon">
+                        ▤
+                    </span>
+
+                    Đơn thuốc
+
+                </span>
+
+
+                <span class="duocsi-menu-arrow">
+                    ›
+                </span>
+
+            </button>
+
+
+            <div class="duocsi-submenu">
+
+                <a href="/DuocSi/cho-cap-thuoc">
+
+                    Chờ cấp thuốc
+
+                </a>
+
+
+                <a href="/DuocSi/lich-su-cap-thuoc">
+
+                    Lịch sử cấp thuốc
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             KHO THUỐC
+        ================================================== -->
+
+        <div class="duocsi-menu-group">
+
+            <button type="button"
+                    class="duocsi-menu-parent">
+
+                <span>
+
+                    <span class="duocsi-menu-icon">
+                        ♢
+                    </span>
+
+                    Kho thuốc
+
+                </span>
+
+
+                <span class="duocsi-menu-arrow">
+                    ›
+                </span>
+
+            </button>
+
+
+            <div class="duocsi-submenu">
+
+                <a href="/DuocSi/danh-sach-thuoc">
+
+                    Danh sách thuốc
+
+                </a>
+
+
+                <a href="/DuocSi/ton-kho">
+
+                    Tồn kho
+
+                </a>
+
+
+                <a href="/DuocSi/thuoc-sap-het-han">
+
+                    Thuốc sắp hết hạn
+
+                </a>
+
+
+                <a href="/DuocSi/thuoc-het-han">
+
+                    Thuốc hết hạn
+
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             HỒ SƠ CÁ NHÂN
+        ================================================== -->
+
+        <a href="/DuocSi/profile"
+           class="duocsi-menu-link">
+
+            <span>
+
+                <span class="duocsi-menu-icon">
+                    ▣
+                </span>
+
+                Hồ sơ cá nhân
+
+            </span>
+
+        </a>
+
+    </nav>
+
+
+    <!-- =====================================================
+         LOGOUT
+    ====================================================== -->
+
+    <div class="duocsi-sidebar-logout">
+
+        <button type="button"
+                id="logoutButton"
+                class="duocsi-logout-button">
+
+            → Đăng xuất
+
+        </button>
+
+    </div>
+
+</aside>
+
+</body>
+</html>

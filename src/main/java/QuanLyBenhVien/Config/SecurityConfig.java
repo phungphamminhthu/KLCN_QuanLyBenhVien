@@ -2,6 +2,7 @@ package QuanLyBenhVien.Config;
 
 import QuanLyBenhVien.Security.CustomUserDetailsService;
 import QuanLyBenhVien.Security.JwtAuthenticationFilter;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -12,59 +13,113 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    private final CustomUserDetailsService CustomUserDetailsService;
-    private final JwtAuthenticationFilter JwtAuthenticationFilter;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     public SecurityConfig(
-            CustomUserDetailsService CustomUserDetailsService,
-            JwtAuthenticationFilter JwtAuthenticationFilter) {
-
-        this.CustomUserDetailsService = CustomUserDetailsService;
-        this.JwtAuthenticationFilter = JwtAuthenticationFilter;
+            CustomUserDetailsService customUserDetailsService,
+            JwtAuthenticationFilter jwtAuthenticationFilter
+    ) {
+        this.customUserDetailsService = customUserDetailsService;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+
+                // =========================
+                // TẮT CSRF
+                // =========================
                 .csrf(csrf -> csrf.disable())
 
-                .userDetailsService(CustomUserDetailsService)
+                // =========================
+                // USER DETAILS SERVICE
+                // =========================
+                .userDetailsService(customUserDetailsService)
 
+                // =========================
+                // JWT -> KHÔNG DÙNG SESSION
+                // =========================
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        session.sessionCreationPolicy(
+                                SessionCreationPolicy.STATELESS
+                        )
                 )
 
+                // =========================
+                // PHÂN QUYỀN API / PAGE
+                // =========================
                 .authorizeHttpRequests(auth -> auth
 
-                        // ===== PUBLIC =====
+                        // -------------------------
+                        // PUBLIC
+                        // -------------------------
                         .requestMatchers(
                                 "/",
                                 "/news",
                                 "/auth/**",
+                                "/favicon.ico",
+
+                                // CSS / JS / Images
                                 "/Css/**",
                                 "/Js/**",
                                 "/Images/**",
+
+                                // API authentication
                                 "/api/auth/**",
 
-                                // ===== TEST EMAIL =====
+                                // API test
                                 "/api/test-email",
-                                // ===== UPLOAD ẢNH R2 =====
+
+                                // API upload image
                                 "/api/images/**",
-                                // ===== TRANG GIAO DIỆN =====
-                                "/Admin/**"
+
+                                // Các trang giao diện
+                                "/Admin/**",
+                                "/DuocSi/**",
+
+                                // WebSocket
+                                "/ws",
+                                "/ws/**"
                         ).permitAll()
 
-                        // ===== API/TRANG KHÁC =====
-                        .anyRequest().authenticated()
+                        // -------------------------
+                        // KHO THUỐC
+                        // CHỈ DƯỢC SĨ
+                        // -------------------------
+                        .requestMatchers(
+                                "/api/kho-thuoc",
+                                "/api/kho-thuoc/**"
+                        )
+                        .hasRole("DUOCSI")
+
+                        // -------------------------
+                        // THÔNG BÁO
+                        // PHẢI ĐĂNG NHẬP
+                        // -------------------------
+                        .requestMatchers("/api/thong-bao/**")
+                        .authenticated()
+
+                        // -------------------------
+                        // CÁC API CÒN LẠI
+                        // PHẢI ĐĂNG NHẬP
+                        // -------------------------
+                        .anyRequest()
+                        .authenticated()
                 )
 
+                // =========================
+                // TẮT FORM LOGIN MẶC ĐỊNH
+                // =========================
                 .formLogin(form -> form.disable())
 
-                .httpBasic(basic -> basic.disable())
-
+                // =========================
+                // JWT FILTER
+                // =========================
                 .addFilterBefore(
-                        JwtAuthenticationFilter,
+                        jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
 

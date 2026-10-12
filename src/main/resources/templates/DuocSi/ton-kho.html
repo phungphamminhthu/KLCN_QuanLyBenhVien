@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Tồn kho thuốc - Dược sĩ</title>
+
+  <th:block layout:fragment="css">
+    <link rel="stylesheet"
+          href="/Css/DuocSi/ton-kho.css">
+  </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content"
+     class="duocsi-medicine-page stock-page">
+
+  <!-- =====================================================
+       BREADCRUMB
+  ====================================================== -->
+<!--  <div class="medicine-breadcrumb">-->
+
+<!--    <span>Dược sĩ</span>-->
+
+<!--    <span class="breadcrumb-arrow">›</span>-->
+
+<!--    <span>Kho thuốc</span>-->
+
+<!--    <span class="breadcrumb-arrow">›</span>-->
+
+<!--    <span class="breadcrumb-current">-->
+<!--            Tồn kho-->
+<!--        </span>-->
+
+<!--  </div>-->
+
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+  <div class="medicine-header stock-page-header">
+
+    <div class="medicine-title stock-title">
+
+<!--      <div class="stock-title-icon">-->
+
+<!--        <svg width="24"-->
+<!--             height="24"-->
+<!--             viewBox="0 0 24 24"-->
+<!--             fill="none"-->
+<!--             stroke="currentColor"-->
+<!--             stroke-width="1.8"-->
+<!--             stroke-linecap="round"-->
+<!--             stroke-linejoin="round">-->
+
+<!--          <path d="M12 3L21 8L12 13L3 8L12 3Z"></path>-->
+
+<!--          <path d="M3 8V16L12 21L21 16V8"></path>-->
+
+<!--          <path d="M12 13V21"></path>-->
+
+<!--        </svg>-->
+
+<!--      </div>-->
+
+      <div>
+
+        <h1>
+          Tồn kho thuốc
+        </h1>
+
+        <p>
+          Theo dõi số lượng tồn kho và tình trạng thuốc trong bệnh viện
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FILTER
+  ====================================================== -->
+  <section class="filter-card">
+
+    <div class="filter-grid stock-filter-grid">
+
+      <!-- TÌM KIẾM -->
+      <div class="filter-item stock-search-item">
+
+        <div class="medicine-input-wrapper">
+
+                    <span class="medicine-input-icon">
+
+                        <svg width="19"
+                             height="19"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <circle cx="11"
+                                    cy="11"
+                                    r="7">
+                            </circle>
+
+                            <line x1="16.5"
+                                  y1="16.5"
+                                  x2="21"
+                                  y2="21">
+                            </line>
+
+                        </svg>
+
+                    </span>
+
+          <input type="text"
+                 id="stockKeyword"
+                 placeholder="Tìm kiếm tên thuốc, mã thuốc..."
+                 autocomplete="off">
+
+        </div>
+
+      </div>
+
+
+      <!-- ĐƠN VỊ -->
+      <div class="filter-item">
+
+        <label class="filter-label">
+          Đơn vị
+        </label>
+
+        <select id="stockUnit"
+                class="medicine-select">
+
+          <option value="">
+            Tất cả
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- TRẠNG THÁI -->
+      <div class="filter-item">
+
+        <label class="filter-label">
+          Trạng thái tồn kho
+        </label>
+
+        <select id="stockStatus"
+                class="medicine-select">
+
+          <option value="">
+            Tất cả
+          </option>
+
+          <option value="DU_HANG">
+            Đủ hàng
+          </option>
+
+          <option value="SAP_HET">
+            Sắp hết
+          </option>
+
+          <option value="HET_HANG">
+            Hết hàng
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- BUTTON -->
+      <div class="filter-buttons">
+
+        <button type="button"
+                id="stockSearchButton"
+                class="search-button">
+
+          Tìm kiếm
+
+        </button>
+
+
+        <button
+                type="button"
+                id="resetButton"
+                class="reset-button">
+
+          ↻
+
+        </button>
+<!--        <button type="button"-->
+<!--                id="stockResetButton"-->
+<!--                class="reset-button"-->
+<!--                title="Đặt lại">-->
+
+<!--          <svg width="16"-->
+<!--               height="16"-->
+<!--               viewBox="0 0 24 24"-->
+<!--               fill="none"-->
+<!--               stroke="currentColor"-->
+<!--               stroke-width="1.8"-->
+<!--               stroke-linecap="round"-->
+<!--               stroke-linejoin="round">-->
+
+<!--            <path d="M3 12a9 9 0 1 0 3-6.7"></path>-->
+
+<!--            <path d="M3 4v6h6"></path>-->
+
+<!--          </svg>-->
+
+<!--          <span>-->
+<!--                        Đặt lại-->
+<!--                    </span>-->
+
+<!--        </button>-->
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       THỐNG KÊ
+  ====================================================== -->
+  <section class="stock-statistics">
+
+    <!-- TỔNG -->
+    <div class="stock-stat-card">
+
+      <div class="stock-stat-icon blue">
+
+        <svg width="22"
+             height="22"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+
+          <path d="M20 7L12 3L4 7L12 11L20 7Z"></path>
+
+          <path d="M4 7V17L12 21L20 17V7"></path>
+
+          <path d="M12 11V21"></path>
+
+        </svg>
+
+      </div>
+
+      <div class="stock-stat-content">
+
+                <span>
+                    Tổng số loại thuốc
+                </span>
+
+        <strong id="totalMedicineCount">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- ĐỦ HÀNG -->
+    <div class="stock-stat-card">
+
+      <div class="stock-stat-icon green">
+
+        <svg width="21"
+             height="21"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+
+          <circle cx="12"
+                  cy="12"
+                  r="9">
+          </circle>
+
+          <path d="M8 12L11 15L16 9"></path>
+
+        </svg>
+
+      </div>
+
+      <div class="stock-stat-content">
+
+                <span>
+                    Thuốc còn đủ
+                </span>
+
+        <strong id="enoughMedicineCount">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- SẮP HẾT -->
+    <div class="stock-stat-card">
+
+      <div class="stock-stat-icon orange">
+
+        <svg width="21"
+             height="21"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+
+          <circle cx="12"
+                  cy="12"
+                  r="9">
+          </circle>
+
+          <line x1="12"
+                y1="8"
+                x2="12"
+                y2="13">
+          </line>
+
+          <circle cx="12"
+                  cy="16.5"
+                  r=".5"
+                  fill="currentColor">
+          </circle>
+
+        </svg>
+
+      </div>
+
+      <div class="stock-stat-content">
+
+                <span>
+                    Sắp hết
+                </span>
+
+        <strong id="lowMedicineCount">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- HẾT HÀNG -->
+    <div class="stock-stat-card">
+
+      <div class="stock-stat-icon red">
+
+        <svg width="21"
+             height="21"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+
+          <circle cx="12"
+                  cy="12"
+                  r="9">
+          </circle>
+
+          <line x1="9"
+                y1="9"
+                x2="15"
+                y2="15">
+          </line>
+
+          <line x1="15"
+                y1="9"
+                x2="9"
+                y2="15">
+          </line>
+
+        </svg>
+
+      </div>
+
+      <div class="stock-stat-content">
+
+                <span>
+                    Hết hàng
+                </span>
+
+        <strong id="emptyMedicineCount">
+          0
+        </strong>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       DANH SÁCH TỒN KHO
+  ====================================================== -->
+  <section class="medicine-card stock-table-card">
+
+    <!-- TABLE HEADER -->
+    <div class="stock-table-header">
+
+      <div>
+
+        <h2>
+          Danh sách tồn kho thuốc
+        </h2>
+
+        <p>
+          Theo dõi số lượng thuốc hiện có trong kho
+        </p>
+
+      </div>
+
+
+      <button type="button"
+              id="exportStockButton"
+              class="export-button">
+
+        <svg width="16"
+             height="16"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="1.8"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+
+          <path d="M12 3V15"></path>
+
+          <path d="M7 10L12 15L17 10"></path>
+
+          <path d="M4 20H20"></path>
+
+        </svg>
+
+        Xuất file
+
+      </button>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="medicine-table-wrapper">
+
+      <table class="medicine-table stock-table">
+
+        <thead>
+
+        <tr>
+
+          <th class="col-stt">
+            STT
+          </th>
+
+          <th class="stock-col-code">
+            Mã thuốc
+          </th>
+
+          <th class="stock-col-name">
+            Tên thuốc
+          </th>
+
+          <th class="stock-col-unit">
+            Đơn vị
+          </th>
+
+          <th class="stock-col-current">
+            Tồn kho hiện tại
+          </th>
+
+          <th class="stock-col-min">
+            Tồn kho tối thiểu
+          </th>
+
+          <th class="stock-col-status">
+            Trạng thái
+          </th>
+
+          <th class="stock-col-action">
+            Thao tác
+          </th>
+
+        </tr>
+
+        </thead>
+
+
+        <tbody id="stockTableBody">
+
+        <tr>
+
+          <td colspan="8"
+              class="table-loading">
+
+            Đang tải dữ liệu...
+
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- FOOTER -->
+    <div class="medicine-footer">
+
+      <div id="resultInfo"
+           class="result-info">
+
+        Tổng cộng: 0 thuốc
+
+      </div>
+
+
+      <div class="pagination-area">
+
+        <div id="pagination"
+             class="pagination">
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       MODAL CHI TIẾT
+  ====================================================== -->
+  <div id="stockDetailModal"
+       class="modal-overlay"
+       style="display:none;">
+
+    <div class="medicine-modal stock-detail-modal">
+
+      <div class="modal-header">
+
+        <div>
+
+          <h2>
+            Chi tiết tồn kho
+          </h2>
+
+          <p>
+            Thông tin thuốc trong kho
+          </p>
+
+        </div>
+
+
+        <button type="button"
+                id="closeStockDetail"
+                class="modal-close">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      <div class="modal-body">
+
+        <div class="detail-grid">
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Mã thuốc
+                        </span>
+
+            <strong id="detailMaThuoc">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Tên thuốc
+                        </span>
+
+            <strong id="detailTenThuoc">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Đơn vị
+                        </span>
+
+            <strong id="detailDonVi">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Tồn kho hiện tại
+                        </span>
+
+            <strong id="detailTonKho">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Tồn kho tối thiểu
+                        </span>
+
+            <strong id="detailTonToiThieu">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Số lô
+                        </span>
+
+            <strong id="detailSoLo">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Hạn sử dụng gần nhất
+                        </span>
+
+            <strong id="detailHanSuDung">
+              -
+            </strong>
+
+          </div>
+
+
+          <div class="detail-item">
+
+                        <span class="detail-label">
+                            Trạng thái
+                        </span>
+
+            <strong id="detailTrangThai">
+              -
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-footer">
+
+        <button type="button"
+                id="closeStockDetailButton"
+                class="btn-modal-cancel">
+
+          Hủy
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/DuocSi/ton-kho.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

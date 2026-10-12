@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Hồ sơ cá nhân</title>
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              href="/Css/DuocSi/profile.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+
+<section layout:fragment="content"
+         class="profile-content">
+
+
+    <!-- ==================================================
+         PAGE HEADER
+    ================================================== -->
+
+    <div class="profile-page-header">
+
+        <div>
+
+            <h1>
+                Hồ sơ cá nhân
+            </h1>
+
+            <p>
+                Thông tin tài khoản và cá nhân của bạn
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ==================================================
+         PROFILE CARD
+    ================================================== -->
+
+    <div class="profile-card">
+
+
+        <!-- ==================================================
+             PROFILE HEADER
+        ================================================== -->
+
+        <div class="profile-card-header">
+
+
+            <div class="profile-user">
+
+
+                <!-- ==================================================
+                     AVATAR
+                ================================================== -->
+
+                <div class="profile-avatar-area">
+
+                    <div class="profile-avatar-wrapper">
+
+                        <img
+                                id="profileAvatar"
+                                class="profile-avatar"
+                                src="/api/images/view?fileKey=images/2b1261cf-87ab-4b5c-9097-50cd95b2fc24.jpg"
+                                alt="Ảnh đại diện">
+
+                        <!--
+                            Không có nút cây bút.
+                            Khi bấm "Chỉnh sửa", JS cho phép
+                            click trực tiếp vào avatar để đổi ảnh.
+                        -->
+
+                        <input
+                                type="file"
+                                id="avatarInput"
+                                accept="image/jpeg,image/png,image/webp"
+                                hidden>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     USER INFO
+                ================================================== -->
+
+                <div class="profile-user-info">
+
+                    <h2 id="profileRole">
+                        Dược sĩ
+                    </h2>
+
+                    <p id="profileDepartment">
+                        Nhà thuốc
+                    </p>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ==================================================
+                 EDIT BUTTON
+            ================================================== -->
+
+            <div class="profile-header-actions">
+
+                <button
+                        type="button"
+                        id="editProfileButton"
+                        class="btn-edit">
+
+                    <span>✎</span>
+
+                    Chỉnh sửa
+
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ==================================================
+             PERSONAL INFORMATION
+        ================================================== -->
+
+        <div class="profile-section">
+
+
+            <div class="profile-section-title">
+
+                <h3>
+                    THÔNG TIN CÁ NHÂN
+                </h3>
+
+            </div>
+
+
+            <div class="profile-info-grid">
+
+
+                <!-- ==================================================
+                     HỌ TÊN
+                ================================================== -->
+
+                <div class="profile-field">
+
+                    <label>
+                        Họ tên
+                    </label>
+
+
+                    <div
+                            class="profile-value"
+                            id="displayHoTen">
+
+                        —
+
+                    </div>
+
+
+                    <input
+                            type="text"
+                            id="inputHoTen"
+                            class="profile-input"
+                            hidden>
+
+
+                    <small
+                            id="hoTenError"
+                            class="field-error">
+                    </small>
+
+                </div>
+
+
+                <!-- ==================================================
+                     EMAIL
+                ================================================== -->
+
+                <div class="profile-field">
+
+                    <label>
+                        Email
+                    </label>
+
+
+                    <div
+                            class="profile-value"
+                            id="displayEmail">
+
+                        —
+
+                    </div>
+
+
+                    <input
+                            type="email"
+                            id="inputEmail"
+                            class="profile-input"
+                            hidden>
+
+
+                    <small
+                            id="emailError"
+                            class="field-error">
+                    </small>
+
+                </div>
+
+
+                <!-- ==================================================
+                     SỐ ĐIỆN THOẠI
+                ================================================== -->
+
+                <div class="profile-field">
+
+                    <label>
+                        Số điện thoại
+                    </label>
+
+
+                    <div
+                            class="profile-value"
+                            id="displaySoDienThoai">
+
+                        —
+
+                    </div>
+
+
+                    <input
+                            type="tel"
+                            id="inputSoDienThoai"
+                            class="profile-input"
+                            maxlength="10"
+                            inputmode="numeric"
+                            hidden>
+
+
+                    <small
+                            id="soDienThoaiError"
+                            class="field-error">
+                    </small>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             ACCOUNT INFORMATION
+        ================================================== -->
+
+        <div class="profile-section">
+
+
+            <div class="profile-section-title">
+
+                <h3>
+                    THÔNG TIN TÀI KHOẢN
+                </h3>
+
+            </div>
+
+
+            <div class="profile-info-grid">
+
+
+                <!-- ==================================================
+                     USERNAME
+                ================================================== -->
+
+                <div class="profile-field">
+
+                    <label>
+                        Tên đăng nhập
+                    </label>
+
+
+                    <div
+                            class="profile-value"
+                            id="displayTenDangNhap">
+
+                        —
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     ROLE
+                ================================================== -->
+
+                <div class="profile-field">
+
+                    <label>
+                        Vai trò
+                    </label>
+
+
+                    <div
+                            class="profile-value"
+                            id="displayVaiTro">
+
+                        —
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     STATUS
+                ================================================== -->
+
+                <div class="profile-field">
+
+                    <label>
+                        Trạng thái
+                    </label>
+
+
+                    <div class="profile-value">
+
+                        <span
+                                id="profileStatus"
+                                class="status-badge active">
+
+                            <span></span>
+
+                            Hoạt động
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- ==================================================
+             EDIT ACTIONS
+
+             Đổi mật khẩu bên trái.
+             Hủy + Lưu thay đổi bên phải.
+        ================================================== -->
+
+        <div
+                id="profileEditActions"
+                class="profile-edit-actions"
+                hidden>
+
+
+            <!-- LEFT -->
+
+            <div class="profile-actions-left">
+
+                <button
+                        type="button"
+                        id="changePasswordButton"
+                        class="btn-password">
+
+                    <span>♙</span>
+
+                    Đổi mật khẩu
+
+                </button>
+
+            </div>
+
+
+            <!-- RIGHT -->
+
+            <div class="profile-actions-right">
+
+                <button
+                        type="button"
+                        id="cancelProfileButton"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="saveProfileButton"
+                        class="btn-save">
+
+                    <span>✓</span>
+
+                    Lưu thay đổi
+
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ==================================================
+             CHANGE PASSWORD
+        ================================================== -->
+
+        <div
+                id="changePasswordSection"
+                class="change-password-section"
+                hidden>
+
+
+            <div class="change-password-header">
+
+                <div>
+
+                    <h3>
+                        ĐỔI MẬT KHẨU
+                    </h3>
+
+                    <p>
+                        Cập nhật mật khẩu đăng nhập của bạn
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================================
+                 PASSWORD FORM
+            ================================================== -->
+
+            <div class="change-password-form">
+
+
+                <!-- ==================================================
+                     MẬT KHẨU HIỆN TẠI
+                ================================================== -->
+
+                <div class="password-field">
+
+                    <label for="currentPassword">
+                        Mật khẩu hiện tại
+                    </label>
+
+
+                    <div class="password-wrapper">
+
+                        <input
+                                type="password"
+                                id="currentPassword"
+                                class="password-input"
+                                autocomplete="current-password">
+
+
+                        <button
+                                type="button"
+                                id="toggleCurrentPassword"
+                                class="toggle-password"
+                                aria-label="Hiện mật khẩu">
+
+                            <svg
+                                    id="currentPasswordIcon"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+
+                    <small
+                            id="currentPasswordError"
+                            class="field-error">
+                    </small>
+
+                </div>
+
+
+                <!-- ==================================================
+                     MẬT KHẨU MỚI
+                ================================================== -->
+
+                <div class="password-field">
+
+                    <label for="newPassword">
+                        Mật khẩu mới
+                    </label>
+
+
+                    <div class="password-wrapper">
+
+                        <input
+                                type="password"
+                                id="newPassword"
+                                class="password-input"
+                                autocomplete="new-password">
+
+
+                        <button
+                                type="button"
+                                id="toggleNewPassword"
+                                class="toggle-password"
+                                aria-label="Hiện mật khẩu">
+
+                            <svg
+                                    id="newPasswordIcon"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+
+                    <small
+                            id="newPasswordError"
+                            class="field-error">
+                    </small>
+
+                </div>
+
+
+                <!-- ==================================================
+                     ĐIỀU KIỆN MẬT KHẨU
+                ================================================== -->
+
+                <div class="password-rules">
+
+                    <p>
+                        Mật khẩu phải đáp ứng:
+                    </p>
+
+
+                    <div
+                            id="ruleLength"
+                            class="password-rule">
+
+                        <span>○</span>
+
+                        Ít nhất 8 ký tự
+
+                    </div>
+
+
+                    <div
+                            id="ruleUppercase"
+                            class="password-rule">
+
+                        <span>○</span>
+
+                        Có ít nhất 1 chữ hoa (A-Z)
+
+                    </div>
+
+
+                    <div
+                            id="ruleLowercase"
+                            class="password-rule">
+
+                        <span>○</span>
+
+                        Có ít nhất 1 chữ thường (a-z)
+
+                    </div>
+
+
+                    <div
+                            id="ruleNumber"
+                            class="password-rule">
+
+                        <span>○</span>
+
+                        Có ít nhất 1 chữ số (0-9)
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================================
+                     XÁC NHẬN MẬT KHẨU
+                ================================================== -->
+
+                <div class="password-field">
+
+                    <label for="confirmPassword">
+                        Xác nhận mật khẩu mới
+                    </label>
+
+
+                    <div class="password-wrapper">
+
+                        <input
+                                type="password"
+                                id="confirmPassword"
+                                class="password-input"
+                                autocomplete="new-password">
+
+
+                        <button
+                                type="button"
+                                id="toggleConfirmPassword"
+                                class="toggle-password"
+                                aria-label="Hiện mật khẩu">
+
+                            <svg
+                                    id="confirmPasswordIcon"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                            </svg>
+
+                        </button>
+
+                    </div>
+
+
+                    <small
+                            id="confirmPasswordError"
+                            class="field-error">
+                    </small>
+
+                </div>
+
+
+            </div>
+
+
+            <!-- ==================================================
+                 PASSWORD ACTIONS
+            ================================================== -->
+
+            <div class="change-password-actions">
+
+                <button
+                        type="button"
+                        id="cancelChangePassword"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="saveChangePassword"
+                        class="btn-save">
+
+                    <span>✓</span>
+
+                    Đổi mật khẩu
+
+                </button>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ==================================================
+         TOAST
+    ================================================== -->
+
+    <div
+            id="profileToast"
+            class="profile-toast">
+
+
+        <div
+                id="profileToastIcon"
+                class="toast-icon">
+
+            ✓
+
+        </div>
+
+
+        <div class="toast-content">
+
+            <strong id="profileToastTitle">
+                Thành công
+            </strong>
+
+
+            <span id="profileToastMessage">
+                Cập nhật hồ sơ thành công.
+            </span>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="closeProfileToast"
+                class="toast-close">
+
+            ×
+
+        </button>
+
+
+    </div>
+
+
+</section>
+
+
+<!-- ==================================================
+     JAVASCRIPT
+================================================== -->
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/DuocSi/profile.js"></script>
+
+</th:block>
+
+
+</body>
+
+</html>

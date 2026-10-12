@@ -1,0 +1,777 @@
+/* =====================================================
+   DƯỢC SĨ - DASHBOARD
+===================================================== */
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+.duocsi-dashboard {
+    width: 100%;
+    min-height: 100%;
+    padding: 30px 32px 40px;
+    background: #f8fafc;
+}
+
+
+/* =====================================================
+   PAGE HEADER
+===================================================== */
+
+.dashboard-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+
+.dashboard-title h1 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+
+.dashboard-title p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* =====================================================
+   STATISTICS
+===================================================== */
+
+.dashboard-stats {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+
+/* =====================================================
+   STAT CARD
+===================================================== */
+
+.stat-card {
+    min-width: 0;
+    min-height: 118px;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    padding: 18px;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.03);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+.stat-card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 15px rgba(15, 23, 42, 0.07);
+}
+
+
+/* =====================================================
+   STAT ICON
+===================================================== */
+
+.stat-icon {
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+}
+
+
+.stat-icon-blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+
+.stat-icon-orange {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+
+.stat-icon-green {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+
+.stat-icon-yellow {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+
+.stat-icon-red {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+.stat-icon-purple {
+    background: #f3e8ff;
+    color: #9333ea;
+}
+
+
+/* =====================================================
+   STAT CONTENT
+===================================================== */
+
+.stat-content {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+}
+
+
+.stat-label {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+.stat-content strong {
+    margin-top: 7px;
+
+    color: #1e293b;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+
+/* =====================================================
+   MAIN GRID
+===================================================== */
+
+.dashboard-grid {
+    width: 100%;
+
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1.8fr)
+        minmax(300px, 1fr);
+
+    gap: 20px;
+
+    align-items: start;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.dashboard-card {
+    min-width: 0;
+
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.03);
+
+    overflow: hidden;
+}
+
+
+/* =====================================================
+   CARD HEADER
+===================================================== */
+
+.card-header {
+    min-height: 76px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    padding: 18px 20px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+
+.card-title {
+    min-width: 0;
+}
+
+
+.card-title h2 {
+    margin: 0;
+
+    color: #1e293b;
+
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+
+.card-title p {
+    margin: 5px 0 0;
+
+    color: #64748b;
+
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+
+.view-all-link {
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+
+    gap: 5px;
+
+    color: #2563eb;
+
+    font-size: 13px;
+    font-weight: 500;
+
+    text-decoration: none;
+    white-space: nowrap;
+
+    transition: color 0.2s ease;
+}
+
+
+.view-all-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+
+.view-all-link span {
+    font-size: 16px;
+}
+
+
+/* =====================================================
+   TABLE
+===================================================== */
+
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+
+.prescription-table {
+    width: 100%;
+    min-width: 780px;
+
+    border-collapse: collapse;
+}
+
+
+.prescription-table th {
+    text-transform: uppercase;
+
+    padding: 12px 14px;
+
+    background: #f8fafc;
+
+    color: #64748b;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    text-align: left;
+
+    white-space: nowrap;
+}
+
+
+.prescription-table td {
+    padding: 14px;
+
+    color: #334155;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    font-size: 14px;
+
+    vertical-align: middle;
+}
+
+
+.prescription-table tbody tr {
+    transition: background 0.15s ease;
+}
+
+
+.prescription-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+
+.prescription-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* =====================================================
+   TABLE MESSAGE
+===================================================== */
+
+.table-message,
+.empty-row {
+    height: 100px;
+
+    color: #94a3b8 !important;
+
+    text-align: center !important;
+}
+
+
+/* =====================================================
+   PRESCRIPTION CODE
+===================================================== */
+
+.prescription-code {
+    color: #000000;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   PATIENT
+===================================================== */
+
+.patient-name {
+    color: #1e293b;
+
+    font-weight: 500;
+
+    line-height: 1.4;
+}
+
+
+/* =====================================================
+   DOCTOR
+===================================================== */
+
+.doctor-name {
+    color: #334155;
+
+    line-height: 1.4;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+/*
+   JS đang tạo:
+
+   <span class="status waiting">
+       Chờ cấp thuốc
+   </span>
+
+   <span class="status processing">
+       Đang cấp thuốc
+   </span>
+
+   <span class="status completed">
+       Đã cấp thuốc
+   </span>
+
+   <span class="status cancelled">
+       Đã hủy
+   </span>
+*/
+
+.status {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 110px;
+
+    min-height: 30px;
+
+    padding: 6px 12px;
+
+    border-radius: 6px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    line-height: 1.3;
+
+    text-align: center;
+
+    white-space: nowrap;
+}
+
+
+/* =====================================================
+   CHỜ CẤP THUỐC
+===================================================== */
+
+.status.waiting {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+
+/* =====================================================
+   ĐANG CẤP THUỐC
+===================================================== */
+
+.status.processing {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+
+/* =====================================================
+   ĐÃ CẤP THUỐC
+===================================================== */
+
+.status.completed {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+
+/* =====================================================
+   ĐÃ HỦY
+===================================================== */
+
+.status.cancelled {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+/* =====================================================
+   DISPENSE / ACTION BUTTON
+===================================================== */
+
+.action-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-width: 90px;
+    min-height: 38px;
+
+    padding: 7px 16px;
+
+    border: 1px solid #2563eb;
+
+    border-radius: 5px;
+
+    background: #2563eb;
+
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    line-height: 1.2;
+
+    cursor: pointer;
+
+    white-space: nowrap;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.1s ease;
+}
+
+
+.action-btn:hover {
+    background: #1d4ed8;
+
+    border-color: #1d4ed8;
+}
+
+
+.action-btn:active {
+    transform: translateY(1px);
+}
+
+
+/* =====================================================
+   WARNING LIST
+===================================================== */
+
+.warning-list {
+    padding: 8px 12px 12px;
+}
+
+
+.warning-item {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px 8px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    text-decoration: none;
+
+    transition:
+        background 0.2s ease;
+}
+
+
+.warning-item:last-child {
+    border-bottom: none;
+}
+
+
+.warning-item:hover {
+    background: #f8fafc;
+
+    border-radius: 8px;
+}
+
+
+/* =====================================================
+   WARNING ICON
+===================================================== */
+
+.warning-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 9px;
+}
+
+
+.warning-orange {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+
+.warning-yellow {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+
+.warning-red {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+/* =====================================================
+   WARNING CONTENT
+===================================================== */
+
+.warning-content {
+    min-width: 0;
+
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+}
+
+
+.warning-content strong {
+    color: #334155;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    line-height: 1.4;
+}
+
+
+.warning-content span {
+    color: #64748b;
+
+    font-size: 11px;
+
+    line-height: 1.4;
+}
+
+
+.warning-content b {
+    color: #1e293b;
+
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   WARNING ARROW
+===================================================== */
+
+.warning-arrow {
+    color: #94a3b8;
+
+    font-size: 18px;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.warning-item:hover .warning-arrow {
+    color: #2563eb;
+
+    transform: translateX(3px);
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 1400px) {
+
+    .dashboard-stats {
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 1100px) {
+
+    .duocsi-dashboard {
+        padding: 28px 24px 36px;
+    }
+
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+@media (max-width: 800px) {
+
+    .duocsi-dashboard {
+        padding: 24px 20px 32px;
+    }
+
+
+    .dashboard-stats {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+
+    .dashboard-title h1 {
+        font-size: 24px;
+    }
+
+}
+
+
+@media (max-width: 520px) {
+
+    .duocsi-dashboard {
+        padding: 20px 15px 30px;
+    }
+
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+
+    .stat-card {
+        min-height: 105px;
+    }
+
+
+    .card-header {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+
+    .view-all-link {
+        align-self: flex-start;
+    }
+
+
+    .status {
+        min-width: auto;
+    }
+
+
+    .action-btn {
+        min-width: 80px;
+
+        padding: 7px 12px;
+
+        font-size: 13px;
+    }
+
+}

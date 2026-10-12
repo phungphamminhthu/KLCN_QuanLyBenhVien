@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<header th:fragment="header"
+        class="duocsi-header">
+
+    <!-- =====================================================
+         SEARCH
+    ====================================================== -->
+
+    <div class="duocsi-header-search">
+    </div>
+
+
+    <!-- =====================================================
+         HEADER RIGHT
+    ====================================================== -->
+
+    <div class="duocsi-header-right">
+
+        <!-- =================================================
+             NOTIFICATION
+        ================================================== -->
+
+        <div class="duocsi-notification-wrapper">
+
+            <button type="button"
+                    class="duocsi-notification-button"
+                    id="notificationButton"
+                    aria-label="Thông báo">
+
+                <span class="duocsi-notification-icon">
+                    🔔
+                </span>
+
+                <span class="notification-badge"
+                      id="notificationBadge">
+                    0
+                </span>
+
+            </button>
+
+
+            <!-- =================================================
+                 NOTIFICATION PANEL
+            ================================================== -->
+
+            <div class="notification-panel"
+                 id="notificationPanel">
+
+                <div class="notification-header">
+
+                    <div>
+
+                        <h3>Thông báo</h3>
+
+                        <span id="notificationCountText">
+                            0 thông báo mới
+                        </span>
+
+                    </div>
+
+                    <button type="button"
+                            id="markAllReadButton">
+
+                        Đánh dấu đã đọc
+
+                    </button>
+
+                </div>
+
+
+                <div class="notification-list"
+                     id="notificationList">
+                </div>
+
+
+                <div class="notification-footer">
+
+                    <a href="/DuocSi/thong-bao">
+                        Xem tất cả thông báo
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             DƯỢC SĨ INFO
+        ================================================== -->
+
+        <div class="duocsi-info">
+
+            <img id="duocsiAvatar"
+                 class="duocsi-avatar"
+                 src="/api/images/view?fileKey=images/2b1261cf-87ab-4b5c-9097-50cd95b2fc24.jpg"
+                 alt="Ảnh đại diện">
+
+
+            <div class="duocsi-details">
+
+                <span id="duocsiName"
+                      class="duocsi-name">
+                    Dược sĩ
+                </span>
+
+
+                <span id="duocsiEmail"
+                      class="duocsi-email">
+                    duocsi@gmail.com
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+</body>
+</html>

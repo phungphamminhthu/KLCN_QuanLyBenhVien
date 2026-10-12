@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Cấp thuốc</title>
+
+    <th:block layout:fragment="css">
+
+        <link
+                rel="stylesheet"
+                href="/Css/DuocSi/cap-thuoc.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+<div
+        layout:fragment="content"
+        class="dispense-page">
+
+
+    <!-- =====================================================
+         TIÊU ĐỀ
+    ====================================================== -->
+
+    <div class="page-heading">
+
+        <h1>
+            Cấp thuốc
+        </h1>
+
+        <p>
+            Xác nhận và thực hiện cấp thuốc cho bệnh nhân
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         THÔNG BÁO LỖI
+    ====================================================== -->
+
+    <div
+            id="pageError"
+            class="page-error"
+            style="display: none;">
+
+        <span class="page-error-icon">
+            !
+        </span>
+
+        <div class="page-error-content">
+
+            <strong id="pageErrorTitle">
+                Có lỗi xảy ra
+            </strong>
+
+            <p id="pageErrorMessage">
+                Vui lòng thử lại.
+            </p>
+
+        </div>
+
+        <button
+                type="button"
+                id="closePageError"
+                class="page-error-close"
+                aria-label="Đóng">
+
+            ×
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         THÔNG TIN BỆNH NHÂN
+    ====================================================== -->
+
+    <section class="patient-card">
+
+
+        <div class="patient-info">
+
+            <h2 id="patientName">
+                Đang tải...
+            </h2>
+
+
+            <!-- DÒNG 1 -->
+
+            <div class="patient-meta-row">
+
+                <div class="patient-meta-item">
+
+                    <span class="meta-label">
+                        Mã bệnh nhân:
+                    </span>
+
+                    <strong id="patientCode">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="patient-meta-item">
+
+                    <span class="meta-label">
+                        Giới tính:
+                    </span>
+
+                    <span id="patientGender">
+                        -
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- DÒNG 2 -->
+
+            <div class="patient-meta-row">
+
+                <div class="patient-meta-item">
+
+                    <span class="meta-label">
+                        Ngày sinh:
+                    </span>
+
+                    <span id="patientDob">
+                        -
+                    </span>
+
+                </div>
+
+
+                <div class="patient-meta-item">
+
+                    <span class="meta-label">
+                        Cân nặng:
+                    </span>
+
+                    <span id="patientWeight">
+                        -
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- DÒNG 3 -->
+
+            <div class="patient-meta-row blood-pressure-row">
+
+                <div class="patient-meta-item blood-pressure">
+
+                    <span class="meta-label">
+                        Huyết áp:
+                    </span>
+
+                    <span id="patientSystolic">
+                        -
+                    </span>
+
+                    <span class="blood-pressure-separator">
+                        /
+                    </span>
+
+                    <span id="patientDiastolic">
+                        -
+                    </span>
+
+                    <span class="blood-pressure-unit">
+                        mmHg
+                    </span>
+
+                </div>
+
+
+                <div class="patient-meta-item patient-address">
+
+                    <span class="meta-label">
+                        Địa chỉ:
+                    </span>
+
+                    <span id="patientAddress">
+                        -
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             THÔNG TIN ĐƠN THUỐC
+        ================================================== -->
+
+        <div class="order-summary">
+
+            <div class="order-item">
+
+                <span>
+                    Đơn thuốc:
+                </span>
+
+                <strong id="orderCode">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="order-item">
+
+                <span>
+                    Ngày kê:
+                </span>
+
+                <span id="prescriptionDate">
+                    -
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DANH SÁCH THUỐC
+    ====================================================== -->
+
+    <section class="medicine-card">
+
+
+        <div class="card-title">
+
+            <h2>
+                Danh sách thuốc cần cấp
+            </h2>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>STT</th>
+
+                    <th>TÊN THUỐC</th>
+
+                    <th>SỐ LƯỢNG KÊ</th>
+
+                    <th>TỒN KHO</th>
+
+                    <th>THỰC CẤP</th>
+
+                    <th>GHI CHÚ</th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="dispenseTableBody">
+
+                <tr>
+
+                    <td
+                            colspan="6"
+                            class="loading">
+
+                        Đang tải dữ liệu...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             INFO
+        ================================================== -->
+
+        <div class="info-message">
+
+            <span class="info-icon">
+                ⓘ
+            </span>
+
+            <span>
+                Vui lòng kiểm tra lại tồn kho trước khi cấp thuốc.
+            </span>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ACTION
+    ====================================================== -->
+
+    <div class="page-actions">
+
+        <button
+                type="button"
+                id="cancelButton"
+                class="cancel-button">
+
+            Hủy
+
+        </button>
+
+
+        <button
+                type="button"
+                id="confirmButton"
+                class="confirm-button">
+
+            Xác nhận cấp thuốc
+
+        </button>
+
+    </div>
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+    <script
+            src="/Js/DuocSi/cap-thuoc.js">
+    </script>
+
+</th:block>
+
+</body>
+
+</html>

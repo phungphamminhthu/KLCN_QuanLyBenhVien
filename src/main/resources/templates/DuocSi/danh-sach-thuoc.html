@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Danh sách thuốc - Dược sĩ</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              href="/Css/DuocSi/danh-sach-thuoc.css">
+    </th:block>
+
+</head>
+
+<body>
+
+<div layout:fragment="content"
+     class="duocsi-medicine-page">
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="medicine-header">
+
+        <div class="medicine-title">
+
+            <h1>
+                Danh sách thuốc
+            </h1>
+
+            <p>
+                Quản lý danh sách thuốc trong kho
+            </p>
+
+        </div>
+
+        <button
+                type="button"
+                class="add-medicine-button"
+                id="addMedicineButton">
+
+            <span class="button-plus">
+                +
+            </span>
+
+            <span>
+                Thêm thuốc
+            </span>
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTER
+    ====================================================== -->
+
+    <section class="filter-card">
+
+        <div class="filter-grid">
+
+            <!-- TÊN THUỐC -->
+
+            <div class="filter-item">
+
+                <div class="medicine-input-wrapper">
+
+                    <span class="medicine-input-icon">
+
+                        <svg width="19"
+                             height="19"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <circle
+                                    cx="11"
+                                    cy="11"
+                                    r="7">
+                            </circle>
+
+                            <line
+                                    x1="16.5"
+                                    y1="16.5"
+                                    x2="21"
+                                    y2="21">
+                            </line>
+
+                        </svg>
+
+                    </span>
+
+                    <input
+                            type="text"
+                            id="keyword"
+                            placeholder="Tìm theo tên thuốc..."
+                            autocomplete="off">
+
+                </div>
+
+            </div>
+
+
+            <!-- NHÀ SẢN XUẤT -->
+
+            <div class="filter-item">
+
+                <div class="medicine-input-wrapper">
+
+                    <span class="medicine-input-icon">
+
+                        <svg width="19"
+                             height="19"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <path d="M9 3h6"></path>
+
+                            <path d="M10 3v5l-5 9a3 3 0 0 0 2.6 4.5h8.8a3 3 0 0 0 2.6-4.5l-5-9V3">
+                            </path>
+
+                            <line
+                                    x1="8"
+                                    y1="15"
+                                    x2="16"
+                                    y2="15">
+                            </line>
+
+                        </svg>
+
+                    </span>
+
+                    <input
+                            type="text"
+                            id="nhaSanXuat"
+                            placeholder="Tìm theo nhà sản xuất..."
+                            autocomplete="off">
+
+                </div>
+
+            </div>
+
+
+            <!-- ĐƠN VỊ -->
+
+            <div class="filter-item">
+
+                <select
+                        id="donViTinh"
+                        class="medicine-select">
+
+                    <option value="">
+                        Đơn vị: Tất cả
+                    </option>
+
+                    <option value="Viên">
+                        Viên
+                    </option>
+
+                    <option value="Siro">
+                        Siro
+                    </option>
+
+                    <option value="Chai">
+                        Chai
+                    </option>
+
+                    <option value="Ống">
+                        Ống
+                    </option>
+
+                    <option value="Tuýp">
+                        Tuýp
+                    </option>
+
+                    <option value="Hộp">
+                        Hộp
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- TRẠNG THÁI -->
+
+            <div class="filter-item">
+
+                <select
+                        id="trangThai"
+                        class="medicine-select">
+
+                    <option value="">
+                        Trạng thái: Tất cả
+                    </option>
+
+                    <option value="CON_HANG">
+                        Còn hàng
+                    </option>
+
+                    <option value="SAP_HET">
+                        Sắp hết
+                    </option>
+
+                    <option value="SAP_HET_HAN">
+                        Sắp hết hạn
+                    </option>
+
+                    <option value="HET_HANG">
+                        Hết hàng
+                    </option>
+
+                    <option value="NGUNG">
+                        Ngừng hoạt động
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="filter-buttons">
+
+                <button
+                        type="button"
+                        id="searchButton"
+                        class="search-button">
+                    Tìm kiếm
+                </button>
+
+                <button
+                        type="button"
+                        id="resetButton"
+                        class="reset-button">
+                    ↻
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TABLE CARD
+    ====================================================== -->
+
+    <section class="medicine-card">
+
+        <div class="medicine-table-wrapper">
+
+            <table class="medicine-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th class="col-code">
+                        Mã<br>
+                        thuốc
+                    </th>
+
+                    <th class="col-name">
+                        Tên thuốc
+                    </th>
+
+                    <th class="col-manufacturer">
+                        Nhà sản xuất
+                    </th>
+
+                    <th class="col-batch">
+                        Số lô
+                    </th>
+
+                    <th class="col-unit">
+                        Đơn<br>
+                        vị
+                    </th>
+
+                    <th class="col-price">
+                        Giá bán
+                    </th>
+
+                    <th class="col-stock">
+                        Tồn<br>
+                        kho
+                    </th>
+
+                    <th class="col-min">
+                        Tồn tối<br>
+                        thiểu
+                    </th>
+
+                    <th class="col-expiry">
+                        HSD gần<br>
+                        nhất
+                    </th>
+
+                    <th class="col-status">
+                        Trạng thái
+                    </th>
+
+                    <th class="col-action">
+                        Thao<br>
+                        tác
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="medicineTableBody">
+
+                <tr>
+
+                    <td colspan="12"
+                        class="table-loading">
+
+                        Đang tải dữ liệu...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <div class="medicine-footer">
+
+            <div
+                    id="resultCount"
+                    class="result-info">
+
+                Hiển thị 0 - 0 trong 0 kết quả
+
+            </div>
+
+
+            <div class="pagination-area">
+
+                <div
+                        id="pageNumbers"
+                        class="pagination">
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MODAL THÊM / SỬA
+    ====================================================== -->
+
+    <div
+            id="medicineFormModal"
+            class="modal-overlay"
+            style="display:none;">
+
+        <div class="medicine-modal">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2 id="medicineFormTitle">
+                        Thêm thuốc
+                    </h2>
+
+                    <p>
+                        Nhập thông tin thuốc
+                    </p>
+
+                </div>
+
+                <button
+                        type="button"
+                        class="modal-close"
+                        id="closeMedicineForm">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <form id="medicineForm">
+
+                <div class="modal-body">
+
+                    <div class="form-grid">
+
+                        <div class="form-group form-full">
+
+                            <label>
+                                Tên thuốc
+                                <span>*</span>
+                            </label>
+
+                            <input
+                                    type="text"
+                                    id="formTenThuoc"
+                                    maxlength="255"
+                                    required
+                                    placeholder="Nhập tên thuốc">
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Đơn vị tính
+                            </label>
+
+                            <input
+                                    type="text"
+                                    id="formDonViTinh"
+                                    maxlength="50"
+                                    placeholder="Ví dụ: Viên">
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label>
+                                Giá bán
+                                <span>*</span>
+                            </label>
+
+                            <input
+                                    type="number"
+                                    id="formGia"
+                                    min="0"
+                                    step="0.01"
+                                    required
+                                    placeholder="0">
+
+                        </div>
+
+
+                        <div class="form-group form-full">
+
+                            <label>
+                                Nhà sản xuất
+                            </label>
+
+                            <input
+                                    type="text"
+                                    id="formNhaSanXuat"
+                                    maxlength="255"
+                                    placeholder="Nhập nhà sản xuất">
+
+                        </div>
+
+
+                        <div class="form-group form-full">
+
+                            <label>
+                                Mô tả
+                            </label>
+
+                            <textarea
+                                    id="formMoTa"
+                                    maxlength="255"
+                                    rows="3"
+                                    placeholder="Nhập mô tả thuốc">
+                            </textarea>
+
+                        </div>
+
+
+                        <div
+                                class="form-group form-full"
+                                id="formStatusGroup">
+
+                            <label>
+                                Trạng thái
+                            </label>
+
+                            <select id="formTrangThai">
+
+                                <option value="true">
+                                    Đang sử dụng
+                                </option>
+
+                                <option value="false">
+                                    Ngừng sử dụng
+                                </option>
+
+                            </select>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <button
+                            type="button"
+                            class="btn-modal-cancel"
+                            id="cancelMedicineForm">
+
+                        Hủy
+
+                    </button>
+
+                    <button
+                            type="submit"
+                            class="btn-modal-primary"
+                            id="saveMedicineButton">
+
+                        Lưu thuốc
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+     MODAL XEM THUỐC
+    ===================================================== -->
+
+    <div
+            id="medicineViewModal"
+            class="modal-overlay"
+            style="display:none;">
+
+        <div class="medicine-modal view-modal">
+
+            <!-- HEADER -->
+            <div class="modal-header">
+
+                <div>
+                    <h2>
+                        Xem thuốc
+                    </h2>
+
+                    <p>
+                        Thông tin chi tiết thuốc
+                    </p>
+                </div>
+
+                <button
+                        type="button"
+                        class="modal-close"
+                        id="closeMedicineView"
+                        aria-label="Đóng">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- BODY -->
+            <div class="modal-body view-medicine-body">
+
+                <!-- =====================================================
+                     THÔNG TIN THUỐC
+                ===================================================== -->
+
+                <div class="view-section-title">
+                    Thông tin thuốc
+                </div>
+
+                <!-- MÃ + TÊN -->
+                <div class="view-form-row">
+
+                    <div class="view-form-group">
+
+                        <label>
+                            Mã thuốc
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewMaThuoc"
+                                readonly>
+
+                    </div>
+
+
+                    <div class="view-form-group">
+
+                        <label>
+                            Tên thuốc
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewTenThuoc"
+                                readonly>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ĐƠN VỊ + GIÁ -->
+                <div class="view-form-row">
+
+                    <div class="view-form-group">
+
+                        <label>
+                            Đơn vị tính
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewDonViTinh"
+                                readonly>
+
+                    </div>
+
+
+                    <div class="view-form-group">
+
+                        <label>
+                            Giá bán
+                        </label>
+
+                        <div class="view-price-wrapper">
+
+                            <input
+                                    type="text"
+                                    id="viewGia"
+                                    readonly>
+
+                            <span class="view-price-unit">
+                            VNĐ
+                        </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- NHÀ SẢN XUẤT -->
+                <div class="view-form-group view-form-full">
+
+                    <label>
+                        Nhà sản xuất
+                    </label>
+
+                    <input
+                            type="text"
+                            id="viewNhaSanXuat"
+                            readonly>
+
+                </div>
+
+
+                <!-- =====================================================
+                     THÔNG TIN KHO
+                ===================================================== -->
+
+                <div class="view-section-title">
+                    Thông tin kho
+                </div>
+
+                <div class="view-form-row">
+
+                    <!-- SỐ LÔ -->
+                    <div class="view-form-group">
+
+                        <label for="viewSoLo">
+                            Số lô
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewSoLo"
+                                readonly>
+
+                    </div>
+
+
+                    <!-- TỒN KHO -->
+                    <div class="view-form-group">
+
+                        <label for="viewSoLuongTon">
+                            Tồn kho
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewSoLuongTon"
+                                readonly>
+
+                    </div>
+
+                </div>
+
+
+                <div class="view-form-row">
+
+                    <!-- TỒN TỐI THIỂU -->
+                    <div class="view-form-group">
+
+                        <label for="viewSoLuongToiThieu">
+                            Tồn tối thiểu
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewSoLuongToiThieu"
+                                readonly>
+
+                    </div>
+
+
+                    <!-- HẠN SỬ DỤNG -->
+                    <div class="view-form-group">
+
+                        <label for="viewHanSuDung">
+                            Hạn sử dụng
+                        </label>
+
+                        <input
+                                type="text"
+                                id="viewHanSuDung"
+                                readonly>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MÔ TẢ -->
+                <div class="view-form-group view-form-full">
+
+                    <label>
+                        Mô tả
+                    </label>
+
+                    <textarea
+                            id="viewMoTa"
+                            rows="3"
+                            readonly></textarea>
+
+                </div>
+
+
+                <!-- TRẠNG THÁI -->
+                <div class="view-form-group view-form-full">
+
+                    <label>
+                        Trạng thái
+                    </label>
+
+                    <input
+                            type="text"
+                            id="viewTrangThai"
+                            readonly>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER -->
+            <div class="modal-footer">
+
+                <button
+                        type="button"
+                        class="btn-modal-cancel"
+                        id="closeViewButton">
+
+                    Hủy
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL XÓA
+    ====================================================== -->
+
+    <div
+            id="deleteModal"
+            class="modal-overlay"
+            style="display:none;">
+
+        <div class="delete-modal">
+
+            <div class="delete-modal-icon">
+
+                <svg width="28"
+                     height="28"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <polyline
+                            points="3 6 5 6 21 6">
+                    </polyline>
+
+                    <path
+                            d="M8 6V4h8v2">
+                    </path>
+
+                    <path
+                            d="M19 6l-1 15H6L5 6">
+                    </path>
+
+                    <line
+                            x1="10"
+                            y1="11"
+                            x2="10"
+                            y2="17">
+                    </line>
+
+                    <line
+                            x1="14"
+                            y1="11"
+                            x2="14"
+                            y2="17">
+                    </line>
+
+                </svg>
+
+            </div>
+
+
+            <h2>
+                Xóa thuốc?
+            </h2>
+
+
+            <p>
+
+                Bạn có chắc chắn muốn xóa thuốc
+
+                <strong id="deleteMedicineName">
+                </strong>
+
+                khỏi hệ thống?
+
+            </p>
+
+
+            <div class="delete-modal-actions">
+
+                <button
+                        type="button"
+                        class="btn-modal-cancel"
+                        id="cancelDelete">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        class="btn-confirm-delete"
+                        id="confirmDelete">
+
+                    <svg width="16"
+                         height="16"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+
+                        <polyline
+                                points="3 6 5 6 21 6">
+                        </polyline>
+
+                        <path d="M8 6V4h8v2"></path>
+
+                        <path d="M19 6l-1 15H6L5 6"></path>
+
+                    </svg>
+
+                    Xóa thuốc
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
+
+    <div
+            id="thuocToast"
+            class="thuoc-toast">
+
+        <div
+                id="thuocToastIcon"
+                class="toast-icon">
+
+            ✓
+
+        </div>
+
+        <div class="toast-content">
+
+            <h4 id="thuocToastTitle">
+                Thành công
+            </h4>
+
+            <p id="thuocToastMessage">
+            </p>
+
+        </div>
+
+    </div>
+
+    <!-- =====================================================
+     MODAL NHẬP KHO THUỐC
+    ===================================================== -->
+
+    <div
+            id="stockModal"
+            class="modal-overlay"
+            style="display: none;">
+
+        <div class="medicine-modal stock-modal">
+
+            <!-- HEADER -->
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Nhập kho thuốc
+                    </h2>
+
+                    <p>
+                        Thêm lô thuốc vào kho
+                    </p>
+
+                </div>
+
+                <button
+                        type="button"
+                        class="modal-close"
+                        id="closeStockModal">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- FORM -->
+
+            <form id="stockForm">
+
+                <div class="modal-body">
+
+
+                    <!-- THUỐC -->
+
+                    <div class="stock-form-group">
+
+                        <label>
+
+                            Thuốc
+                            <span>*</span>
+
+                        </label>
+
+                        <input
+                                type="text"
+                                id="stockTenThuoc"
+                                readonly>
+
+                        <input
+                                type="hidden"
+                                id="stockMaThuoc">
+
+                    </div>
+
+
+                    <!-- SỐ LÔ -->
+
+                    <div class="stock-form-group">
+
+                        <label for="stockSoLo">
+
+                            Số lô
+                            <span>*</span>
+
+                        </label>
+
+                        <input
+                                type="text"
+                                id="stockSoLo"
+                                maxlength="100"
+                                placeholder="Nhập số lô"
+                                required>
+
+                    </div>
+
+
+                    <!-- SỐ LƯỢNG + TỐI THIỂU -->
+
+                    <div class="stock-form-row">
+
+
+                        <div class="stock-form-group">
+
+                            <label for="stockSoLuong">
+
+                                Số lượng nhập
+                                <span>*</span>
+
+                            </label>
+
+                            <input
+                                    type="number"
+                                    id="stockSoLuong"
+                                    min="1"
+                                    placeholder="Nhập số lượng"
+                                    required>
+
+                        </div>
+
+
+                        <div class="stock-form-group">
+
+                            <label for="stockSoLuongToiThieu">
+
+                                Số lượng tối thiểu
+                                <span>*</span>
+
+                            </label>
+
+                            <input
+                                    type="number"
+                                    id="stockSoLuongToiThieu"
+                                    min="0"
+                                    placeholder="Ví dụ: 100"
+                                    required>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- HẠN SỬ DỤNG -->
+
+                    <div class="stock-form-group">
+
+                        <label for="stockHanSuDung">
+
+                            Hạn sử dụng
+                            <span>*</span>
+
+                        </label>
+
+                        <input
+                                type="date"
+                                id="stockHanSuDung"
+                                required>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FOOTER -->
+
+                <div class="modal-footer">
+
+                    <button
+                            type="button"
+                            class="btn-modal-cancel"
+                            id="cancelStockModal">
+
+                        Hủy
+
+                    </button>
+
+
+                    <button
+                            type="submit"
+                            class="btn-modal-save"
+                            id="saveStockButton">
+
+                        Nhập kho
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/DuocSi/danh-sach-thuoc.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

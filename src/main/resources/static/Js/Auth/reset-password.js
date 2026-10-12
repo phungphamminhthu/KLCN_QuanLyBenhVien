@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 
+
     // ==========================================
     // LẤY CÁC ELEMENT TRÊN GIAO DIỆN
     // ==========================================
@@ -46,14 +47,19 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         NewPasswordInput.disabled = true;
+
         ConfirmPasswordInput.disabled = true;
+
         ResetButton.disabled = true;
 
         return;
     }
 
 
-    // Hiển thị email
+    // ==========================================
+    // HIỂN THỊ EMAIL
+    // ==========================================
+
     EmailInput.value = EmailValue;
 
 
@@ -78,23 +84,20 @@ document.addEventListener("DOMContentLoaded", function () {
     // ICON MÍ MẮT
     //
     // DÙNG KHI MẬT KHẨU ĐANG BỊ ẨN
-    //
-    // KHÔNG CÓ ĐƯỜNG GẠCH CHÉO
     // ==========================================
 
     function setClosedEyeIcon(Icon) {
 
         Icon.innerHTML = `
 
-            <!-- Mí mắt khép -->
             <path
                 d="M5 12
                    C7 14.5,
-                     9.5 15.5,
-                     12 15.5
+                   9.5 15.5,
+                   12 15.5
                    C14.5 15.5,
-                     17 14.5,
-                     19 12"
+                   17 14.5,
+                   19 12"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="1.8"
@@ -116,20 +119,21 @@ document.addEventListener("DOMContentLoaded", function () {
         Icon.innerHTML = `
 
             <!-- Viền mắt -->
+
             <path
                 d="M2.5 12
                    C5 7.5,
-                     8 5.5,
-                     12 5.5
+                   8 5.5,
+                   12 5.5
                    C16 5.5,
-                     19 7.5,
-                     21.5 12
+                   19 7.5,
+                   21.5 12
                    C19 16.5,
-                     16 18.5,
-                     12 18.5
+                   16 18.5,
+                   12 18.5
                    C8 18.5,
-                     5 16.5,
-                     2.5 12Z"
+                   5 16.5,
+                   2.5 12Z"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="1.8"
@@ -138,6 +142,7 @@ document.addEventListener("DOMContentLoaded", function () {
             />
 
             <!-- Con ngươi -->
+
             <circle
                 cx="12"
                 cy="12"
@@ -159,50 +164,36 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
-            // ==========================================
-            // ĐANG ẨN → HIỆN
-            // ==========================================
-
             if (
                 NewPasswordInput.type ===
                 "password"
             ) {
 
+                // ĐANG ẨN → HIỆN
+
                 NewPasswordInput.type =
                     "text";
 
-
-                // Hiện icon mắt mở
                 setOpenEyeIcon(
                     NewPasswordIcon
                 );
 
-
-                // Accessibility
                 ToggleNewPassword.setAttribute(
                     "aria-label",
                     "Ẩn mật khẩu"
                 );
 
-            }
+            } else {
 
-            // ==========================================
-            // ĐANG HIỆN → ẨN
-            // ==========================================
-
-            else {
+                // ĐANG HIỆN → ẨN
 
                 NewPasswordInput.type =
                     "password";
 
-
-                // Hiện icon mí mắt
                 setClosedEyeIcon(
                     NewPasswordIcon
                 );
 
-
-                // Accessibility
                 ToggleNewPassword.setAttribute(
                     "aria-label",
                     "Hiện mật khẩu"
@@ -221,47 +212,35 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
-            // ==========================================
-            // ĐANG ẨN → HIỆN
-            // ==========================================
-
             if (
                 ConfirmPasswordInput.type ===
                 "password"
             ) {
 
+                // ĐANG ẨN → HIỆN
+
                 ConfirmPasswordInput.type =
                     "text";
 
-
-                // Hiện icon mắt mở
                 setOpenEyeIcon(
                     ConfirmPasswordIcon
                 );
-
 
                 ToggleConfirmPassword.setAttribute(
                     "aria-label",
                     "Ẩn mật khẩu"
                 );
 
-            }
+            } else {
 
-            // ==========================================
-            // ĐANG HIỆN → ẨN
-            // ==========================================
-
-            else {
+                // ĐANG HIỆN → ẨN
 
                 ConfirmPasswordInput.type =
                     "password";
 
-
-                // Hiện icon mí mắt
                 setClosedEyeIcon(
                     ConfirmPasswordIcon
                 );
-
 
                 ToggleConfirmPassword.setAttribute(
                     "aria-label",
@@ -323,26 +302,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // Ít nhất 8 ký tự
+
         const LengthValid =
             Password.length >= 8;
 
 
         // Ít nhất 1 chữ in hoa
+
         const UppercaseValid =
             /[A-Z]/.test(Password);
 
 
         // Ít nhất 1 chữ in thường
+
         const LowercaseValid =
             /[a-z]/.test(Password);
 
 
         // Ít nhất 1 chữ số
+
         const NumberValid =
             /[0-9]/.test(Password);
 
 
         // Cập nhật giao diện
+
         updateRule(
             "ruleLength",
             LengthValid
@@ -365,6 +349,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
         // Kiểm tra mật khẩu xác nhận
+
         checkPasswordMatch();
 
 
@@ -425,13 +410,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (IsValid) {
 
-            Rule.classList.add("valid");
+            Rule.classList.add(
+                "valid"
+            );
 
             Rule.classList.remove(
                 "invalid"
             );
 
-            Icon.textContent = "✓";
+            Icon.textContent =
+                "✓";
 
         } else {
 
@@ -443,7 +431,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 "invalid"
             );
 
-            Icon.textContent = "✕";
+            Icon.textContent =
+                "✕";
         }
     }
 
@@ -517,6 +506,7 @@ document.addEventListener("DOMContentLoaded", function () {
         async function (event) {
 
             // Không reload trang
+
             event.preventDefault();
 
 
@@ -569,7 +559,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // KHÓA BUTTON
             // ==========================================
 
-            ResetButton.disabled = true;
+            ResetButton.disabled =
+                true;
 
             ResetButton.textContent =
                 "Đang cập nhật...";
@@ -581,37 +572,39 @@ document.addEventListener("DOMContentLoaded", function () {
                 // GỌI API
                 // ==========================================
 
-                const response = await fetch(
+                const response =
+                    await fetch(
 
-                    "/api/auth/reset-password" +
+                        "/api/auth/reset-password" +
 
-                    "?email=" +
-                    encodeURIComponent(
-                        EmailValue
-                    ) +
+                        "?email=" +
+                        encodeURIComponent(
+                            EmailValue
+                        ) +
 
-                    "&resetToken=" +
-                    encodeURIComponent(
-                        ResetToken
-                    ) +
+                        "&resetToken=" +
+                        encodeURIComponent(
+                            ResetToken
+                        ) +
 
-                    "&matKhauMoi=" +
-                    encodeURIComponent(
-                        Password
-                    ) +
+                        "&matKhauMoi=" +
+                        encodeURIComponent(
+                            Password
+                        ) +
 
-                    "&matKhauXacNhan=" +
-                    encodeURIComponent(
-                        ConfirmPassword
-                    ),
+                        "&matKhauXacNhan=" +
+                        encodeURIComponent(
+                            ConfirmPassword
+                        ),
 
-                    {
-                        method: "POST"
-                    }
-                );
+                        {
+                            method: "POST"
+                        }
+                    );
 
 
                 // Backend trả String
+
                 const result =
                     await response.text();
 
@@ -630,6 +623,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                     // Xóa phiên reset
+
                     sessionStorage.removeItem(
                         "ResetEmail"
                     );
@@ -640,6 +634,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                     // Chuyển về login
+
                     setTimeout(
                         function () {
 
@@ -651,6 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
                 }
+
 
                 // ==========================================
                 // BACKEND TỪ CHỐI
@@ -665,11 +661,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
 
-                    ResetButton.disabled = false;
+                    ResetButton.disabled =
+                        false;
 
                     ResetButton.textContent =
                         "Đặt lại mật khẩu";
                 }
+
 
             } catch (error) {
 
@@ -686,7 +684,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-                ResetButton.disabled = false;
+                ResetButton.disabled =
+                    false;
 
                 ResetButton.textContent =
                     "Đặt lại mật khẩu";

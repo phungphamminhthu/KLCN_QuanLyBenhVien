@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Lịch sử cấp thuốc - Dược sĩ</title>
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              href="/Css/DuocSi/lich-su-cap-thuoc.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+<div layout:fragment="content"
+     class="duocsi-history-page">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="history-header">
+
+        <div class="history-title">
+
+            <h1>Lịch sử cấp thuốc</h1>
+
+            <p>
+                Tra cứu lịch sử cấp thuốc cho bệnh nhân
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTER
+    ====================================================== -->
+
+    <section class="filter-card">
+
+        <div class="filter-row">
+
+
+            <!-- MÃ ĐƠN -->
+
+            <div class="filter-item filter-order">
+
+                <div class="input-wrapper">
+
+                    <span class="input-icon">
+
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <circle cx="11"
+                                    cy="11"
+                                    r="7">
+                            </circle>
+
+                            <line x1="16.5"
+                                  y1="16.5"
+                                  x2="21"
+                                  y2="21">
+                            </line>
+
+                        </svg>
+
+                    </span>
+
+                    <input
+                            type="text"
+                            id="keyword"
+                            placeholder="Nhập mã đơn..."
+                            autocomplete="off">
+
+                </div>
+
+            </div>
+
+
+            <!-- TỪ NGÀY -->
+
+            <div class="filter-item filter-date">
+
+                <div class="date-input">
+
+                    <span class="date-icon">
+
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <rect x="3"
+                                  y="4"
+                                  width="18"
+                                  height="17"
+                                  rx="2">
+                            </rect>
+
+                            <line x1="16"
+                                  y1="2"
+                                  x2="16"
+                                  y2="6">
+                            </line>
+
+                            <line x1="8"
+                                  y1="2"
+                                  x2="8"
+                                  y2="6">
+                            </line>
+
+                            <line x1="3"
+                                  y1="10"
+                                  x2="21"
+                                  y2="10">
+                            </line>
+
+                        </svg>
+
+                    </span>
+
+                    <input
+                            type="date"
+                            id="fromDate">
+
+                </div>
+
+            </div>
+
+
+            <!-- ĐẾN NGÀY -->
+
+            <div class="filter-item filter-date">
+
+                <div class="date-input">
+
+                    <span class="date-icon">
+
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <rect x="3"
+                                  y="4"
+                                  width="18"
+                                  height="17"
+                                  rx="2">
+                            </rect>
+
+                            <line x1="16"
+                                  y1="2"
+                                  x2="16"
+                                  y2="6">
+                            </line>
+
+                            <line x1="8"
+                                  y1="2"
+                                  x2="8"
+                                  y2="6">
+                            </line>
+
+                            <line x1="3"
+                                  y1="10"
+                                  x2="21"
+                                  y2="10">
+                            </line>
+
+                        </svg>
+
+                    </span>
+
+                    <input
+                            type="date"
+                            id="toDate">
+
+                </div>
+
+            </div>
+
+
+            <!-- TRẠNG THÁI -->
+
+            <div class="filter-item filter-status">
+
+                <label>
+                    TRẠNG THÁI
+                </label>
+
+                <select id="status">
+
+                    <option value="">
+                        Tất cả
+                    </option>
+
+                    <option value="DaCapThuoc">
+                        Đã cấp
+                    </option>
+
+                    <option value="DangCapThuoc">
+                        Đang cấp
+                    </option>
+
+                    <option value="DaHuy">
+                        Đã hủy
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- TÌM KIẾM -->
+
+            <button
+                    type="button"
+                    id="searchButton"
+                    class="search-button">
+
+                <svg width="17"
+                     height="17"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <circle cx="11"
+                            cy="11"
+                            r="7">
+                    </circle>
+
+                    <line x1="16.5"
+                          y1="16.5"
+                          x2="21"
+                          y2="21">
+                    </line>
+
+                </svg>
+
+                <span>
+                    Tìm kiếm
+                </span>
+
+            </button>
+
+
+            <!-- RESET -->
+
+            <button
+                    type="button"
+                    id="resetButton"
+                    class="reset-button">
+
+                ↻
+
+            </button>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TABLE CARD
+    ====================================================== -->
+
+    <section class="history-card">
+
+
+        <!-- TABLE -->
+
+        <div class="history-table-wrapper">
+
+            <table class="history-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th>
+                        Mã đơn
+                    </th>
+
+                    <th>
+                        Bệnh nhân
+                    </th>
+
+                    <th>
+                        Bác sĩ
+                    </th>
+
+                    <th>
+                        Ngày kê
+                    </th>
+
+                    <th>
+                        Ngày cấp
+                    </th>
+
+                    <th>
+                        Người cấp
+                    </th>
+
+                    <th>
+                        Tổng tiền
+                    </th>
+
+                    <th>
+                        Trạng thái
+                    </th>
+
+                    <th>
+                        Thao tác
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="historyTableBody">
+
+                <tr>
+
+                    <td colspan="10"
+                        class="table-loading">
+
+                        Đang tải dữ liệu...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             FOOTER / PAGINATION
+        ================================================== -->
+
+        <div class="history-footer">
+
+
+            <div
+                    id="resultInfo"
+                    class="result-info">
+
+                Hiển thị 0 - 0 trong 0 kết quả
+
+            </div>
+
+
+            <div class="pagination-area">
+
+
+                <button
+                        type="button"
+                        id="previousPage"
+                        class="page-arrow">
+
+                    ‹
+
+                </button>
+
+
+                <div
+                        id="pageNumbers"
+                        class="page-numbers">
+                </div>
+
+
+                <button
+                        type="button"
+                        id="nextPage"
+                        class="page-arrow">
+
+                    ›
+
+                </button>
+
+
+<!--                <select-->
+<!--                        id="pageSize"-->
+<!--                        class="page-size">-->
+
+<!--                    <option value="5">-->
+<!--                        5 / trang-->
+<!--                    </option>-->
+
+<!--                    <option value="10">-->
+<!--                        10 / trang-->
+<!--                    </option>-->
+
+<!--                    <option value="20">-->
+<!--                        20 / trang-->
+<!--                    </option>-->
+
+<!--                </select>-->
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+    <script
+            src="/Js/DuocSi/lich-su-cap-thuoc.js">
+    </script>
+
+</th:block>
+
+</body>
+
+</html>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Tổng quan - Dược sĩ</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              href="/Css/DuocSi/dashboard.css">
+    </th:block>
+
+</head>
+
+<body>
+
+<div layout:fragment="content"
+     class="duocsi-dashboard">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="dashboard-header">
+
+        <div class="dashboard-title">
+
+            <h1>Tổng quan</h1>
+
+            <p>
+                Tình hình hoạt động của nhà thuốc trong ngày
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STATISTICS
+    ====================================================== -->
+
+    <div class="dashboard-stats">
+
+
+        <!-- 1. SỐ LOẠI THUỐC -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon stat-icon-blue">
+
+                <svg width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M4 4h16v16H4z"></path>
+
+                    <path d="M8 8h8"></path>
+
+                    <path d="M8 12h8"></path>
+
+                    <path d="M8 16h5"></path>
+
+                </svg>
+
+            </div>
+
+            <div class="stat-content">
+
+                <span class="stat-label">
+                    Số loại thuốc trong kho
+                </span>
+
+                <strong id="totalMedicines">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- 2. ĐƠN THUỐC CHỜ CẤP -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon stat-icon-orange">
+
+                <svg width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <circle cx="12"
+                            cy="12"
+                            r="9">
+                    </circle>
+
+                    <polyline points="12 7 12 12 15 14">
+                    </polyline>
+
+                </svg>
+
+            </div>
+
+            <div class="stat-content">
+
+                <span class="stat-label">
+                    Đơn thuốc chờ cấp
+                </span>
+
+                <strong id="pendingPrescriptions">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- 3. ĐÃ CẤP HÔM NAY -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon stat-icon-green">
+
+                <svg width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <polyline points="20 6 9 17 4 12">
+                    </polyline>
+
+                </svg>
+
+            </div>
+
+            <div class="stat-content">
+
+                <span class="stat-label">
+                    Đã cấp hôm nay
+                </span>
+
+                <strong id="dispensedToday">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- 4. THUỐC SẮP HẾT HẠN -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon stat-icon-yellow">
+
+                <svg width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M10.3 2.9L1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0z">
+                    </path>
+
+                    <line x1="12"
+                          y1="9"
+                          x2="12"
+                          y2="13">
+                    </line>
+
+                    <line x1="12"
+                          y1="17"
+                          x2="12.01"
+                          y2="17">
+                    </line>
+
+                </svg>
+
+            </div>
+
+            <div class="stat-content">
+
+                <span class="stat-label">
+                    Thuốc sắp hết hạn
+                </span>
+
+                <strong id="expiringMedicines">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- 5. THUỐC ĐÃ HẾT HẠN -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon stat-icon-red">
+
+                <svg width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <circle cx="12"
+                            cy="12"
+                            r="9">
+                    </circle>
+
+                    <line x1="15"
+                          y1="9"
+                          x2="9"
+                          y2="15">
+                    </line>
+
+                    <line x1="9"
+                          y1="9"
+                          x2="15"
+                          y2="15">
+                    </line>
+
+                </svg>
+
+            </div>
+
+            <div class="stat-content">
+
+                <span class="stat-label">
+                    Thuốc đã hết hạn
+                </span>
+
+                <strong id="expiredMedicines">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- 6. THUỐC SẮP HẾT TỒN -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon stat-icon-purple">
+
+                <svg width="24"
+                     height="24"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M4 6h16"></path>
+
+                    <path d="M4 12h16"></path>
+
+                    <path d="M4 18h16"></path>
+
+                </svg>
+
+            </div>
+
+            <div class="stat-content">
+
+                <span class="stat-label">
+                    Thuốc sắp hết tồn
+                </span>
+
+                <strong id="lowStockMedicines">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <div class="dashboard-grid">
+
+
+        <!-- =================================================
+             ĐƠN THUỐC CHỜ CẤP
+        ================================================== -->
+
+        <section class="dashboard-card prescription-card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+
+                    <h2>
+                        Đơn thuốc chờ cấp
+                    </h2>
+
+                    <p>
+                        Các đơn thuốc đang chờ dược sĩ cấp thuốc
+                    </p>
+
+                </div>
+
+                <a href="/DuocSi/cho-cap-thuoc"
+                   class="view-all-link">
+
+                    Xem tất cả
+
+                    <span>→</span>
+
+                </a>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table class="prescription-table">
+
+                    <thead>
+
+                    <tr>
+
+                        <th>Mã đơn</th>
+
+                        <th>Bệnh nhân</th>
+
+                        <th>Bác sĩ</th>
+
+                        <th>Ngày kê</th>
+
+                        <th>Số loại thuốc</th>
+
+                        <th>Trạng thái</th>
+
+                        <th>Thao tác</th>
+
+                    </tr>
+
+                    </thead>
+
+
+                    <tbody id="prescriptionTable">
+
+                    <tr>
+
+                        <td colspan="7"
+                            class="table-message">
+
+                            Đang tải dữ liệu...
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CẢNH BÁO KHO THUỐC
+        ================================================== -->
+
+        <section class="dashboard-card warning-card">
+
+            <div class="card-header">
+
+                <div class="card-title">
+
+                    <h2>
+                        Cảnh báo kho thuốc
+                    </h2>
+
+                    <p>
+                        Các vấn đề cần được xử lý
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="warning-list">
+
+
+                <!-- SẮP HẾT TỒN -->
+
+                <a href="/DuocSi/ton-kho"
+                   class="warning-item">
+
+                    <div class="warning-icon warning-orange">
+
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <path d="M10.3 2.9L1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0z">
+                            </path>
+
+                            <line x1="12"
+                                  y1="9"
+                                  x2="12"
+                                  y2="13">
+                            </line>
+
+                            <line x1="12"
+                                  y1="17"
+                                  x2="12.01"
+                                  y2="17">
+                            </line>
+
+                        </svg>
+
+                    </div>
+
+                    <div class="warning-content">
+
+                        <strong>
+                            Thuốc sắp hết tồn
+                        </strong>
+
+                        <span>
+                            <b id="lowStockWarning">0</b>
+                            loại thuốc cần nhập thêm
+                        </span>
+
+                    </div>
+
+                    <span class="warning-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+                <!-- SẮP HẾT HẠN -->
+
+                <a href="/DuocSi/thuoc-sap-het-han"
+                   class="warning-item">
+
+                    <div class="warning-icon warning-yellow">
+
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <circle cx="12"
+                                    cy="12"
+                                    r="9">
+                            </circle>
+
+                            <polyline points="12 7 12 12 15 14">
+                            </polyline>
+
+                        </svg>
+
+                    </div>
+
+                    <div class="warning-content">
+
+                        <strong>
+                            Thuốc sắp hết hạn
+                        </strong>
+
+                        <span>
+                            <b id="expiringWarning">0</b>
+                            loại thuốc cần kiểm tra
+                        </span>
+
+                    </div>
+
+                    <span class="warning-arrow">
+                        →
+                    </span>
+
+                </a>
+
+
+                <!-- ĐÃ HẾT HẠN -->
+
+                <a href="/DuocSi/thuoc-het-han"
+                   class="warning-item">
+
+                    <div class="warning-icon warning-red">
+
+                        <svg width="20"
+                             height="20"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="1.8"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <circle cx="12"
+                                    cy="12"
+                                    r="9">
+                            </circle>
+
+                            <line x1="15"
+                                  y1="9"
+                                  x2="9"
+                                  y2="15">
+                            </line>
+
+                            <line x1="9"
+                                  y1="9"
+                                  x2="15"
+                                  y2="15">
+                            </line>
+
+                        </svg>
+
+                    </div>
+
+                    <div class="warning-content">
+
+                        <strong>
+                            Thuốc đã hết hạn
+                        </strong>
+
+                        <span>
+                            <b id="expiredWarning">0</b>
+                            loại thuốc cần xử lý
+                        </span>
+
+                    </div>
+
+                    <span class="warning-arrow">
+                        →
+                    </span>
+
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     DASHBOARD JS
+====================================================== -->
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/DuocSi/dashboard.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

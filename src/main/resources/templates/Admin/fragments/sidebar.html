@@ -1,0 +1,208 @@
+<aside th:fragment="sidebar"
+       class="sidebar">
+
+    <!-- LOGO -->
+    <div class="sidebar-logo">
+
+        <div class="logo-icon">
+            +
+        </div>
+
+        <div class="logo-text">
+            <strong>MedCare Hospital</strong>
+            <span>Hệ thống quản lý bệnh viện</span>
+        </div>
+
+    </div>
+
+
+    <!-- MENU -->
+    <nav class="sidebar-menu">
+
+        <!-- TỔNG QUAN -->
+        <a href="/Admin/dashboard"
+           class="menu-link">
+
+            <span>
+                <span class="menu-icon">⌂</span>
+                Tổng quan
+            </span>
+
+        </a>
+
+
+        <!-- QUẢN LÝ TÀI KHOẢN -->
+        <div class="menu-group">
+
+            <button type="button"
+                    class="menu-parent">
+
+                <span>
+                    <span class="menu-icon">♙</span>
+                    Quản lý tài khoản
+                </span>
+
+                <span class="menu-arrow">›</span>
+
+            </button>
+
+            <div class="submenu">
+
+                <a href="/Admin/tai-khoan">
+                    Danh sách tài khoản
+                </a>
+
+                <a href="/Admin/phan-quyen">
+                    Phân quyền
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- QUẢN LÝ BỆNH VIỆN -->
+        <div class="menu-group">
+
+            <button type="button"
+                    class="menu-parent">
+
+                <span>
+                    <span class="menu-icon">▦</span>
+                    Quản lý bệnh viện
+                </span>
+
+                <span class="menu-arrow">›</span>
+
+            </button>
+
+            <div class="submenu">
+
+                <a href="/Admin/khoa">
+                    Khoa
+                </a>
+
+                <a href="/Admin/phong">
+                    Phòng chuyên trách
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- QUẢN LÝ THUỐC -->
+        <div class="menu-group">
+
+            <button type="button"
+                    class="menu-parent">
+
+                <span>
+                    <span class="menu-icon">♢</span>
+                    Quản lý thuốc
+                </span>
+
+                <span class="menu-arrow">›</span>
+
+            </button>
+
+            <div class="submenu">
+
+                <a href="/Admin/medicines">
+                    Thuốc
+                </a>
+
+                <a href="/Admin/thuoc-tuong-duong">
+                    Thuốc tương đương
+                </a>
+
+                <a href="/Admin/kho-thuoc">
+                    Kho thuốc
+                </a>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- QUẢN LÝ TIN TỨC -->
+        <div class="menu-group">
+
+            <button type="button"
+                    class="menu-parent">
+
+                <span>
+                    <span class="menu-icon">▤</span>
+                    Quản lý tin tức
+                </span>
+
+                <span class="menu-arrow">›</span>
+
+            </button>
+
+            <div class="submenu">
+
+                <a href="/Admin/danh-muc-tin-tuc">
+                    Danh mục tin tức
+                </a>
+
+                <a href="/Admin/danh-sach-tin-tuc">
+                    Danh sách tin tức
+                </a>
+
+            </div>
+
+        </div>
+
+
+        <!-- BÁO CÁO -->
+        <a href="/Admin/thong-ke-bao-cao"
+           class="menu-link">
+
+            <span>
+                <span class="menu-icon">◷</span>
+                Thống kê &amp; báo cáo
+            </span>
+
+        </a>
+
+
+        <!-- AUDIT LOG -->
+        <a href="/Admin/audit-log"
+           class="menu-link"
+           th:classappend="${currentUri != null and currentUri.contains('/audit-log') ? 'active' : ''}">
+            <span>
+                <span class="menu-icon">◉</span>
+                Audit Log
+            </span>
+        </a>
+
+        <!-- PROFILE -->
+        <a href="/Admin/profile"
+           class="menu-link">
+
+            <span>
+                <span class="menu-icon">▣</span>
+                Hồ sơ cá nhân
+            </span>
+
+        </a>
+
+    </nav>
+
+
+    <!-- LOGOUT -->
+    <div class="sidebar-logout">
+
+        <button type="button"
+                id="logoutButton"
+                class="logout-button">
+
+            → Đăng xuất
+
+        </button>
+
+    </div>
+
+</aside>

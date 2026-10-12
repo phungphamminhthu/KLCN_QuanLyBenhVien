@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+  <title>Audit Log</title>
+
+  <th:block layout:fragment="css">
+
+    <link rel="stylesheet"
+          href="/Css/Admin/audit-log.css">
+
+  </th:block>
+
+</head>
+
+<body>
+
+<div layout:fragment="content"
+     class="news-category-content">
+
+  <!-- ==============================
+       HEADER
+  =============================== -->
+
+  <div class="audit-header">
+
+    <div>
+
+      <h1>Audit Log</h1>
+
+      <p>
+        Nhật ký hoạt động hệ thống
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==============================
+       FILTER
+  =============================== -->
+
+<!--  <div class="audit-filter">-->
+
+<!--    &lt;!&ndash; THỜI GIAN &ndash;&gt;-->
+
+<!--    <div class="filter-group">-->
+
+<!--      <label for="timeFilter">-->
+<!--        Thời gian:-->
+<!--      </label>-->
+
+<!--      <select id="timeFilter">-->
+
+<!--        <option value="all">-->
+<!--          Tất cả-->
+<!--        </option>-->
+
+<!--        <option value="today">-->
+<!--          Hôm nay-->
+<!--        </option>-->
+
+<!--        <option value="7days">-->
+<!--          7 ngày qua-->
+<!--        </option>-->
+
+<!--        <option value="30days">-->
+<!--          30 ngày qua-->
+<!--        </option>-->
+
+<!--      </select>-->
+
+<!--    </div>-->
+
+
+<!--    &lt;!&ndash; NGƯỜI DÙNG &ndash;&gt;-->
+
+<!--    <div class="filter-group">-->
+
+<!--      <label for="userFilter">-->
+<!--        Người dùng:-->
+<!--      </label>-->
+
+<!--      <select id="userFilter">-->
+
+<!--        <option value="all">-->
+<!--          Tất cả-->
+<!--        </option>-->
+
+<!--      </select>-->
+
+<!--    </div>-->
+
+
+<!--    &lt;!&ndash; SEARCH &ndash;&gt;-->
+
+<!--    <div class="search-wrapper">-->
+
+<!--            <span class="search-icon">-->
+<!--                🔍-->
+<!--            </span>-->
+
+<!--      <input-->
+<!--              type="text"-->
+<!--              id="searchInput"-->
+<!--              placeholder="Tìm kiếm hành động..."-->
+<!--      >-->
+
+<!--    </div>-->
+
+<!--  </div>-->
+
+
+  <div class="audit-filter">
+
+    <!-- SEARCH BÊN TRÁI -->
+    <div class="search-wrapper">
+
+        <span class="search-icon">
+            ⌕
+        </span>
+
+      <input
+              type="text"
+              id="searchInput"
+              placeholder="Tìm kiếm hành động..."
+      >
+
+    </div>
+
+
+    <!-- CÁC BỘ LỌC + BUTTON BÊN PHẢI -->
+    <div class="filter-actions">
+
+      <!-- THỜI GIAN -->
+      <div class="filter-group">
+
+        <label for="timeFilter">
+          Thời gian:
+        </label>
+
+        <select id="timeFilter">
+
+          <option value="all">
+            Tất cả
+          </option>
+
+          <option value="today">
+            Hôm nay
+          </option>
+
+          <option value="7days">
+            7 ngày qua
+          </option>
+
+          <option value="30days">
+            30 ngày qua
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- NGƯỜI DÙNG -->
+      <div class="filter-group">
+
+        <label for="userFilter">
+          Người dùng:
+        </label>
+
+        <select id="userFilter">
+
+          <option value="all">
+            Tất cả
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- TÌM KIẾM -->
+      <button
+              type="button"
+              id="searchButton"
+              class="filter-button search-button">
+
+        Tìm kiếm
+
+      </button>
+
+
+      <!-- RESET -->
+      <button
+              type="button"
+              id="resetButton"
+              class="filter-button reset-button">
+
+        ↻ Đặt lại
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==============================
+       TABLE
+  =============================== -->
+
+  <div class="audit-table-card">
+
+    <table>
+
+      <thead>
+
+      <tr>
+
+        <th>STT</th>
+
+        <th>THỜI GIAN</th>
+
+        <th>NGƯỜI DÙNG</th>
+
+        <th>HÀNH ĐỘNG</th>
+
+        <th>ĐỐI TƯỢNG</th>
+
+      </tr>
+
+      </thead>
+
+
+      <tbody id="auditTableBody">
+
+      <!-- JS render -->
+
+      </tbody>
+
+    </table>
+
+
+    <!-- ==========================
+         PAGINATION
+    =========================== -->
+
+    <div class="pagination">
+
+      <button
+              type="button"
+              id="prevPage">
+        &lt;
+      </button>
+
+
+      <div
+              id="pageNumbers"
+              class="page-numbers">
+      </div>
+
+
+      <button
+              type="button"
+              id="nextPage">
+        &gt;
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ==============================
+     JAVASCRIPT
+=============================== -->
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/Admin/audit-log.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

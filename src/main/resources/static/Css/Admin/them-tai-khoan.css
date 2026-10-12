@@ -1,0 +1,689 @@
+/* ==================================================
+   MODAL THÊM TÀI KHOẢN
+================================================== */
+
+.account-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.account-modal.show {
+    display: flex;
+}
+
+
+/* ==================================================
+   MODAL CONTENT
+================================================== */
+
+.account-modal-content {
+    width: min(900px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: #ffffff;
+    border-radius: 16px;
+
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+
+    animation: modalShow 0.2s ease;
+}
+
+@keyframes modalShow {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* ==================================================
+   MODAL HEADER
+================================================== */
+
+.account-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    padding: 24px 28px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.account-modal-header h2 {
+    margin: 0;
+
+    font-size: 21px;
+    font-weight: 700;
+
+    color: #1e293b;
+}
+
+.account-modal-header p {
+    margin: 6px 0 0;
+
+    font-size: 14px;
+    color: #64748b;
+}
+
+
+/* ==================================================
+   CLOSE MODAL
+================================================== */
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 8px;
+
+    background: transparent;
+    color: #64748b;
+
+    font-size: 24px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.modal-close:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+
+/* ==================================================
+   MODAL BODY
+================================================== */
+
+.account-modal-body {
+    padding: 24px 28px;
+}
+
+
+/* ==================================================
+   FORM SECTION
+================================================== */
+
+.form-section {
+    padding: 0;
+}
+
+.form-section + .form-section {
+    margin-top: 28px;
+    padding-top: 24px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+
+/* ==================================================
+   SECTION TITLE
+================================================== */
+
+.form-section-title {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    margin-bottom: 18px;
+}
+
+.form-section-title h3 {
+    margin: 0;
+
+    font-size: 17px;
+    font-weight: 700;
+
+    color: #1e293b;
+}
+
+.form-section-title > span {
+    font-size: 13px;
+    color: #64748b;
+}
+
+
+/* ==================================================
+   REQUIRED
+================================================== */
+
+.required {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+
+/* ==================================================
+   FORM GRID
+================================================== */
+
+.form-grid {
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 18px 20px;
+}
+
+
+/* ==================================================
+   FORM GROUP
+================================================== */
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group label {
+    font-size: 14px;
+    font-weight: 600;
+
+    color: #334155;
+}
+
+
+/* ==================================================
+   INPUT + SELECT
+================================================== */
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    height: 42px;
+
+    box-sizing: border-box;
+
+    padding: 0 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+.form-group input::placeholder {
+    color: #94a3b8;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+
+/* ==================================================
+   ERROR INPUT
+================================================== */
+
+.form-group input.input-error,
+.form-group select.input-error {
+    border-color: #dc2626;
+}
+
+.form-group input.input-error:focus,
+.form-group select.input-error:focus {
+    border-color: #dc2626;
+
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10);
+}
+
+
+/* ==================================================
+   FIELD ERROR
+================================================== */
+
+.field-error {
+    min-height: 17px;
+
+    font-size: 12px;
+    line-height: 17px;
+
+    color: #dc2626;
+}
+
+
+/* ==================================================
+   PASSWORD
+================================================== */
+
+.password-wrapper {
+    position: relative;
+
+    width: 100%;
+}
+
+.password-wrapper input {
+    padding-right: 46px;
+}
+
+
+/* ==================================================
+   TOGGLE PASSWORD
+================================================== */
+
+.toggle-password {
+    position: absolute;
+
+    top: 50%;
+    right: 8px;
+
+    transform: translateY(-50%);
+
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 6px;
+
+    background: transparent;
+    color: #64748b;
+
+    cursor: pointer;
+}
+
+.toggle-password:hover {
+    background: #f1f5f9;
+    color: #2563eb;
+}
+
+.toggle-password span {
+    font-size: 14px;
+}
+
+
+/* ==================================================
+   PASSWORD RULES
+================================================== */
+
+.password-rules {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 10px 20px;
+
+    margin-top: 14px;
+
+    padding: 14px 16px;
+
+    border-radius: 10px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+}
+
+.password-rule {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 13px;
+
+    color: #64748b;
+}
+
+.rule-icon {
+    width: 20px;
+    height: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #e2e8f0;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+
+/* PASSWORD RULE VALID */
+
+.password-rule.valid {
+    color: #16a34a;
+}
+
+.password-rule.valid .rule-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+
+/* PASSWORD RULE INVALID */
+
+.password-rule.invalid {
+    color: #64748b;
+}
+
+.password-rule.invalid .rule-icon {
+    background: #f1f5f9;
+    color: #94a3b8;
+}
+
+
+/* ==================================================
+   MODAL FOOTER
+================================================== */
+
+.account-modal-footer {
+    display: flex;
+
+    justify-content: flex-end;
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 18px 28px;
+
+    border-top: 1px solid #e2e8f0;
+
+    background: #f8fafc;
+
+    border-radius: 0 0 16px 16px;
+}
+
+
+/* ==================================================
+   BUTTON CANCEL
+================================================== */
+
+.btn-cancel {
+    height: 42px;
+
+    padding: 0 18px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #475569;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+
+/* ==================================================
+   BUTTON SUBMIT
+================================================== */
+
+.btn-submit {
+    height: 42px;
+
+    padding: 0 20px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.btn-submit:hover {
+    background: #1d4ed8;
+}
+
+.btn-submit:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* ==================================================
+   TOAST
+================================================== */
+
+.account-toast {
+    position: fixed;
+
+    top: 90px;
+    right: 24px;
+
+    z-index: 3000;
+
+    display: none;
+
+    min-width: 320px;
+
+    padding: 14px 16px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+
+    align-items: center;
+
+    gap: 12px;
+}
+
+.account-toast.show {
+    display: flex;
+}
+
+
+/* ==================================================
+   TOAST SUCCESS
+================================================== */
+
+.account-toast.success {
+    border-color: #bbf7d0;
+    border-left-color: #16a34a;
+}
+
+.account-toast.success .toast-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+
+/* ==================================================
+   TOAST ERROR
+================================================== */
+
+.account-toast.error {
+    border-color: #fecaca;
+    border-left-color: #dc2626;
+}
+
+.account-toast.error .toast-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+
+/* ==================================================
+   TOAST WARNING
+================================================== */
+
+.account-toast.warning {
+    border-color: #fed7aa;
+    border-left-color: #f59e0b;
+}
+
+.account-toast.warning .toast-icon {
+    background: #ffedd5;
+    color: #f59e0b;
+}
+
+
+/* ==================================================
+   TOAST ICON
+================================================== */
+
+.toast-icon {
+    width: 32px;
+    height: 32px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+
+/* ==================================================
+   TOAST CONTENT
+================================================== */
+
+.toast-content {
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+
+    flex: 1;
+}
+
+.toast-content strong {
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.toast-content span {
+    font-size: 13px;
+    color: #64748b;
+
+    line-height: 18px;
+}
+
+
+/* ==================================================
+   TOAST CLOSE
+================================================== */
+
+.toast-close {
+    border: none;
+
+    background: transparent;
+
+    color: #94a3b8;
+
+    font-size: 22px;
+
+    cursor: pointer;
+
+    padding: 2px 5px;
+
+    line-height: 1;
+}
+
+.toast-close:hover {
+    color: #334155;
+}
+
+
+/* ==================================================
+   RESPONSIVE
+================================================== */
+
+@media (max-width: 768px) {
+
+    .account-modal {
+        padding: 12px;
+    }
+
+    .account-modal-content {
+        max-height: 95vh;
+    }
+
+    .account-modal-header {
+        padding: 20px;
+    }
+
+    .account-modal-body {
+        padding: 20px;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .password-rules {
+        grid-template-columns: 1fr;
+    }
+
+    .account-modal-footer {
+        padding: 16px 20px;
+    }
+}

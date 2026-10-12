@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+
+    <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+        MedCare Hospital
+    </title>
+
+
+    <!-- =====================================================
+         DUOC SI LAYOUT
+    ====================================================== -->
+
+    <link rel="stylesheet"
+          href="/Css/DuocSi/layout.css">
+
+
+    <!-- =====================================================
+         LOGOUT
+    ====================================================== -->
+
+    <link rel="stylesheet"
+          href="/Css/Auth/logout.css">
+
+
+    <!-- =====================================================
+         NOTIFICATION
+    ====================================================== -->
+
+    <link rel="stylesheet"
+          href="/Css/DuocSi/notification.css">
+
+
+    <!-- =====================================================
+         CSS RIÊNG TỪNG TRANG
+    ====================================================== -->
+
+    <th:block layout:fragment="css"></th:block>
+
+</head>
+
+
+<body>
+
+<div class="duocsi-layout">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside th:replace="~{DuocSi/fragments/sidebar :: sidebar}">
+    </aside>
+
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header th:replace="~{DuocSi/fragments/header :: header}">
+    </header>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="duocsi-main">
+
+        <section class="duocsi-page-content">
+
+            <div layout:fragment="content">
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- =====================================================
+     LOGOUT JS
+====================================================== -->
+
+<script src="/Js/Auth/logout.js"></script>
+
+
+<!-- =====================================================
+     DUOC SI LAYOUT JS
+====================================================== -->
+
+<script src="/Js/DuocSi/layout.js"></script>
+
+
+<!-- =====================================================
+     STOMP
+====================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+
+<!-- =====================================================
+     NOTIFICATION
+====================================================== -->
+
+<script th:src="@{/Js/DuocSi/notification.js}"></script>
+
+
+<!-- =====================================================
+     JS RIÊNG TỪNG TRANG
+====================================================== -->
+
+<th:block layout:fragment="js"></th:block>
+
+
+</body>
+
+</html>

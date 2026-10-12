@@ -1,0 +1,266 @@
+/* ================================
+   MODAL SỬA TÀI KHOẢN
+================================ */
+
+.edit-account-modal {
+    display: none;
+
+    position: fixed;
+    inset: 0;
+
+    z-index: 2000;
+
+    background: rgba(15, 23, 42, 0.45);
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.edit-account-modal.show {
+    display: flex;
+}
+
+.edit-account-modal-content {
+    width: 100%;
+    max-width: 700px;
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.18);
+
+    overflow: hidden;
+
+    animation: editAccountModalShow 0.2s ease;
+}
+
+@keyframes editAccountModalShow {
+
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+
+/* Header */
+
+.edit-account-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    padding: 22px 26px;
+
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.edit-account-header h2 {
+    margin: 0;
+
+    color: #1e293b;
+
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.edit-account-header p {
+    margin: 5px 0 0;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.edit-account-close {
+    width: 34px;
+    height: 34px;
+
+    border: none;
+
+    background: transparent;
+
+    color: #64748b;
+
+    font-size: 27px;
+    line-height: 1;
+
+    cursor: pointer;
+
+    border-radius: 8px;
+}
+
+.edit-account-close:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+
+/* Body */
+
+.edit-account-body {
+    padding: 26px;
+}
+
+.edit-form-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 20px 22px;
+}
+
+
+/* Form */
+
+.edit-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.edit-form-group label {
+    margin-bottom: 7px;
+
+    color: #334155;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.edit-form-group label span {
+    color: #ef4444;
+}
+
+.edit-form-group input,
+.edit-form-group select {
+    width: 100%;
+
+    box-sizing: border-box;
+
+    min-height: 42px;
+
+    padding: 10px 12px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 8px;
+
+    background: #ffffff;
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.edit-form-group input:focus,
+.edit-form-group select:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.edit-form-group input.input-error,
+.edit-form-group select.input-error {
+    border-color: #ef4444;
+}
+
+.edit-field-error {
+    min-height: 17px;
+
+    margin-top: 5px;
+
+    color: #dc2626;
+
+    font-size: 12px;
+}
+
+
+/* Footer */
+
+.edit-account-footer {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    padding: 16px 26px;
+
+    background: #f8fafc;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.edit-cancel-button,
+.edit-save-button {
+    min-width: 100px;
+
+    padding: 10px 18px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.edit-cancel-button {
+    border: 1px solid #cbd5e1;
+
+    background: #ffffff;
+
+    color: #475569;
+}
+
+.edit-cancel-button:hover {
+    background: #f1f5f9;
+}
+
+.edit-save-button {
+    border: 1px solid #2563eb;
+
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+.edit-save-button:hover {
+    background: #1d4ed8;
+}
+
+.edit-save-button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+}
+
+
+/* Responsive */
+
+@media (max-width: 650px) {
+
+    .edit-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-account-modal-content {
+        max-width: 100%;
+    }
+}

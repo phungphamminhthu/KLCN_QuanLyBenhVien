@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Cấp thuốc thành công</title>
+
+    <th:block layout:fragment="css">
+
+        <link
+                rel="stylesheet"
+                href="/Css/DuocSi/cap-thuoc-thanh-cong.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+<div
+        layout:fragment="content"
+        class="dispense-success-page">
+
+
+    <div class="success-card">
+
+
+        <!-- ICON -->
+
+        <div class="success-icon">
+            ✓
+        </div>
+
+
+        <!-- TITLE -->
+
+        <h1>
+            Cấp thuốc thành công
+        </h1>
+
+
+        <p class="success-description">
+
+            Đơn thuốc đã được cấp thành công.
+            Tồn kho thuốc đã được cập nhật.
+
+        </p>
+
+
+        <!-- THÔNG TIN -->
+
+        <div class="success-info">
+
+
+            <div class="success-info-row">
+
+                <span>
+                    Đơn thuốc
+                </span>
+
+                <strong id="successOrderCode">
+                    Đang tải...
+                </strong>
+
+            </div>
+
+
+            <div class="success-info-row">
+
+                <span>
+                    Bệnh nhân
+                </span>
+
+                <strong id="successPatientName">
+                    Đang tải...
+                </strong>
+
+            </div>
+
+
+            <div class="success-info-row">
+
+                <span>
+                    Trạng thái
+                </span>
+
+                <span class="status-success">
+
+                    Đã cấp thuốc
+
+                </span>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- ACTION -->
+
+        <div class="success-actions">
+
+
+            <button
+                    type="button"
+                    id="backToWaitingButton"
+                    class="success-button secondary">
+
+                Về danh sách chờ cấp thuốc
+
+            </button>
+
+
+            <button
+                    type="button"
+                    id="historyButton"
+                    class="success-button secondary">
+
+                Lịch sử cấp thuốc
+
+            </button>
+
+
+            <button
+                    type="button"
+                    id="viewPrescriptionButton"
+                    class="success-button primary">
+
+                Xem đơn thuốc
+
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+    <script
+            src="/Js/DuocSi/cap-thuoc-thanh-cong.js">
+    </script>
+
+</th:block>
+
+</body>
+
+</html>

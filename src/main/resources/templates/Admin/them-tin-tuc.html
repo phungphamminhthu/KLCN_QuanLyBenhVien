@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title id="pageTitle">Thêm tin tức</title>
+
+  <th:block layout:fragment="css">
+
+    <link rel="stylesheet"
+          href="/Css/Admin/them-tin-tuc.css">
+
+  </th:block>
+
+</head>
+
+
+<body>
+
+<section layout:fragment="content"
+         class="news-editor-page">
+
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <div class="editor-page-header">
+
+    <div>
+      <h1 id="editorTitle">
+        Thêm tin tức
+      </h1>
+
+      <p>
+        Tạo và quản lý nội dung bài viết của bệnh viện
+      </p>
+
+    </div>
+
+
+    <div class="header-actions">
+
+      <button type="button"
+              id="cancelNewsButton"
+              class="btn-cancel">
+
+        Hủy
+
+      </button>
+
+
+      <button type="button"
+              id="saveNewsButton"
+              class="btn-save">
+
+        <span>✓</span>
+
+        Lưu tin tức
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       FORM
+  ====================================================== -->
+
+  <div class="news-editor-layout">
+
+
+    <!-- =================================================
+         MAIN CONTENT
+    ================================================== -->
+
+    <div class="editor-main-card">
+
+
+      <!-- =================================================
+           TIÊU ĐỀ
+      ================================================== -->
+
+      <div class="form-group">
+
+        <label for="newsTitle">
+
+          Tiêu đề
+
+          <span>*</span>
+
+        </label>
+
+
+        <input
+                type="text"
+                id="newsTitle"
+                maxlength="255"
+                placeholder="Nhập tiêu đề tin tức">
+
+
+        <small id="newsTitleError"
+               class="field-error">
+        </small>
+
+      </div>
+
+
+
+      <!-- =================================================
+           NỘI DUNG
+      ================================================== -->
+
+      <div class="form-group content-group">
+
+        <label>
+
+          Nội dung bài viết
+
+          <span>*</span>
+
+        </label>
+
+
+<!--        <div class="editor">-->
+
+
+<!--          &lt;!&ndash; =================================================-->
+<!--               TOOLBAR HÀNG 1-->
+<!--          ================================================== &ndash;&gt;-->
+
+<!--          <div class="editor-toolbar">-->
+
+
+<!--            &lt;!&ndash; UNDO / REDO &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <button type="button"-->
+<!--                      data-command="undo"-->
+<!--                      title="Hoàn tác">-->
+
+<!--                ↶-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="redo"-->
+<!--                      title="Làm lại">-->
+
+<!--                ↷-->
+
+<!--              </button>-->
+
+<!--            </div>-->
+
+
+<!--            <span class="toolbar-divider"></span>-->
+
+
+
+<!--            &lt;!&ndash; FONT &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <select id="fontNameSelect"-->
+<!--                      class="editor-select"-->
+<!--                      title="Font chữ">-->
+
+<!--                <option value="Arial">-->
+<!--                  Arial-->
+<!--                </option>-->
+
+<!--                <option value="Times New Roman">-->
+<!--                  Times New Roman-->
+<!--                </option>-->
+
+<!--                <option value="Georgia">-->
+<!--                  Georgia-->
+<!--                </option>-->
+
+<!--                <option value="Verdana">-->
+<!--                  Verdana-->
+<!--                </option>-->
+
+<!--                <option value="Tahoma">-->
+<!--                  Tahoma-->
+<!--                </option>-->
+
+<!--                <option value="Courier New">-->
+<!--                  Courier New-->
+<!--                </option>-->
+
+<!--              </select>-->
+
+
+<!--              <select id="fontSizeSelect"-->
+<!--                      class="editor-select size-select"-->
+<!--                      title="Cỡ chữ">-->
+
+<!--                <option value="12">12</option>-->
+<!--                <option value="13">13</option>-->
+<!--                <option value="14" selected>14</option>-->
+<!--                <option value="16">16</option>-->
+<!--                <option value="18">18</option>-->
+<!--                <option value="20">20</option>-->
+<!--                <option value="24">24</option>-->
+<!--                <option value="28">28</option>-->
+<!--                <option value="32">32</option>-->
+<!--                <option value="36">36</option>-->
+
+<!--              </select>-->
+
+<!--            </div>-->
+
+
+<!--            <span class="toolbar-divider"></span>-->
+
+
+
+<!--            &lt;!&ndash; B I U S &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <button type="button"-->
+<!--                      data-command="bold"-->
+<!--                      title="In đậm">-->
+
+<!--                <b>B</b>-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="italic"-->
+<!--                      title="In nghiêng">-->
+
+<!--                <i>I</i>-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="underline"-->
+<!--                      title="Gạch chân">-->
+
+<!--                <u>U</u>-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="strikeThrough"-->
+<!--                      title="Gạch ngang">-->
+
+<!--                <s>S</s>-->
+
+<!--              </button>-->
+
+<!--            </div>-->
+
+
+<!--            <span class="toolbar-divider"></span>-->
+
+
+
+<!--            &lt;!&ndash; MÀU &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <label class="color-tool"-->
+<!--                     title="Màu chữ">-->
+
+<!--                                <span class="color-letter">-->
+<!--                                    A-->
+<!--                                </span>-->
+
+<!--                <input type="color"-->
+<!--                       id="textColorPicker"-->
+<!--                       value="#000000">-->
+
+<!--              </label>-->
+
+
+<!--              <label class="color-tool"-->
+<!--                     title="Màu nền">-->
+
+<!--                                <span class="highlight-letter">-->
+<!--                                    A-->
+<!--                                </span>-->
+
+<!--                <input type="color"-->
+<!--                       id="highlightColorPicker"-->
+<!--                       value="#ffff00">-->
+
+<!--              </label>-->
+
+<!--            </div>-->
+
+
+<!--            <span class="toolbar-divider"></span>-->
+
+
+
+<!--            &lt;!&ndash; CĂN LỀ &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <button type="button"-->
+<!--                      data-command="justifyLeft"-->
+<!--                      title="Căn trái">-->
+
+<!--                ⬅-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="justifyCenter"-->
+<!--                      title="Căn giữa">-->
+
+<!--                ↔-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="justifyRight"-->
+<!--                      title="Căn phải">-->
+
+<!--                ➡-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="justifyFull"-->
+<!--                      title="Căn đều">-->
+
+<!--                ☰-->
+
+<!--              </button>-->
+
+<!--            </div>-->
+
+
+<!--          </div>-->
+
+
+
+<!--          &lt;!&ndash; =================================================-->
+<!--               TOOLBAR HÀNG 2-->
+<!--          ================================================== &ndash;&gt;-->
+
+<!--          <div class="editor-toolbar editor-toolbar-second">-->
+
+
+<!--            &lt;!&ndash; DANH SÁCH &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <button type="button"-->
+<!--                      data-command="insertUnorderedList"-->
+<!--                      title="Danh sách dấu chấm">-->
+
+<!--                •☰-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="insertOrderedList"-->
+<!--                      title="Danh sách đánh số">-->
+
+<!--                1☰-->
+
+<!--              </button>-->
+
+<!--            </div>-->
+
+
+<!--            <span class="toolbar-divider"></span>-->
+
+
+
+<!--            &lt;!&ndash; INDENT &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <button type="button"-->
+<!--                      data-command="outdent"-->
+<!--                      title="Giảm thụt lề">-->
+
+<!--                ⇤-->
+
+<!--              </button>-->
+
+
+<!--              <button type="button"-->
+<!--                      data-command="indent"-->
+<!--                      title="Tăng thụt lề">-->
+
+<!--                ⇥-->
+
+<!--              </button>-->
+
+<!--            </div>-->
+
+
+<!--            <span class="toolbar-divider"></span>-->
+
+
+
+<!--            &lt;!&ndash; LINK &ndash;&gt;-->
+
+<!--            <div class="toolbar-group">-->
+
+<!--              <button type="button"-->
+<!--                      data-command="createLink"-->
+<!--                      title="Chèn liên kết">-->
+
+<!--                🔗-->
+
+<!--              </button>-->
+
+<!--            </div>-->
+
+
+<!--          </div>-->
+
+
+
+<!--          &lt;!&ndash; =================================================-->
+<!--               CONTENT-->
+<!--          ================================================== &ndash;&gt;-->
+
+<!--          <div id="newsContent"-->
+<!--               class="editor-content"-->
+<!--               contenteditable="true"-->
+<!--               spellcheck="true"-->
+<!--               data-placeholder="Nhập nội dung bài viết...">-->
+<!--          </div>-->
+
+
+<!--        </div>-->
+        <div class="editor">
+
+          <!-- =================================================
+               TOOLBAR STICKY
+          ================================================== -->
+          <div class="editor-toolbar-sticky">
+
+            <!-- =================================================
+                 TOOLBAR HÀNG 1
+            ================================================== -->
+            <div class="editor-toolbar">
+
+              <!-- UNDO / REDO -->
+              <div class="toolbar-group">
+
+                <button type="button"
+                        data-command="undo"
+                        title="Hoàn tác">
+                  ↶
+                </button>
+
+                <button type="button"
+                        data-command="redo"
+                        title="Làm lại">
+                  ↷
+                </button>
+
+              </div>
+
+              <span class="toolbar-divider"></span>
+
+
+              <!-- FONT -->
+              <div class="toolbar-group">
+
+                <select id="fontNameSelect"
+                        class="editor-select"
+                        title="Font chữ">
+
+                  <option value="Arial">Arial</option>
+                  <option value="Times New Roman">Times New Roman</option>
+                  <option value="Georgia">Georgia</option>
+                  <option value="Verdana">Verdana</option>
+                  <option value="Tahoma">Tahoma</option>
+                  <option value="Courier New">Courier New</option>
+
+                </select>
+
+
+                <select id="fontSizeSelect"
+                        class="editor-select size-select"
+                        title="Cỡ chữ">
+
+                  <option value="12">12</option>
+                  <option value="13">13</option>
+                  <option value="14" selected>14</option>
+                  <option value="16">16</option>
+                  <option value="18">18</option>
+                  <option value="20">20</option>
+                  <option value="24">24</option>
+                  <option value="28">28</option>
+                  <option value="32">32</option>
+                  <option value="36">36</option>
+
+                </select>
+
+              </div>
+
+              <span class="toolbar-divider"></span>
+
+
+              <!-- B I U S -->
+              <div class="toolbar-group">
+
+                <button type="button"
+                        data-command="bold"
+                        title="In đậm">
+                  <b>B</b>
+                </button>
+
+                <button type="button"
+                        data-command="italic"
+                        title="In nghiêng">
+                  <i>I</i>
+                </button>
+
+                <button type="button"
+                        data-command="underline"
+                        title="Gạch chân">
+                  <u>U</u>
+                </button>
+
+                <button type="button"
+                        data-command="strikeThrough"
+                        title="Gạch ngang">
+                  <s>S</s>
+                </button>
+
+              </div>
+
+              <span class="toolbar-divider"></span>
+
+
+              <!-- MÀU -->
+              <div class="toolbar-group">
+
+                <label class="color-tool"
+                       title="Màu chữ">
+
+                    <span class="color-letter">
+                        A
+                    </span>
+
+                  <input type="color"
+                         id="textColorPicker"
+                         value="#000000">
+
+                </label>
+
+
+                <label class="color-tool"
+                       title="Màu nền">
+
+                    <span class="highlight-letter">
+                        A
+                    </span>
+
+                  <input type="color"
+                         id="highlightColorPicker"
+                         value="#ffff00">
+
+                </label>
+
+              </div>
+
+              <span class="toolbar-divider"></span>
+
+
+              <!-- CĂN LỀ -->
+              <div class="toolbar-group">
+
+                <button type="button"
+                        data-command="justifyLeft"
+                        title="Căn trái">
+                  ⬅
+                </button>
+
+                <button type="button"
+                        data-command="justifyCenter"
+                        title="Căn giữa">
+                  ↔
+                </button>
+
+                <button type="button"
+                        data-command="justifyRight"
+                        title="Căn phải">
+                  ➡
+                </button>
+
+                <button type="button"
+                        data-command="justifyFull"
+                        title="Căn đều">
+                  ☰
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <!-- =================================================
+                 TOOLBAR HÀNG 2
+            ================================================== -->
+            <div class="editor-toolbar editor-toolbar-second">
+
+              <!-- DANH SÁCH -->
+              <div class="toolbar-group">
+
+                <button type="button"
+                        data-command="insertUnorderedList"
+                        title="Danh sách dấu chấm">
+                  •☰
+                </button>
+
+                <button type="button"
+                        data-command="insertOrderedList"
+                        title="Danh sách đánh số">
+                  1☰
+                </button>
+
+              </div>
+
+              <span class="toolbar-divider"></span>
+
+
+              <!-- INDENT -->
+              <div class="toolbar-group">
+
+                <button type="button"
+                        data-command="outdent"
+                        title="Giảm thụt lề">
+                  ⇤
+                </button>
+
+                <button type="button"
+                        data-command="indent"
+                        title="Tăng thụt lề">
+                  ⇥
+                </button>
+
+              </div>
+
+              <span class="toolbar-divider"></span>
+
+
+              <!-- LINK -->
+              <div class="toolbar-group">
+
+                <button type="button"
+                        data-command="createLink"
+                        title="Chèn liên kết">
+                  🔗
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- =================================================
+               CONTENT
+          ================================================== -->
+          <div id="newsContent"
+               class="editor-content"
+               contenteditable="true"
+               spellcheck="true"
+               data-placeholder="Nhập nội dung bài viết...">
+          </div>
+
+        </div>
+
+
+        <small id="newsContentError"
+               class="field-error">
+        </small>
+
+      </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         SIDEBAR
+    ================================================== -->
+
+    <aside class="editor-sidebar">
+
+
+      <!-- =================================================
+           THÔNG TIN BÀI VIẾT
+      ================================================== -->
+
+      <div class="editor-side-card">
+
+        <h3>
+          Thông tin bài viết
+        </h3>
+
+
+        <!-- DANH MỤC -->
+
+        <div class="form-group">
+
+          <label for="newsCategory">
+
+            Danh mục
+
+            <span>*</span>
+
+          </label>
+
+
+          <select id="newsCategory">
+
+            <option value="">
+              Chọn danh mục
+            </option>
+
+          </select>
+
+
+          <small id="newsCategoryError"
+                 class="field-error">
+          </small>
+
+        </div>
+
+
+        <!-- TRẠNG THÁI -->
+
+        <div class="form-group">
+
+          <label for="newsStatus">
+
+            Trạng thái
+
+          </label>
+
+
+          <select id="newsStatus">
+
+            <option value="Đang hiển thị">
+              Đang hiển thị
+            </option>
+
+            <option value="Ẩn">
+              Ẩn
+            </option>
+
+          </select>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- =================================================
+           HÌNH ẢNH
+      ================================================== -->
+
+      <div class="editor-side-card">
+
+        <h3>
+          Hình ảnh đại diện
+        </h3>
+
+
+        <div id="imageUploadBox"
+             class="image-upload-box">
+
+
+          <input
+                  type="file"
+                  id="newsImageInput"
+                  accept="image/jpeg,image/png,image/webp"
+                  hidden>
+
+
+          <!-- PLACEHOLDER -->
+
+          <div id="imageUploadPlaceholder"
+               class="image-upload-placeholder">
+
+            <div class="upload-icon">
+              ▧
+            </div>
+
+            <strong>
+              Nhấn để tải ảnh lên
+            </strong>
+
+            <span>
+                            JPG, PNG, WEBP
+                        </span>
+
+            <span>
+                            Tối đa 5MB
+                        </span>
+
+          </div>
+
+
+          <!-- PREVIEW -->
+
+          <div id="imagePreviewWrapper"
+               class="image-preview-wrapper"
+               hidden>
+
+            <img id="newsImagePreview"
+                 class="news-image-preview"
+                 alt="Ảnh đại diện">
+
+
+            <button
+                    type="button"
+                    id="removeNewsImage"
+                    class="remove-image-button">
+
+              ×
+
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+    </aside>
+
+
+  </div>
+
+
+
+  <!-- =====================================================
+       LINK MODAL
+  ====================================================== -->
+
+  <div id="linkModal"
+       class="link-modal"
+       hidden>
+
+
+    <div class="link-modal-overlay"></div>
+
+
+    <div class="link-modal-content">
+
+
+      <div class="link-modal-header">
+
+        <div>
+
+          <h3>
+            Chèn liên kết
+          </h3>
+
+          <p>
+            Nhập địa chỉ liên kết muốn chèn vào nội dung
+          </p>
+
+        </div>
+
+
+        <button type="button"
+                id="closeLinkModal"
+                class="link-modal-close">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      <div class="link-modal-body">
+
+        <label for="linkUrl">
+
+          URL liên kết
+
+          <span>*</span>
+
+        </label>
+
+
+        <input
+                type="url"
+                id="linkUrl"
+                placeholder="https://example.com">
+
+
+        <small id="linkUrlError"
+               class="link-error">
+        </small>
+
+      </div>
+
+
+      <div class="link-modal-footer">
+
+        <button type="button"
+                id="cancelLinkButton"
+                class="link-cancel-button">
+
+          Hủy
+
+        </button>
+
+
+        <button type="button"
+                id="insertLinkButton"
+                class="link-insert-button">
+
+          Chèn liên kết
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
+  <div id="newsToast"
+       class="news-toast">
+
+    <div id="newsToastIcon"
+         class="toast-icon">
+
+      ✓
+
+    </div>
+
+
+    <div class="toast-content">
+
+      <strong id="newsToastTitle">
+        Thành công
+      </strong>
+
+      <span id="newsToastMessage">
+                Thao tác thành công.
+            </span>
+
+    </div>
+
+
+    <button type="button"
+            id="closeNewsToast"
+            class="toast-close">
+
+      ×
+
+    </button>
+
+  </div>
+
+
+</section>
+
+
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/Admin/them-tin-tuc.js"></script>
+
+</th:block>
+
+
+</body>
+
+</html>

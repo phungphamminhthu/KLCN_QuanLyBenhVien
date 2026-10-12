@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+    MedCare Hospital
+  </title>
+
+
+  <!-- ADMIN LAYOUT -->
+  <link rel="stylesheet"
+        href="/Css/Admin/layout.css">
+
+
+  <!-- LOGOUT -->
+  <link rel="stylesheet"
+        href="/Css/Auth/logout.css">
+
+
+  <!-- NOTIFICATION -->
+  <link rel="stylesheet"
+        href="/Css/Admin/notification.css">
+
+
+  <!-- CSS RIÊNG CỦA TỪNG TRANG -->
+  <th:block layout:fragment="css"></th:block>
+
+</head>
+
+
+<body>
+
+<div class="admin-layout">
+
+
+  <!-- =================================================
+       SIDEBAR
+  ================================================== -->
+
+  <aside th:replace="~{Admin/fragments/sidebar :: sidebar}">
+  </aside>
+
+
+  <!-- =================================================
+       HEADER
+  ================================================== -->
+
+  <header th:replace="~{Admin/fragments/header :: header}">
+  </header>
+
+
+  <!-- =================================================
+       MAIN CONTENT
+  ================================================== -->
+
+  <main class="main-content">
+
+    <section class="page-content">
+
+      <div layout:fragment="content">
+      </div>
+
+    </section>
+
+  </main>
+
+
+</div>
+
+
+<!-- =====================================================
+     LOGOUT JS
+====================================================== -->
+
+<script src="/Js/Auth/logout.js"></script>
+
+
+<!-- =====================================================
+     LAYOUT JS
+====================================================== -->
+
+<script src="/Js/Admin/layout.js"></script>
+
+
+<!-- =====================================================
+     STOMP
+====================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+
+<!-- =====================================================
+     NOTIFICATION
+====================================================== -->
+
+<script th:src="@{/Js/Admin/notification.js}"></script>
+
+
+<!-- =====================================================
+     JS RIÊNG CỦA TỪNG TRANG
+====================================================== -->
+
+<th:block layout:fragment="js"></th:block>
+
+
+</body>
+</html>

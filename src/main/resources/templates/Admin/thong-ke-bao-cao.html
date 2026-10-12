@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+  <title>Thống kê & báo cáo</title>
+
+  <th:block layout:fragment="css">
+
+    <link
+            rel="stylesheet"
+            href="/Css/Admin/thong-ke-bao-cao.css">
+
+  </th:block>
+
+</head>
+
+
+<body>
+
+<div layout:fragment="content"
+     class="report-content">
+
+  <!-- HEADER -->
+
+  <div class="report-header">
+
+    <div>
+
+      <h1>
+        Thống kê & báo cáo
+      </h1>
+
+      <p>
+        Tổng hợp số liệu và báo cáo quản trị
+      </p>
+
+    </div>
+
+
+<!--    <div class="report-actions">-->
+
+<!--      &lt;!&ndash; THỜI GIAN &ndash;&gt;-->
+
+<!--      <div class="filter-group">-->
+
+<!--        <label>-->
+<!--          Thời gian-->
+<!--        </label>-->
+
+<!--        <select id="periodSelect">-->
+
+<!--          <option value="today">-->
+<!--            Hôm nay-->
+<!--          </option>-->
+
+<!--          <option value="7days">-->
+<!--            7 ngày qua-->
+<!--          </option>-->
+
+<!--          <option value="30days" selected>-->
+<!--            30 ngày qua-->
+<!--          </option>-->
+
+<!--          <option value="custom">-->
+<!--            Tùy chọn-->
+<!--          </option>-->
+
+<!--        </select>-->
+
+<!--      </div>-->
+
+
+<!--      &lt;!&ndash; KHOA &ndash;&gt;-->
+
+<!--      <div class="filter-group">-->
+
+<!--        <label>-->
+<!--          Khoa-->
+<!--        </label>-->
+
+<!--        <select id="khoaSelect">-->
+
+<!--          <option value="">-->
+<!--            Tất cả-->
+<!--          </option>-->
+
+<!--        </select>-->
+
+<!--      </div>-->
+
+
+<!--      &lt;!&ndash; NGÀY TÙY CHỌN &ndash;&gt;-->
+
+<!--      <input-->
+<!--              type="date"-->
+<!--              id="customDate"-->
+<!--              class="custom-date-input">-->
+
+
+<!--      &lt;!&ndash; XUẤT &ndash;&gt;-->
+
+<!--      <button-->
+<!--              type="button"-->
+<!--              class="btn-export"-->
+<!--              id="btnExport">-->
+
+<!--                <span>-->
+<!--                    📄-->
+<!--                </span>-->
+
+<!--        Xuất báo cáo-->
+
+<!--      </button>-->
+
+<!--    </div>-->
+    <div class="report-actions">
+
+      <!-- THỜI GIAN -->
+      <div class="filter-group">
+
+        <label for="periodSelect">
+          Thời gian
+        </label>
+
+        <select id="periodSelect">
+
+          <option value="today">
+            Hôm nay
+          </option>
+
+          <option value="7days">
+            7 ngày qua
+          </option>
+
+          <option value="30days" selected>
+            30 ngày qua
+          </option>
+
+          <option value="custom">
+            Tùy chọn
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- KHOA -->
+      <div class="filter-group">
+
+        <label for="khoaSelect">
+          Khoa
+        </label>
+
+        <select id="khoaSelect">
+
+          <option value="">
+            Tất cả
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <!-- NGÀY -->
+      <input
+              type="date"
+              id="customDate"
+              class="custom-date-input">
+
+
+      <!-- XUẤT -->
+      <button
+              type="button"
+              class="btn-export"
+              id="btnExport">
+
+        <span>📄</span>
+
+        Xuất báo cáo
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- STATISTICS -->
+
+  <div class="statistics-grid">
+
+    <!-- LƯỢT KHÁM -->
+
+    <div class="stat-card">
+
+      <div class="stat-card-top">
+
+        <div>
+
+                    <span>
+                        TỔNG LƯỢT KHÁM
+                    </span>
+
+          <strong id="tongLuotKham">
+            0
+          </strong>
+
+          <small>
+            Theo khoảng thời gian đã chọn
+          </small>
+
+        </div>
+
+        <div class="stat-icon blue">
+          📅
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- DOANH THU -->
+
+    <div class="stat-card">
+
+      <div class="stat-card-top">
+
+        <div>
+
+                    <span>
+                        TỔNG DOANH THU
+                    </span>
+
+          <strong id="tongDoanhThu">
+            0 ₫
+          </strong>
+
+          <small>
+            Tổng tiền đã thanh toán
+          </small>
+
+        </div>
+
+        <div class="stat-icon green">
+          💰
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- BỆNH NHÂN -->
+
+    <div class="stat-card">
+
+      <div class="stat-card-top">
+
+        <div>
+
+                    <span>
+                        TỔNG BỆNH NHÂN
+                    </span>
+
+          <strong id="tongBenhNhan">
+            0
+          </strong>
+
+          <small>
+            Tổng số bệnh nhân trong hệ thống
+          </small>
+
+        </div>
+
+        <div class="stat-icon purple">
+          👥
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- CHARTS -->
+
+  <div class="charts-grid">
+
+    <!-- LƯỢT KHÁM -->
+
+    <div class="chart-card">
+
+      <div class="chart-header">
+
+        <div>
+
+          <h2>
+            <span class="dot blue"></span>
+            Lượt khám theo thời gian
+          </h2>
+
+          <span>
+                        Đơn vị: Lượt
+                    </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="chart-container">
+
+        <div class="chart-scroll">
+
+          <div class="chart-inner">
+            <canvas id="appointmentChart"></canvas>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- DOANH THU -->
+
+    <div class="chart-card">
+
+      <div class="chart-header">
+
+        <div>
+
+          <h2>
+            <span class="dot green"></span>
+            Doanh thu theo thời gian
+          </h2>
+
+          <span>
+                        Đơn vị: VNĐ
+                    </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="chart-container">
+
+        <div class="chart-scroll">
+
+          <div class="chart-inner">
+            <canvas id="revenueChart"></canvas>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+  <script
+          src="https://cdn.jsdelivr.net/npm/chart.js">
+  </script>
+
+  <script
+          src="/Js/Admin/thong-ke-bao-cao.js">
+  </script>
+
+</th:block>
+
+</body>
+
+</html>

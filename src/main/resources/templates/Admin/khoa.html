@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>
+    Quản lý khoa
+  </title>
+
+  <!-- =====================================================
+       CSS
+  ====================================================== -->
+
+  <th:block layout:fragment="css">
+
+    <link rel="stylesheet"
+          href="/Css/Admin/khoa.css">
+
+  </th:block>
+
+</head>
+
+
+<body>
+
+<section layout:fragment="content"
+         class="khoa-content">
+
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <div class="khoa-page-header">
+
+    <div>
+
+      <h1>
+        Quản lý bệnh viện
+      </h1>
+
+      <p>
+        Quản lý thông tin khoa/phòng
+      </p>
+
+    </div>
+
+
+    <button
+            type="button"
+            id="addKhoaButton"
+            class="btn-primary">
+
+            <span>
+                +
+            </span>
+
+      Thêm khoa
+
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       BỘ LỌC
+  ====================================================== -->
+
+  <div class="khoa-filter-card">
+
+
+    <!-- TÌM KIẾM -->
+
+    <div class="filter-item filter-search">
+
+      <label for="keywordInput">
+
+        TÌM KIẾM
+
+      </label>
+
+
+      <div class="filter-input">
+
+                <span>
+                    ⌕
+                </span>
+
+
+        <input
+                type="text"
+                id="keywordInput"
+                placeholder="Tìm kiếm tên khoa, mã khoa...">
+
+      </div>
+
+    </div>
+
+
+    <!-- BUTTON -->
+
+    <div class="filter-buttons">
+
+      <button
+              type="button"
+              id="searchButton"
+              class="search-button">
+
+        Tìm kiếm
+
+      </button>
+
+
+      <button
+              type="button"
+              id="resetButton"
+              class="reset-button"
+              title="Đặt lại">
+
+        ↻
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       BẢNG KHOA
+  ====================================================== -->
+
+  <div class="khoa-table-card">
+
+
+    <div class="table-scroll">
+
+      <table class="khoa-table">
+
+        <thead>
+
+        <tr>
+
+          <th class="col-stt">
+
+            STT
+
+          </th>
+
+
+          <th>
+
+            MÃ KHOA
+
+          </th>
+
+
+          <th>
+
+            TÊN KHOA
+
+          </th>
+
+
+          <th>
+
+            MÔ TẢ
+
+          </th>
+
+
+          <th class="col-action">
+
+            THAO TÁC
+
+          </th>
+
+        </tr>
+
+        </thead>
+
+
+        <tbody id="khoaTableBody">
+
+        <!-- JS render -->
+
+        </tbody>
+
+      </table>
+
+
+      <!-- =================================================
+           EMPTY
+      ================================================== -->
+
+      <div
+              id="emptyKhoa"
+              class="empty-khoa"
+              hidden>
+
+        <div class="empty-icon">
+          ▱
+        </div>
+
+        <h3>
+          Không có khoa
+        </h3>
+
+        <p>
+          Không tìm thấy khoa phù hợp.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <!-- =================================================
+         FOOTER + PHÂN TRANG
+    ================================================== -->
+
+    <div class="table-footer">
+
+
+      <div
+              id="tableResult"
+              class="table-result">
+
+        Hiển thị 0 trong tổng số 0 khoa
+
+      </div>
+
+
+      <div
+              id="pagination"
+              class="pagination">
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       MODAL THÊM / SỬA / XEM KHOA
+  ====================================================== -->
+
+  <div
+          id="khoaModal"
+          class="khoa-modal"
+          hidden>
+
+
+    <div class="khoa-modal-content">
+
+
+      <!-- HEADER -->
+
+      <div class="modal-header">
+
+        <div>
+
+          <h2 id="modalTitle">
+
+            Thêm khoa
+
+          </h2>
+
+
+          <p id="modalDescription">
+
+            Nhập thông tin khoa
+
+          </p>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="closeKhoaModal"
+                class="modal-close">
+
+          ×
+
+        </button>
+
+      </div>
+
+
+      <!-- BODY -->
+
+      <div class="modal-body">
+
+
+        <!-- TÊN KHOA -->
+
+        <div class="form-group">
+
+          <label for="tenKhoa">
+
+            Tên khoa
+
+            <span>
+                            *
+                        </span>
+
+          </label>
+
+
+          <input
+                  type="text"
+                  id="tenKhoa"
+                  maxlength="100"
+                  placeholder="Nhập tên khoa...">
+
+
+          <small
+                  id="tenKhoaError"
+                  class="field-error">
+
+          </small>
+
+        </div>
+
+
+        <!-- MÔ TẢ -->
+
+        <div class="form-group">
+
+          <label for="moTa">
+
+            Mô tả
+
+          </label>
+
+
+          <textarea
+                  id="moTa"
+                  maxlength="255"
+                  rows="4"
+                  placeholder="Nhập mô tả khoa..."></textarea>
+
+
+          <small
+                  id="moTaError"
+                  class="field-error">
+
+          </small>
+
+
+          <small class="character-count">
+
+                        <span id="moTaCount">
+                            0
+                        </span>/255
+
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <!-- FOOTER -->
+
+      <div class="modal-footer">
+
+
+        <button
+                type="button"
+                id="cancelKhoaModal"
+                class="btn-cancel">
+
+          Hủy
+
+        </button>
+
+
+        <button
+                type="button"
+                id="saveKhoaButton"
+                class="btn-save">
+                    <span>
+                        ✓
+                    </span>
+                    <span id="saveButtonText">
+
+                        Lưu khoa
+                    </span>
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       TOAST
+  ====================================================== -->
+
+  <div
+          id="khoaToast"
+          class="khoa-toast">
+
+
+    <div
+            id="khoaToastIcon"
+            class="toast-icon">
+
+      ✓
+
+    </div>
+
+
+    <div class="toast-content">
+
+      <strong id="khoaToastTitle">
+
+        Thành công
+
+      </strong>
+
+
+      <span id="khoaToastMessage">
+
+                Thao tác thành công.
+
+            </span>
+
+    </div>
+
+
+    <button
+            type="button"
+            id="closeKhoaToast"
+            class="toast-close">
+
+      ×
+
+    </button>
+
+  </div>
+
+
+  <!-- =====================================================
+       DELETE CONFIRM MODAL
+  ====================================================== -->
+
+  <div
+          id="deleteConfirmModal"
+          class="delete-confirm-modal"
+          hidden>
+
+
+    <div class="delete-confirm-content">
+
+
+      <div class="delete-confirm-icon">
+
+        !
+
+      </div>
+
+
+      <h3>
+
+        Xác nhận xóa khoa
+
+      </h3>
+
+
+      <p>
+
+        Bạn có chắc chắn muốn xóa khoa
+
+      </p>
+
+
+      <p>
+
+        <strong id="deleteKhoaName">
+          —
+        </strong>
+
+      </p>
+
+
+      <p class="delete-warning">
+
+        Dữ liệu sau khi xóa sẽ không thể khôi phục.
+
+      </p>
+
+
+      <div class="delete-confirm-actions">
+
+
+        <button
+                type="button"
+                id="cancelDeleteButton"
+                class="btn-cancel">
+
+          Hủy
+
+        </button>
+
+
+        <button
+                type="button"
+                id="confirmDeleteButton"
+                class="btn-delete-confirm">
+
+          Xóa khoa
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+</section>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/Admin/khoa.js"></script>
+
+</th:block>
+
+
+</body>
+
+</html>

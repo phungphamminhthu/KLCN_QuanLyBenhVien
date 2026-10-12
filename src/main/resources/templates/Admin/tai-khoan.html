@@ -1,10 +1,506 @@
 <!DOCTYPE html>
-<html lang="en">
+
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf"
+      layout:decorate="~{Admin/fragments/layout}">
+
 <head>
+
     <meta charset="UTF-8">
-    <title>Title</title>
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Quản lý tài khoản
+    </title>
+
+
+    <!-- =====================================================
+         CSS RIÊNG TRANG TÀI KHOẢN
+    ====================================================== -->
+
+    <th:block layout:fragment="css">
+
+        <!-- CSS DASHBOARD DÙNG CHUNG -->
+        <link rel="stylesheet"
+              href="/Css/Admin/dashboard.css">
+
+        <!-- CSS TRANG TÀI KHOẢN -->
+        <link rel="stylesheet"
+              href="/Css/Admin/tai-khoan.css">
+
+        <!-- CSS THÊM TÀI KHOẢN -->
+        <link rel="stylesheet"
+              href="/Css/Admin/them-tai-khoan.css">
+
+        <!-- CSS XEM TÀI KHOẢN -->
+        <link rel="stylesheet"
+              href="/Css/Admin/xem-tai-khoan.css">
+
+        <!-- CSS SỬA TÀI KHOẢN -->
+        <link rel="stylesheet"
+              href="/Css/Admin/sua-tai-khoan.css">
+
+    </th:block>
+
 </head>
+
+
 <body>
 
+
+<!-- =====================================================
+     NỘI DUNG TRANG QUẢN LÝ TÀI KHOẢN
+
+     KHÔNG tạo:
+     - admin-layout
+     - main-content
+     - header
+     - sidebar
+
+     Vì layout.html đã có.
+====================================================== -->
+
+<section layout:fragment="content"
+         class="account-content">
+
+
+    <!-- =================================================
+         PAGE HEADER
+    ================================================== -->
+
+    <div class="account-page-header">
+
+        <div>
+
+            <h1>
+                Quản lý tài khoản
+            </h1>
+
+            <p>
+                Tổng quan hoạt động hệ thống tài khoản & phân quyền người dùng
+            </p>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="addAccountButton"
+                class="add-account-button">
+
+            <span class="add-icon">
+                +
+            </span>
+
+            Thêm tài khoản mới
+
+        </button>
+
+    </div>
+
+
+
+    <!-- =================================================
+         BỘ LỌC
+    ================================================== -->
+
+    <div class="filter-card">
+
+
+        <!-- TÌM KIẾM -->
+
+        <div class="filter-item filter-search">
+
+            <label>
+                TÌM KIẾM
+            </label>
+
+
+            <div class="filter-input">
+
+                <span>
+                    ⌕
+                </span>
+
+                <input
+                        type="text"
+                        id="keywordInput"
+                        placeholder="Tìm kiếm theo Họ tên, Username, Email, SĐT...">
+
+            </div>
+
+        </div>
+
+
+
+        <!-- VAI TRÒ -->
+
+        <div class="filter-item">
+
+            <label>
+                VAI TRÒ
+            </label>
+
+
+            <select id="roleFilter">
+
+                <option value="">
+                    Tất cả vai trò
+                </option>
+
+                <option value="1">
+                    Quản trị viên
+                </option>
+
+                <option value="2">
+                    Bác sĩ
+                </option>
+
+                <option value="3">
+                    Nhân viên tiếp nhận
+                </option>
+
+                <option value="4">
+                    Dược sĩ
+                </option>
+
+                <option value="5">
+                    Nhân viên chuyên trách
+                </option>
+
+                <option value="6">
+                    Bệnh nhân
+                </option>
+
+            </select>
+
+        </div>
+
+
+
+        <!-- TRẠNG THÁI -->
+
+        <div class="filter-item">
+
+            <label>
+                TRẠNG THÁI
+            </label>
+
+
+            <select id="statusFilter">
+
+                <option value="">
+                    Tất cả trạng thái
+                </option>
+
+                <option value="Đang hoạt động">
+                    Đang hoạt động
+                </option>
+
+                <option value="Tạm khóa">
+                    Tạm khóa
+                </option>
+
+            </select>
+
+        </div>
+
+
+
+        <!-- BUTTON -->
+
+        <div class="filter-buttons">
+
+            <button
+                    type="button"
+                    id="searchButton"
+                    class="search-button">
+
+                Tìm kiếm
+
+            </button>
+
+
+            <button
+                    type="button"
+                    id="resetButton"
+                    class="reset-button">
+
+                ↻
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         BẢNG TÀI KHOẢN
+    ================================================== -->
+
+    <div class="account-table-card">
+
+
+        <div class="table-scroll">
+
+
+            <table class="account-table">
+
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        NGƯỜI DÙNG
+                    </th>
+
+                    <th>
+                        USERNAME
+                    </th>
+
+                    <th>
+                        EMAIL
+                    </th>
+
+                    <th>
+                        SỐ ĐIỆN THOẠI
+                    </th>
+
+                    <th>
+                        VAI TRÒ
+                    </th>
+
+                    <th>
+                        TRẠNG THÁI
+                    </th>
+
+                    <th>
+                        THAO TÁC
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="accountTableBody">
+
+                </tbody>
+
+
+            </table>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
+
+        <div class="table-footer">
+
+
+            <div id="tableResult"
+                 class="table-result">
+
+                Hiển thị 0 trong tổng số 0 tài khoản
+
+            </div>
+
+
+            <div id="pagination"
+                 class="pagination">
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         MODAL XÁC NHẬN KHÓA / MỞ KHÓA
+    ================================================== -->
+
+    <div id="accountStatusModal"
+         class="account-status-modal">
+
+        <div class="account-status-dialog">
+
+
+            <!-- ICON -->
+
+            <div id="accountStatusIcon"
+                 class="account-status-icon">
+
+                ⚠️
+
+            </div>
+
+
+            <!-- TITLE -->
+
+            <h3 id="accountStatusTitle">
+
+                Xác nhận khóa tài khoản
+
+            </h3>
+
+
+            <!-- MESSAGE -->
+
+            <p id="accountStatusMessage">
+
+                Bạn có chắc chắn muốn khóa tài khoản này không?
+
+            </p>
+
+
+            <!-- BUTTON -->
+
+            <div class="account-status-actions">
+
+
+                <button
+                        type="button"
+                        id="accountStatusCancel"
+                        class="account-status-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="accountStatusConfirm"
+                        class="account-status-confirm">
+
+                    Khóa tài khoản
+
+                </button>
+
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         TOAST THÔNG BÁO
+    ================================================== -->
+
+    <div id="accountToast"
+         class="account-toast">
+
+
+        <!-- ICON -->
+
+        <div id="accountToastIcon"
+             class="account-toast-icon">
+
+            ✓
+
+        </div>
+
+
+        <!-- CONTENT -->
+
+        <div class="account-toast-content">
+
+            <strong id="accountToastTitle">
+
+                Thành công
+
+            </strong>
+
+
+            <span id="accountToastMessage">
+
+            </span>
+
+        </div>
+
+
+        <!-- CLOSE -->
+
+        <button
+                type="button"
+                id="accountToastClose"
+                class="account-toast-close">
+
+            ×
+
+        </button>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         CÁC MODAL KHÁC
+    ================================================== -->
+
+
+    <!-- THÊM TÀI KHOẢN -->
+
+    <div th:replace="~{Admin/fragments/them-tai-khoan :: themTaiKhoan}">
+    </div>
+
+
+    <!-- XEM TÀI KHOẢN -->
+
+    <div th:replace="~{Admin/fragments/xem-tai-khoan :: xemTaiKhoan}">
+    </div>
+
+
+    <!-- SỬA TÀI KHOẢN -->
+
+    <div th:replace="~{Admin/fragments/sua-tai-khoan :: suaTaiKhoan}">
+    </div>
+
+
+</section>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT RIÊNG TRANG TÀI KHOẢN
+====================================================== -->
+
+<th:block layout:fragment="js">
+
+    <!-- JS QUẢN LÝ TÀI KHOẢN -->
+    <script src="/Js/Admin/tai-khoan.js"></script>
+
+    <!-- JS THÊM TÀI KHOẢN -->
+    <script src="/Js/Admin/them-tai-khoan.js"></script>
+
+    <!-- JS XEM TÀI KHOẢN -->
+    <script src="/Js/Admin/xem-tai-khoan.js"></script>
+
+    <!-- JS SỬA TÀI KHOẢN -->
+    <script src="/Js/Admin/sua-tai-khoan.js"></script>
+
+</th:block>
+
+
 </body>
+
 </html>

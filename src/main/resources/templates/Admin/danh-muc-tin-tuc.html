@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Danh mục tin tức
+    </title>
+
+    <!-- =====================================================
+         CSS
+    ====================================================== -->
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              href="/Css/Admin/danh-muc-tin-tuc.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+<section layout:fragment="content"
+         class="news-category-content">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+    ====================================================== -->
+
+    <div class="news-page-header">
+
+        <div>
+
+            <h1>
+                Danh mục tin tức
+            </h1>
+
+            <p>
+                Quản lý các danh mục tin tức của bệnh viện
+            </p>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="addCategoryButton"
+                class="btn-primary">
+
+            <span>
+                +
+            </span>
+
+            Thêm danh mục
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         BỘ LỌC
+    ====================================================== -->
+
+    <div class="category-filter-card">
+
+
+        <!-- TÌM KIẾM -->
+
+        <div class="filter-item filter-search">
+
+            <label>
+                TÌM KIẾM
+            </label>
+
+            <div class="filter-input">
+
+                <span>
+                    ⌕
+                </span>
+
+                <input
+                        type="text"
+                        id="searchCategory"
+                        placeholder="Tìm kiếm theo tên danh mục, mô tả...">
+
+            </div>
+
+        </div>
+
+
+        <!-- BUTTON -->
+
+        <div class="filter-buttons">
+
+            <button
+                    type="button"
+                    id="searchButton"
+                    class="search-button">
+
+                Tìm kiếm
+
+            </button>
+
+
+            <button
+                    type="button"
+                    id="resetButton"
+                    class="reset-button">
+
+                ↻
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         BẢNG DANH MỤC
+    ====================================================== -->
+
+    <div class="category-table-card">
+
+
+        <div class="table-scroll">
+
+            <table class="category-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th>
+                        TÊN DANH MỤC
+                    </th>
+
+                    <th>
+                        MÔ TẢ
+                    </th>
+
+                    <th class="col-action">
+                        THAO TÁC
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="categoryTableBody">
+
+                <!-- JS render -->
+
+                </tbody>
+
+            </table>
+
+
+            <!-- =================================================
+                 EMPTY
+            ================================================== -->
+
+            <div
+                    id="emptyCategory"
+                    class="empty-category"
+                    hidden>
+
+                <div class="empty-icon">
+                    ▱
+                </div>
+
+                <h3>
+                    Không có danh mục
+                </h3>
+
+                <p>
+                    Không tìm thấy danh mục tin tức phù hợp.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             FOOTER + PHÂN TRANG
+        ================================================== -->
+
+        <div class="table-footer">
+
+
+            <div
+                    id="categoryCount"
+                    class="table-result">
+
+                Hiển thị 0 trong tổng số 0 danh mục
+
+            </div>
+
+
+            <div
+                    id="pagination"
+                    class="pagination">
+
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL THÊM / SỬA / XEM
+    ====================================================== -->
+
+    <div
+            id="categoryModal"
+            class="category-modal"
+            hidden>
+
+        <div class="category-modal-content">
+
+
+            <!-- HEADER -->
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2 id="modalTitle">
+                        Thêm danh mục
+                    </h2>
+
+                    <p id="modalDescription">
+                        Nhập thông tin danh mục tin tức
+                    </p>
+
+                </div>
+
+
+                <button
+                        type="button"
+                        id="closeModalButton"
+                        class="modal-close">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- BODY -->
+
+            <div class="modal-body">
+
+
+                <!-- TÊN DANH MỤC -->
+
+                <div class="form-group">
+
+                    <label for="categoryName">
+
+                        Tên danh mục
+
+                        <span id="categoryNameRequired">
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <input
+                            type="text"
+                            id="categoryName"
+                            maxlength="100"
+                            placeholder="Nhập tên danh mục">
+
+
+                    <small
+                            id="categoryNameError"
+                            class="field-error">
+
+                    </small>
+
+                </div>
+
+
+                <!-- MÔ TẢ -->
+
+                <div class="form-group">
+
+                    <label for="categoryDescription">
+
+                        Mô tả
+
+                    </label>
+
+
+                    <textarea
+                            id="categoryDescription"
+                            maxlength="255"
+                            rows="4"
+                            placeholder="Nhập mô tả danh mục">
+                    </textarea>
+
+
+                    <small class="character-count">
+
+                        <span id="descriptionCount">
+                            0
+                        </span>/255
+
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <div class="modal-footer">
+
+
+                <button
+                        type="button"
+                        id="cancelModalButton"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="saveCategoryButton"
+                        class="btn-save">
+
+                    <span>
+                        ✓
+                    </span>
+
+                    <span id="saveButtonText">
+                        Lưu danh mục
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
+
+    <div
+            id="categoryToast"
+            class="category-toast">
+
+        <div
+                id="categoryToastIcon"
+                class="toast-icon">
+
+            ✓
+
+        </div>
+
+
+        <div class="toast-content">
+
+            <strong id="categoryToastTitle">
+                Thành công
+            </strong>
+
+            <span id="categoryToastMessage">
+                Thao tác thành công.
+            </span>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="closeCategoryToast"
+                class="toast-close">
+            ×
+        </button>
+
+    </div>
+
+
+</section>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/Admin/danh-muc-tin-tuc.js"></script>
+
+</th:block>
+
+
+</body>
+
+</html>

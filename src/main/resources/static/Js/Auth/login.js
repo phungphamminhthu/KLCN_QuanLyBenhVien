@@ -30,82 +30,101 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // ==============================
-    // HIỂN THỊ ICON MẬT KHẨU ĐANG ẨN
+    // CẬP NHẬT ICON MẬT KHẨU
     // ==============================
 
-    function setClosedEyeIcon() {
+    function updatePasswordIcon(isVisible) {
 
-        PasswordIcon.innerHTML = `
-            <path
-                d="M5 12
-                   C7 14.5, 9.5 15.5, 12 15.5
-                   C14.5 15.5, 17 14.5, 19 12"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-            />
+        if (isVisible) {
 
-            <path
-                d="M7 14 L6 15.5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-            />
+            // ==============================
+            // MẬT KHẨU ĐANG HIỆN
+            // → MẮT MỞ
+            // ==============================
 
-            <path
-                d="M17 14 L18 15.5"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-            />
-        `;
+            PasswordIcon.innerHTML = `
+                <path
+                    d="M2.5 12
+                       C5 7.5, 8 5.5, 12 5.5
+                       C16 5.5, 19 7.5, 21.5 12
+                       C19 16.5, 16 18.5, 12 18.5
+                       C8 18.5, 5 16.5, 2.5 12Z"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                />
+
+                <circle
+                    cx="12"
+                    cy="12"
+                    r="3"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                />
+            `;
+
+            TogglePassword.setAttribute(
+                "aria-label",
+                "Ẩn mật khẩu"
+            );
+
+        } else {
+
+            // ==============================
+            // MẬT KHẨU ĐANG ẨN
+            // → MẮT CÓ MÍ
+            // ==============================
+
+            PasswordIcon.innerHTML = `
+                <path
+                    d="M5 12
+                       C7 14.5, 9.5 15.5, 12 15.5
+                       C14.5 15.5, 17 14.5, 19 12"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.8"
+                    stroke-linecap="round"
+                />
+
+                <path
+                    d="M7 14 L6 15.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                />
+
+                <path
+                    d="M17 14 L18 15.5"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                />
+            `;
+
+            TogglePassword.setAttribute(
+                "aria-label",
+                "Hiện mật khẩu"
+            );
+        }
     }
 
 
     // ==============================
-    // HIỂN THỊ ICON MẮT MỞ
-    // ==============================
-
-    function setOpenEyeIcon() {
-
-        PasswordIcon.innerHTML = `
-            <path
-                d="M2.5 12
-                   C5 7.5, 8 5.5, 12 5.5
-                   C16 5.5, 19 7.5, 21.5 12
-                   C19 16.5, 16 18.5, 12 18.5
-                   C8 18.5, 5 16.5, 2.5 12Z"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-            />
-
-            <circle
-                cx="12"
-                cy="12"
-                r="3"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-            />
-        `;
-    }
-
-
-    // ==============================
-    // MẶC ĐỊNH: MẬT KHẨU BỊ ẨN
+    // MẶC ĐỊNH:
+    // MẬT KHẨU BỊ ẨN
     // ==============================
 
     MatKhauInput.type = "password";
 
-    setClosedEyeIcon();
+    updatePasswordIcon(false);
 
 
     // ==============================
-    // CLICK ICON → HIỆN / ẨN MẬT KHẨU
+    // CLICK ICON
+    // → HIỆN / ẨN MẬT KHẨU
     // ==============================
 
     TogglePassword.addEventListener(
@@ -117,16 +136,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Hiện mật khẩu
                 MatKhauInput.type = "text";
 
-                // Đổi sang icon mắt mở
-                setOpenEyeIcon();
+                // Hiện icon mắt mở
+                updatePasswordIcon(true);
 
             } else {
 
                 // Ẩn mật khẩu
                 MatKhauInput.type = "password";
 
-                // Đổi sang icon mắt nhắm
-                setClosedEyeIcon();
+                // Hiện icon mắt có mí
+                updatePasswordIcon(false);
             }
         }
     );
@@ -189,6 +208,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
             // ==============================
+            // XÓA THÔNG BÁO CŨ
+            // ==============================
+
+            LoginError.textContent = "";
+
+            LoginError.className =
+                "login-message";
+
+            LoginError.style.display = "none";
+
+
+            // ==============================
             // VÔ HIỆU HÓA NÚT
             // ==============================
 
@@ -228,10 +259,33 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // ==============================
                 // ĐỌC RESPONSE
+                // HỖ TRỢ JSON VÀ TEXT
                 // ==============================
 
-                const data =
-                    await response.json();
+                let data = null;
+
+                let errorText = "";
+
+                const contentType =
+                    response.headers.get(
+                        "content-type"
+                    ) || "";
+
+
+                if (
+                    contentType.includes(
+                        "application/json"
+                    )
+                ) {
+
+                    data =
+                        await response.json();
+
+                } else {
+
+                    errorText =
+                        await response.text();
+                }
 
 
                 // ==============================
@@ -240,13 +294,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (!response.ok) {
 
+                    const message =
+                        data?.message ||
+                        data?.Message ||
+                        data?.error ||
+                        errorText ||
+                        "Tên đăng nhập hoặc mật khẩu không chính xác.";
+
+
                     showMessage(
-                        data.message ||
-                        "Tên đăng nhập hoặc mật khẩu không chính xác.",
+                        message,
                         "error"
                     );
 
-                    LoginButton.disabled = false;
+
+                    LoginButton.disabled =
+                        false;
 
                     LoginButton.textContent =
                         "Đăng nhập";
@@ -259,14 +322,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 // KIỂM TRA TOKEN
                 // ==============================
 
-                if (!data.Token) {
+                if (!data || !data.Token) {
 
                     showMessage(
                         "Đăng nhập thành công nhưng không nhận được Token.",
                         "error"
                     );
 
-                    LoginButton.disabled = false;
+                    LoginButton.disabled =
+                        false;
 
                     LoginButton.textContent =
                         "Đăng nhập";
@@ -283,7 +347,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // ==================================
                     // CÓ TÍCH "NHỚ ĐĂNG NHẬP"
-                    // → LƯU VÀO localStorage
+                    // → LƯU localStorage
                     // ==================================
 
                     localStorage.setItem(
@@ -322,20 +386,40 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
 
-                    // Xóa phiên cũ trong sessionStorage
-                    sessionStorage.removeItem("Token");
-                    sessionStorage.removeItem("MaNguoiDung");
-                    sessionStorage.removeItem("TenDangNhap");
-                    sessionStorage.removeItem("HoTen");
-                    sessionStorage.removeItem("Email");
-                    sessionStorage.removeItem("VaiTro");
-                    sessionStorage.removeItem("AnhDaiDien");
+                    // Xóa phiên cũ
+                    sessionStorage.removeItem(
+                        "Token"
+                    );
+
+                    sessionStorage.removeItem(
+                        "MaNguoiDung"
+                    );
+
+                    sessionStorage.removeItem(
+                        "TenDangNhap"
+                    );
+
+                    sessionStorage.removeItem(
+                        "HoTen"
+                    );
+
+                    sessionStorage.removeItem(
+                        "Email"
+                    );
+
+                    sessionStorage.removeItem(
+                        "VaiTro"
+                    );
+
+                    sessionStorage.removeItem(
+                        "AnhDaiDien"
+                    );
 
                 } else {
 
                     // ==================================
                     // KHÔNG TÍCH "NHỚ ĐĂNG NHẬP"
-                    // → LƯU VÀO sessionStorage
+                    // → LƯU sessionStorage
                     // ==================================
 
                     sessionStorage.setItem(
@@ -368,26 +452,45 @@ document.addEventListener("DOMContentLoaded", function () {
                         data.VaiTro
                     );
 
-                    // Lưu fileKey ảnh đại diện
                     sessionStorage.setItem(
                         "AnhDaiDien",
                         data.AnhDaiDien || ""
                     );
 
 
-                    // Xóa dữ liệu localStorage cũ
-                    localStorage.removeItem("Token");
-                    localStorage.removeItem("MaNguoiDung");
-                    localStorage.removeItem("TenDangNhap");
-                    localStorage.removeItem("HoTen");
-                    localStorage.removeItem("Email");
-                    localStorage.removeItem("VaiTro");
-                    localStorage.removeItem("AnhDaiDien");
+                    // Xóa localStorage cũ
+                    localStorage.removeItem(
+                        "Token"
+                    );
+
+                    localStorage.removeItem(
+                        "MaNguoiDung"
+                    );
+
+                    localStorage.removeItem(
+                        "TenDangNhap"
+                    );
+
+                    localStorage.removeItem(
+                        "HoTen"
+                    );
+
+                    localStorage.removeItem(
+                        "Email"
+                    );
+
+                    localStorage.removeItem(
+                        "VaiTro"
+                    );
+
+                    localStorage.removeItem(
+                        "AnhDaiDien"
+                    );
                 }
 
 
                 // ==============================
-                // HIỂN THỊ ĐĂNG NHẬP THÀNH CÔNG
+                // ĐĂNG NHẬP THÀNH CÔNG
                 // ==============================
 
                 showMessage(
@@ -400,70 +503,74 @@ document.addEventListener("DOMContentLoaded", function () {
                 // CHUYỂN TRANG THEO VAI TRÒ
                 // ==============================
 
-                setTimeout(function () {
+                setTimeout(
+                    function () {
 
-                    switch (data.VaiTro) {
+                        switch (data.VaiTro) {
 
-                        case "ADMIN":
+                            case "ADMIN":
 
-                            window.location.href =
-                                "/Admin/dashboard";
+                                window.location.href =
+                                    "/Admin/dashboard";
 
-                            break;
-
-
-                        case "BACSI":
-
-                            window.location.href =
-                                "/BacSi/dashboard";
-
-                            break;
+                                break;
 
 
-                        case "TIEPNHAN":
+                            case "BACSI":
 
-                            window.location.href =
-                                "/TiepNhan/dashboard";
+                                window.location.href =
+                                    "/BacSi/dashboard";
 
-                            break;
-
-
-                        case "CHUYENTRACH":
-
-                            window.location.href =
-                                "/ChuyenTrach/dashboard";
-
-                            break;
+                                break;
 
 
-                        case "DUOCSI":
+                            case "TIEPNHAN":
 
-                            window.location.href =
-                                "/DuocSi/dashboard";
+                                window.location.href =
+                                    "/TiepNhan/dashboard";
 
-                            break;
+                                break;
 
 
-                        default:
+                            case "CHUYENTRACH":
 
-                            showMessage(
-                                "Vai trò tài khoản không hợp lệ.",
-                                "error"
-                            );
+                                window.location.href =
+                                    "/ChuyenTrach/dashboard";
 
-                            LoginButton.disabled = false;
+                                break;
 
-                            LoginButton.textContent =
-                                "Đăng nhập";
-                    }
 
-                }, 500);
+                            case "DUOCSI":
+
+                                window.location.href =
+                                    "/DuocSi/dashboard";
+
+                                break;
+
+
+                            default:
+
+                                showMessage(
+                                    "Vai trò tài khoản không hợp lệ.",
+                                    "error"
+                                );
+
+                                LoginButton.disabled =
+                                    false;
+
+                                LoginButton.textContent =
+                                    "Đăng nhập";
+                        }
+
+                    },
+                    500
+                );
 
 
             } catch (error) {
 
                 // ==============================
-                // LỖI KẾT NỐI / LỖI JAVASCRIPT
+                // LỖI KẾT NỐI
                 // ==============================
 
                 console.error(
@@ -471,12 +578,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     error
                 );
 
+
                 showMessage(
                     "Không thể kết nối đến máy chủ. Vui lòng thử lại.",
                     "error"
                 );
 
-                LoginButton.disabled = false;
+
+                LoginButton.disabled =
+                    false;
 
                 LoginButton.textContent =
                     "Đăng nhập";
@@ -491,10 +601,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function showMessage(text, type) {
 
-        LoginError.textContent = text;
+        LoginError.textContent =
+            text;
 
         LoginError.className =
             "login-message " + type;
+
+        LoginError.style.display =
+            "block";
     }
 
 });

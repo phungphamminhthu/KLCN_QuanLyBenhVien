@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Đơn thuốc chờ cấp - Dược sĩ</title>
+
+  <th:block layout:fragment="css">
+
+    <link rel="stylesheet"
+          href="/Css/DuocSi/cho-cap-thuoc.css">
+
+  </th:block>
+
+</head>
+
+
+<body>
+
+<div layout:fragment="content"
+     class="duocsi-prescription-page">
+
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <div class="prescription-page-header">
+
+    <div>
+
+      <h1>
+        Đơn thuốc chờ cấp
+      </h1>
+
+      <p>
+        Danh sách các đơn thuốc đang chờ cấp thuốc
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FILTER
+  ====================================================== -->
+
+  <section class="prescription-filter-card">
+
+    <div class="filter-main-row">
+
+
+      <!-- MÃ ĐƠN -->
+
+      <div class="filter-input">
+
+                <span class="filter-icon">
+
+                    <svg width="19"
+                         height="19"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+
+                        <circle cx="11"
+                                cy="11"
+                                r="7">
+                        </circle>
+
+                        <line x1="16.5"
+                              y1="16.5"
+                              x2="21"
+                              y2="21">
+                        </line>
+
+                    </svg>
+
+                </span>
+
+        <input
+                type="text"
+                id="orderKeyword"
+                placeholder="Tìm mã đơn thuốc..."
+                autocomplete="off">
+
+      </div>
+
+
+      <!-- BỆNH NHÂN -->
+
+      <div class="filter-input">
+
+                <span class="filter-icon">
+
+                    <svg width="19"
+                         height="19"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="1.8"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+
+                        <circle cx="11"
+                                cy="8"
+                                r="3">
+                        </circle>
+
+                        <path d="M5 21c0-3.5 2.7-6 6-6s6 2.5 6 6">
+                        </path>
+
+                    </svg>
+
+                </span>
+
+        <input
+                type="text"
+                id="patientKeyword"
+                placeholder="Tìm tên bệnh nhân..."
+                autocomplete="off">
+
+      </div>
+
+
+      <!-- NGÀY KÊ -->
+
+      <div class="filter-input date-filter">
+
+        <input
+                type="date"
+                id="prescriptionDate">
+
+      </div>
+
+
+      <!-- BÁC SĨ -->
+
+      <div class="filter-select">
+
+        <select id="doctorFilter">
+
+          <option value="">
+            Bác sĩ: Tất cả
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+
+    <!-- FILTER BUTTON -->
+
+    <div class="filter-action-row">
+
+      <button
+              type="button"
+              id="searchButton"
+              class="search-button">
+
+        <svg width="17"
+             height="17"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             stroke-width="2"
+             stroke-linecap="round"
+             stroke-linejoin="round">
+
+          <circle cx="11"
+                  cy="11"
+                  r="7">
+          </circle>
+
+          <line x1="16.5"
+                y1="16.5"
+                x2="21"
+                y2="21">
+          </line>
+
+        </svg>
+
+        <span>
+                    Tìm kiếm
+                </span>
+
+      </button>
+
+
+      <button
+              type="button"
+              id="resetButton"
+              class="reset-button">
+
+        ↻
+
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       TABLE CARD
+  ====================================================== -->
+
+  <section class="prescription-table-card">
+
+    <div class="table-wrapper">
+
+      <table class="prescription-table">
+
+        <thead>
+
+        <tr>
+
+          <th>
+            MÃ ĐƠN
+          </th>
+
+          <th>
+            BỆNH NHÂN
+          </th>
+
+          <th>
+            MÃ BỆNH<br>
+            NHÂN
+          </th>
+
+          <th>
+            BÁC SĨ KÊ ĐƠN
+          </th>
+
+          <th>
+            NGÀY KÊ
+          </th>
+
+          <th>
+            SỐ LOẠI<br>
+            THUỐC
+          </th>
+
+          <th>
+            TRẠNG<br>
+            THÁI
+          </th>
+
+          <th>
+            THAO TÁC
+          </th>
+
+        </tr>
+
+        </thead>
+
+
+        <tbody id="prescriptionTable">
+
+        <tr>
+
+          <td
+                  colspan="8"
+                  class="table-message">
+
+            Đang tải dữ liệu...
+
+          </td>
+
+        </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- =================================================
+         FOOTER
+    ================================================== -->
+
+    <div class="table-footer">
+
+
+      <div
+              id="resultInfo"
+              class="result-info">
+
+        Hiển thị 0 - 0 trong 0 kết quả
+
+      </div>
+
+
+      <div class="pagination">
+
+
+        <button
+                type="button"
+                id="previousPage"
+                class="pagination-button">
+
+          ‹
+
+        </button>
+
+
+        <div
+                id="pageNumbers"
+                class="page-numbers">
+        </div>
+
+
+        <button
+                type="button"
+                id="nextPage"
+                class="pagination-button">
+
+          ›
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+  <script src="/Js/DuocSi/cho-cap-thuoc.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

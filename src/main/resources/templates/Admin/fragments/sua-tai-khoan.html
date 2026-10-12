@@ -1,0 +1,202 @@
+<div th:fragment="suaTaiKhoan"
+     id="editAccountModal"
+     class="edit-account-modal">
+
+  <div class="edit-account-modal-content">
+
+    <div class="edit-account-header">
+
+      <div>
+        <h2>Sửa tài khoản</h2>
+        <p>Cập nhật thông tin tài khoản người dùng</p>
+      </div>
+
+      <button type="button"
+              id="closeEditAccountModal"
+              class="edit-account-close">
+        &times;
+      </button>
+
+    </div>
+
+
+    <form id="editAccountForm">
+
+      <div class="edit-account-body">
+
+        <div class="edit-form-grid">
+
+          <!-- Họ tên -->
+
+          <div class="edit-form-group">
+            <label for="editHoTen">
+              Họ và tên <span>*</span>
+            </label>
+
+            <input
+                    type="text"
+                    id="editHoTen"
+                    maxlength="100"
+                    autocomplete="off">
+
+            <small id="editHoTenError"
+                   class="edit-field-error">
+            </small>
+          </div>
+
+
+          <!-- Username -->
+
+          <div class="edit-form-group">
+            <label for="editTenDangNhap">
+              Tên đăng nhập <span>*</span>
+            </label>
+
+            <input
+                    type="text"
+                    id="editTenDangNhap"
+                    maxlength="50"
+                    autocomplete="off">
+
+            <small id="editTenDangNhapError"
+                   class="edit-field-error">
+            </small>
+          </div>
+
+
+          <!-- Email -->
+
+          <div class="edit-form-group">
+            <label for="editEmail">
+              Email <span>*</span>
+            </label>
+
+            <input
+                    type="email"
+                    id="editEmail"
+                    maxlength="100"
+                    autocomplete="off">
+
+            <small id="editEmailError"
+                   class="edit-field-error">
+            </small>
+          </div>
+
+
+          <!-- SĐT -->
+
+          <div class="edit-form-group">
+            <label for="editSoDienThoai">
+              Số điện thoại <span>*</span>
+            </label>
+
+            <input
+                    type="text"
+                    id="editSoDienThoai"
+                    maxlength="10"
+                    inputmode="numeric"
+                    autocomplete="off">
+
+            <small id="editSoDienThoaiError"
+                   class="edit-field-error">
+            </small>
+          </div>
+
+
+          <!-- Vai trò -->
+
+          <div class="edit-form-group">
+
+            <label for="editMaVaiTro">
+              Vai trò <span>*</span>
+            </label>
+
+            <select id="editMaVaiTro">
+
+              <option value="">
+                -- Chọn vai trò --
+              </option>
+
+              <option value="1">
+                Quản trị viên
+              </option>
+
+              <option value="2">
+                Bác sĩ
+              </option>
+
+              <option value="3">
+                Nhân viên tiếp nhận
+              </option>
+
+              <option value="4">
+                Dược sĩ
+              </option>
+
+              <option value="5">
+                Nhân viên chuyên trách
+              </option>
+
+              <option value="6">
+                Bệnh nhân
+              </option>
+
+            </select>
+
+            <small id="editMaVaiTroError"
+                   class="edit-field-error">
+            </small>
+
+          </div>
+
+
+          <!-- Trạng thái -->
+
+          <div class="edit-form-group">
+
+            <label for="editTrangThai">
+              Trạng thái
+            </label>
+
+            <select id="editTrangThai">
+
+              <option value="true">
+                Đang hoạt động
+              </option>
+
+              <option value="false">
+                Đã khóa
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="edit-account-footer">
+
+        <button
+                type="button"
+                id="cancelEditAccount"
+                class="edit-cancel-button">
+          Hủy
+        </button>
+
+        <button
+                type="submit"
+                id="submitEditAccount"
+                class="edit-save-button">
+          Lưu thay đổi
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

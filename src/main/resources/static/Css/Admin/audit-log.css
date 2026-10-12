@@ -1,0 +1,547 @@
+
+.news-category-content{
+    padding: 34px;
+    background: #f5f8fc;
+    min-height: calc(100vh - 70px);
+}
+
+.audit-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.audit-header h1 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.audit-header p {
+    margin-top: 6px;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   FILTER
+========================= */
+
+.audit-filter {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 24px;
+
+    padding: 22px;
+
+    margin-bottom: 28px;
+
+    background: #fff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 16px;
+}
+
+
+/* =========================
+   SEARCH
+========================= */
+
+.search-wrapper {
+
+    flex: 1;
+
+    max-width: 420px;
+
+    height: 46px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 0 14px;
+
+    border: 1px solid #dbe4ef;
+
+    border-radius: 10px;
+
+    background: #f8fafc;
+}
+
+
+.search-icon {
+
+    color: #94a3b8;
+
+    font-size: 16px;
+
+    flex-shrink: 0;
+}
+
+
+.search-wrapper input {
+
+    width: 100%;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #334155;
+
+    font-size: 15px;
+}
+
+
+.search-wrapper input::placeholder {
+
+    color: #94a3b8;
+
+}
+
+
+/* =========================
+   FILTER + BUTTONS
+========================= */
+
+.filter-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+.filter-group {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+
+.filter-group label {
+
+    color: #475569;
+
+    font-size: 14px;
+
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+
+.filter-group select {
+
+    width: 160px;
+
+    height: 46px;
+
+    padding: 0 14px;
+
+    border: 1px solid #dbe4ef;
+
+    border-radius: 10px;
+
+    background: #f8fafc;
+
+    color: #334155;
+
+    font-size: 14px;
+
+    outline: none;
+
+    cursor: pointer;
+}
+
+
+.filter-group select:focus {
+
+    border-color: #2563eb;
+
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+.filter-button {
+
+    height: 46px;
+
+    padding: 0 18px;
+
+    border-radius: 10px;
+
+    border: 1px solid transparent;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 6px;
+
+    white-space: nowrap;
+
+    transition: all .2s ease;
+}
+
+
+/* TÌM KIẾM */
+
+.search-button {
+
+    background: #2563eb;
+
+    border-color: #2563eb;
+
+    color: #fff;
+}
+
+
+.search-button:hover {
+
+    background: #1d4ed8;
+
+    border-color: #1d4ed8;
+}
+
+
+/* RESET */
+
+.reset-button {
+
+    background: #fff;
+
+    border-color: #dbe4ef;
+
+    color: #475569;
+}
+
+
+.reset-button:hover {
+
+    background: #f8fafc;
+
+    border-color: #cbd5e1;
+}
+/* =========================
+   TABLE
+========================= */
+
+.audit-table-card {
+
+    background: #fff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 16px;
+
+    overflow: hidden;
+}
+
+
+.audit-table-card table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+}
+
+
+.audit-table-card thead {
+
+    background: #f8fafc;
+}
+
+
+.audit-table-card th {
+
+    height: 62px;
+
+    padding: 0 24px;
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    text-align: left;
+}
+
+
+.audit-table-card td {
+
+    height: 68px;
+
+    padding: 0 24px;
+
+    border-top: 1px solid #edf2f7;
+
+    color: #334155;
+
+    font-size: 14px;
+}
+
+
+.audit-table-card th:first-child,
+.audit-table-card td:first-child {
+
+    width: 80px;
+
+    text-align: center;
+}
+
+
+/* =========================
+   USER
+========================= */
+
+.user-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    /*padding: 6px 12px;
+
+    background: #f1f5f9;
+
+    border-radius: 6px;*/
+
+    color: #334155;
+
+    font-weight: 600;
+}
+
+
+/* =========================
+   ACTION
+========================= */
+
+/*.action {
+    font-weight: 600;
+}
+
+
+
+.action-add {
+
+    color: #99CCFF;
+}
+
+
+.action-edit {
+
+    color: #33FF99;
+}
+
+
+.action-delete {
+
+    color: #FF0033;
+}
+*/
+/* =========================
+   ACTION BADGE
+========================= */
+
+.action-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 5px 10px;
+
+    border-radius: 5px;
+
+    font-size: 12px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+/* ICON */
+
+.action-icon {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 14px;
+    height: 14px;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    border-radius: 50%;
+}
+
+
+/* =========================
+   THÊM
+========================= */
+
+.action-created {
+    color: #2563eb;
+
+    background: #eff6ff;
+
+    border: 1px solid #60a5fa;
+}
+
+.action-created .action-icon {
+    color: #2563eb;
+}
+
+
+/* =========================
+   SỬA
+========================= */
+
+.action-updated {
+    color: #15803d;
+
+    background: #ecfdf5;
+
+    border: 1px solid #4ade80;
+}
+
+.action-updated .action-icon {
+    color: #15803d;
+}
+
+
+/* =========================
+   XÓA
+========================= */
+
+.action-deleted {
+    color: #e11d48;
+
+    background: #fff1f2;
+
+    border: 1px solid #fb7185;
+}
+
+.action-deleted .action-icon {
+    color: #e11d48;
+}
+
+
+/* =========================
+   KHÁC
+========================= */
+
+.action-default {
+    color: #64748b;
+
+    background: #f8fafc;
+
+    border: 1px solid #cbd5e1;
+}
+
+/* =========================
+   PAGINATION
+========================= */
+
+.pagination {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 20px 24px;
+}
+
+
+.page-numbers {
+
+    display: flex;
+
+    gap: 8px;
+}
+
+
+.pagination button {
+
+    width: 40px;
+
+    height: 40px;
+
+    border: 1px solid #dbe4ef;
+
+    background: #fff;
+
+    border-radius: 7px;
+
+    color: #64748b;
+
+    cursor: pointer;
+
+    font-size: 15px;
+}
+
+
+.pagination button:hover:not(:disabled) {
+
+    background: #f1f5f9;
+}
+
+
+.pagination button.active {
+
+    background: #2563eb;
+
+    border-color: #2563eb;
+
+    color: #fff;
+}
+
+
+.pagination button:disabled {
+
+    opacity: .45;
+
+    cursor: not-allowed;
+}

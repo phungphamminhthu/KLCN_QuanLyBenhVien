@@ -1,0 +1,1197 @@
+/* ==================================================
+   PROFILE PAGE
+================================================== */
+
+.profile-content {
+    padding: 34px 38px 40px;
+    min-height: calc(100vh - 72px);
+    background: #f8fafc;
+}
+
+
+/* ==================================================
+   PAGE HEADER
+================================================== */
+
+.profile-page-header {
+    margin-bottom: 28px;
+}
+
+.profile-page-header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.profile-page-header p {
+    margin: 7px 0 0;
+    font-size: 15px;
+    color: #64748b;
+}
+
+
+/* ==================================================
+   PROFILE CARD
+================================================== */
+
+.profile-card {
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+
+/* ==================================================
+   PROFILE HEADER
+================================================== */
+
+.profile-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 38px 42px;
+}
+
+.profile-user {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+
+/* ==================================================
+   AVATAR
+================================================== */
+
+.profile-avatar-wrapper {
+    position: relative;
+    width: 106px;
+    height: 106px;
+    flex-shrink: 0;
+}
+
+.profile-avatar {
+    display: block;
+    width: 106px;
+    height: 106px;
+
+    object-fit: cover;
+    border-radius: 50%;
+
+    border: 3px solid #bfdbfe;
+    background: #eff6ff;
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+/*
+   Khi đang chỉnh sửa:
+   - Avatar có thể click
+   - Không có nút cây bút
+*/
+
+.profile-avatar.avatar-editable {
+    cursor: pointer;
+}
+
+.profile-avatar.avatar-editable:hover {
+    opacity: 0.78;
+    transform: scale(1.02);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.18);
+}
+
+
+/*
+   Không sử dụng nút cây bút avatar nữa.
+   Nếu HTML cũ còn sót button này thì ẩn đi.
+*/
+
+.avatar-edit-button {
+    display: none !important;
+}
+
+
+/* ==================================================
+   USER INFO
+================================================== */
+
+.profile-user-info {
+    min-width: 0;
+}
+
+.profile-user-info h2 {
+    margin: 0;
+
+    font-size: 24px;
+    font-weight: 700;
+
+    color: #1e293b;
+
+    word-break: break-word;
+}
+
+.profile-user-info p {
+    margin: 7px 0 0;
+
+    font-size: 15px;
+    color: #94a3b8;
+}
+
+
+/* ==================================================
+   EDIT BUTTON
+================================================== */
+
+.btn-edit {
+    height: 40px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 0 18px;
+
+    border: 1px solid #dbe3ef;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #334155;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        border-color 0.2s ease,
+        color 0.2s ease,
+        background 0.2s ease;
+}
+
+.btn-edit:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+/*
+   Khi đang chỉnh sửa thì ẩn nút Chỉnh sửa
+*/
+
+.profile-card.editing .btn-edit {
+    display: none;
+}
+
+
+/* ==================================================
+   PROFILE SECTION
+================================================== */
+
+.profile-section {
+    margin: 0 42px;
+    padding: 30px 0;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.profile-section-title {
+    margin-bottom: 26px;
+}
+
+.profile-section-title h3 {
+    margin: 0;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    letter-spacing: 0.02em;
+
+    color: #94a3b8;
+}
+
+
+/* ==================================================
+   INFO GRID
+================================================== */
+
+.profile-info-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 30px 50px;
+}
+
+.profile-field {
+    min-width: 0;
+}
+
+.profile-field label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    color: #94a3b8;
+}
+
+.profile-value {
+    min-height: 24px;
+
+    font-size: 16px;
+    font-weight: 600;
+
+    color: #334155;
+
+    word-break: break-word;
+}
+
+
+/* ==================================================
+   EDIT INPUT
+================================================== */
+
+.profile-input {
+    width: 100%;
+    height: 42px;
+
+    box-sizing: border-box;
+
+    padding: 0 12px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #ffffff;
+    color: #1e293b;
+
+    font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.profile-input:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.profile-input.input-error {
+    border-color: #dc2626;
+
+    box-shadow:
+        0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+
+.field-error {
+    display: block;
+
+    margin-top: 5px;
+
+    color: #dc2626;
+    font-size: 12px;
+}
+
+
+/* ==================================================
+   STATUS BADGE
+================================================== */
+
+.status-badge {
+    display: inline-flex;
+
+    align-items: center;
+    gap: 7px;
+
+    padding: 6px 12px;
+
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.status-badge > span {
+    width: 7px;
+    height: 7px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+}
+
+.status-badge.active {
+    background: #ecfdf5;
+    color: #059669;
+
+    border: 1px solid #a7f3d0;
+}
+
+.status-badge.active > span {
+    background: #10b981;
+}
+
+.status-badge.locked {
+    background: #fef2f2;
+    color: #dc2626;
+
+    border: 1px solid #fecaca;
+}
+
+.status-badge.locked > span {
+    background: #ef4444;
+}
+
+
+/* ==================================================
+   EDIT ACTIONS
+================================================== */
+
+/*
+   Bố cục:
+
+   [ Đổi mật khẩu ]                         [ Hủy ] [ Lưu thay đổi ]
+
+   Hai bên cùng nằm trong vùng nội dung,
+   cách mép card 42px.
+*/
+
+.profile-edit-actions {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    width: auto;
+
+    margin: 0 42px;
+    padding: 22px 0;
+
+    border-top: 1px solid #e2e8f0;
+
+    gap: 20px;
+}
+
+.profile-card.editing .profile-edit-actions {
+    display: flex;
+}
+
+
+/* ==================================================
+   LEFT ACTIONS
+================================================== */
+
+.profile-actions-left {
+    display: flex;
+    align-items: center;
+
+    flex-shrink: 0;
+}
+
+
+/* ==================================================
+   RIGHT ACTIONS
+================================================== */
+
+.profile-actions-right {
+    display: flex;
+
+    align-items: center;
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    flex-shrink: 0;
+}
+
+
+/* ==================================================
+   CANCEL BUTTON
+================================================== */
+
+.btn-cancel {
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0 18px;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+
+    background: #ffffff;
+    color: #475569;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+
+/* ==================================================
+   SAVE BUTTON
+================================================== */
+
+.btn-save {
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 7px;
+
+    padding: 0 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        opacity 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-save:hover {
+    background: #1d4ed8;
+}
+
+.btn-save:active {
+    transform: translateY(1px);
+}
+
+.btn-save:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* ==================================================
+   CHANGE PASSWORD BUTTON
+================================================== */
+
+.btn-password {
+    height: 42px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 0 20px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 3px 7px rgba(37, 99, 235, 0.18);
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn-password:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+
+/*
+   Nếu HTML cũ còn .profile-password-area
+   thì không để nó tạo thêm khoảng cách.
+*/
+
+.profile-password-area {
+    display: none;
+}
+
+
+/* ==================================================
+   CHANGE PASSWORD SECTION
+================================================== */
+
+.change-password-section {
+    margin: 0 42px;
+
+    padding: 30px 0 36px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+.change-password-header {
+    margin-bottom: 24px;
+}
+
+.change-password-header h3 {
+    margin: 0;
+
+    color: #94a3b8;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    letter-spacing: 0.5px;
+}
+
+.change-password-header p {
+    margin: 7px 0 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+/* ==================================================
+   CHANGE PASSWORD FORM
+================================================== */
+
+.change-password-form {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 22px 40px;
+}
+
+.password-field {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+}
+
+.password-field label {
+    margin-bottom: 8px;
+
+    color: #64748b;
+
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+/* ==================================================
+   PASSWORD INPUT
+================================================== */
+
+.password-wrapper {
+    position: relative;
+
+    width: 100%;
+}
+
+
+/* ==================================================
+   PASSWORD INPUT
+================================================== */
+
+.password-wrapper .password-input {
+    width: 100%;
+
+    height: 42px;
+
+    box-sizing: border-box;
+
+    /* Chừa khoảng trống bên phải cho icon mắt */
+    padding: 0 52px 0 12px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 8px;
+
+    outline: none;
+
+    background: #ffffff;
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+
+/* ==================================================
+   PLACEHOLDER
+================================================== */
+
+.password-wrapper .password-input::placeholder {
+    color: #94a3b8;
+}
+
+
+/* ==================================================
+   FOCUS
+================================================== */
+
+.password-wrapper .password-input:focus {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+
+/* ==================================================
+   INPUT ERROR
+================================================== */
+
+.password-wrapper .password-input.input-error {
+    border-color: #dc2626;
+
+    box-shadow:
+        0 0 0 3px rgba(220, 38, 38, 0.08);
+}
+
+
+/* ==================================================
+   ẨN ICON MẶC ĐỊNH CỦA EDGE
+================================================== */
+
+.password-wrapper input::-ms-reveal,
+.password-wrapper input::-ms-clear {
+    display: none;
+}
+
+
+/* ==================================================
+   ẨN ICON MẶC ĐỊNH CỦA CHROMIUM
+================================================== */
+
+.password-wrapper input::-webkit-credentials-auto-fill-button,
+.password-wrapper input::-webkit-textfield-decoration-container {
+    display: none;
+}
+
+
+/* ==================================================
+   NÚT HIỆN / ẨN MẬT KHẨU
+================================================== */
+
+.toggle-password {
+    position: absolute;
+
+    right: 10px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    margin: 0;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: transparent;
+
+    color: #64748b;
+
+    cursor: pointer;
+
+    z-index: 2;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+/* ==================================================
+   HOVER
+================================================== */
+
+.toggle-password:hover {
+    background: #f1f5f9;
+
+    color: #2563eb;
+}
+
+
+/* ==================================================
+   FOCUS
+================================================== */
+
+.toggle-password:focus {
+    outline: none;
+}
+
+
+/* ==================================================
+   SVG ICON
+================================================== */
+
+.toggle-password svg {
+    width: 20px;
+    height: 20px;
+
+    display: block;
+
+    flex-shrink: 0;
+}
+
+/* ==================================================
+   PASSWORD RULES
+================================================== */
+
+.password-rules {
+    padding: 14px 16px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+
+    background: #f8fafc;
+}
+
+.password-rules p {
+    margin: 0 0 10px;
+
+    color: #475569;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.password-rule {
+    margin-top: 7px;
+
+    color: #64748b;
+
+    font-size: 13px;
+}
+
+.password-rule span {
+    display: inline-block;
+
+    width: 20px;
+
+    font-weight: 700;
+}
+
+.password-rule.valid {
+    color: #16a34a;
+}
+
+
+/* ==================================================
+   PASSWORD ACTIONS
+================================================== */
+
+.change-password-actions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 10px;
+
+    margin-top: 24px;
+    padding-top: 20px;
+
+    border-top: 1px solid #e2e8f0;
+}
+
+
+/* ==================================================
+   TOAST
+================================================== */
+
+.profile-toast {
+    position: fixed;
+
+    top: 90px;
+    right: 24px;
+
+    z-index: 3000;
+
+    display: none;
+
+    min-width: 320px;
+    max-width: 420px;
+
+    padding: 14px 16px;
+
+    align-items: center;
+    gap: 12px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.profile-toast.show {
+    display: flex;
+}
+
+.profile-toast.success {
+    border-left: 4px solid #16a34a;
+}
+
+.profile-toast.error {
+    border-left: 4px solid #dc2626;
+}
+
+.profile-toast.warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.profile-toast .toast-icon {
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background: #dcfce7;
+    color: #16a34a;
+
+    font-weight: 700;
+}
+
+.profile-toast.error .toast-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.profile-toast.warning .toast-icon {
+    background: #ffedd5;
+    color: #f59e0b;
+}
+
+.profile-toast .toast-content {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+}
+
+.profile-toast .toast-content strong {
+    font-size: 14px;
+    color: #1e293b;
+}
+
+.profile-toast .toast-content span {
+    font-size: 13px;
+    color: #64748b;
+
+    line-height: 1.4;
+}
+
+.profile-toast .toast-close {
+    border: none;
+
+    background: transparent;
+
+    color: #94a3b8;
+
+    font-size: 22px;
+
+    line-height: 1;
+
+    cursor: pointer;
+}
+
+.profile-toast .toast-close:hover {
+    color: #475569;
+}
+
+
+/* ==================================================
+   RESPONSIVE - TABLET
+================================================== */
+
+@media (max-width: 1000px) {
+
+    .profile-info-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .change-password-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ==================================================
+   RESPONSIVE - MOBILE
+================================================== */
+
+@media (max-width: 700px) {
+
+    .profile-content {
+        padding: 24px 18px 30px;
+    }
+
+
+    /* Header */
+
+    .profile-card-header {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 24px;
+
+        padding: 30px 24px;
+    }
+
+    .profile-user {
+        width: 100%;
+        gap: 18px;
+    }
+
+    .profile-user-info h2 {
+        font-size: 21px;
+    }
+
+    .profile-user-info p {
+        font-size: 14px;
+    }
+
+
+    /* Avatar */
+
+    .profile-avatar-wrapper {
+        width: 90px;
+        height: 90px;
+    }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+    }
+
+
+    /* Edit button */
+
+    .btn-edit {
+        width: 100%;
+    }
+
+
+    /* Sections */
+
+    .profile-section {
+        margin: 0 24px;
+
+        padding: 26px 0;
+    }
+
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+
+        gap: 22px;
+    }
+
+
+    /* Edit actions */
+
+    .profile-edit-actions {
+        margin: 0 24px;
+
+        padding: 18px 0;
+
+        display: flex;
+        flex-direction: column;
+
+        align-items: stretch;
+
+        gap: 12px;
+    }
+
+    .profile-actions-left,
+    .profile-actions-right {
+        width: 100%;
+    }
+
+    .profile-actions-left {
+        display: flex;
+    }
+
+    .profile-actions-right {
+        display: flex;
+
+        align-items: center;
+
+        gap: 10px;
+    }
+
+    .profile-actions-right .btn-cancel,
+    .profile-actions-right .btn-save {
+        flex: 1;
+    }
+
+    .profile-actions-left .btn-password {
+        width: 100%;
+    }
+
+
+    /* Password */
+
+    .change-password-section {
+        margin: 0 24px;
+
+        padding: 26px 0 30px;
+    }
+
+    .change-password-form {
+        grid-template-columns: 1fr;
+
+        gap: 20px;
+    }
+
+    .change-password-actions {
+        justify-content: stretch;
+    }
+
+
+    /* Toast */
+
+    .profile-toast {
+        top: 76px;
+        right: 14px;
+        left: 14px;
+
+        min-width: 0;
+        max-width: none;
+    }
+}
+
+
+/* ==================================================
+   RESPONSIVE - SMALL MOBILE
+================================================== */
+
+@media (max-width: 450px) {
+
+    .profile-content {
+        padding: 18px 12px 24px;
+    }
+
+    .profile-card-header {
+        padding: 24px 18px;
+    }
+
+    .profile-user {
+        align-items: center;
+    }
+
+    .profile-avatar-wrapper {
+        width: 78px;
+        height: 78px;
+    }
+
+    .profile-avatar {
+        width: 78px;
+        height: 78px;
+    }
+
+    .profile-user-info h2 {
+        font-size: 18px;
+    }
+
+    .profile-user-info p {
+        font-size: 13px;
+    }
+
+    .profile-section,
+    .change-password-section {
+        margin-left: 18px;
+        margin-right: 18px;
+    }
+
+    .profile-edit-actions {
+        margin-left: 18px;
+        margin-right: 18px;
+
+        padding: 16px 0;
+    }
+
+    .profile-actions-right {
+        gap: 8px;
+    }
+
+    .profile-actions-right .btn-cancel,
+    .profile-actions-right .btn-save {
+        width: auto;
+        flex: 1;
+    }
+
+    .profile-actions-left .btn-password {
+        width: 100%;
+    }
+}

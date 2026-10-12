@@ -1,1196 +1,568 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
 
 <head>
-  <meta charset="UTF-8">
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <title>Tổng quan</title>
 
-  <title>Admin Dashboard - Quản lý bệnh viện</title>
+  <th:block layout:fragment="css">
 
-  <link rel="stylesheet"
-        href="/Css/Admin/dashboard.css">
+    <link
+            rel="stylesheet"
+            href="/Css/Admin/dashboard.css">
 
-  <link rel="stylesheet"
-        href="/Css/Auth/logout.css">
+  </th:block>
+
 </head>
+
 
 <body>
 
-<div class="admin-layout">
+<div layout:fragment="content">
 
-  <!-- =====================================================
-       SIDEBAR
-  ====================================================== -->
+  <!-- ========================================
+       HEADER TRANG
+  ========================================= -->
 
-  <aside class="sidebar">
+  <div class="dashboard-header">
 
-    <!-- LOGO -->
-    <div class="sidebar-logo">
+    <div>
 
-      <div class="logo-icon">
-        +
-      </div>
+      <h1>
+        Tổng quan
+      </h1>
 
-      <div class="logo-text">
-
-        <strong>BỆNH VIỆN ABC</strong>
-
-        <span>
-                    Hệ thống quản lý bệnh viện
-                </span>
-
-      </div>
+      <p>
+        Tình hình hoạt động của bệnh viện
+      </p>
 
     </div>
 
 
-    <!-- MENU -->
-    <nav class="sidebar-menu">
-
-      <!-- TỔNG QUAN -->
-      <a href="/Admin/dashboard"
-         class="menu-item active">
-
-                <span class="menu-icon">
-                    ⌂
-                </span>
-
-        <span class="menu-text">
-                    Tổng quan
-                </span>
-
-      </a>
-
-
-      <!-- =================================================
-           QUẢN LÝ TÀI KHOẢN
-      ================================================== -->
-
-      <div class="menu-group">
-
-        <button
-                type="button"
-                class="menu-item menu-parent">
-
-                    <span class="menu-left">
-
-                        <span class="menu-icon">
-                            ♙
-                        </span>
-
-                        <span class="menu-text">
-                            Quản lý tài khoản
-                        </span>
-
-                    </span>
-
-          <span class="menu-arrow">
-                        ›
-                    </span>
-
-        </button>
-
-
-        <div class="submenu">
-
-          <a href="/Admin/tai-khoan"
-             class="submenu-item">
-
-            Danh sách tài khoản
-
-          </a>
-
-          <a href="/Admin/phan-quyen"
-             class="submenu-item">
-
-            Phân quyền
-
-          </a>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           QUẢN LÝ BỆNH VIỆN
-      ================================================== -->
-
-      <div class="menu-group">
-
-        <button
-                type="button"
-                class="menu-item menu-parent">
-
-                    <span class="menu-left">
-
-                        <span class="menu-icon">
-                            ▦
-                        </span>
-
-                        <span class="menu-text">
-                            Quản lý bệnh viện
-                        </span>
-
-                    </span>
-
-          <span class="menu-arrow">
-                        ›
-                    </span>
-
-        </button>
-
-
-        <div class="submenu">
-
-          <a href="/Admin/khoa"
-             class="submenu-item">
-
-            Khoa
-
-          </a>
-
-          <a href="/Admin/phong"
-             class="submenu-item">
-
-            Phòng
-
-          </a>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           QUẢN LÝ THUỐC
-      ================================================== -->
-
-      <div class="menu-group">
-
-        <button
-                type="button"
-                class="menu-item menu-parent">
-
-                    <span class="menu-left">
-
-                        <span class="menu-icon">
-                            ◈
-                        </span>
-
-                        <span class="menu-text">
-                            Quản lý thuốc
-                        </span>
-
-                    </span>
-
-          <span class="menu-arrow">
-                        ›
-                    </span>
-
-        </button>
-
-
-        <div class="submenu">
-
-          <a href="/Admin/thuoc"
-             class="submenu-item">
-
-            Danh mục thuốc
-
-          </a>
-
-          <a href="/Admin/kho-thuoc"
-             class="submenu-item">
-
-            Kho thuốc
-
-          </a>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           QUẢN LÝ TIN TỨC
-      ================================================== -->
-
-      <div class="menu-group">
-
-        <button
-                type="button"
-                class="menu-item menu-parent">
-
-                    <span class="menu-left">
-
-                        <span class="menu-icon">
-                            ▤
-                        </span>
-
-                        <span class="menu-text">
-                            Quản lý tin tức
-                        </span>
-
-                    </span>
-
-          <span class="menu-arrow">
-                        ›
-                    </span>
-
-        </button>
-
-
-        <div class="submenu">
-
-          <a href="/Admin/tin-tuc"
-             class="submenu-item">
-
-            Danh mục tin tức
-
-          </a>
-
-          <a href="/Admin/tin-tuc/soan"
-             class="submenu-item">
-
-            Soạn tin tức
-
-          </a>
-
-        </div>
-
-      </div>
-
-
-      <!-- THỐNG KÊ -->
-      <a href="/Admin/bao-cao"
-         class="menu-item">
-
-                <span class="menu-icon">
-                    ◔
-                </span>
-
-        <span class="menu-text">
-                    Thống kê & báo cáo
-                </span>
-
-      </a>
-
-
-      <!-- AUDIT LOG -->
-      <a href="/Admin/audit-log"
-         class="menu-item">
-
-                <span class="menu-icon">
-                    ◉
-                </span>
-
-        <span class="menu-text">
-                    Audit Log
-                </span>
-
-      </a>
-
-
-      <!-- HỒ SƠ -->
-      <a href="/Admin/profile"
-         class="menu-item">
-
-                <span class="menu-icon">
-                    ▣
-                </span>
-
-        <span class="menu-text">
-                    Hồ sơ cá nhân
-                </span>
-
-      </a>
-
-    </nav>
-
-
-    <!-- LOGOUT -->
-    <div class="sidebar-bottom">
-
+    <!-- ================================== -->
+    <!-- TÙY CHỌN ĐỂ COI HOẠT ĐỘNG-->
+    <!-- ================================== -->
+    <div class="dashboard-filter">
+
+      <!-- HÔM NAY -->
       <button
               type="button"
-              id="logoutButton"
-              class="logout-button">
-
-                <span>
-                    ⇥
-                </span>
-
-        <span>
-                    Đăng xuất
-                </span>
-
+              class="filter-btn active"
+              data-period="today">
+        Hôm nay
       </button>
 
-    </div>
+      <!-- 7 NGÀY -->
+      <button
+              type="button"
+              class="filter-btn"
+              data-period="7days">
+        7 ngày qua
+      </button>
 
-  </aside>
+      <!-- 30 NGÀY -->
+      <button
+              type="button"
+              class="filter-btn"
+              data-period="30days">
+        30 ngày qua
+      </button>
 
-
-  <!-- =====================================================
-       MAIN
-  ====================================================== -->
-
-  <main class="main-content">
-
-
-    <!-- HEADER -->
-
-    <header class="top-header">
-
-      <div class="search-box">
-
-                <span class="search-icon">
-                    ⌕
-                </span>
-
-        <input
-                type="text"
-                placeholder="Tìm kiếm...">
-
-      </div>
-
-
-      <div class="header-right">
-
-
-        <!-- NOTIFICATION -->
+      <!-- TÙY CHỌN -->
+      <div class="custom-date-wrapper">
 
         <button
-                class="notification-button"
-                type="button">
+                type="button"
+                class="filter-btn custom-date-btn"
+                id="customDateBtn"
+                data-period="custom">
 
-          ♧
+            <span id="customDateText">
+                Tùy chọn
+            </span>
 
-          <span class="notification-dot">
-                    </span>
+          <span class="calendar-icon">
+                📅
+            </span>
 
         </button>
 
-
-        <div class="header-divider">
-        </div>
-
-
-        <!-- ADMIN -->
-
-        <div class="admin-profile">
-
-          <div class="admin-avatar">
-
-            <img
-                    id="adminAvatar"
-                    src="/Images/default-avatar.jpg"
-                    alt="Ảnh đại diện">
-
-          </div>
-
-
-          <div class="admin-info">
-
-            <strong id="adminName">
-              Quản trị viên
-            </strong>
-
-            <span id="adminEmail">
-                            Quản trị hệ thống
-                        </span>
-
-          </div>
-
-
-          <span class="profile-arrow">
-                        ⌄
-                    </span>
-
-        </div>
+        <input
+                type="date"
+                id="customDate"
+                class="custom-date-input">
 
       </div>
 
-    </header>
+    </div>
 
 
-    <!-- =====================================================
-         CONTENT
-    ====================================================== -->
-
-    <section class="dashboard-content">
+  </div>
 
 
-      <!-- TITLE -->
+  <!-- ========================================
+       CARDS
+  ========================================= -->
 
-      <div class="page-header">
+  <div class="statistics-grid">
+
+
+    <!-- BỆNH NHÂN -->
+
+    <div class="stat-card">
+
+      <div class="stat-top">
 
         <div>
 
-          <h1>
-            Tổng quan
-          </h1>
+                    <span class="stat-title">
+                        Tổng bệnh nhân
+                    </span>
 
-          <p>
-            Tình hình hoạt động của bệnh viện
-          </p>
+          <strong
+                  id="tongBenhNhan">
+
+            0
+
+          </strong>
 
         </div>
 
-
-        <div class="date-filter">
-
-          <button class="date-active">
-            Hôm nay
-          </button>
-
-          <button>
-            7 ngày qua
-          </button>
-
-          <button>
-            30 ngày qua
-          </button>
-
-          <button>
-            Tùy chọn
-          </button>
-
+        <div class="stat-icon blue">
+          👥
         </div>
 
       </div>
 
+      <div class="stat-bottom">
+                <span class="neutral">
+                    Tổng số bệnh nhân
+                </span>
+      </div>
 
-      <!-- =================================================
-           STATISTICS
-      ================================================== -->
-
-      <div class="stats-grid">
+    </div>
 
 
-        <div class="stat-card">
+    <!-- LỊCH KHÁM -->
 
-          <div class="stat-top">
+    <div class="stat-card">
+      <div class="stat-top">
 
-                        <span>
-                            Tổng bệnh nhân
-                        </span>
+        <div>
 
-            <div class="stat-icon blue">
-              ♙
-            </div>
+<!--                    <span class="stat-title">-->
+<!--                        Lịch khám hôm nay-->
+<!--                    </span>-->
 
-          </div>
+          <span class="stat-title"
+                id="lichKhamTitle">
+              Lịch khám hôm nay
+          </span>
 
-          <strong>
-            12.560
+          <strong
+                  id="lichKhamHomNay">
+            0
           </strong>
-
-          <p class="increase">
-            ↗ 12%
-
-            <span>
-                            so với hôm qua
-                        </span>
-          </p>
 
         </div>
 
-
-        <div class="stat-card">
-
-          <div class="stat-top">
-
-                        <span>
-                            Lịch khám hôm nay
-                        </span>
-
-            <div class="stat-icon cyan">
-              ▣
-            </div>
-
-          </div>
-
-          <strong>
-            368
-          </strong>
-
-          <p class="increase">
-            ↗ 8%
-
-            <span>
-                            so với hôm qua
-                        </span>
-          </p>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-top">
-
-                        <span>
-                            Tổng bác sĩ
-                        </span>
-
-            <div class="stat-icon purple">
-              ♙
-            </div>
-
-          </div>
-
-          <strong>
-            86
-          </strong>
-
-          <p class="stable">
-            — Ổn định
-          </p>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-top">
-
-                        <span>
-                            Tổng nhân viên
-                        </span>
-
-            <div class="stat-icon teal">
-              ▤
-            </div>
-
-          </div>
-
-          <strong>
-            152
-          </strong>
-
-          <p class="increase">
-            ↗ 5%
-
-            <span>
-                            so với hôm qua
-                        </span>
-          </p>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-top">
-
-                        <span>
-                            Doanh thu
-                        </span>
-
-            <div class="stat-icon green">
-              $
-            </div>
-
-          </div>
-
-          <strong>
-            632.500.000đ
-          </strong>
-
-          <p class="increase">
-            ↗ 15%
-
-            <span>
-                            so với hôm qua
-                        </span>
-          </p>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-top">
-
-                        <span>
-                            Tổng số loại thuốc
-                        </span>
-
-            <div class="stat-icon red">
-              ♧
-            </div>
-
-          </div>
-
-          <strong>
-            248
-          </strong>
-
-          <p class="increase">
-            ↗ 2%
-
-            <span>
-                            so với hôm qua
-                        </span>
-          </p>
-
+        <div class="stat-icon cyan">
+          📅
         </div>
 
       </div>
 
+      <div class="stat-bottom">
+                <span class="neutral"
+                      id="lichKhamDescription">
+                    Lịch khám trong ngày
+                </span>
+      </div>
 
-      <!-- =================================================
-           CHARTS
-      ================================================== -->
-
-      <div class="chart-grid">
+    </div>
 
 
-        <!-- LINE CHART -->
+    <!-- BÁC SĨ -->
 
-        <div class="dashboard-card">
+    <div class="stat-card">
 
-          <div class="card-header">
+      <div class="stat-top">
 
-            <div>
+        <div>
+
+                    <span class="stat-title">
+                        Tổng bác sĩ
+                    </span>
+
+          <strong
+                  id="tongBacSi">
+
+            0
+
+          </strong>
+
+        </div>
+
+        <div class="stat-icon purple">
+          👨‍⚕️
+        </div>
+
+      </div>
+
+      <div class="stat-bottom">
+                <span class="neutral">
+                    Đang hoạt động
+                </span>
+      </div>
+
+    </div>
+
+
+    <!-- NHÂN VIÊN -->
+
+    <div class="stat-card">
+
+      <div class="stat-top">
+
+        <div>
+
+                    <span class="stat-title">
+                        Tổng nhân viên
+                    </span>
+
+          <strong
+                  id="tongNhanVien">
+
+            0
+
+          </strong>
+
+        </div>
+
+        <div class="stat-icon teal">
+          👨‍💼
+        </div>
+
+      </div>
+
+      <div class="stat-bottom">
+                <span class="neutral">
+                    Tài khoản nhân viên
+                </span>
+      </div>
+
+    </div>
+
+
+    <!-- DOANH THU -->
+
+    <div class="stat-card">
+
+      <div class="stat-top">
+
+        <div>
+
+                    <span class="stat-title">
+                        Doanh thu
+                    </span>
+
+          <strong
+                  id="doanhThu">
+
+            0 ₫
+
+          </strong>
+
+        </div>
+
+        <div class="stat-icon green">
+          💰
+        </div>
+
+      </div>
+
+<!--      <div class="stat-bottom">-->
+<!--                <span class="neutral">-->
+<!--                    Tổng tiền đã thanh toán-->
+<!--                </span>-->
+<!--      </div>-->
+        <div class="stat-bottom">
+            <span
+                    class="neutral"
+                    id="doanhThuDescription">
+                Tổng tiền đã thanh toán hôm nay
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- THUỐC -->
+
+    <div class="stat-card">
+
+      <div class="stat-top">
+
+        <div>
+
+                    <span class="stat-title">
+                        Tổng số loại thuốc
+                    </span>
+
+          <strong
+                  id="tongLoaiThuoc">
+
+            0
+
+          </strong>
+
+        </div>
+
+        <div class="stat-icon red">
+          💊
+        </div>
+
+      </div>
+
+      <div class="stat-bottom">
+                <span class="neutral">
+                    Thuốc đang sử dụng
+                </span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================
+       CHARTS
+  ========================================= -->
+
+  <div class="charts-grid">
+
+
+    <!-- LƯỢT KHÁM THEO NGÀY -->
+
+    <div class="chart-card">
+
+      <div class="section-header">
+
+<!--        <div>-->
+
+<!--          <h2>-->
+<!--            Lượt khám theo thời gian-->
+<!--          </h2>-->
+
+<!--          <span>-->
+<!--                        7 ngày gần nhất-->
+<!--                    </span>-->
+
+<!--        </div>-->
+          <div>
 
               <h2>
-                Lượt khám theo thời gian
+                  Lượt khám theo thời gian
               </h2>
 
-              <span>
-                                10/05 - 16/05
-                            </span>
-
-            </div>
-
-            <button
-                    class="more-button"
-                    type="button">
-
-              •••
-
-            </button>
+              <span id="appointmentChartPeriod">
+        Hôm nay
+    </span>
 
           </div>
 
+      </div>
 
-          <div class="line-chart">
 
-            <div class="chart-y">
+      <div class="chart-container">
 
-              <span>400</span>
-              <span>300</span>
-              <span>200</span>
-              <span>100</span>
+        <canvas
+                id="appointmentChart">
+        </canvas>
 
-            </div>
+      </div>
 
+    </div>
 
-            <div class="chart-area">
 
-              <div class="grid-line"></div>
-              <div class="grid-line"></div>
-              <div class="grid-line"></div>
-              <div class="grid-line"></div>
+    <!-- LƯỢT KHÁM THEO KHOA -->
 
+    <div class="chart-card">
 
-              <svg
-                      viewBox="0 0 600 220"
-                      preserveAspectRatio="none">
+      <div class="section-header">
 
-                <defs>
+        <div>
 
-                  <linearGradient
-                          id="chartGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1">
+          <h2>
+            Lượt khám theo khoa
+          </h2>
 
-                    <stop
-                            offset="0%"
-                            stop-opacity=".25"/>
-
-                    <stop
-                            offset="100%"
-                            stop-opacity="0"/>
-
-                  </linearGradient>
-
-                </defs>
-
-
-                <polygon
-                        points="
-                                        0,190
-                                        90,175
-                                        180,135
-                                        270,125
-                                        360,75
-                                        450,60
-                                        540,70
-                                        540,220
-                                        0,220
-                                        "
-                        fill="url(#chartGradient)">
-                </polygon>
-
-
-                <polyline
-                        points="
-                                        0,190
-                                        90,175
-                                        180,135
-                                        270,125
-                                        360,75
-                                        450,60
-                                        540,70
-                                        "
-                        fill="none"
-                        stroke="#2563eb"
-                        stroke-width="4">
-                </polyline>
-
-
-                <circle cx="0" cy="190" r="5"
-                        fill="#2563eb"/>
-
-                <circle cx="90" cy="175" r="5"
-                        fill="#2563eb"/>
-
-                <circle cx="180" cy="135" r="5"
-                        fill="#2563eb"/>
-
-                <circle cx="270" cy="125" r="5"
-                        fill="#2563eb"/>
-
-                <circle cx="360" cy="75" r="5"
-                        fill="#2563eb"/>
-
-                <circle cx="450" cy="60" r="5"
-                        fill="#2563eb"/>
-
-                <circle cx="540" cy="70" r="5"
-                        fill="#2563eb"/>
-
-              </svg>
-
-            </div>
-
-          </div>
-
-
-          <div class="chart-labels">
-
-            <span>10/05</span>
-            <span>11/05</span>
-            <span>12/05</span>
-            <span>13/05</span>
-            <span>14/05</span>
-            <span>15/05</span>
-            <span>16/05</span>
-
-          </div>
-
-        </div>
-
-
-        <!-- BAR CHART -->
-
-        <div class="dashboard-card">
-
-          <div class="card-header">
-
-            <div>
-
-              <h2>
-                Lượt khám theo khoa
-              </h2>
-
-              <span>
-                                Hôm nay
-                            </span>
-
-            </div>
-
-          </div>
-
-
-          <div class="bar-chart">
-
-            <div class="bar"
-                 style="height: 90%;">
-
-                            <span>
-                                Tim mạch
-                            </span>
-
-            </div>
-
-
-            <div class="bar"
-                 style="height: 70%;">
-
-                            <span>
-                                Ngoại
-                            </span>
-
-            </div>
-
-
-            <div class="bar"
-                 style="height: 82%;">
-
-                            <span>
-                                Sản phụ
-                            </span>
-
-            </div>
-
-
-            <div class="bar"
-                 style="height: 48%;">
-
-                            <span>
-                                Nhi
-                            </span>
-
-            </div>
-
-
-            <div class="bar"
-                 style="height: 60%;">
-
-                            <span>
-                                TMH
-                            </span>
-
-            </div>
-
-
-            <div class="bar"
-                 style="height: 30%;">
-
-                            <span>
-                                Mắt
-                            </span>
-
-            </div>
-
-          </div>
+          <span>
+                        Hôm nay
+                    </span>
 
         </div>
 
       </div>
 
 
-      <!-- =================================================
-           BOTTOM
-      ================================================== -->
+      <div class="chart-container">
 
-      <div class="bottom-grid">
+        <canvas
+                id="departmentChart">
+        </canvas>
 
+      </div>
 
-        <!-- ĐƠN THUỐC -->
+    </div>
 
-        <div class="dashboard-card prescription-card">
+  </div>
 
-          <div class="card-header">
 
-            <h2>
-              Đơn thuốc chờ cấp
-            </h2>
+  <!-- ========================================
+       BOTTOM GRID
+  ========================================= -->
 
-            <a href="/Admin/don-thuoc">
-              Xem tất cả
-            </a>
+  <div class="bottom-grid">
 
-          </div>
 
+    <!-- ====================================
+         ĐƠN THUỐC
+    ===================================== -->
 
-          <div class="table-wrapper">
+    <div class="table-card">
+      <div class="section-header">
+        <h2>
+          Đơn thuốc chờ cấp
+        </h2>
+            <!--        <a-->
+            <!--                href="/DuocSi/don-thuoc">-->
 
-            <table>
+            <!--          Xem tất cả-->
 
-              <thead>
+            <!--        </a>-->
+      </div>
 
-              <tr>
+        <div class="prescription-list">
+            <div class="table-wrapper">
 
-                <th>Mã đơn</th>
+                <table>
 
-                <th>Bệnh nhân</th>
+                    <thead>
 
-                <th>Bác sĩ</th>
+                    <tr>
 
-                <th>Ngày kê</th>
+                        <th>
+                            Mã đơn
+                        </th>
 
-                <th>Số loại thuốc</th>
+                        <th>
+                            Bệnh nhân
+                        </th>
 
-                <th>Trạng thái</th>
+                        <th>
+                            Bác sĩ
+                        </th>
 
-                <th>Thao tác</th>
+                        <th>
+                            Ngày kê
+                        </th>
 
-              </tr>
+                        <th>
+                            Số loại thuốc
+                        </th>
 
-              </thead>
+                        <th>
+                            Trạng thái
+                        </th>
 
+                        <th>
+                            Thao tác
+                        </th>
 
-              <tbody>
+                    </tr>
 
-              <tr>
+                    </thead>
 
-                <td class="code">
-                  TH080113
-                </td>
 
-                <td>
-                  Nguyễn Thị Lan
-                </td>
+                    <tbody id="prescriptionTable">
 
-                <td>
-                  BS. Kim Quỳnh
-                </td>
+                    <tr>
 
-                <td>
-                  18/05/2025
-                </td>
+                        <td
+                                colspan="7"
+                                class="empty-row">
 
-                <td>
-                  3
-                </td>
+                            Đang tải dữ liệu...
 
-                <td>
+                        </td>
 
-                                    <span class="status waiting">
-                                        Chờ cấp
-                                    </span>
+                    </tr>
 
-                </td>
+                    </tbody>
 
-                <td>
+                </table>
 
-                  <button
-                          class="small-button"
-                          type="button">
-
-                    Xem
-
-                  </button>
-
-                </td>
-
-              </tr>
-
-
-              <tr>
-
-                <td class="code">
-                  TH080114
-                </td>
-
-                <td>
-                  Trần Văn Minh
-                </td>
-
-                <td>
-                  BS. Đinh Khôi
-                </td>
-
-                <td>
-                  18/05/2025
-                </td>
-
-                <td>
-                  5
-                </td>
-
-                <td>
-
-                                    <span class="status waiting">
-                                        Chờ cấp
-                                    </span>
-
-                </td>
-
-                <td>
-
-                  <button
-                          class="small-button"
-                          type="button">
-
-                    Xem
-
-                  </button>
-
-                </td>
-
-              </tr>
-
-
-              <tr>
-
-                <td class="code">
-                  TH080115
-                </td>
-
-                <td>
-                  Lê Thị Mai
-                </td>
-
-                <td>
-                  BS. Thị Mai
-                </td>
-
-                <td>
-                  18/05/2025
-                </td>
-
-                <td>
-                  2
-                </td>
-
-                <td>
-
-                                    <span class="status processing">
-                                        Đang xử lý
-                                    </span>
-
-                </td>
-
-                <td>
-
-                  <button
-                          class="small-button"
-                          type="button">
-
-                    Xem
-
-                  </button>
-
-                </td>
-
-              </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-
+            </div>
         </div>
 
 
-        <!-- HOẠT ĐỘNG -->
 
-        <div class="dashboard-card activity-card">
-
-          <div class="card-header">
-
-            <h2>
-              Hoạt động gần đây
-            </h2>
-
-            <span class="live">
-                            Trực tiếp
-                        </span>
-
-          </div>
+    </div>
 
 
-          <div class="activity-table">
+    <!-- ====================================
+         HOẠT ĐỘNG
+    ===================================== -->
+
+    <div class="activity-card">
+
+      <div class="section-header">
+
+        <h2>
+          Hoạt động gần đây
+        </h2>
+
+        <!--        <span>-->
+        <!--            Trực tiếp-->
+        <!--        </span>-->
+
+      </div>
 
 
-            <div class="activity-row">
+      <div
+              id="activityList"
+              class="activity-list">
 
-                            <span>
-                                10:45
-                            </span>
-
-              <strong>
-                Nhập kho thuốc
-              </strong>
-
-              <span>
-                                Nguyễn Thị Hoa
-                            </span>
-
-            </div>
-
-
-            <div class="activity-row">
-
-                            <span>
-                                09:30
-                            </span>
-
-              <strong>
-                Xuất kho thuốc
-              </strong>
-
-              <span>
-                                Trần Văn An
-                            </span>
-
-            </div>
-
-
-            <div class="activity-row">
-
-                            <span>
-                                08:15
-                            </span>
-
-              <strong>
-                Cập nhật tồn kho
-              </strong>
-
-              <span>
-                                Lê Thị Hạnh
-                            </span>
-
-            </div>
-
-
-            <div class="activity-row">
-
-                            <span>
-                                07:50
-                            </span>
-
-              <strong>
-                Tạo đơn thuốc
-              </strong>
-
-              <span>
-                                Nguyễn Văn Nam
-                            </span>
-
-            </div>
-
-
-          </div>
-
+        <div class="activity-empty">
+          Đang tải dữ liệu...
         </div>
 
       </div>
 
-    </section>
+    </div>
 
-  </main>
+  </div>
 
 </div>
 
 
-<!-- JS DÙNG CHUNG -->
+<th:block layout:fragment="js">
 
-<script src="/Js/Auth/logout.js"></script>
+  <!-- Chart.js -->
 
-<script src="/Js/Admin/dashboard.js"></script>
+  <script
+          src="https://cdn.jsdelivr.net/npm/chart.js">
+  </script>
+
+  <script
+          src="/Js/Admin/dashboard.js">
+  </script>
+
+</th:block>
 
 </body>
 

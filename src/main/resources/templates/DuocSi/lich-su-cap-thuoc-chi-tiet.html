@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <title>Chi tiết đơn thuốc - Dược sĩ</title>
+
+
+  <!-- =====================================================
+       CSS
+  ====================================================== -->
+
+  <th:block layout:fragment="css">
+
+    <link rel="stylesheet"
+          href="/Css/DuocSi/lich-su-cap-thuoc-chi-tiet.css">
+
+  </th:block>
+
+</head>
+
+
+<body>
+
+<div layout:fragment="content"
+     class="history-detail-page">
+
+
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
+
+  <div class="detail-header">
+
+
+    <!-- =================================================
+         TITLE
+    ================================================== -->
+
+    <div class="detail-header-info">
+
+
+<!--      &lt;!&ndash; BREADCRUMB &ndash;&gt;-->
+
+<!--      <div class="breadcrumb">-->
+
+<!--        <a href="/DuocSi/lich-su-cap-thuoc">-->
+
+<!--          Lịch sử cấp thuốc-->
+
+<!--        </a>-->
+
+
+<!--        <span class="breadcrumb-separator">-->
+<!--                    ›-->
+<!--                </span>-->
+
+
+<!--        <span>-->
+<!--                    Chi tiết đơn thuốc-->
+<!--                </span>-->
+
+<!--      </div>-->
+
+
+      <!-- TITLE -->
+
+      <h1>
+        Chi tiết đơn thuốc
+      </h1>
+
+
+      <p>
+        Xem lại thông tin đơn thuốc đã cấp
+      </p>
+
+    </div>
+
+
+      <!-- =================================================
+       HEADER ACTIONS
+      ================================================== -->
+
+      <div class="header-actions">
+
+          <!-- QUAY LẠI -->
+
+          <a
+                  href="/DuocSi/lich-su-cap-thuoc"
+                  class="back-button">
+
+              <svg
+                      width="17"
+                      height="17"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round">
+
+                  <path d="M19 12H5"></path>
+
+                  <path d="M12 19l-7-7 7-7"></path>
+
+              </svg>
+
+              <span>
+            Quay lại lịch sử
+        </span>
+
+          </a>
+
+
+          <!-- =================================================
+               TẢI ĐƠN THUỐC
+               KHÔNG CÓ TIỀN
+          ================================================== -->
+
+          <button
+                  type="button"
+                  id="downloadPrescriptionButton"
+                  class="download-prescription-button">
+
+              <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round">
+
+                  <path d="M12 3v12"></path>
+
+                  <path d="m7 10 5 5 5-5"></path>
+
+                  <path d="M5 21h14"></path>
+
+              </svg>
+
+              <span>
+            Tải đơn thuốc
+        </span>
+
+          </button>
+
+
+          <!-- =================================================
+               TẢI HÓA ĐƠN
+               CÓ TỔNG TIỀN
+          ================================================== -->
+
+          <button
+                  type="button"
+                  id="downloadInvoiceButton"
+                  class="download-invoice-button">
+
+              <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round">
+
+                  <rect
+                          x="3"
+                          y="4"
+                          width="18"
+                          height="16"
+                          rx="2">
+                  </rect>
+
+                  <path d="M7 8h10"></path>
+
+                  <path d="M7 12h10"></path>
+
+                  <path d="M7 16h6"></path>
+
+              </svg>
+
+              <span>
+            Tải hóa đơn
+        </span>
+
+          </button>
+
+      </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       LOADING
+  ====================================================== -->
+
+  <div
+          id="loadingBox"
+          class="loading-box">
+
+    <div class="loading-spinner"></div>
+
+    <span>
+            Đang tải thông tin đơn thuốc...
+        </span>
+
+  </div>
+
+
+  <!-- =====================================================
+       ERROR
+  ====================================================== -->
+
+  <div
+          id="errorBox"
+          class="error-box"
+          style="display: none;">
+
+    <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+
+      <circle
+              cx="12"
+              cy="12"
+              r="10">
+      </circle>
+
+      <line
+              x1="12"
+              y1="8"
+              x2="12"
+              y2="12">
+      </line>
+
+      <line
+              x1="12"
+              y1="16"
+              x2="12.01"
+              y2="16">
+      </line>
+
+    </svg>
+
+
+    <span>
+            Không thể tải thông tin đơn thuốc.
+        </span>
+
+  </div>
+
+
+  <!-- =====================================================
+       DETAIL CONTENT
+  ====================================================== -->
+
+  <div
+          id="detailContent"
+          style="display: none;">
+
+
+    <!-- =================================================
+         THÔNG TIN ĐƠN THUỐC
+    ================================================== -->
+
+    <section class="detail-card">
+
+
+      <!-- CARD HEADER -->
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Thông tin đơn thuốc
+          </h2>
+
+          <p>
+            Thông tin chung của đơn thuốc
+          </p>
+
+        </div>
+
+
+        <!-- STATUS -->
+
+        <span
+                id="statusBadge"
+                class="status-badge">
+
+                    Đã cấp
+
+                </span>
+
+      </div>
+
+
+      <!-- INFO -->
+
+      <div class="info-grid">
+
+
+        <!-- MÃ ĐƠN -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Mã đơn thuốc
+                    </span>
+
+          <strong
+                  id="maDonThuoc"
+                  class="order-code-highlight">
+          </strong>
+
+        </div>
+
+
+        <!-- NGÀY KÊ -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Ngày kê
+                    </span>
+
+          <strong id="ngayKe">
+          </strong>
+
+        </div>
+
+
+        <!-- NGÀY CẤP -->
+
+        <div
+                class="info-item"
+                id="ngayCapItem">
+
+                    <span class="info-label">
+                        Ngày cấp
+                    </span>
+
+          <strong id="ngayCap">
+          </strong>
+
+        </div>
+
+
+        <!-- NGƯỜI CẤP -->
+
+        <div
+                class="info-item"
+                id="nguoiCapItem">
+
+                    <span class="info-label">
+                        Người cấp thuốc
+                    </span>
+
+          <strong id="nguoiCap">
+          </strong>
+
+        </div>
+
+
+        <!-- BÁC SĨ -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Bác sĩ kê đơn
+                    </span>
+
+          <strong id="bacSi">
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         THÔNG TIN BỆNH NHÂN
+    ================================================== -->
+
+    <section class="detail-card">
+
+
+      <!-- CARD HEADER -->
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Thông tin bệnh nhân
+          </h2>
+
+          <p>
+            Thông tin bệnh nhân trong đơn thuốc
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- INFO GRID -->
+
+      <div class="info-grid">
+
+
+        <!-- HỌ TÊN -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Họ và tên
+                    </span>
+
+          <strong id="benhNhan">
+          </strong>
+
+        </div>
+
+
+        <!-- MÃ BỆNH NHÂN -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Mã bệnh nhân
+                    </span>
+
+          <strong id="maBenhNhan"
+                  class="patient-code-highlight">
+          </strong>
+
+        </div>
+
+
+        <!-- GIỚI TÍNH -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Giới tính
+                    </span>
+
+          <strong id="gioiTinh">
+          </strong>
+
+        </div>
+
+
+        <!-- NGÀY SINH -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Ngày sinh
+                    </span>
+
+          <strong id="ngaySinh">
+          </strong>
+
+        </div>
+
+
+        <!-- ĐỊA CHỈ -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Địa chỉ
+                    </span>
+
+          <strong id="diaChi">
+          </strong>
+
+        </div>
+
+
+        <!-- CÂN NẶNG -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Cân nặng
+                    </span>
+
+          <strong id="canNang">
+          </strong>
+
+        </div>
+
+
+        <!-- HUYẾT ÁP -->
+
+        <div class="info-item">
+
+                    <span class="info-label">
+                        Huyết áp
+                    </span>
+
+          <strong id="huyetAp">
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         DANH SÁCH THUỐC
+    ================================================== -->
+
+    <section class="detail-card medicine-card">
+
+
+      <!-- CARD HEADER -->
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Danh sách thuốc
+          </h2>
+
+          <p>
+            Các thuốc đã được cấp cho bệnh nhân
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- TABLE -->
+
+      <div class="medicine-table-wrapper">
+
+        <table class="medicine-table">
+
+
+          <thead>
+
+          <tr>
+
+            <th>
+              STT
+            </th>
+
+            <th>
+              Tên thuốc
+            </th>
+
+            <th>
+              Đơn vị
+            </th>
+
+            <th>
+              Số lượng
+            </th>
+
+            <th>
+              Liều dùng
+            </th>
+
+            <th>
+              Cách dùng
+            </th>
+
+            <th>
+              Đơn giá
+            </th>
+
+            <th>
+              Thành tiền
+            </th>
+
+          </tr>
+
+          </thead>
+
+
+          <tbody id="medicineTableBody">
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+
+      <!-- TOTAL -->
+
+      <div class="total-section">
+
+                <span>
+                    Tổng tiền
+                </span>
+
+          <strong id="tongTien">0 đ</strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- =================================================
+         GHI CHÚ
+    ================================================== -->
+
+    <section
+            class="detail-card note-card"
+            id="noteCard">
+
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Ghi chú
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div
+              id="ghiChu"
+              class="note-content">
+      </div>
+
+    </section>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     JS
+====================================================== -->
+
+<th:block layout:fragment="js">
+
+  <script
+          src="/Js/DuocSi/lich-su-cap-thuoc-chi-tiet.js">
+  </script>
+
+</th:block>
+
+
+</body>
+
+</html>

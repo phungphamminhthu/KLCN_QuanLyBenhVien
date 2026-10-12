@@ -1,0 +1,479 @@
+<!-- =====================================================
+     FRAGMENT: THÊM TÀI KHOẢN
+===================================================== -->
+<div th:fragment="themTaiKhoan">
+
+    <!-- =====================================================
+     TOAST THÔNG BÁO
+    ===================================================== -->
+    <div id="accountToast" class="account-toast">
+
+        <div class="toast-icon">
+            ✓
+        </div>
+
+        <div class="toast-content">
+
+            <strong id="toastTitle">
+                Thành công
+            </strong>
+
+            <span id="toastMessage">
+            Thêm tài khoản thành công.
+        </span>
+
+        </div>
+
+        <button
+                type="button"
+                id="closeAccountToast"
+                class="toast-close"
+                aria-label="Đóng">
+
+            &times;
+
+        </button>
+
+    </div>
+
+    <div id="addAccountModal" class="account-modal" >
+
+        <div class="account-modal-content">
+
+            <!-- =================================================
+                 HEADER
+            ================================================== -->
+            <div class="account-modal-header">
+
+                <div>
+                    <h2>Thêm tài khoản</h2>
+
+                    <p>
+                        Tạo tài khoản người dùng mới trong hệ thống
+                    </p>
+                </div>
+
+                <button
+                        type="button"
+                        id="closeAddAccountModal"
+                        class="modal-close"
+                        aria-label="Đóng">
+
+                    &times;
+
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 FORM
+            ================================================== -->
+            <form id="addAccountForm" novalidate>
+
+                <div class="account-modal-body">
+
+
+                    <!-- =================================================
+                         THÔNG TIN TÀI KHOẢN
+                    ================================================== -->
+                    <div class="form-section">
+
+                        <div class="form-section-title">
+
+                            <h3>Thông tin tài khoản</h3>
+
+                            <span>
+                                Các trường có dấu <span class="required">*</span> là bắt buộc
+                            </span>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+
+                            <!-- HỌ TÊN -->
+                            <div class="form-group">
+
+                                <label for="addHoTen">
+                                    Họ tên
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                        type="text"
+                                        id="addHoTen"
+                                        name="hoTen"
+                                        placeholder="Nhập họ và tên"
+                                        autocomplete="name">
+
+                                <small
+                                        id="addHoTenError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+
+                            <!-- TÊN ĐĂNG NHẬP -->
+                            <div class="form-group">
+
+                                <label for="addTenDangNhap">
+                                    Tên đăng nhập
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                        type="text"
+                                        id="addTenDangNhap"
+                                        name="tenDangNhap"
+                                        placeholder="Nhập tên đăng nhập"
+                                        autocomplete="username">
+
+                                <small
+                                        id="addTenDangNhapError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+
+                            <!-- EMAIL -->
+                            <div class="form-group">
+
+                                <label for="addEmail">
+                                    Email
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                        type="email"
+                                        id="addEmail"
+                                        name="email"
+                                        placeholder="example@gmail.com"
+                                        autocomplete="email">
+
+                                <small
+                                        id="addEmailError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+
+                            <!-- SỐ ĐIỆN THOẠI -->
+                            <div class="form-group">
+
+                                <label for="addSoDienThoai">
+                                    Số điện thoại
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                        type="tel"
+                                        id="addSoDienThoai"
+                                        name="soDienThoai"
+                                        placeholder="Nhập số điện thoại"
+                                        autocomplete="tel"
+                                        maxlength="10"
+                                        inputmode="numeric">
+
+                                <small
+                                        id="addSoDienThoaiError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+
+                            <!-- VAI TRÒ -->
+                            <div class="form-group">
+
+                                <label for="addMaVaiTro">
+                                    Vai trò
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select
+                                        id="addMaVaiTro"
+                                        name="maVaiTro">
+
+                                    <option value="">
+                                        Chọn vai trò
+                                    </option>
+
+                                    <option value="1">
+                                        Quản trị viên
+                                    </option>
+
+                                    <option value="2">
+                                        Bác sĩ
+                                    </option>
+
+                                    <option value="3">
+                                        Nhân viên tiếp nhận
+                                    </option>
+
+                                    <option value="4">
+                                        Dược sĩ
+                                    </option>
+
+                                    <option value="5">
+                                        Phòng chuyên trách
+                                    </option>
+
+                                    <option value="6">
+                                        Bệnh nhân
+                                    </option>
+
+                                </select>
+
+                                <small
+                                        id="addMaVaiTroError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+
+                            <!-- TRẠNG THÁI -->
+                            <div class="form-group">
+
+                                <label for="addTrangThai">
+                                    Trạng thái
+                                </label>
+
+                                <select
+                                        id="addTrangThai"
+                                        name="trangThai">
+
+                                    <option value="true">
+                                        Đang hoạt động
+                                    </option>
+
+                                    <option value="false">
+                                        Tạm khóa
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         MẬT KHẨU
+                    ================================================== -->
+                    <div class="form-section password-section">
+
+                        <div class="form-section-title">
+
+                            <h3>Mật khẩu</h3>
+
+                            <span>
+                                Mật khẩu phải đáp ứng đầy đủ các yêu cầu
+                            </span>
+
+                        </div>
+
+
+                        <div class="form-grid">
+
+
+                            <!-- MẬT KHẨU -->
+                            <div class="form-group">
+
+                                <label for="addMatKhau">
+
+                                    Mật khẩu
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+
+                                <div class="password-wrapper">
+
+                                    <input
+                                            type="password"
+                                            id="addMatKhau"
+                                            name="matKhau"
+                                            placeholder="Nhập mật khẩu"
+                                            autocomplete="new-password">
+
+                                    <button
+                                            type="button"
+                                            class="toggle-password"
+                                            data-target="addMatKhau"
+                                            aria-label="Hiển thị mật khẩu">
+
+                                        <span>◉</span>
+
+                                    </button>
+
+                                </div>
+
+                                <small
+                                        id="addMatKhauError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+
+                            <!-- XÁC NHẬN MẬT KHẨU -->
+                            <div class="form-group">
+
+                                <label for="addXacNhanMatKhau">
+
+                                    Xác nhận mật khẩu
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+
+                                <div class="password-wrapper">
+
+                                    <input
+                                            type="password"
+                                            id="addXacNhanMatKhau"
+                                            name="xacNhanMatKhau"
+                                            placeholder="Nhập lại mật khẩu"
+                                            autocomplete="new-password">
+
+                                    <button
+                                            type="button"
+                                            class="toggle-password"
+                                            data-target="addXacNhanMatKhau"
+                                            aria-label="Hiển thị mật khẩu">
+
+                                        <span>◉</span>
+
+                                    </button>
+
+                                </div>
+
+                                <small
+                                        id="addXacNhanMatKhauError"
+                                        class="field-error">
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             QUY TẮC MẬT KHẨU
+                        ================================================== -->
+                        <div class="password-rules">
+
+                            <div
+                                    class="password-rule"
+                                    id="ruleLength">
+
+                                <span class="rule-icon">
+                                    •
+                                </span>
+
+                                <span>
+                                    Ít nhất 8 ký tự
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                    class="password-rule"
+                                    id="ruleUppercase">
+
+                                <span class="rule-icon">
+                                    •
+                                </span>
+
+                                <span>
+                                    Có ít nhất 1 chữ hoa
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                    class="password-rule"
+                                    id="ruleLowercase">
+
+                                <span class="rule-icon">
+                                    •
+                                </span>
+
+                                <span>
+                                    Có ít nhất 1 chữ thường
+                                </span>
+
+                            </div>
+
+
+                            <div
+                                    class="password-rule"
+                                    id="ruleNumber">
+
+                                <span class="rule-icon">
+                                    •
+                                </span>
+
+                                <span>
+                                    Có ít nhất 1 chữ số
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- =================================================
+                     FOOTER
+                ================================================== -->
+                <div class="account-modal-footer">
+
+                    <button
+                            type="button"
+                            id="cancelAddAccount"
+                            class="btn-cancel">
+
+                        Hủy
+
+                    </button>
+
+
+                    <button
+                            type="submit"
+                            id="submitAddAccount"
+                            class="btn-submit">
+
+                        <span>+</span>
+                        Thêm tài khoản
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>

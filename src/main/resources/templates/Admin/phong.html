@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Quản lý phòng chuyên trách
+    </title>
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              href="/Css/Admin/phong.css">
+
+    </th:block>
+
+</head>
+
+<body>
+
+<section layout:fragment="content"
+         class="phong-content">
+
+    <!-- HEADER -->
+
+    <div class="phong-page-header">
+
+        <div>
+
+            <h1>
+                Quản lý bệnh viện
+            </h1>
+
+            <p>
+                Quản lý thông tin phòng chuyên trách
+            </p>
+
+        </div>
+
+        <button
+                type="button"
+                id="addPhongButton"
+                class="btn-primary">
+
+            <span>
+                +
+            </span>
+
+            Thêm phòng
+
+        </button>
+
+    </div>
+
+
+    <!-- SEARCH -->
+
+    <div class="phong-filter-card">
+
+        <div class="filter-item filter-search">
+
+            <label for="keywordInput">
+
+                TÌM KIẾM
+
+            </label>
+
+            <div class="filter-input">
+
+                <span>
+                    ⌕
+                </span>
+
+                <input
+                        type="text"
+                        id="keywordInput"
+                        placeholder="Tìm kiếm tên phòng, mã phòng, loại phòng...">
+
+            </div>
+
+        </div>
+
+
+        <div class="filter-item">
+
+            <label for="khoaFilter">
+
+                KHOA
+
+            </label>
+
+            <select
+                    id="khoaFilter"
+                    class="filter-select">
+
+                <option value="">
+                    Tất cả khoa
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-item">
+
+            <label for="statusFilter">
+
+                TRẠNG THÁI
+
+            </label>
+
+            <select
+                    id="statusFilter"
+                    class="filter-select">
+
+                <option value="">
+                    Tất cả
+                </option>
+
+                <option value="1">
+                    Đang hoạt động
+                </option>
+
+                <option value="0">
+                    Ngừng hoạt động
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="filter-buttons">
+
+            <button
+                    type="button"
+                    id="searchButton"
+                    class="search-button">
+
+                Tìm kiếm
+
+            </button>
+
+            <button
+                    type="button"
+                    id="resetButton"
+                    class="reset-button"
+                    title="Đặt lại">
+
+                ↻
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <div class="phong-table-card">
+
+        <div class="table-scroll">
+
+            <table class="phong-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th>
+                        MÃ PHÒNG
+                    </th>
+
+                    <th>
+                        TÊN PHÒNG
+                    </th>
+
+                    <th>
+                        KHOA
+                    </th>
+
+                    <th>
+                        LOẠI PHÒNG
+                    </th>
+
+                    <th>
+                        VỊ TRÍ
+                    </th>
+
+                    <th>
+                        TRẠNG THÁI
+                    </th>
+
+                    <th class="col-action">
+                        THAO TÁC
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="phongTableBody">
+
+                <!-- JS render -->
+
+                </tbody>
+
+            </table>
+
+
+            <div
+                    id="emptyPhong"
+                    class="empty-phong"
+                    hidden>
+
+                <div class="empty-icon">
+                    ▱
+                </div>
+
+                <h3>
+                    Không có phòng
+                </h3>
+
+                <p>
+                    Không tìm thấy phòng phù hợp.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="table-footer">
+
+            <div
+                    id="tableResult"
+                    class="table-result">
+
+                Hiển thị 0 trong tổng số 0 phòng
+
+            </div>
+
+
+            <div
+                    id="pagination"
+                    class="pagination">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ADD / EDIT / VIEW MODAL -->
+
+    <div
+            id="phongModal"
+            class="phong-modal"
+            hidden>
+
+        <div class="phong-modal-content">
+
+
+            <!-- HEADER -->
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2 id="modalTitle">
+                        Thêm phòng
+                    </h2>
+
+                    <p id="modalDescription">
+                        Nhập thông tin phòng chuyên trách
+                    </p>
+
+                </div>
+
+
+                <button
+                        type="button"
+                        id="closePhongModal"
+                        class="modal-close">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- BODY -->
+
+            <div class="modal-body">
+
+
+                <!-- KHOA -->
+
+                <div class="form-group">
+
+                    <label for="maKhoa">
+
+                        Khoa
+
+                        <span>
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <select
+                            id="maKhoa"
+                            class="form-select">
+
+                        <option value="">
+                            Chọn khoa
+                        </option>
+
+                    </select>
+
+
+                    <small
+                            id="maKhoaError"
+                            class="field-error">
+
+                    </small>
+
+                </div>
+
+
+                <!-- TÊN PHÒNG -->
+
+                <div class="form-group">
+
+                    <label for="tenPhong">
+
+                        Tên phòng
+
+                        <span>
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <input
+                            type="text"
+                            id="tenPhong"
+                            maxlength="100"
+                            placeholder="Nhập tên phòng...">
+
+
+                    <small
+                            id="tenPhongError"
+                            class="field-error">
+
+                    </small>
+
+                </div>
+
+
+                <!-- LOẠI PHÒNG -->
+
+                <div class="form-group">
+
+                    <label for="loaiPhong">
+
+                        Loại phòng
+
+                    </label>
+
+
+                    <input
+                            type="text"
+                            id="loaiPhong"
+                            maxlength="100"
+                            placeholder="Ví dụ: Phòng khám, Phòng xét nghiệm...">
+
+
+                    <small
+                            id="loaiPhongError"
+                            class="field-error">
+
+                    </small>
+
+                </div>
+
+
+                <!-- VỊ TRÍ -->
+
+                <div class="form-group">
+
+                    <label for="viTri">
+
+                        Vị trí
+
+                    </label>
+
+
+                    <textarea
+                            id="viTri"
+                            maxlength="255"
+                            rows="3"
+                            placeholder="Nhập vị trí phòng..."></textarea>
+
+
+                    <small
+                            id="viTriError"
+                            class="field-error">
+
+                    </small>
+
+
+                    <small class="character-count">
+
+                        <span id="viTriCount">
+                            0
+                        </span>/255
+
+                    </small>
+
+                </div>
+
+
+                <!-- TRẠNG THÁI -->
+
+                <div class="form-group">
+
+                    <label for="trangThai">
+
+                        Trạng thái
+
+                        <span>
+                            *
+                        </span>
+
+                    </label>
+
+
+                    <select
+                            id="trangThai"
+                            class="form-select">
+
+                        <option value="1">
+                            Đang hoạt động
+                        </option>
+
+                        <option value="0">
+                            Ngừng hoạt động
+                        </option>
+
+                    </select>
+
+
+                    <small
+                            id="trangThaiError"
+                            class="field-error">
+
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- FOOTER -->
+
+            <div class="modal-footer">
+
+                <button
+                        type="button"
+                        id="cancelPhongModal"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="savePhongButton"
+                        class="btn-save">
+
+                    <span>
+                        ✓
+                    </span>
+
+                    <span id="saveButtonText">
+                        Lưu phòng
+                    </span>
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- TOAST -->
+
+    <div
+            id="phongToast"
+            class="phong-toast">
+
+        <div
+                id="phongToastIcon"
+                class="toast-icon">
+
+            ✓
+
+        </div>
+
+
+        <div class="toast-content">
+
+            <strong id="phongToastTitle">
+                Thành công
+            </strong>
+
+            <span id="phongToastMessage">
+                Thao tác thành công.
+            </span>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="closePhongToast"
+                class="toast-close">
+
+            ×
+
+        </button>
+
+    </div>
+
+
+    <!-- DELETE CONFIRM -->
+
+    <div
+            id="deleteConfirmModal"
+            class="delete-confirm-modal"
+            hidden>
+
+        <div class="delete-confirm-content">
+
+            <div class="delete-confirm-icon">
+                !
+            </div>
+
+
+            <h3>
+                Xác nhận xóa phòng
+            </h3>
+
+
+            <p>
+                Bạn có chắc chắn muốn xóa phòng
+            </p>
+
+
+            <p>
+
+                <strong id="deletePhongName">
+                    —
+                </strong>
+
+            </p>
+
+
+            <p class="delete-warning">
+
+                Dữ liệu sau khi xóa sẽ không thể khôi phục.
+
+            </p>
+
+
+            <div class="delete-confirm-actions">
+
+                <button
+                        type="button"
+                        id="cancelDeleteButton"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="confirmDeleteButton"
+                        class="btn-delete-confirm">
+
+                    Xóa phòng
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/Admin/phong.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

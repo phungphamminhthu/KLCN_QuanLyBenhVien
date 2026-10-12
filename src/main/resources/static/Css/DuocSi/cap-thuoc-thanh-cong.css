@@ -1,0 +1,348 @@
+/* =====================================================
+   PAGE
+===================================================== */
+
+.dispense-success-page {
+
+    min-height: 100%;
+
+    padding: 50px 40px;
+
+    background: #f8fafc;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+.success-card {
+
+    width: min(650px, 100%);
+
+    padding: 45px 50px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 18px;
+
+    box-shadow:
+            0 8px 30px
+            rgba(15, 23, 42, 0.06);
+
+    text-align: center;
+}
+
+
+/* =====================================================
+   ICON
+===================================================== */
+
+.success-icon {
+
+    width: 82px;
+    height: 82px;
+
+    margin: 0 auto 22px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #dcfce7;
+
+    border: 8px solid #f0fdf4;
+
+    color: #16a34a;
+
+    font-size: 42px;
+
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.success-card h1 {
+
+    margin: 0 0 10px;
+
+    color: #1e293b;
+
+    font-size: 28px;
+
+    font-weight: 700;
+}
+
+
+/* =====================================================
+   DESCRIPTION
+===================================================== */
+
+.success-description {
+
+    max-width: 470px;
+
+    margin: 0 auto 30px;
+
+    color: #64748b;
+
+    font-size: 15px;
+
+    line-height: 1.6;
+}
+
+
+/* =====================================================
+   INFO
+===================================================== */
+
+.success-info {
+
+    margin-bottom: 30px;
+
+    padding: 6px 20px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 12px;
+
+    text-align: left;
+}
+
+
+.success-info-row {
+
+    min-height: 52px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+}
+
+
+.success-info-row + .success-info-row {
+
+    border-top: 1px solid #e2e8f0;
+}
+
+
+.success-info-row > span:first-child {
+
+    color: #64748b;
+
+    font-size: 14px;
+}
+
+
+.success-info-row strong {
+
+    color: #1e293b;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    text-align: right;
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status-success {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 7px 14px;
+
+    border-radius: 20px;
+
+    background: #ecfdf5;
+
+    border: 1px solid #a7f3d0;
+
+    color: #059669 !important;
+
+    font-size: 13px !important;
+
+    font-weight: 600;
+}
+
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.success-actions {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 12px;
+
+    flex-wrap: wrap;
+}
+
+
+.success-button {
+
+    min-height: 44px;
+
+    padding: 0 18px;
+
+    border-radius: 9px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+            background .2s ease,
+            border-color .2s ease,
+            transform .15s ease;
+}
+
+
+.success-button:hover {
+
+    transform: translateY(-1px);
+}
+
+
+/* =====================================================
+   SECONDARY
+===================================================== */
+
+.success-button.secondary {
+
+    border: 1px solid #cbd5e1;
+
+    background: #ffffff;
+
+    color: #475569;
+}
+
+
+.success-button.secondary:hover {
+
+    background: #f8fafc;
+
+    border-color: #94a3b8;
+}
+
+
+/* =====================================================
+   PRIMARY
+===================================================== */
+
+.success-button.primary {
+
+    border: 1px solid #2563eb;
+
+    background: #2563eb;
+
+    color: #ffffff;
+}
+
+
+.success-button.primary:hover {
+
+    background: #1d4ed8;
+
+    border-color: #1d4ed8;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 700px) {
+
+    .dispense-success-page {
+
+        padding: 25px 15px;
+
+    }
+
+
+    .success-card {
+
+        padding: 35px 22px;
+
+        border-radius: 14px;
+
+    }
+
+
+    .success-card h1 {
+
+        font-size: 24px;
+
+    }
+
+
+    .success-info-row {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+        justify-content: center;
+
+        gap: 4px;
+
+        padding: 10px 0;
+
+    }
+
+
+    .success-info-row strong {
+
+        text-align: left;
+
+    }
+
+
+    .success-actions {
+
+        flex-direction: column;
+
+    }
+
+
+    .success-button {
+
+        width: 100%;
+
+    }
+
+}

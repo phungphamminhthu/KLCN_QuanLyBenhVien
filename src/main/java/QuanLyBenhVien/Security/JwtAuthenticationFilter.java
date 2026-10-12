@@ -35,36 +35,49 @@ public class JwtAuthenticationFilter
             HttpServletResponse Response,
             FilterChain FilterChain)
             throws ServletException, IOException {
+        System.out.println(
+                "JWT FILTER: " + Request.getMethod()
+                        + " " + Request.getRequestURI()
+        );
 
-        // Lấy Authorization Header
-        String Authorization =
-                Request.getHeader("Authorization");
+        String Authorization = Request.getHeader("Authorization");
 
-        // Không có JWT
+        System.out.println("======================================");
+        System.out.println("REQUEST: "
+                + Request.getMethod()
+                + " "
+                + Request.getRequestURI());
+
+        System.out.println("Authorization: "
+                + (Authorization != null
+                ? "Bearer token exists"
+                : "NULL"));
+
+        // Không có token
         if (Authorization == null
                 || !Authorization.startsWith("Bearer ")) {
+
+            System.out.println("JWT: KHÔNG CÓ TOKEN");
 
             FilterChain.doFilter(Request, Response);
             return;
         }
 
-        // Bỏ "Bearer "
-        String Token =
-                Authorization.substring(7);
+        String Token = Authorization.substring(7);
 
         try {
 
-            // Lấy tên đăng nhập từ token
             String TenDangNhap =
                     JwtService.extractTenDangNhap(Token);
 
-            // Chưa có authentication
+            System.out.println("Username từ JWT: "
+                    + TenDangNhap);
+
             if (TenDangNhap != null
                     && SecurityContextHolder
                     .getContext()
                     .getAuthentication() == null) {
 
-                // Tìm user trong database
                 CustomUserDetails UserDetails =
                         (CustomUserDetails)
                                 CustomUserDetailsService
@@ -72,10 +85,23 @@ public class JwtAuthenticationFilter
                                                 TenDangNhap
                                         );
 
-                // Kiểm tra token
-                if (JwtService.isTokenValid(
-                        Token,
-                        UserDetails)) {
+                System.out.println(
+                        "Authorities từ UserDetails: "
+                                + UserDetails.getAuthorities()
+                );
+
+                boolean TokenValid =
+                        JwtService.isTokenValid(
+                                Token,
+                                UserDetails
+                        );
+
+                System.out.println(
+                        "Token valid: "
+                                + TokenValid
+                );
+
+                if (TokenValid) {
 
                     UsernamePasswordAuthenticationToken Authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -89,22 +115,58 @@ public class JwtAuthenticationFilter
                                     .buildDetails(Request)
                     );
 
-                    // Xác nhận user đã đăng nhập
                     SecurityContextHolder
                             .getContext()
                             .setAuthentication(
                                     Authentication
                             );
+
+                    System.out.println(
+                            "===== JWT AUTH SUCCESS ====="
+                    );
+
+                    System.out.println(
+                            "Username: "
+                                    + TenDangNhap
+                    );
+
+                    System.out.println(
+                            "Authorities: "
+                                    + UserDetails.getAuthorities()
+                    );
                 }
             }
 
         } catch (Exception Exception) {
 
-            // Token không hợp lệ
-            // Không thiết lập Authentication
+            System.out.println(
+                    "===== JWT ERROR ====="
+            );
+
+            System.out.println(
+                    "Request: "
+                            + Request.getMethod()
+                            + " "
+                            + Request.getRequestURI()
+            );
+
+            System.out.println(
+                    "Error: "
+                            + Exception.getMessage()
+            );
+
+            Exception.printStackTrace();
         }
 
-        // Cho request đi tiếp
+        System.out.println(
+                "Authentication hiện tại: "
+                        + SecurityContextHolder
+                        .getContext()
+                        .getAuthentication()
+        );
+
+        System.out.println("======================================");
+
         FilterChain.doFilter(
                 Request,
                 Response

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Thuốc sắp hết hạn - Dược sĩ</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/DuocSi/thuoc-sap-het-han.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content"
+     class="expiry-page">
+
+    <!-- ==============================
+         HEADER
+    =============================== -->
+    <div class="expiry-page-header">
+
+        <div class="expiry-title">
+            <div>
+                <h1>Thuốc sắp hết hạn</h1>
+
+                <p>
+                    Danh sách thuốc sắp hết hạn sử dụng trong thời gian quy định
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ==============================
+         FILTER
+    =============================== -->
+    <section class="expiry-filter-card">
+
+        <div class="expiry-filter-grid">
+
+            <!-- Tìm kiếm -->
+            <div class="expiry-filter-item expiry-search-item">
+
+                <label for="expiryKeyword">
+                    Tìm kiếm
+                </label>
+
+                <div class="expiry-input-wrapper">
+
+                    <span class="expiry-search-icon">
+                        <svg width="18"
+                             height="18"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2"
+                             stroke-linecap="round"
+                             stroke-linejoin="round">
+
+                            <circle cx="11"
+                                    cy="11"
+                                    r="7">
+                            </circle>
+
+                            <line x1="16.5"
+                                  y1="16.5"
+                                  x2="21"
+                                  y2="21">
+                            </line>
+
+                        </svg>
+                    </span>
+
+                    <input type="text"
+                           id="expiryKeyword"
+                           placeholder="Tìm kiếm tên thuốc, mã thuốc..."
+                           autocomplete="off">
+
+                </div>
+
+            </div>
+
+
+            <!-- Khoảng thời gian -->
+            <div class="expiry-filter-item">
+
+                <label for="expiryDays">
+                    Khoảng thời gian còn lại
+                </label>
+
+                <select id="expiryDays">
+
+                    <option value="30">
+                        30 ngày
+                    </option>
+
+                    <option value="7">
+                        7 ngày
+                    </option>
+
+                    <option value="15">
+                        15 ngày
+                    </option>
+
+                    <option value="60">
+                        60 ngày
+                    </option>
+
+                    <option value="90">
+                        90 ngày
+                    </option>
+
+                    <option value="">
+                        Tất cả
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Đơn vị -->
+            <div class="expiry-filter-item">
+
+                <label for="expiryUnit">
+                    Đơn vị
+                </label>
+
+                <select id="expiryUnit">
+
+                    <option value="">
+                        Tất cả
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Button -->
+            <div class="expiry-filter-buttons">
+
+                <button type="button"
+                        id="expirySearchButton"
+                        class="expiry-search-button">
+
+                    Tìm kiếm
+
+                </button>
+
+                <button type="button"
+                        id="expiryResetButton"
+                        class="expiry-reset-button"
+                        title="Đặt lại">
+
+                    ↻
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==============================
+         WARNING
+    =============================== -->
+    <section class="expiry-warning-card">
+
+        <div class="expiry-warning-icon">
+
+            <svg width="21"
+                 height="21"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="1.8"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+
+                <path d="M10.3 2.9L1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0z">
+                </path>
+
+                <line x1="12"
+                      y1="9"
+                      x2="12"
+                      y2="13">
+                </line>
+
+                <line x1="12"
+                      y1="17"
+                      x2="12.01"
+                      y2="17">
+                </line>
+
+            </svg>
+
+        </div>
+
+        <div class="expiry-warning-content">
+
+            Có
+
+            <strong id="expiryWarningCount">
+                0
+            </strong>
+
+            loại thuốc có lô sắp hết hạn trong
+
+            <strong id="expiryWarningDays">
+                30 ngày tới
+            </strong>.
+
+            Vui lòng kiểm tra và xử lý kịp thời.
+
+        </div>
+
+    </section>
+
+
+    <!-- ==============================
+         TABLE
+    =============================== -->
+    <section class="expiry-table-card">
+
+        <!-- Header -->
+        <div class="expiry-table-header">
+
+            <div>
+
+                <h2>
+                    Danh sách thuốc sắp hết hạn
+                </h2>
+
+                <p>
+                    Theo dõi các thuốc có hạn sử dụng gần nhất
+                </p>
+
+            </div>
+
+
+            <button type="button"
+                    id="exportExpiryButton"
+                    class="expiry-export-button">
+
+                <svg width="16"
+                     height="16"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="1.8"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
+
+                    <path d="M12 3V15"></path>
+
+                    <path d="M7 10L12 15L17 10"></path>
+
+                    <path d="M4 20H20"></path>
+
+                </svg>
+
+                Xuất file
+
+            </button>
+
+        </div>
+
+
+        <!-- Table -->
+        <div class="expiry-table-wrapper">
+
+            <table class="expiry-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th class="col-code">
+                        Mã thuốc
+                    </th>
+
+                    <th class="col-name">
+                        Tên thuốc
+                    </th>
+
+                    <th class="col-unit">
+                        Đơn vị
+                    </th>
+
+                    <th class="col-stock">
+                        Số lượng tồn
+                    </th>
+
+                    <th class="col-date">
+                        Hạn sử dụng
+                    </th>
+
+                    <th class="col-remaining">
+                        Còn lại
+                    </th>
+
+                    <th class="col-warning">
+                        Mức độ cảnh báo
+                    </th>
+
+                    <th class="col-action">
+                        Thao tác
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="expiryTableBody">
+
+                <tr>
+
+                    <td colspan="9"
+                        class="expiry-table-loading">
+
+                        Đang tải dữ liệu...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- Footer -->
+        <div class="expiry-table-footer">
+
+            <div id="expiryResultInfo" class="expiry-result-info">
+                Hiển thị 0 - 0 trong 0 kết quả
+            </div>
+
+
+            <div class="expiry-pagination-area">
+
+                <div id="expiryPagination"
+                     class="expiry-pagination">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ==============================
+         MODAL CHI TIẾT
+    =============================== -->
+    <div id="expiryDetailModal"
+         class="expiry-modal-overlay"
+         style="display: none;">
+
+        <div class="expiry-detail-modal">
+
+            <!-- Modal header -->
+            <div class="expiry-modal-header">
+
+                <div>
+
+                    <h2>
+                        Chi tiết thuốc
+                    </h2>
+
+                    <p>
+                        Thông tin thuốc sắp hết hạn
+                    </p>
+
+                </div>
+
+
+                <button type="button"
+                        id="closeExpiryDetail"
+                        class="expiry-modal-close">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- Modal body -->
+            <div class="expiry-modal-body">
+
+                <div class="expiry-detail-grid">
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Mã thuốc
+                        </span>
+
+                        <strong id="expiryDetailMaThuoc">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Tên thuốc
+                        </span>
+
+                        <strong id="expiryDetailTenThuoc">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Đơn vị
+                        </span>
+
+                        <strong id="expiryDetailDonVi">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Số lượng tồn
+                        </span>
+
+                        <strong id="expiryDetailSoLuongTon">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Số lô
+                        </span>
+
+                        <strong id="expiryDetailSoLo">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Hạn sử dụng
+                        </span>
+
+                        <strong id="expiryDetailHanSuDung">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Thời gian còn lại
+                        </span>
+
+                        <strong id="expiryDetailConLai">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="expiry-detail-item">
+
+                        <span>
+                            Mức độ cảnh báo
+                        </span>
+
+                        <strong id="expiryDetailCanhBao">
+                            -
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Modal footer -->
+            <div class="expiry-modal-footer">
+
+                <button type="button"
+                        id="closeExpiryDetailButton"
+                        class="expiry-modal-cancel">
+
+                    Hủy
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ==============================
+     JAVASCRIPT
+=============================== -->
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/DuocSi/thuoc-sap-het-han.js}"></script>
+</th:block>
+
+</body>
+
+</html>

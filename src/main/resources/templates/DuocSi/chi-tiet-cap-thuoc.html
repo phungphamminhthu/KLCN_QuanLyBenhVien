@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{DuocSi/fragments/layout}">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>Chi tiết đơn thuốc</title>
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              href="/Css/DuocSi/chi-tiet-cap-thuoc.css">
+
+    </th:block>
+
+</head>
+
+
+<body>
+
+<div layout:fragment="content"
+     class="prescription-detail-page">
+
+
+    <!-- =====================================================
+         TITLE
+    ====================================================== -->
+
+    <div class="detail-page-header">
+
+        <h1>
+            Chi tiết đơn thuốc
+        </h1>
+
+        <p>
+            Danh sách thông tin thuốc cho bệnh nhân
+        </p>
+
+    </div>
+
+
+    <!-- =====================================================
+         THÔNG TIN ĐƠN THUỐC
+    ====================================================== -->
+
+    <section class="detail-card">
+
+        <h2>
+            THÔNG TIN ĐƠN THUỐC
+        </h2>
+
+
+        <div class="order-info-grid">
+
+
+            <div class="info-item">
+
+                <span class="info-label">
+                    Mã đơn thuốc:
+                </span>
+
+                <strong
+                        id="orderCode">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <span class="info-label">
+                    Ngày kê:
+                </span>
+
+                <strong
+                        id="prescriptionDate"
+                        class="normal-text">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <span class="info-label">
+                    Bệnh nhân:
+                </span>
+
+                <strong
+                        id="patientName"
+                        class="normal-text">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <span class="info-label">
+                    Ghi chú:
+                </span>
+
+                <span
+                        id="note">
+                    -
+                </span>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <span class="info-label">
+                    Mã bệnh nhân:
+                </span>
+
+                <strong
+                        id="patientCode">
+                    -
+                </strong>
+
+            </div>
+
+
+            <div class="info-item">
+
+                <span class="info-label">
+                    Bác sĩ kê đơn:
+                </span>
+
+                <strong
+                        id="doctorName"
+                        class="normal-text">
+                    -
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         DANH SÁCH THUỐC
+    ====================================================== -->
+
+    <section class="detail-card medicine-card">
+
+        <h2>
+            DANH SÁCH THUỐC
+        </h2>
+
+
+        <div class="medicine-table-wrapper">
+
+            <table class="medicine-table">
+
+                <thead>
+
+                <tr>
+
+                    <th>STT</th>
+
+                    <th>Tên thuốc</th>
+
+<!--                    <th>Hoạt chất</th>-->
+
+                    <th>Đơn vị</th>
+
+                    <th>Số lượng<br>kê</th>
+
+                    <th>Liều dùng</th>
+
+                    <th>Cách<br>dùng</th>
+
+                    <th>Đơn giá</th>
+
+                    <th>Thành<br>tiền</th>
+
+<!--                    <th>Tồn kho</th>-->
+
+<!--                    <th>Tình trạng</th>-->
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="medicineTableBody">
+
+                <tr>
+
+                    <td colspan="8"
+                        class="table-loading">
+
+                        Đang tải dữ liệu...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             WARNING + TOTAL
+        ================================================== -->
+
+        <div class="medicine-footer">
+
+
+<!--            <div-->
+<!--                    id="stockWarning"-->
+<!--                    class="stock-warning hidden">-->
+
+<!--                <span class="warning-icon">-->
+<!--                    ⚠-->
+<!--                </span>-->
+
+<!--                <span id="stockWarningText"></span>-->
+
+<!--                <a href="/DuocSi/thuoc-tuong-duong">-->
+<!--                    Xem thuốc tương đương-->
+<!--                </a>-->
+
+<!--            </div>-->
+
+
+            <div class="total-price">
+
+                <span>
+                    Tổng tiền thuốc:
+                </span>
+
+                <strong
+                        id="totalAmount">
+                    0đ
+                </strong>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ACTIONS
+    ====================================================== -->
+
+    <div class="detail-actions">
+
+        <button
+                type="button"
+                id="backButton"
+                class="back-button">
+
+            Quay lại
+
+        </button>
+
+
+        <button
+                type="button"
+                id="dispenseButton"
+                class="dispense-button">
+
+            Cấp thuốc
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+<th:block layout:fragment="js">
+
+    <script src="/Js/DuocSi/chi-tiet-cap-thuoc.js"></script>
+
+</th:block>
+
+</body>
+
+</html>

@@ -4,6 +4,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+
 @Service
 public class EmailService {
     private final JavaMailSender mailSender;
@@ -64,4 +65,24 @@ public class EmailService {
 
         mailSender.send(message);
     }
+
+
+    // ==============================
+    // GỬI OTP ĐĂNG KÝ TÀI KHOẢN
+    // ==============================
+    public void sendRegistrationOtpEmail(String emailNhan, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+
+        message.setTo(emailNhan);
+        message.setSubject("Mã OTP xác minh đăng ký tài khoản");
+        message.setText(
+                "Xin chào,\n\n"
+                        + "Mã OTP đăng ký tài khoản của bạn là: " + otp + "\n"
+                        + "Mã OTP có hiệu lực trong 2 phút.\n\n"
+                        + "Nếu bạn không thực hiện yêu cầu này, hãy bỏ qua email."
+        );
+
+        mailSender.send(message);
+    }
+
 }

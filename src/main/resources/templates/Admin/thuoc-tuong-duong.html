@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý thuốc tương đương</title>
+
+    <link rel="stylesheet"
+          th:href="@{/Css/Admin/thuoc-tuong-duong.css}">
+</head>
+
+<body>
+
+<section layout:fragment="content"
+         class="thuoc-tuong-duong-content">
+
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <div class="thuoc-tuong-duong-page-header">
+
+        <div>
+            <h1>Quản lý thuốc tương đương</h1>
+
+            <p>
+                Danh sách các thuốc tương đương và thuốc thay thế
+            </p>
+        </div>
+
+        <button
+                type="button"
+                id="addEquivalentButton"
+                class="btn-primary">
+
+            <span class="btn-icon">+</span>
+
+            Thêm thuốc tương đương
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         FILTER
+    ====================================================== -->
+
+    <div class="thuoc-tuong-duong-filter-card">
+
+        <!-- Tìm kiếm -->
+
+        <div class="filter-group">
+
+            <label for="keywordInput">
+                Tìm kiếm
+            </label>
+
+            <div class="input-search-wrapper">
+
+                <span class="search-icon">
+                    ⌕
+                </span>
+
+                <input
+                        type="text"
+                        id="keywordInput"
+                        placeholder="Mã thuốc, tên thuốc, ghi chú..."
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- Trạng thái -->
+
+        <div class="filter-group">
+
+            <label for="statusFilter">
+                Trạng thái
+            </label>
+
+            <select id="statusFilter">
+
+                <option value="">
+                    Tất cả
+                </option>
+
+                <option value="Đang áp dụng">
+                    Đang áp dụng
+                </option>
+
+                <option value="Ngừng áp dụng">
+                    Ngừng áp dụng
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- Button -->
+
+        <div class="filter-actions">
+
+            <button
+                    type="button"
+                    id="searchButton"
+                    class="btn-search">
+
+                Tìm kiếm
+
+            </button>
+
+            <button
+                    type="button"
+                    id="resetButton"
+                    class="btn-reset"
+                    title="Đặt lại">
+
+                ↻
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TABLE
+    ====================================================== -->
+
+    <div class="thuoc-tuong-duong-table-card">
+
+        <div class="table-responsive">
+
+            <table class="thuoc-tuong-duong-table">
+
+                <thead>
+
+                <tr>
+
+                    <th class="col-stt">
+                        STT
+                    </th>
+
+                    <th>
+                        MÃ TƯƠNG ĐƯƠNG
+                    </th>
+
+                    <th>
+                        THUỐC GỐC
+                    </th>
+
+                    <th>
+                        THUỐC THAY THẾ
+                    </th>
+
+                    <th>
+                        GHI CHÚ
+                    </th>
+
+                    <th>
+                        TRẠNG THÁI
+                    </th>
+
+                    <th class="col-action">
+                        THAO TÁC
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody id="equivalentTableBody">
+
+                <tr>
+
+                    <td
+                            colspan="7"
+                            class="empty-row">
+
+                        Đang tải dữ liệu...
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             PAGINATION
+        ================================================== -->
+
+        <div class="pagination-container">
+
+            <div
+                    class="pagination-info"
+                    id="paginationInfo">
+
+                Hiển thị 0 - 0 trong tổng số 0 bản ghi
+
+            </div>
+
+
+            <div
+                    class="pagination"
+                    id="pagination">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         ADD / EDIT / VIEW MODAL
+    ====================================================== -->
+
+    <div
+            id="equivalentModal"
+            class="modal-overlay">
+
+        <div class="modal">
+
+
+            <!-- Modal header -->
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2 id="equivalentModalTitle">
+                        Thêm thuốc tương đương
+                    </h2>
+
+                    <p id="equivalentModalSubtitle">
+                        Nhập thông tin thuốc tương đương
+                    </p>
+
+                </div>
+
+
+                <button
+                        type="button"
+                        id="closeEquivalentModal"
+                        class="modal-close">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <!-- Modal body -->
+
+            <div class="modal-body">
+
+                <form id="equivalentForm">
+
+                    <!-- ID -->
+
+                    <input
+                            type="hidden"
+                            id="maThuocTuongDuong"
+                    >
+
+
+                    <!-- Thuốc gốc -->
+
+                    <div class="form-group">
+
+                        <label for="maThuoc">
+
+                            Thuốc gốc
+
+                            <span>*</span>
+
+                        </label>
+
+
+                        <select
+                                id="maThuoc"
+                                required>
+
+                            <option value="">
+                                -- Chọn thuốc gốc --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Thuốc thay thế -->
+
+                    <div class="form-group">
+
+                        <label for="maThuocThayThe">
+
+                            Thuốc thay thế
+
+                            <span>*</span>
+
+                        </label>
+
+
+                        <select
+                                id="maThuocThayThe"
+                                required>
+
+                            <option value="">
+                                -- Chọn thuốc thay thế --
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- Ghi chú -->
+
+                    <div class="form-group">
+
+                        <label for="ghiChu">
+                            Ghi chú
+                        </label>
+
+
+                        <textarea
+                                id="ghiChu"
+                                rows="4"
+                                maxlength="255"
+                                placeholder="Nhập ghi chú..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- Trạng thái -->
+
+                    <div class="form-group">
+
+                        <label for="trangThai">
+                            Trạng thái
+                        </label>
+
+
+                        <select id="trangThai">
+
+                            <option value="Đang áp dụng">
+                                Đang áp dụng
+                            </option>
+
+                            <option value="Ngừng áp dụng">
+                                Ngừng áp dụng
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+
+            <!-- Modal footer -->
+
+            <div class="modal-footer">
+
+                <button
+                        type="button"
+                        id="cancelEquivalentModal"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="saveEquivalentButton"
+                        class="btn-primary">
+
+                    Lưu
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         DELETE MODAL
+    ====================================================== -->
+
+    <div
+            id="deleteConfirmModal"
+            class="modal-overlay">
+
+        <div class="delete-modal">
+
+            <div class="delete-icon">
+                !
+            </div>
+
+
+            <h2>
+                Xác nhận xóa
+            </h2>
+
+
+            <p>
+                Bạn có chắc chắn muốn xóa quan hệ thuốc tương đương này không?
+            </p>
+
+
+            <p
+                    class="delete-name"
+                    id="deleteEquivalentName">
+            </p>
+
+
+            <div class="delete-actions">
+
+                <button
+                        type="button"
+                        id="cancelDeleteButton"
+                        class="btn-cancel">
+
+                    Hủy
+
+                </button>
+
+
+                <button
+                        type="button"
+                        id="confirmDeleteButton"
+                        class="btn-delete">
+
+                    Xóa
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         TOAST
+    ====================================================== -->
+
+    <div
+            id="equivalentToast"
+            class="toast">
+
+        <div
+                id="toastIcon"
+                class="toast-icon">
+
+            ✓
+
+        </div>
+
+
+        <div>
+
+            <strong id="toastTitle">
+                Thành công
+            </strong>
+
+
+            <p id="toastMessage">
+                Thao tác thành công
+            </p>
+
+        </div>
+
+
+        <button
+                type="button"
+                id="closeToast"
+                class="toast-close">
+
+            ×
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script
+            th:src="@{/Js/Admin/thuoc-tuong-duong.js}">
+    </script>
+
+</section>
+
+</body>
+</html>
