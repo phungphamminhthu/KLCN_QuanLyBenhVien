@@ -1,0 +1,566 @@
+
+
+/* =========================================
+   TRANG CHỈ ĐỊNH CẬN LÂM SÀNG
+========================================= */
+
+.clinical-patient-card {
+    margin-bottom: 22px;
+}
+
+.clinical-main-card {
+    margin-bottom: 22px;
+    padding: 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.clinical-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* =========================================
+   TRẠNG THÁI TỔNG QUÁT
+========================================= */
+
+.clinical-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+    margin-bottom: 22px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 12px;
+}
+
+.clinical-summary-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.clinical-summary-icon {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2563eb;
+    background: #dbeafe;
+    border-radius: 12px;
+    font-size: 20px;
+}
+
+.clinical-summary h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    color: #1e293b;
+}
+
+.clinical-summary p {
+    margin: 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.clinical-summary-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 13px;
+    border-radius: 20px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.clinical-summary-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.clinical-summary-badge.completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+/* =========================================
+   FORM CHỈ ĐỊNH
+========================================= */
+
+.clinical-form-title {
+    margin: 0 0 20px;
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.clinical-form-title i {
+    margin-right: 8px;
+    color: #2563eb;
+}
+
+.clinical-helper {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* =========================================
+   THỐNG KÊ CHỈ ĐỊNH
+========================================= */
+
+.clinical-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin: 22px 0;
+}
+
+.clinical-stat {
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+.clinical-stat span {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.clinical-stat strong {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* =========================================
+   DANH SÁCH CHỈ ĐỊNH
+========================================= */
+
+.clinical-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.clinical-item {
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.clinical-item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.clinical-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.clinical-item-meta {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.6;
+}
+
+.clinical-status {
+    display: inline-flex;
+    padding: 7px 12px;
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.clinical-status.processing {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.clinical-status.completed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.clinical-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.clinical-result-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.clinical-result-button:hover {
+    background: #dbeafe;
+}
+
+.clinical-result-button:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   THANH HÀNH ĐỘNG CUỐI TRANG
+========================================= */
+
+.clinical-bottom-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.clinical-prescription-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.clinical-prescription-info i {
+    color: #2563eb;
+}
+
+.clinical-bottom-buttons {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.clinical-bottom-buttons button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* =========================================
+   MODAL KẾT QUẢ CẬN LÂM SÀNG
+========================================= */
+
+.clinical-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.clinical-result-overlay.hidden {
+    display: none;
+}
+
+.clinical-result-modal {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 820px;
+    max-height: 90vh;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.clinical-result-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 22px 26px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.clinical-result-header h2 {
+    margin: 0;
+    font-size: 19px;
+    color: #0f172a;
+}
+
+.clinical-result-header p {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.clinical-result-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #475569;
+    cursor: pointer;
+}
+
+.clinical-result-close:hover {
+    background: #e2e8f0;
+}
+
+.clinical-result-body {
+    padding: 24px 26px;
+    overflow-y: auto;
+}
+
+.clinical-result-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 26px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.clinical-readonly-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+/* NỘI DUNG KẾT QUẢ */
+
+.result-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.result-info-item {
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+.result-info-item span {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+.result-info-item strong {
+    color: #1e293b;
+    font-size: 14px;
+}
+
+.result-section {
+    margin-bottom: 22px;
+}
+
+.result-section h3 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    color: #1e293b;
+}
+
+.result-section-content {
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    font-size: 14px;
+    color: #334155;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.result-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.result-table th,
+.result-table td {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.result-table th {
+    background: #f1f5f9;
+    color: #334155;
+    font-weight: 600;
+}
+
+.result-table td {
+    color: #475569;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+    .clinical-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .clinical-bottom-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .clinical-bottom-buttons {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    .clinical-summary,
+    .clinical-item-header,
+    .clinical-result-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .clinical-header-actions,
+    .clinical-bottom-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .clinical-header-actions button,
+    .clinical-bottom-buttons button {
+        width: 100%;
+    }
+
+    .clinical-stats,
+    .result-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .clinical-result-header,
+    .clinical-result-body,
+    .clinical-result-footer {
+        padding: 16px;
+    }
+}
+/* ============================================
+   FIX BỐ CỤC TRANG CẬN LÂM SÀNG
+   ============================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Ngăn nội dung làm tràn chiều ngang */
+body {
+    overflow-x: hidden;
+}
+
+/* Khu vực nội dung chính */
+.main-content,
+.main-container,
+.content-wrapper,
+.clinical-page {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Các khung CLS không vượt quá vùng chứa */
+.clinical-section,
+.clinical-summary,
+.clinical-orders,
+.clinical-list,
+.clinical-order-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Thống kê chia đều không gian */
+.clinical-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+}
+
+/* Nội dung chỉ định */
+.clinical-order-card {
+    height: auto;
+    min-height: 0;
+    padding: 20px;
+}
+
+/* Không để tên dịch vụ làm tràn khung */
+.clinical-order-card * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 1000px) {
+    .clinical-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .clinical-stats {
+        grid-template-columns: 1fr;
+    }
+}
+

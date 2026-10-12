@@ -1,0 +1,521 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Chỉ định cận lâm sàng - Bệnh viện ABC</title>
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet"
+          th:href="@{/Css/BacSi/chi-tiet-kham-benh.css}">
+
+    <link rel="stylesheet"
+          th:href="@{/Css/BacSi/chi-dinh-can-lam-sang.css}">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- ================= SIDEBAR ================= -->
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+
+            <div class="logo-text">
+                <strong>BỆNH VIỆN ABC</strong>
+                <span>HỆ THỐNG QUẢN LÝ</span>
+            </div>
+        </div>
+
+        <nav class="menu">
+
+            <a href="/auth/bac-si/trang-chu"
+               class="menu-item">
+                <i class="fa-solid fa-house"></i>
+                <span>Trang chủ</span>
+            </a>
+
+            <div class="menu-group">
+                <div class="menu-item active">
+                    <i class="fa-solid fa-stethoscope"></i>
+                    <span>Khám bệnh</span>
+                    <i class="fa-solid fa-chevron-down arrow"></i>
+                </div>
+
+                <div class="submenu">
+                    <a href="/auth/bac-si/kham-benh"
+                       class="submenu-item active">
+                        Danh sách chờ khám
+                    </a>
+
+                    <a href="/auth/bac-si/lich-su-kham"
+                       class="submenu-item">
+                        Hồ sơ bệnh nhân
+                    </a>
+                </div>
+            </div>
+
+            <a href="/auth/bac-si/chi-dinh"
+               class="menu-item">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <span>Chỉ định</span>
+            </a>
+
+            <a href="/auth/bac-si/ket-qua-can-lam-sang"
+               class="menu-item">
+                <i class="fa-solid fa-flask-vial"></i>
+                <span>Kết quả cận lâm sàng</span>
+            </a>
+
+            <a href="#" class="menu-item">
+                <i class="fa-regular fa-calendar"></i>
+                <span>Lịch làm việc</span>
+            </a>
+
+        </nav>
+
+        <button type="button"
+                class="logout"
+                id="btnLogout">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span>Đăng xuất</span>
+        </button>
+
+    </aside>
+
+    <!-- ================= MAIN ================= -->
+    <main class="main">
+
+        <!-- HEADER -->
+        <header class="header">
+
+            <div class="header-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text"
+                       placeholder="Tìm kiếm bệnh nhân...">
+            </div>
+
+            <div class="header-right">
+
+                <button type="button"
+                        class="notification">
+                    <i class="fa-regular fa-bell"></i>
+                </button>
+
+                <div class="doctor-info">
+                    <div class="doctor-text">
+                        <strong id="doctorName">Bác sĩ</strong>
+                        <span>Bác sĩ</span>
+                    </div>
+
+                    <div class="avatar" id="doctorAvatar">
+                        BS
+                    </div>
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- CONTENT -->
+        <section class="content">
+
+            <!-- QUAY LẠI -->
+            <div class="back-row">
+                <button type="button"
+                        class="btn-back"
+                        id="btnBackToExam">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>Quay lại khám bệnh</span>
+                </button>
+            </div>
+
+            <!-- TIÊU ĐỀ -->
+            <div class="page-heading">
+                <div>
+                    <h1>Chỉ định cận lâm sàng</h1>
+                    <p>
+                        Tạo chỉ định, theo dõi trạng thái
+                        và xem kết quả cận lâm sàng.
+                    </p>
+                </div>
+            </div>
+
+            <!-- THÔNG TIN BỆNH NHÂN -->
+            <div class="exam-card clinical-patient-card">
+
+                <div class="exam-card-header">
+
+                    <div class="patient-heading">
+                        <div class="patient-icon">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+
+                        <div>
+                            <div class="patient-name-row">
+                                <h2 id="patientName">
+                                    Đang tải...
+                                </h2>
+
+                                <span class="status-badge"
+                                      id="examStatus">
+                                    Đang khám
+                                </span>
+                            </div>
+
+                            <div class="patient-meta">
+                                <span id="patientCode">---</span>
+                                <span class="dot">•</span>
+                                <span id="patientBirthDate">---</span>
+                                <span class="dot">•</span>
+                                <span id="patientGender">---</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- TRẠNG THÁI CHUNG -->
+            <div class="clinical-summary">
+
+                <div class="clinical-summary-info">
+                    <div class="clinical-summary-icon">
+                        <i class="fa-solid fa-flask-vial"></i>
+                    </div>
+
+                    <div>
+                        <h3>Trạng thái cận lâm sàng</h3>
+                        <p id="clinicalSummaryText">
+                            Đang kiểm tra các chỉ định...
+                        </p>
+                    </div>
+                </div>
+
+                <span class="clinical-summary-badge"
+                      id="clinicalSummaryBadge">
+                    Đang tải
+                </span>
+
+            </div>
+
+            <!-- CARD DANH SÁCH -->
+            <div class="exam-card clinical-main-card">
+
+                <!-- HEADER -->
+                <div class="clinical-header">
+
+                    <div>
+                        <h3>Danh sách chỉ định</h3>
+                        <p>
+                            Những dịch vụ cận lâm sàng
+                            được chỉ định trong lượt khám này.
+                        </p>
+                    </div>
+
+                    <div class="clinical-header-actions">
+
+                        <button type="button"
+                                class="btn-secondary"
+                                id="btnRefreshClinical">
+                            <i class="fa-solid fa-rotate"></i>
+                            Làm mới
+                        </button>
+
+                        <button type="button"
+                                class="btn-primary"
+                                id="btnOpenOrderForm">
+                            <i class="fa-solid fa-plus"></i>
+                            Tạo chỉ định
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- FORM TẠO CHỈ ĐỊNH -->
+                <div class="clinical-order-form hidden"
+                     id="clinicalOrderForm">
+
+                    <h4 class="clinical-form-title">
+                        <i class="fa-solid fa-plus"></i>
+                        Tạo chỉ định mới
+                    </h4>
+
+                    <div class="form-row">
+
+                        <div class="form-group">
+                            <label for="serviceSelect">
+                                Dịch vụ
+                                <span class="required">*</span>
+                            </label>
+
+                            <select id="serviceSelect">
+                                <option value="">
+                                    -- Chọn dịch vụ --
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="roomId">
+                                Mã phòng
+                            </label>
+
+                            <input type="number"
+                                   id="roomId"
+                                   min="1"
+                                   placeholder="Nhập mã phòng nếu có">
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderType">
+                            Loại chỉ định
+                        </label>
+
+                        <input type="text"
+                               id="orderType"
+                               placeholder="Ví dụ: Xét nghiệm, Chẩn đoán hình ảnh..."
+                               readonly>
+                        <small class="clinical-helper">
+                            Loại chỉ định sẽ được xác định
+                            theo dịch vụ đã chọn.
+                        </small>
+                    </div>
+
+                    <div class="order-form-actions">
+
+                        <button type="button"
+                                class="btn-secondary"
+                                id="btnCancelOrder">
+                            Hủy
+                        </button>
+
+                        <button type="button"
+                                class="btn-primary"
+                                id="btnCreateOrder">
+                            <i class="fa-solid fa-plus"></i>
+                            Xác nhận chỉ định
+                        </button>
+
+                    </div>
+
+                </div>
+
+                <!-- THỐNG KÊ -->
+                <div class="clinical-stats">
+
+                    <div class="clinical-stat">
+                        <span>Tổng chỉ định</span>
+                        <strong id="totalOrders">0</strong>
+                    </div>
+
+                    <div class="clinical-stat">
+                        <span>Chờ thực hiện</span>
+                        <strong id="pendingOrders">0</strong>
+                    </div>
+
+                    <div class="clinical-stat">
+                        <span>Đang thực hiện</span>
+                        <strong id="processingOrders">0</strong>
+                    </div>
+
+                    <div class="clinical-stat">
+                        <span>Đã có kết quả</span>
+                        <strong id="completedOrders">0</strong>
+                    </div>
+
+                </div>
+
+                <!-- LOADING -->
+                <div class="clinical-loading hidden"
+                     id="clinicalLoading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span>Đang tải danh sách chỉ định...</span>
+                </div>
+
+                <!-- EMPTY -->
+                <div class="clinical-empty hidden"
+                     id="clinicalEmpty">
+
+                    <i class="fa-solid fa-flask-vial"></i>
+                    <h4>Chưa có chỉ định</h4>
+                    <p>
+                        Bệnh nhân chưa có chỉ định
+                        cận lâm sàng trong lượt khám này.
+                    </p>
+
+                </div>
+
+                <!-- DANH SÁCH CHỈ ĐỊNH -->
+                <div class="clinical-list"
+                     id="clinicalList">
+                </div>
+
+            </div>
+
+            <!-- FOOTER ACTION -->
+            <div class="clinical-bottom-actions">
+
+                <div class="clinical-prescription-info">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span id="prescriptionLockMessage">
+                        Đang kiểm tra điều kiện kê đơn thuốc...
+                    </span>
+                </div>
+
+                <div class="clinical-bottom-buttons">
+
+                    <button type="button"
+                            class="btn-secondary"
+                            id="btnReturnExam">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Quay lại khám
+                    </button>
+
+                    <button type="button"
+                            class="btn-primary"
+                            id="btnGoPrescription"
+                            disabled>
+                        <i class="fa-solid fa-lock"
+                           id="prescriptionButtonIcon"></i>
+                        <span id="prescriptionButtonText">
+                            Kê đơn thuốc
+                        </span>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<!-- ============================================= -->
+<!-- MODAL XEM CHI TIẾT KẾT QUẢ CẬN LÂM SÀNG -->
+<!-- ============================================= -->
+<div class="clinical-result-overlay hidden"
+     id="resultOverlay">
+
+    <div class="clinical-result-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="resultModalTitle">
+
+        <!-- HEADER -->
+        <div class="clinical-result-header">
+
+            <div>
+                <h2 id="resultModalTitle">
+                    Chi tiết kết quả cận lâm sàng
+                </h2>
+                <p id="resultServiceName">
+                    Đang tải...
+                </p>
+            </div>
+
+            <button type="button"
+                    class="clinical-result-close"
+                    id="btnCloseResult"
+                    aria-label="Đóng kết quả">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+        <!-- BODY -->
+        <div class="clinical-result-body">
+
+            <div class="clinical-loading hidden"
+                 id="resultLoading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Đang tải chi tiết kết quả...</span>
+            </div>
+
+            <div id="resultDetail">
+                <!-- JavaScript hiển thị kết quả tại đây -->
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="clinical-result-footer">
+
+            <div class="clinical-readonly-note">
+                <i class="fa-solid fa-lock"></i>
+                Kết quả chỉ được xem, không chỉnh sửa.
+            </div>
+
+            <button type="button"
+                    class="btn-secondary"
+                    id="btnCloseResultFooter">
+                Đóng
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ============================================= -->
+<!-- LOADING TOÀN TRANG -->
+<!-- ============================================= -->
+<div class="page-loading hidden"
+     id="pageLoading">
+
+    <div class="loading-box">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Đang tải thông tin cận lâm sàng...</span>
+    </div>
+
+</div>
+
+<!-- ============================================= -->
+<!-- TOAST -->
+<!-- ============================================= -->
+<div class="toast hidden"
+     id="toast">
+
+    <div class="toast-icon" id="toastIcon">
+        <i class="fa-solid fa-check"></i>
+    </div>
+
+    <div class="toast-content">
+        <strong id="toastTitle">Thành công</strong>
+        <span id="toastMessage"></span>
+    </div>
+
+</div>
+
+<!-- JAVASCRIPT -->
+<script th:src="@{/Js/BacSi/chi-dinh-can-lam-sang.js}"></script>
+<script th:src="@{/Js/BacSi/sidebar.js}"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+

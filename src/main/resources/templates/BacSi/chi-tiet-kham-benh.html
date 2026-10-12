@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Khám bệnh - Bệnh viện ABC
+    </title>
+
+
+    <!-- Font Awesome -->
+
+    <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    >
+
+
+    <!-- CSS -->
+
+    <link
+            rel="stylesheet"
+            th:href="@{/Css/BacSi/chi-tiet-kham-benh.css}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+
+        <!-- LOGO -->
+
+        <div class="logo">
+
+            <div class="logo-icon">
+                <i class="fa-solid fa-plus"></i>
+            </div>
+
+
+            <div class="logo-text">
+
+                <strong>
+                    BỆNH VIỆN ABC
+                </strong>
+
+                <span>
+                    HỆ THỐNG QUẢN LÝ
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- MENU -->
+
+        <nav class="menu">
+
+
+            <!-- TRANG CHỦ -->
+
+            <a
+                    href="/auth/bac-si/trang-chu"
+                    class="menu-item"
+            >
+
+                <i class="fa-solid fa-house"></i>
+
+                <span>
+                    Trang chủ
+                </span>
+
+            </a>
+
+
+            <!-- KHÁM BỆNH -->
+
+            <div class="menu-group">
+
+
+                <div class="menu-item active">
+
+                    <i class="fa-solid fa-stethoscope"></i>
+
+                    <span>
+                        Khám bệnh
+                    </span>
+
+                    <i
+                            class="fa-solid fa-chevron-down arrow"
+                    ></i>
+
+                </div>
+
+
+                <div class="submenu">
+
+
+                    <a
+                            href="/auth/bac-si/kham-benh"
+                            class="submenu-item active"
+                    >
+
+                        Danh sách chờ khám
+
+                    </a>
+
+
+                    <a
+                            href="/auth/bac-si/lich-su-kham"
+                            class="submenu-item"
+                    >
+
+                        Hồ sơ bệnh nhân
+
+                    </a>
+
+
+                </div>
+
+
+            </div>
+            <!-- CHỈ ĐỊNH -->
+
+            <a
+                    href="/auth/bac-si/chi-dinh"
+                    class="menu-item"
+            >
+                <i class="fa-solid fa-clipboard-list"></i>
+
+                <span>
+                    Chỉ định
+                 </span>
+            </a>
+
+
+            <!-- KẾT QUẢ CẬN LÂM SÀNG -->
+
+            <a
+                    href="/auth/bac-si/ket-qua-can-lam-sang"
+                    class="menu-item"
+            >
+
+                <i class="fa-solid fa-flask-vial"></i>
+
+                <span>
+                    Kết quả cận lâm sàng
+                </span>
+
+            </a>
+
+
+            <!-- LỊCH LÀM VIỆC -->
+
+            <a
+                    href="#"
+                    class="menu-item"
+            >
+
+                <i class="fa-regular fa-calendar"></i>
+
+                <span>
+                    Lịch làm việc
+                </span>
+
+            </a>
+
+
+        </nav>
+
+
+        <!-- ĐĂNG XUẤT -->
+
+        <button
+                type="button"
+                class="logout"
+                id="btnLogout"
+        >
+
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+            <span>
+                Đăng xuất
+            </span>
+
+        </button>
+
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="header">
+
+
+            <!-- SEARCH -->
+
+            <div class="header-search">
+
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                        type="text"
+                        placeholder="Tìm kiếm bệnh nhân..."
+                >
+
+            </div>
+
+
+            <!-- HEADER RIGHT -->
+
+            <div class="header-right">
+
+
+                <!-- THÔNG BÁO -->
+
+                <button
+                        type="button"
+                        class="notification"
+                >
+
+                    <i class="fa-regular fa-bell"></i>
+
+                </button>
+
+
+                <!-- BÁC SĨ -->
+
+                <div class="doctor-info">
+
+                    <div class="doctor-text">
+
+                        <strong id="doctorName">
+                            Bác sĩ
+                        </strong>
+
+                        <span>
+                            Bác sĩ
+                        </span>
+
+                    </div>
+
+
+                    <div
+                            class="avatar"
+                            id="doctorAvatar"
+                    >
+                        BS
+                    </div>
+
+                </div>
+
+
+            </div>
+
+
+        </header>
+
+
+
+        <!-- =================================================
+             CONTENT
+        ================================================== -->
+
+        <section class="content">
+
+
+            <!-- =================================================
+                 QUAY LẠI
+            ================================================== -->
+
+            <div class="back-row">
+
+                <button
+                        type="button"
+                        class="btn-back"
+                        id="btnBack"
+                >
+
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                    <span>
+                        Danh sách chờ khám
+                    </span>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 TIÊU ĐỀ
+            ================================================== -->
+
+            <div class="page-heading">
+
+                <div>
+
+                    <h1>
+                        Khám bệnh
+                    </h1>
+
+                    <p>
+                        Khám và cập nhật hồ sơ bệnh án của bệnh nhân
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 CARD KHÁM BỆNH
+            ================================================== -->
+
+            <div class="exam-card">
+
+
+                <!-- =============================================
+                     HEADER HỒ SƠ
+                ============================================== -->
+
+                <div class="exam-card-header">
+
+
+                    <div class="patient-heading">
+
+
+                        <div class="patient-icon">
+
+                            <i class="fa-regular fa-user"></i>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="patient-name-row">
+
+                                <h2 id="patientName">
+                                    Đang tải...
+                                </h2>
+
+
+                                <span
+                                        class="status-badge"
+                                        id="examStatus"
+                                >
+                                    Đang khám
+                                </span>
+
+                            </div>
+
+
+                            <div class="patient-meta">
+
+                                <span id="patientCode">
+                                    ---
+                                </span>
+
+                                <span class="dot">
+                                    •
+                                </span>
+
+                                <span id="patientBirthDate">
+                                    ---
+                                </span>
+
+                                <span class="dot">
+                                    •
+                                </span>
+
+                                <span id="patientGender">
+                                    ---
+                                </span>
+
+                            </div>
+
+
+                        </div>
+
+
+                    </div>
+
+                    <button
+                            type="button"
+                            class="btn-history"
+                            id="btnHistory"
+                    >
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+
+                        <span>
+                             Lịch sử khám
+                        </span>
+                    </button>
+
+
+                </div>
+
+
+
+                <!-- =============================================
+                     TAB
+                ============================================== -->
+
+                <div class="exam-tabs">
+
+
+                    <button
+                            type="button"
+                            class="exam-tab active"
+                            id="tabMedical"
+                    >
+
+                        <i class="fa-regular fa-file-lines"></i>
+
+                        <span>
+                            Thông tin khám
+                        </span>
+
+                    </button>
+
+                    <button
+                            type="button"
+                            class="exam-tab"
+                            id="tabPrescription"
+                    >
+                        <i class="fa-solid fa-prescription-bottle-medical"></i>
+
+                        <span>
+                          Đơn thuốc
+                        </span>
+                    </button>
+
+
+                </div>
+
+
+
+                <!-- =================================================
+                     TAB THÔNG TIN KHÁM
+                ================================================== -->
+
+                <div
+                        class="tab-content"
+                        id="medicalTabContent"
+                >
+
+
+                    <!-- TRIỆU CHỨNG -->
+
+                    <div class="form-group">
+
+                        <label for="symptoms">
+
+                            Triệu chứng
+
+                            <span class="required">
+                                *
+                            </span>
+
+                        </label>
+
+
+                        <textarea
+                                id="symptoms"
+                                rows="4"
+                                placeholder="Nhập triệu chứng của bệnh nhân..."
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <!-- CHẨN ĐOÁN -->
+
+                    <div class="form-group">
+
+                        <label for="diagnosis">
+
+                            Chẩn đoán
+
+                            <span class="required">
+                                *
+                            </span>
+
+                        </label>
+
+
+                        <textarea
+                                id="diagnosis"
+                                rows="4"
+                                placeholder="Nhập chẩn đoán..."
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <!-- KẾT LUẬN -->
+
+                    <div class="form-group">
+
+                        <label for="conclusion">
+
+                            Kết luận
+
+                            <span class="required">
+                                *
+                            </span>
+
+                        </label>
+
+
+                        <textarea
+                                id="conclusion"
+                                rows="4"
+                                placeholder="Nhập kết luận..."
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <!-- HƯỚNG ĐIỀU TRỊ -->
+
+                    <div class="form-group">
+
+                        <label for="treatment">
+
+                            Hướng điều trị
+
+                            <span class="required">
+                                *
+                            </span>
+
+                        </label>
+
+
+                        <textarea
+                                id="treatment"
+                                rows="4"
+                                placeholder="Nhập hướng điều trị..."
+                        ></textarea>
+
+                    </div>
+
+
+
+                    <!-- TÁI KHÁM -->
+
+                    <div class="form-row">
+
+
+                        <!-- NGÀY TÁI KHÁM -->
+
+                        <div class="form-group">
+
+                            <label for="reExamDate">
+
+                                Ngày tái khám
+
+                            </label>
+
+
+                            <input
+                                    type="date"
+                                    id="reExamDate"
+                            >
+
+                        </div>
+
+
+                        <!-- GHI CHÚ TÁI KHÁM -->
+
+                        <div class="form-group">
+
+                            <label for="reExamNote">
+
+                                Ghi chú tái khám
+
+                            </label>
+
+
+                            <input
+                                    type="text"
+                                    id="reExamNote"
+                                    placeholder="Nhập ghi chú tái khám..."
+                            >
+
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+
+                <!-- =================================================
+                     TAB CẬN LÂM SÀNG
+                ================================================== -->
+
+                <div
+                        class="tab-content hidden"
+                        id="clinicalTabContent"
+                >
+
+
+                    <!-- HEADER -->
+
+                    <div class="clinical-header">
+
+
+                        <div>
+
+                            <h3>
+                                Chỉ định cận lâm sàng
+                            </h3>
+
+                            <p>
+                                Tạo và theo dõi các chỉ định cận lâm sàng của lần khám.
+                            </p>
+
+                        </div>
+
+
+                        <button
+                                type="button"
+                                class="btn-primary"
+                                id="btnOpenOrderForm"
+                        >
+
+                            <i class="fa-solid fa-plus"></i>
+
+                            <span>
+                                Tạo chỉ định
+                            </span>
+
+                        </button>
+
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         FORM TẠO CHỈ ĐỊNH
+                    ============================================== -->
+
+                    <div
+                            class="clinical-order-form hidden"
+                            id="clinicalOrderForm"
+                    >
+
+
+                        <div class="form-row">
+
+
+                            <!-- DỊCH VỤ -->
+
+                            <div class="form-group">
+
+                                <label for="serviceSelect">
+
+                                    Dịch vụ
+
+                                    <span class="required">
+                                        *
+                                    </span>
+
+                                </label>
+
+
+                                <select id="serviceSelect">
+
+                                    <option value="">
+                                        -- Chọn dịch vụ --
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- PHÒNG -->
+
+                            <div class="form-group">
+
+                                <label for="roomId">
+
+                                    Mã phòng
+
+                                </label>
+
+
+                                <input
+                                        type="number"
+                                        id="roomId"
+                                        placeholder="Nhập mã phòng nếu có"
+                                >
+
+                            </div>
+
+
+
+                        </div>
+
+
+
+                        <!-- LOẠI CHỈ ĐỊNH -->
+
+                        <div class="form-group">
+
+                            <label for="orderType">
+
+                                Loại chỉ định
+
+                            </label>
+
+
+                            <input
+                                    type="text"
+                                    id="orderType"
+                                    placeholder="Ví dụ: Xét nghiệm, Chẩn đoán hình ảnh..."
+                            >
+
+                        </div>
+
+
+
+                        <!-- BUTTON -->
+
+                        <div class="order-form-actions">
+
+
+                            <button
+                                    type="button"
+                                    class="btn-secondary"
+                                    id="btnCancelOrder"
+                            >
+
+                                Hủy
+
+                            </button>
+
+
+                            <button
+                                    type="button"
+                                    class="btn-primary"
+                                    id="btnCreateOrder"
+                            >
+
+                                <i class="fa-solid fa-plus"></i>
+
+                                Tạo chỉ định
+
+                            </button>
+
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <!-- =============================================
+                         DANH SÁCH CHỈ ĐỊNH
+                    ============================================== -->
+
+                    <div
+                            class="clinical-loading hidden"
+                            id="clinicalLoading"
+                    >
+
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+
+                        <span>
+                            Đang tải chỉ định...
+                        </span>
+
+                    </div>
+
+
+                    <div
+                            class="clinical-empty hidden"
+                            id="clinicalEmpty"
+                    >
+
+                        <i class="fa-solid fa-flask-vial"></i>
+
+                        <h4>
+                            Chưa có chỉ định
+                        </h4>
+
+                        <p>
+                            Lần khám này chưa có chỉ định cận lâm sàng.
+                        </p>
+
+                    </div>
+
+
+                    <div
+                            class="clinical-list"
+                            id="clinicalList"
+                    >
+                    </div>
+
+
+                </div>
+                <!-- =================================================
+     TAB ĐƠN THUỐC
+================================================== -->
+
+                <div
+                        class="tab-content hidden"
+                        id="prescriptionTabContent"
+                >
+
+                    <!-- HEADER -->
+
+                    <div class="clinical-header">
+
+                        <div>
+                            <h3>Đơn thuốc</h3>
+
+
+                            <p>
+                                Kê thuốc cho bệnh nhân trong lần khám hiện tại.
+                                Đơn thuốc là không bắt buộc.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- =================================================
+                         FORM THÊM THUỐC
+                    ================================================== -->
+
+                    <div
+                            class="clinical-order-form"
+                            id="prescriptionForm"
+                    >
+
+                        <!-- THUỐC + SỐ LƯỢNG -->
+
+                        <div class="form-row">
+
+                            <div class="form-group">
+
+                                <label for="medicineSelect">
+                                    Thuốc
+                                    <span class="required">*</span>
+                                </label>
+
+                                <select id="medicineSelect">
+
+                                    <option value="">
+                                        -- Chọn thuốc --
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="medicineQuantity">
+                                    Số lượng
+                                    <span class="required">*</span>
+                                </label>
+
+                                <input
+                                        type="number"
+                                        id="medicineQuantity"
+                                        min="1"
+                                        placeholder="Ví dụ: 10"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- LIỀU DÙNG + THỜI GIAN -->
+
+                        <div class="form-row">
+
+                            <div class="form-group">
+
+                                <label for="medicineDosage">
+                                    Liều dùng
+                                </label>
+
+                                <input
+                                        type="text"
+                                        id="medicineDosage"
+                                        placeholder="Ví dụ: 1 viên/lần, ngày 2 lần"
+                                >
+
+                            </div>
+
+
+                            <div class="form-group">
+
+                                <label for="medicineDuration">
+                                    Thời gian dùng (ngày)
+                                </label>
+
+                                <input
+                                        type="number"
+                                        id="medicineDuration"
+                                        min="1"
+                                        placeholder="Ví dụ: 5"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- HƯỚNG DẪN -->
+
+                        <div class="form-group">
+
+                            <label for="medicineInstruction">
+                                Hướng dẫn sử dụng
+                            </label>
+
+                            <input
+                                    type="text"
+                                    id="medicineInstruction"
+                                    placeholder="Ví dụ: Uống sau ăn"
+                            >
+
+                        </div>
+
+
+                        <!-- THÔNG TIN THUỐC ĐƯỢC CHỌN -->
+
+                        <div
+                                class="prescription-medicine-info hidden"
+                                id="medicineInfo"
+                        >
+
+            <span id="medicineUnit">
+            </span>
+
+                            <span id="medicinePrice">
+            </span>
+
+                        </div>
+
+
+                        <!-- BUTTON THÊM -->
+
+                        <div class="order-form-actions">
+
+                            <button
+                                    type="button"
+                                    class="btn-primary"
+                                    id="btnAddMedicine"
+                            >
+
+                                <i class="fa-solid fa-plus"></i>
+
+                                <span>
+                    Thêm thuốc
+                </span>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         DANH SÁCH THUỐC
+                    ================================================== -->
+
+                    <div class="prescription-list-section">
+
+                        <div class="prescription-list-header">
+
+                            <div>
+
+                                <h4>
+                                    Danh sách thuốc đã kê
+                                </h4>
+
+                                <p>
+                                    Các thuốc sẽ được lưu vào đơn thuốc của lần khám này.
+                                </p>
+
+                            </div>
+
+                            <span
+                                    class="prescription-count"
+                                    id="prescriptionCount"
+                            >
+                0 thuốc
+            </span>
+
+                        </div>
+
+
+                        <!-- EMPTY -->
+
+                        <div
+                                class="clinical-empty"
+                                id="prescriptionEmpty"
+                        >
+
+                            <i class="fa-solid fa-pills"></i>
+
+                            <h4>
+                                Chưa có thuốc
+                            </h4>
+
+                            <p>
+                                Chọn thuốc phía trên và nhấn "Thêm thuốc".
+                            </p>
+
+                        </div>
+
+
+                        <!-- LIST -->
+
+                        <div
+                                class="prescription-list"
+                                id="prescriptionList"
+                        >
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         GHI CHÚ ĐƠN THUỐC
+                    ================================================== -->
+
+                    <div class="form-group prescription-note">
+
+                        <label for="prescriptionNote">
+                            Ghi chú đơn thuốc
+                        </label>
+
+                        <textarea
+                                id="prescriptionNote"
+                                rows="3"
+                                placeholder="Ví dụ: Uống thuốc đúng liều, tái khám nếu triệu chứng không giảm..."
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         BUTTON LƯU ĐƠN
+                    ================================================== -->
+
+                    <div class="prescription-actions">
+
+                        <div class="prescription-status">
+
+                            <i class="fa-regular fa-circle-info"></i>
+
+                            <span id="prescriptionStatusText">
+                Chưa lưu đơn thuốc
+            </span>
+
+                        </div>
+
+
+                        <button
+                                type="button"
+                                class="btn-save"
+                                id="btnSavePrescription"
+                        >
+
+                            <i class="fa-regular fa-floppy-disk"></i>
+
+                            <span>
+                            Lưu đơn thuốc
+                             </span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- =================================================
+                     FOOTER ACTION
+                ================================================== -->
+
+                <div class="exam-actions">
+
+
+                    <button
+                            type="button"
+                            class="btn-secondary"
+                            id="btnCancel"
+                    >
+
+                        Hủy
+
+                    </button>
+
+
+                    <div class="exam-actions-right">
+                        <button
+                                type="button"
+                                class="btn-primary"
+                                id="btnGoClinical"
+                        >
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            Đi đến cận lâm sàng
+                        </button>
+
+
+                        <button
+                                type="button"
+                                class="btn-save"
+                                id="btnSave"
+                        >
+
+                            <i class="fa-regular fa-floppy-disk"></i>
+
+                            <span>
+                                Lưu hồ sơ
+                            </span>
+
+                        </button>
+
+
+                        <button
+                                type="button"
+                                class="btn-complete"
+                                id="btnComplete"
+                        >
+
+                            <i class="fa-regular fa-circle-check"></i>
+
+                            <span>
+                                Hoàn tất khám
+                            </span>
+
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+
+    </main>
+
+
+</div>
+
+<!-- =====================================================
+     LỊCH SỬ KHÁM - MODAL
+===================================================== -->
+
+<div
+        class="history-overlay hidden"
+        id="historyOverlay"
+>
+
+    <div
+            class="history-modal"
+            id="historyDrawer"
+    >
+
+        <!-- HEADER MODAL -->
+
+        <div class="history-modal-header">
+
+            <div>
+                <h2>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Lịch sử khám
+                </h2>
+
+                <p>
+                    Các lần khám trước của bệnh nhân
+                </p>
+            </div>
+
+            <button
+                    type="button"
+                    class="history-close"
+                    id="btnCloseHistory"
+                    aria-label="Đóng lịch sử khám"
+            >
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+        </div>
+
+
+        <!-- NỘI DUNG MODAL -->
+
+        <div class="history-modal-body">
+
+            <!-- =============================================
+                 DANH SÁCH LỊCH SỬ
+            ============================================== -->
+
+            <div
+                    class="history-view"
+                    id="historyListView"
+            >
+
+                <!-- LOADING -->
+
+                <div
+                        class="history-loading hidden"
+                        id="historyLoading"
+                >
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+
+                    <span>
+                        Đang tải lịch sử khám...
+                    </span>
+                </div>
+
+
+                <!-- EMPTY -->
+
+                <div
+                        class="history-empty hidden"
+                        id="historyEmpty"
+                >
+                    <i class="fa-regular fa-folder-open"></i>
+
+                    <h3>
+                        Chưa có lịch sử khám
+                    </h3>
+
+                    <p>
+                        Bệnh nhân chưa có lần khám hoàn tất trước đây.
+                    </p>
+                </div>
+
+
+                <!-- DANH SÁCH -->
+
+                <div
+                        class="history-list"
+                        id="historyList"
+                >
+                </div>
+
+
+                <!-- =========================================
+                     PHÂN TRANG
+                ========================================== -->
+
+                <div
+                        class="history-pagination hidden"
+                        id="historyPagination"
+                >
+
+                    <button
+                            type="button"
+                            class="history-page-btn"
+                            id="btnHistoryPrev"
+                            aria-label="Trang trước"
+                    >
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+
+                    <div
+                            class="history-page-numbers"
+                            id="historyPageNumbers"
+                    >
+                    </div>
+
+
+                    <button
+                            type="button"
+                            class="history-page-btn"
+                            id="btnHistoryNext"
+                            aria-label="Trang sau"
+                    >
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =============================================
+                 CHI TIẾT MỘT LẦN KHÁM
+            ============================================== -->
+
+            <div
+                    class="history-view hidden"
+                    id="historyDetailView"
+            >
+
+                <button
+                        type="button"
+                        class="history-back"
+                        id="btnBackHistory"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                    <span>
+                        Quay lại lịch sử
+                    </span>
+                </button>
+
+
+                <!-- LOADING CHI TIẾT -->
+
+                <div
+                        class="history-loading hidden"
+                        id="historyDetailLoading"
+                >
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+
+                    <span>
+                        Đang tải hồ sơ khám...
+                    </span>
+                </div>
+
+
+                <!-- NỘI DUNG CHI TIẾT -->
+
+                <div
+                        class="history-detail"
+                        id="historyDetail"
+                >
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<!-- =====================================================
+     LOADING TOÀN TRANG
+===================================================== -->
+
+<div
+        class="page-loading hidden"
+        id="pageLoading"
+>
+
+    <div class="loading-box">
+
+        <i class="fa-solid fa-spinner fa-spin"></i>
+
+        <span>
+            Đang tải thông tin khám bệnh...
+        </span>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     TOAST
+===================================================== -->
+
+<div
+        class="toast hidden"
+        id="toast"
+>
+
+    <div
+            class="toast-icon"
+            id="toastIcon"
+    >
+
+        <i class="fa-solid fa-check"></i>
+
+    </div>
+
+
+    <div class="toast-content">
+
+        <strong id="toastTitle">
+            Thành công
+        </strong>
+
+        <span id="toastMessage">
+        </span>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script
+        th:src="@{/Js/BacSi/chi-tiet-kham-benh.js}"
+></script>
+<script src="/Js/BacSi/sidebar.js"></script>
+
+
+</body>
+
+</html>

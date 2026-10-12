@@ -263,30 +263,28 @@ document.addEventListener("DOMContentLoaded", function () {
                 // ==============================
 
                 let data = null;
-
                 let errorText = "";
 
                 const contentType =
-                    response.headers.get(
-                        "content-type"
-                    ) || "";
+                    response.headers.get("content-type") || "";
 
-
-                if (
-                    contentType.includes(
-                        "application/json"
-                    )
-                ) {
-
-                    data =
-                        await response.json();
-
+                if (contentType.includes("application/json")) {
+                    try {
+                        data = await response.json();
+                    } catch {
+                        data = null;
+                    }
                 } else {
+                    errorText = await response.text();
 
-                    errorText =
-                        await response.text();
+                    try {
+                        data = JSON.parse(errorText);
+                    } catch {
+                        data = {
+                            message: errorText
+                        };
+                    }
                 }
-
 
                 // ==============================
                 // ĐĂNG NHẬP THẤT BẠI
@@ -515,15 +513,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                 break;
 
-
                             case "BACSI":
-
-                                window.location.href =
-                                    "/BacSi/dashboard";
+                                window.location.href = "/auth/bac-si/trang-chu";
 
                                 break;
-
-
                             case "TIEPNHAN":
 
                                 window.location.href =

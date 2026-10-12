@@ -173,12 +173,14 @@ public class AuthController {
 
             return ResponseEntity.ok(response);
 
-        } catch (Exception Exception) {
+        }  catch (Exception e) {
 
-            return ResponseEntity
-                    .badRequest()
-                    .body("Tên đăng nhập/email hoặc mật khẩu không đúng.");
-        }
+        e.printStackTrace();
+
+        return ResponseEntity
+                .badRequest()
+                .body("Đăng nhập thất bại. Kiểm tra log Backend.");
+    }
     }
 
     // ===========================================
