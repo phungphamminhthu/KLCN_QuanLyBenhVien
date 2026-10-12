@@ -27,7 +27,7 @@ CREATE TABLE Nguoidung (
     Email VARCHAR(255) UNIQUE,
     SoDienThoai VARCHAR(15),
     AnhDaiDien VARCHAR(255),
-    TrangThai TINYINT(1) NOT NULL DEFAULT 1,
+    TrangThai TINYINT  NOT NULL DEFAULT 1,
 
     CONSTRAINT FK_Nguoidung_VaiTro
         FOREIGN KEY (MaVaiTro)
@@ -56,10 +56,10 @@ CREATE TABLE CTQuyen (
     MaVaiTro INT NOT NULL,
     MaQuyen INT NOT NULL,
 
-    QuyenXem TINYINT(1) NOT NULL DEFAULT 0,
-    QuyenThem TINYINT(1) NOT NULL DEFAULT 0,
-    QuyenSua TINYINT(1) NOT NULL DEFAULT 0,
-    QuyenXoa TINYINT(1) NOT NULL DEFAULT 0,
+    QuyenXem TINYINT NOT NULL DEFAULT 0,
+    QuyenThem TINYINT NOT NULL DEFAULT 0,
+    QuyenSua TINYINT NOT NULL DEFAULT 0,
+    QuyenXoa TINYINT NOT NULL DEFAULT 0,
 
     CONSTRAINT FK_CTQuyen_VaiTro
         FOREIGN KEY (MaVaiTro)
@@ -124,7 +124,7 @@ CREATE TABLE BacSi (
     ChuyenMon VARCHAR(255),
     TrinhDo VARCHAR(100),
     SoChungChiHanhNghe VARCHAR(100),
-    TrangThai TINYINT(1) NOT NULL DEFAULT 1,
+    TrangThai TINYINT NOT NULL DEFAULT 1,
 
     CONSTRAINT FK_BacSi_Nguoidung
         FOREIGN KEY (MaNguoiDung)
@@ -148,7 +148,7 @@ CREATE TABLE PhongChuyenTrach (
     TenPhong VARCHAR(100) NOT NULL,
     LoaiPhong VARCHAR(100),
     ViTri VARCHAR(255),
-    TrangThai TINYINT(1) NOT NULL DEFAULT 1,
+    TrangThai TINYINT NOT NULL DEFAULT 1,
 
     CONSTRAINT FK_PhongChuyenTrach_Khoa
         FOREIGN KEY (MaKhoa)
@@ -258,6 +258,7 @@ CREATE TABLE TiepNhanBenhNhan (
 -- =========================================================
 -- 13. HỒ SƠ BỆNH ÁN
 -- =========================================================
+select * from HoSoBenhAn;
 
 CREATE TABLE HoSoBenhAn (
     MaHoSoBenhAn INT AUTO_INCREMENT PRIMARY KEY,
@@ -279,6 +280,11 @@ CREATE TABLE HoSoBenhAn (
         CHECK (TrangThai IN ('DangKham', 'HoanTat'))
 );
 
+ALTER TABLE HoSoBenhAn
+ADD CanNang DECIMAL(5,2) NULL,
+ADD ChieuCao DECIMAL(5,2) NULL,
+ADD HuyetApTamThu INT NULL,
+ADD HuyetApTamTruong INT NULL;
 -- =========================================================
 -- 14. DỊCH VỤ Y TẾ
 -- =========================================================
@@ -368,7 +374,7 @@ CREATE TABLE Thuoc (
     NhaSanXuat VARCHAR(255),
     Gia DECIMAL(15,2) NOT NULL DEFAULT 0,
     MoTa VARCHAR(255),
-    TrangThai TINYINT(1) NOT NULL DEFAULT 1,
+    TrangThai TINYINT NOT NULL DEFAULT 1,
 
     CONSTRAINT CK_Thuoc_Gia
         CHECK (Gia >= 0),
@@ -580,6 +586,40 @@ CREATE TABLE ThanhToan (
 );
 
 -- =========================================================
+-- 25. PHIẾU CẤP THUỐC ======== BỔ SUNG
+-- =========================================================
+
+CREATE TABLE PhieuCapThuoc (
+    MaPhieuCapThuoc INT AUTO_INCREMENT PRIMARY KEY,
+
+    MaDonThuoc INT NOT NULL,
+
+    MaNguoiCap INT NOT NULL,
+
+    ThoiGianCap DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    TongTien DECIMAL(15,2) NOT NULL DEFAULT 0,
+
+    GhiChu VARCHAR(255),
+
+    TrangThai VARCHAR(50) NOT NULL DEFAULT 'DaCapThuoc',
+
+    CONSTRAINT FK_PhieuCapThuoc_DonThuoc
+        FOREIGN KEY (MaDonThuoc)
+        REFERENCES DonThuoc(MaDonThuoc),
+
+    CONSTRAINT FK_PhieuCapThuoc_NguoiCap
+        FOREIGN KEY (MaNguoiCap)
+        REFERENCES Nguoidung(MaNguoiDung),
+
+    CONSTRAINT UQ_PhieuCapThuoc_DonThuoc
+        UNIQUE (MaDonThuoc),
+
+    CONSTRAINT CK_PhieuCapThuoc_TongTien
+        CHECK (TongTien >= 0)
+);
+
+-- =========================================================
 -- 26. THÔNG BÁO
 -- =========================================================
 
@@ -675,7 +715,7 @@ CREATE TABLE ChiSoDichVu (
     DonVi VARCHAR(50),
     GiaTriThamChieu VARCHAR(255),
     MoTa VARCHAR(255),
-    TrangThai TINYINT(1) NOT NULL DEFAULT 1,
+    TrangThai TINYINT NOT NULL DEFAULT 1,
 
     CONSTRAINT FK_ChiSoDichVu_DichVu
         FOREIGN KEY (MaDichVu)
@@ -717,6 +757,21 @@ CREATE TABLE IF NOT EXISTS PasswordResetOtp (
     -- Thời gian hết hạn của reset token
     resetTokenExpiresAt DATETIME
 );
+
+-- ===============================================
+-- ĐĂNG KÝ EMAIL OTP
+-- ===============================================
+
+CREATE TABLE IF NOT EXISTS RegistrationOtp (
+    Id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    Email VARCHAR(255) NOT NULL,
+    Otp VARCHAR(6) NOT NULL,
+    ExpiresAt DATETIME NOT NULL,
+    Verified BOOLEAN NOT NULL DEFAULT FALSE,
+    CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY UX_RegistrationOtp_Email (Email)
+);
+
 
 select * from PasswordResetOtp;
 SELECT *
@@ -1973,6 +2028,12 @@ describe ThuocTuongDuong;
 describe DanhMucTinTuc;
 DESCRIBE TinTuc;
 describe Nguoidung;
+describe LichDangKyKham;
+describe AuditLog;
+describe ThongBao;
+describe TiepNhanBenhNhan;
+describe DonThuoc;
+DESCRIBE RegistrationOtp;
 
 SELECT * FROM KHOA;
 SELECT * FROM DichVuYTe;
@@ -1987,6 +2048,20 @@ select * from LichLamViec;
 select * from VaiTro;
 select * from ChiDinhYTe;
 select * from ThanhToan;
+select * from TinTuc;
+select * from LichDangKyKham;
+select * from DonThuoc;
+select * from CTDonThuoc;
+select * from HoaDon;
+select *from AuditLog;
+select * from ThongBao;
+select * from HoSoBenhAn;
+select * from TiepNhanBenhNhan;
+select * from PhieuCapThuoc;
+select * from RegistrationOtp;
+select * from BenhNhan;
+select * from PasswordResetOtp;
+
 
 -- coi thông tin bác sĩ
 SELECT MaNguoiDung, TenDangNhap, HoTen, MaVaiTro
@@ -2015,3 +2090,319 @@ SELECT MaPhong, TenPhong
 FROM PhongChuyenTrach;
 select * from BacSi;
 SELECT DATABASE();
+
+INSERT INTO Nguoidung
+(
+    TenDangNhap,
+    HoTen,
+    Email,
+    MatKhau,
+    SoDienThoai,
+    AnhDaiDien,
+    MaVaiTro,
+    TrangThai
+)
+VALUES
+(
+    'admin001',
+    'Nguyễn Văn Tú',
+    'admin01@gmail.com',
+    '123456',
+    '0900000002',
+    NULL,
+    1,
+    1
+);
+
+UPDATE Nguoidung
+SET MatKhau = '$2a$10$Hiw0TXoAjBsWvCO.TMAKlOzOV3cAjFMWeCoo8Yzd0g8ATB8dnVe8u'
+WHERE TenDangNhap IN (
+    'admin001'
+);
+
+update Nguoidung
+set AnhDaiDien = 'images/2b1261cf-87ab-4b5c-9097-50cd95b2fc24.jpg'
+WHERE TenDangNhap IN (
+    'admin001'
+);
+
+INSERT INTO `LichDangKyKham` 
+  (`MaBenhNhan`, `MaBacSi`, `MaKhoa`, `MaSoThuTu`, `NgayKham`, `GioKham`, `LyDoKham`, `TrangThai`) 
+VALUES
+-- Ca sáng: Đã khám / Đang khám
+(1,  3, 1, 1, CURDATE(), '07:30:00', 'Đau đầu kéo dài kèm chóng mặt', 'DaKham');
+
+SELECT VERSION();
+
+USE quanlybenhvien;
+SELECT DATABASE();
+
+SELECT USER(), CURRENT_USER();
+
+-- thêm mã người dùng vô bảng TiepNhanBenhNhan
+
+ALTER TABLE TiepNhanBenhNhan
+ADD COLUMN MaNhanVienTiepNhan INT NULL
+COMMENT 'Nguoi dung thuc hien tiep nhan';
+
+ALTER TABLE TiepNhanBenhNhan
+ADD CONSTRAINT FK_TiepNhanBenhNhan_Nguoidung
+FOREIGN KEY (MaNhanVienTiepNhan)
+REFERENCES Nguoidung(MaNguoiDung);
+
+CREATE INDEX IX_TiepNhanBenhNhan_NhanVien
+ON TiepNhanBenhNhan (MaNhanVienTiepNhan);
+
+-- kiem tra
+SELECT
+    t.MaThuoc,
+    t.TenThuoc,
+    SUM(k.SoLuongTon) AS TongTonKho
+FROM KhoThuoc k
+JOIN Thuoc t
+    ON t.MaThuoc = k.MaThuoc
+WHERE k.MaThuoc IN (
+    SELECT MaThuoc
+    FROM CTDonThuoc
+    WHERE MaDonThuoc = 1
+)
+GROUP BY
+    t.MaThuoc,
+    t.TenThuoc;
+    
+-- test 
+SELECT
+    k.MaKhoThuoc,
+    k.MaThuoc,
+    t.TenThuoc,
+    k.SoLo,
+    k.HanSuDung,
+    k.SoLuongTon,
+    k.SoLuongToiThieu
+FROM KhoThuoc k
+JOIN Thuoc t
+    ON t.MaThuoc = k.MaThuoc
+WHERE k.MaThuoc IN (
+    SELECT MaThuoc
+    FROM CTDonThuoc
+    WHERE MaDonThuoc = 1
+)
+ORDER BY
+    k.MaThuoc,
+    k.HanSuDung;
+    
+-- phieu cap thuoc
+SELECT
+    p.MaPhieuCapThuoc,
+    p.MaDonThuoc,
+    p.MaNguoiCap,
+    nd.TenDangNhap,
+    nd.HoTen,
+    p.ThoiGianCap,
+    p.TongTien,
+    p.TrangThai
+FROM PhieuCapThuoc p
+JOIN Nguoidung nd
+    ON nd.MaNguoiDung = p.MaNguoiCap
+WHERE p.MaDonThuoc = 1;
+
+-- insert
+INSERT INTO DonThuoc
+(
+    MaHoSoBenhAn,
+    MaBacSi,
+    NgayKeThuoc,
+    ChanDoan,
+    GhiChu,
+    TrangThai
+)
+VALUES
+(
+    2,
+    1,
+    NOW(),
+    'Cảm cúm thông thường',
+    'Uống thuốc sau ăn',
+    'ChoCapThuoc'
+);
+
+SELECT
+    MaDonThuoc,
+    MaHoSoBenhAn,
+    MaBacSi,
+    NgayKeThuoc,
+    TrangThai
+FROM DonThuoc
+ORDER BY MaDonThuoc DESC
+LIMIT 1;
+
+INSERT INTO CTDonThuoc
+(
+    MaDonThuoc,
+    MaThuoc,
+    DonGiaBan,
+    SoLuong,
+    LieuDung,
+    ThoiGianDung,
+    HuongDanSuDung
+)
+VALUES
+(
+    2,
+    1,
+    2000,
+    10,
+    '1 viên x 2 lần/ngày',
+    5,
+    'Uống sau ăn'
+),
+(
+    2,
+    2,
+    5000,
+    5,
+    '1 viên x 1 lần/ngày',
+    5,
+    'Uống sau ăn'
+);
+-- test cân nặng
+UPDATE HoSoBenhAn
+SET
+    CanNang = 47.5,
+    ChieuCao = 157,
+    HuyetApTamThu = 120,
+    HuyetApTamTruong = 80
+WHERE MaHoSoBenhAn = 1;
+-- sau đó
+SELECT
+    MaHoSoBenhAn,
+    MaLichKham,
+    CanNang,
+    ChieuCao,
+    HuyetApTamThu,
+    HuyetApTamTruong
+FROM HoSoBenhAn
+WHERE MaHoSoBenhAn = 1;
+
+-- 
+UPDATE HoSoBenhAn
+SET
+    CanNang = 47.00,
+    HuyetApTamThu = 120,
+    HuyetApTamTruong = 80
+WHERE MaHoSoBenhAn = 2;
+
+DESCRIBE BenhNhan;
+SELECT 
+    MaBenhNhan,
+    DiaChi
+FROM BenhNhan;
+DESCRIBE ChiDinhYTe;
+use QuanLyBenhVien;
+
+
+-- test demo 
+
+USE QuanLyBenhVien;
+
+-- Kiểm tra dữ liệu liên kết trước khi thêm
+SELECT MaHoSoBenhAn FROM HoSoBenhAn
+WHERE MaHoSoBenhAn = 2;
+
+SELECT MaBacSi FROM BacSi
+WHERE MaBacSi = 1;
+
+SELECT MaThuoc FROM Thuoc
+WHERE MaThuoc IN (1, 11);
+
+-- Tạo 5 đơn thuốc demo
+-- Dùng mã ghi chú để tránh thêm trùng khi chạy lại
+INSERT INTO DonThuoc
+(MaHoSoBenhAn, MaBacSi, NgayKeThuoc,
+ ChanDoan, GhiChu, TrangThai)
+SELECT
+    2, 1, NOW(),
+    d.ChanDoan, d.GhiChu, d.TrangThai
+FROM (
+    SELECT 'Cảm cúm, sốt nhẹ' AS ChanDoan,
+           '[DEMO-01] Đơn chờ cấp số 1' AS GhiChu,
+           'ChoCapThuoc' AS TrangThai
+    UNION ALL
+    SELECT 'Viêm mũi dị ứng',
+           '[DEMO-02] Đơn chờ cấp số 2',
+           'ChoCapThuoc'
+    UNION ALL
+    SELECT 'Đau đầu, mệt mỏi',
+           '[DEMO-03] Đơn nhiều loại thuốc',
+           'ChoCapThuoc'
+    UNION ALL
+    SELECT 'Cảm cúm thông thường',
+           '[DEMO-04] Đơn đã cấp',
+           'DaCapThuoc'
+    UNION ALL
+    SELECT 'Viêm mũi dị ứng',
+           '[DEMO-05] Kiểm thử số lượng tồn kho',
+           'ChoCapThuoc'
+) d
+WHERE EXISTS (
+    SELECT 1 FROM HoSoBenhAn
+    WHERE MaHoSoBenhAn = 2
+)
+AND EXISTS (
+    SELECT 1 FROM BacSi
+    WHERE MaBacSi = 1
+)
+AND NOT EXISTS (
+    SELECT 1 FROM DonThuoc old
+    WHERE old.GhiChu = d.GhiChu
+);
+
+-- Thêm chi tiết thuốc cho 5 đơn mới
+-- Chỉ thêm thuốc thực sự có trong bảng Thuoc
+INSERT INTO CTDonThuoc
+(MaDonThuoc, MaThuoc, DonGiaBan, SoLuong,
+ LieuDung, ThoiGianDung, HuongDanSuDung)
+SELECT
+    dt.MaDonThuoc,
+    d.MaThuoc,
+    d.DonGiaBan,
+    d.SoLuong,
+    d.LieuDung,
+    d.ThoiGianDung,
+    d.HuongDan
+FROM (
+    SELECT '[DEMO-01] Đơn chờ cấp số 1' AS GhiChu,
+           1 AS MaThuoc, 500 AS DonGiaBan,
+           10 AS SoLuong, '1 viên/lần' AS LieuDung,
+           5 AS ThoiGianDung,
+           'Uống sau ăn' AS HuongDan
+    UNION ALL
+    SELECT '[DEMO-02] Đơn chờ cấp số 2',
+           11, 1200, 5, '1 viên/ngày', 5,
+           'Uống buổi tối'
+    UNION ALL
+    SELECT '[DEMO-03] Đơn nhiều loại thuốc',
+           1, 500, 10, '1 viên/lần', 5,
+           'Uống sau ăn'
+    UNION ALL
+    SELECT '[DEMO-03] Đơn nhiều loại thuốc',
+           11, 1200, 5, '1 viên/ngày', 5,
+           'Uống buổi tối'
+    UNION ALL
+    SELECT '[DEMO-04] Đơn đã cấp',
+           1, 500, 6, '1 viên/lần', 3,
+           'Uống sau ăn'
+    UNION ALL
+    SELECT '[DEMO-05] Kiểm thử số lượng tồn kho',
+           1, 500, 1000, '1 viên/lần', 5,
+           'Chỉ sử dụng cho kiểm thử tồn kho'
+) d
+JOIN DonThuoc dt ON dt.GhiChu = d.GhiChu
+JOIN Thuoc t ON t.MaThuoc = d.MaThuoc
+WHERE NOT EXISTS (
+    SELECT 1 FROM CTDonThuoc ct
+    WHERE ct.MaDonThuoc = dt.MaDonThuoc
+      AND ct.MaThuoc = d.MaThuoc
+);
+
+use QuanLyBenhVien;
