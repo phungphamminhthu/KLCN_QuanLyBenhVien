@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hồ sơ cá nhân - BỆNH VIỆN ABC</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          rel="stylesheet">
+
+    <link href="/Css/Auth/logout.css" rel="stylesheet">
+    <link href="/Css/TiepNhan/dashboard.css" rel="stylesheet">
+    <link href="/Css/TiepNhan/profile.css" rel="stylesheet">
+</head>
+
+<body class="profile-page">
+
+<!-- THANH MENU -->
+<aside class="sidebar">
+    <div class="sidebar-top">
+        <div class="brand-section">
+            <div class="brand-logo-icon">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            </div>
+
+            <div>
+                <h6 class="brand-title">BỆNH VIỆN ABC</h6>
+                <p class="brand-sub">Vì sức khỏe cộng đồng</p>
+            </div>
+        </div>
+
+        <nav class="sidebar-menu"
+             aria-label="Menu nhân viên tiếp nhận">
+
+            <a href="/TiepNhan/dashboard" class="nav-item-main">
+                <i class="fa-solid fa-house" aria-hidden="true"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/TiepNhan/checkin" class="nav-item-main">
+                <i class="fa-solid fa-calendar-days"
+                   aria-hidden="true"></i>
+                <span>Lịch khám</span>
+            </a>
+
+            <a href="/TiepNhan/patients" class="nav-item-main">
+                <i class="fa-solid fa-address-book"
+                   aria-hidden="true"></i>
+                <span>Bệnh nhân</span>
+            </a>
+
+            <a href="/TiepNhan/profile"
+               class="nav-item-main active"
+               aria-current="page">
+                <i class="fa-regular fa-user"
+                   aria-hidden="true"></i>
+                <span>Hồ sơ cá nhân</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="sidebar-logout">
+        <a href="/auth/login" id="logoutButton">
+            <i class="fa-solid fa-arrow-right-from-bracket"
+               aria-hidden="true"></i>
+            <span>Đăng xuất</span>
+        </a>
+    </div>
+</aside>
+
+<main class="main-wrapper">
+
+    <!-- THANH TRÊN CÙNG -->
+    <header class="topbar">
+        <div class="header-actions flex-nowrap">
+            <div class="btn-header text-nowrap">
+                <i class="fa-regular fa-calendar"
+                   aria-hidden="true"></i>
+                <span id="header-date-display">
+                    Đang cập nhật ngày...
+                </span>
+            </div>
+
+            <button id="refresh-profile-button"
+                    type="button"
+                    class="btn-header text-nowrap"
+                    disabled>
+                <i class="fa-solid fa-arrows-rotate"
+                   aria-hidden="true"></i>
+                <span>Làm mới dữ liệu</span>
+            </button>
+        </div>
+
+        <div class="topbar-actions">
+            <div class="notification-wrapper"
+                 id="notification-wrapper">
+
+                <button id="notification-button"
+                        type="button"
+                        class="notification-button"
+                        aria-label="Mở thông báo"
+                        aria-expanded="false"
+                        aria-controls="notification-panel">
+                    <i class="fa-solid fa-bell"
+                       aria-hidden="true"></i>
+
+                    <span id="notification-dot"
+                          class="notification-dot"
+                          hidden
+                          aria-hidden="true"></span>
+                </button>
+
+                <section id="notification-panel"
+                         class="notification-panel"
+                         aria-labelledby="notification-title"
+                         hidden>
+
+                    <div class="notification-header">
+                        <h2 id="notification-title"
+                            class="notification-title">
+                            Thông báo
+                        </h2>
+
+                        <button id="notification-close"
+                                type="button"
+                                class="notification-close"
+                                aria-label="Đóng thông báo">
+                            <i class="fa-solid fa-xmark"
+                               aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <div id="notification-list"
+                         class="notification-list">
+                        <div class="notification-empty">
+                            <i class="fa-regular fa-bell"
+                               aria-hidden="true"></i>
+                            Chưa có thông báo để hiển thị.
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-name" id="current-user-name">
+                        Nhân viên tiếp nhận
+                    </div>
+
+                    <small class="user-role">
+                        Hồ sơ cá nhân
+                    </small>
+                </div>
+
+                <div class="user-avatar"
+                     id="current-user-avatar"
+                     role="img"
+                     aria-label="Ảnh đại diện người dùng">
+                    <i class="fa-regular fa-user"
+                       aria-hidden="true"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NỘI DUNG HỒ SƠ -->
+    <div class="page-content profile-page-content">
+        <div id="profile-message"
+             class="alert alert-info"
+             role="status"
+             aria-live="polite"
+             hidden></div>
+
+        <div id="profile-layout"
+             class="profile-layout"
+             aria-busy="true">
+
+            <!-- THẺ NHÂN VIÊN -->
+            <section class="profile-card profile-summary"
+                     aria-labelledby="profile-display-name">
+
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar"
+                         id="profile-avatar"
+                         role="img"
+                         aria-label="Ảnh đại diện nhân viên">
+
+                        <img id="profile-avatar-image"
+                             alt="Ảnh đại diện nhân viên"
+                             hidden>
+
+                        <i id="profile-avatar-placeholder"
+                           class="fa-solid fa-user-nurse"
+                           aria-hidden="true"></i>
+                    </div>
+
+                    <button id="change-avatar-button"
+                            type="button"
+                            class="profile-avatar-button"
+                            aria-label="Thay đổi ảnh đại diện"
+                            title="Thay đổi ảnh đại diện"
+                            disabled>
+                        <i class="fa-solid fa-camera"
+                           aria-hidden="true"></i>
+                    </button>
+
+                    <input id="profile-avatar-input"
+                           type="file"
+                           accept="image/jpeg,image/png,image/webp"
+                           hidden>
+                </div>
+
+                <h1 id="profile-display-name"
+                    class="profile-display-name">
+                    Đang tải thông tin...
+                </h1>
+
+                <span id="profile-employee-code"
+                      class="profile-employee-code">
+                    —
+                </span>
+
+                <span class="profile-role-badge">
+                    Nhân viên tiếp nhận
+                </span>
+
+                <div class="profile-summary-divider"></div>
+
+                <div class="profile-contact-list">
+                    <div class="profile-contact-item">
+                        <i class="fa-regular fa-envelope"
+                           aria-hidden="true"></i>
+                        <span id="profile-summary-email">—</span>
+                    </div>
+
+                    <div class="profile-contact-item">
+                        <i class="fa-solid fa-phone"
+                           aria-hidden="true"></i>
+                        <span id="profile-summary-phone">—</span>
+                    </div>
+
+                    <div class="profile-contact-item">
+                        <i class="fa-solid fa-user-check"
+                           aria-hidden="true"></i>
+                        <span>Nhân viên tiếp nhận</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- THÔNG TIN CÁ NHÂN -->
+            <section class="profile-card profile-information"
+                     aria-labelledby="profile-information-title">
+
+                <div class="profile-card-header">
+                    <span class="profile-section-icon">
+                        <i class="fa-solid fa-id-card"
+                           aria-hidden="true"></i>
+                    </span>
+
+                    <h2 id="profile-information-title">
+                        Thông tin cá nhân
+                    </h2>
+                </div>
+
+                <dl class="profile-information-list">
+                    <div class="profile-information-row">
+                        <dt>Họ tên</dt>
+                        <dd id="profile-info-name">—</dd>
+                    </div>
+
+                    <div class="profile-information-row">
+                        <dt>Mã nhân viên</dt>
+                        <dd id="profile-info-code">—</dd>
+                    </div>
+
+                    <div class="profile-information-row">
+                        <dt>Email</dt>
+                        <dd id="profile-info-email">—</dd>
+                    </div>
+
+                    <div class="profile-information-row">
+                        <dt>Số điện thoại</dt>
+                        <dd id="profile-info-phone">—</dd>
+                    </div>
+
+                    <div class="profile-information-row">
+                        <dt>Vai trò</dt>
+                        <dd>Nhân viên tiếp nhận</dd>
+                    </div>
+                </dl>
+            </section>
+
+            <!-- HÀNH ĐỘNG -->
+            <section class="profile-card profile-actions"
+                     aria-labelledby="profile-actions-title">
+
+                <div class="profile-card-header">
+                    <span class="profile-section-icon">
+                        <i class="fa-solid fa-bolt"
+                           aria-hidden="true"></i>
+                    </span>
+
+                    <h2 id="profile-actions-title">
+                        Hành động
+                    </h2>
+                </div>
+
+                <div class="profile-action-buttons">
+                    <button id="edit-profile-button"
+                            type="button"
+                            class="profile-button profile-button-primary"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editProfileModal"
+                            disabled>
+                        <i class="fa-solid fa-pen"
+                           aria-hidden="true"></i>
+                        <span>Chỉnh sửa hồ sơ</span>
+                    </button>
+
+                    <button id="change-password-button"
+                            type="button"
+                            class="profile-button profile-button-outline"
+                            data-bs-toggle="modal"
+                            data-bs-target="#changePasswordModal"
+                            disabled>
+                        <i class="fa-solid fa-lock"
+                           aria-hidden="true"></i>
+                        <span>Đổi mật khẩu</span>
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<!-- FORM CHỈNH SỬA HỒ SƠ -->
+<div class="modal fade"
+     id="editProfileModal"
+     tabindex="-1"
+     aria-labelledby="edit-profile-title"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2 id="edit-profile-title" class="modal-title fs-6">
+                    Chỉnh sửa hồ sơ
+                </h2>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Đóng"></button>
+            </div>
+
+            <form id="edit-profile-form">
+                <div class="modal-body">
+                    <div id="edit-profile-message"
+                         class="alert alert-danger"
+                         role="alert"
+                         hidden></div>
+
+                    <fieldset id="edit-profile-fields">
+                        <div class="mb-3">
+                            <label for="edit-profile-name"
+                                   class="form-label">
+                                Họ tên <span class="text-danger">*</span>
+                            </label>
+
+                            <input id="edit-profile-name"
+                                   name="hoTen"
+                                   type="text"
+                                   class="form-control"
+                                   autocomplete="name"
+                                   maxlength="255"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="edit-profile-email"
+                                   class="form-label">
+                                Email
+                            </label>
+
+                            <input id="edit-profile-email"
+                                   name="email"
+                                   type="email"
+                                   class="form-control"
+                                   autocomplete="email"
+                                   maxlength="255">
+                        </div>
+
+                        <div>
+                            <label for="edit-profile-phone"
+                                   class="form-label">
+                                Số điện thoại
+                            </label>
+
+                            <input id="edit-profile-phone"
+                                   name="soDienThoai"
+                                   type="tel"
+                                   class="form-control"
+                                   autocomplete="tel"
+                                   maxlength="15">
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="save-profile-button"
+                            type="submit"
+                            class="profile-button profile-button-primary"
+                            disabled>
+                        <i class="fa-solid fa-floppy-disk"
+                           aria-hidden="true"></i>
+                        <span>Lưu thay đổi</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- FORM ĐỔI MẬT KHẨU -->
+<div class="modal fade"
+     id="changePasswordModal"
+     tabindex="-1"
+     aria-labelledby="change-password-title"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content profile-modal-content">
+            <div class="modal-header">
+                <h2 id="change-password-title" class="modal-title fs-6">
+                    Đổi mật khẩu
+                </h2>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Đóng"></button>
+            </div>
+
+            <form id="change-password-form">
+                <div class="modal-body">
+                    <div id="change-password-message"
+                         class="alert alert-danger"
+                         role="alert"
+                         hidden></div>
+
+                    <fieldset id="change-password-fields">
+                        <div class="mb-3">
+                            <label for="current-password"
+                                   class="form-label">
+                                Mật khẩu hiện tại
+                            </label>
+
+                            <input id="current-password"
+                                   name="matKhauHienTai"
+                                   type="password"
+                                   class="form-control"
+                                   autocomplete="current-password"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new-password"
+                                   class="form-label">
+                                Mật khẩu mới
+                            </label>
+
+                            <input id="new-password"
+                                   name="matKhauMoi"
+                                   type="password"
+                                   class="form-control"
+                                   autocomplete="new-password"
+                                   required>
+                        </div>
+
+                        <div>
+                            <label for="confirm-password"
+                                   class="form-label">
+                                Nhập lại mật khẩu mới
+                            </label>
+
+                            <input id="confirm-password"
+                                   name="xacNhanMatKhau"
+                                   type="password"
+                                   class="form-control"
+                                   autocomplete="new-password"
+                                   required>
+                        </div>
+                    </fieldset>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="save-password-button"
+                            type="submit"
+                            class="profile-button profile-button-primary"
+                            disabled>
+                        <i class="fa-solid fa-lock"
+                           aria-hidden="true"></i>
+                        <span>Lưu mật khẩu</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/Js/Auth/logout.js"></script>
+
+<!-- Thêm đường dẫn profile.js sau khi tạo file ở bước tiếp theo. -->
+
+</body>
+</html>

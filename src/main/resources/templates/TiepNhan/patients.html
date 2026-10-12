@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Bệnh nhân - BỆNH VIỆN ABC</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          rel="stylesheet">
+
+    <link href="/Css/Auth/logout.css" rel="stylesheet">
+    <link href="/Css/TiepNhan/layout.css" rel="stylesheet">
+    <link href="/Css/TiepNhan/patients.css" rel="stylesheet">
+</head>
+
+<body class="reception-layout patients-page">
+
+<!-- SIDEBAR DÙNG CHUNG -->
+<aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar('patients')}"></aside>
+
+<main class="main-wrapper reception-main">
+
+    <!-- HEADER DÙNG CHUNG -->
+    <header th:replace="~{TiepNhan/fragments/header :: header('refresh-patients-button', 'Quản lý hồ sơ bệnh nhân')}"></header>
+
+    <div class="page-content patients-page-content">
+
+        <div id="patient-message"
+             class="alert alert-info py-2"
+             role="status"
+             aria-live="polite"
+             hidden></div>
+
+        <section class="content-card patients-list-card"
+                 aria-labelledby="patients-list-title">
+
+            <!-- TIÊU ĐỀ VÀ BỘ LỌC NGÀY -->
+            <div class="content-card-header patients-list-header
+                        d-flex flex-wrap align-items-center
+                        justify-content-between gap-3">
+
+                <div class="header-with-icon">
+                    <div class="icon-circle-header">
+                        <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+                    </div>
+
+                    <h6 id="patients-list-title" class="fw-bold mb-0">
+                        Danh sách bệnh nhân
+                    </h6>
+                </div>
+
+                <div class="patients-filter-field patients-date-field">
+                    <span id="patients-date-heading" class="visually-hidden">
+                        Ngày khám
+                    </span>
+
+                    <div class="patients-date-controls d-flex align-items-center gap-2"
+                         role="group"
+                         aria-labelledby="patients-date-heading">
+
+                        <div class="patients-date-navigation btn-group"
+                             role="group"
+                             aria-label="Chuyển ngày khám">
+
+                            <button id="patients-previous-date"
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    title="Ngày trước"
+                                    aria-label="Xem ngày trước"
+                                    disabled>
+                                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                            </button>
+
+                            <span id="patients-date-label"
+                                  class="patients-date-label d-flex align-items-center
+                                         justify-content-center border-top border-bottom
+                                         px-3 text-nowrap"
+                                  role="status"
+                                  aria-live="polite">
+                                — / — / ——
+                            </span>
+
+                            <button id="patients-next-date"
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    title="Ngày sau"
+                                    aria-label="Xem ngày sau"
+                                    disabled>
+                                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                            </button>
+                        </div>
+
+                        <div class="patients-calendar-control position-relative">
+                            <button id="patients-open-calendar"
+                                    type="button"
+                                    class="btn btn-outline-secondary btn-sm"
+                                    title="Chọn ngày khám"
+                                    aria-label="Mở lịch chọn ngày khám"
+                                    disabled>
+                                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                            </button>
+
+                            <input id="patients-filter-date"
+                                   type="date"
+                                   class="patients-calendar-picker"
+                                   min="1000-01-01"
+                                   max="9999-12-31"
+                                   tabindex="-1"
+                                   aria-label="Ngày khám được chọn">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TÌM KIẾM → BÁC SĨ → KHOA -->
+            <div class="patients-list-toolbar d-flex flex-wrap align-items-center gap-2"
+                 role="group"
+                 aria-label="Tìm kiếm và lọc danh sách bệnh nhân">
+
+                <form id="patient-search-form"
+                      class="patients-search-form"
+                      role="search">
+
+                    <label for="patient-search-input" class="visually-hidden">
+                        Tìm bệnh nhân theo mã, họ tên hoặc số điện thoại
+                    </label>
+
+                    <input id="patient-search-input"
+                           type="search"
+                           class="form-control"
+                           maxlength="100"
+                           autocomplete="off"
+                           placeholder="Mã BN, họ tên hoặc số điện thoại">
+
+                    <button id="patient-search-button"
+                            type="submit"
+                            class="btn btn-primary"
+                            title="Tìm bệnh nhân"
+                            aria-label="Tìm bệnh nhân">
+                        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                    </button>
+                </form>
+
+                <div class="patients-filter-field patients-doctor-field">
+                    <label for="patients-filter-doctor" class="visually-hidden">
+                        Bác sĩ
+                    </label>
+
+                    <select id="patients-filter-doctor"
+                            class="filter-select"
+                            aria-label="Lọc theo bác sĩ"
+                            disabled>
+                        <option value="">Tất cả bác sĩ</option>
+                    </select>
+                </div>
+
+                <div class="patients-filter-field patients-department-field">
+                    <label for="patients-filter-department" class="visually-hidden">
+                        Khoa
+                    </label>
+
+                    <select id="patients-filter-department"
+                            class="filter-select"
+                            aria-label="Lọc theo khoa"
+                            disabled>
+                        <option value="">Tất cả khoa</option>
+                    </select>
+                </div>
+
+                <button id="clear-patient-search"
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm text-nowrap"
+                        hidden>
+                    <i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>
+                    Xóa tìm kiếm
+                </button>
+            </div>
+
+            <!-- GIỮ ID TƯƠNG THÍCH VỚI JAVASCRIPT -->
+            <span id="patients-total-count" hidden></span>
+
+            <button id="reset-patient-filters"
+                    type="button"
+                    hidden
+                    tabindex="-1"
+                    aria-hidden="true"></button>
+
+            <!-- BẢNG DANH SÁCH -->
+            <div id="patients-table-area"
+                 class="patients-table-area"
+                 aria-busy="true">
+
+                <div class="patients-table-scroll">
+                    <table class="table-custom patients-table">
+                        <thead>
+                        <tr>
+                            <th scope="col">STT</th>
+                            <th scope="col">MÃ BN</th>
+                            <th scope="col">HỌ TÊN</th>
+                            <th scope="col">NGÀY SINH</th>
+                            <th scope="col">GIỚI TÍNH</th>
+                            <th scope="col">SỐ ĐIỆN THOẠI</th>
+                            <th scope="col">ĐỊA CHỈ</th>
+                            <th scope="col">
+                                <span class="visually-hidden">
+                                    Xem chi tiết bệnh nhân
+                                </span>
+                            </th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="patients-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="patients-empty"
+                     class="patients-empty-state"
+                     role="status"
+                     aria-live="polite">
+                    <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+
+                    <p id="patients-empty-message" class="mb-0">
+                        Đang tải danh sách bệnh nhân...
+                    </p>
+                </div>
+            </div>
+
+            <!-- SỐ LƯỢNG VÀ PHÂN TRANG -->
+            <footer class="patients-list-footer">
+                <div id="patients-record-count"
+                     class="text-muted"
+                     role="status"
+                     aria-live="polite">
+                    Đang tải dữ liệu...
+                </div>
+
+                <div class="patients-pagination">
+                    <label for="patients-page-size" class="visually-hidden">
+                        Số bệnh nhân mỗi trang
+                    </label>
+
+                    <select id="patients-page-size"
+                            class="filter-select"
+                            aria-label="Số bệnh nhân mỗi trang">
+                        <option value="10">10 / trang</option>
+                        <option value="20" selected>20 / trang</option>
+                        <option value="50">50 / trang</option>
+                    </select>
+
+                    <button id="patients-previous-page"
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            aria-label="Trang trước"
+                            disabled>
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+
+                    <span id="patients-page-label" class="patients-page-label">
+                        Trang —
+                    </span>
+
+                    <button id="patients-next-page"
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm"
+                            aria-label="Trang sau"
+                            disabled>
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </footer>
+        </section>
+    </div>
+</main>
+
+<!-- FORM HỒ SƠ BỆNH NHÂN -->
+<div class="modal fade"
+     id="patient-record-modal"
+     tabindex="-1"
+     aria-labelledby="patient-record-title"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered
+                modal-dialog-scrollable patients-record-dialog">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h5 id="patient-record-title" class="modal-title fw-bold">
+                        Hồ sơ bệnh nhân
+                    </h5>
+                    <small id="record-patient-code" class="text-muted">—</small>
+                </div>
+
+                <button id="patient-record-close"
+                        type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Đóng hồ sơ"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="patient-record-message"
+                     class="alert alert-info"
+                     role="status"
+                     aria-live="polite"
+                     hidden></div>
+
+                <div id="patient-record-loading"
+                     class="text-center text-muted py-4"
+                     role="status"
+                     hidden>
+                    <i class="fa-solid fa-spinner fa-spin me-2" aria-hidden="true"></i>
+                    Đang tải hồ sơ bệnh nhân...
+                </div>
+
+                <form id="patient-record-form">
+                    <fieldset id="patient-record-fields" disabled>
+                        <legend class="visually-hidden">
+                            Thông tin hồ sơ bệnh nhân
+                        </legend>
+
+                        <div class="patients-record-grid">
+
+                            <!-- THÔNG TIN CÁ NHÂN -->
+                            <section class="profile-card">
+                                <h6 class="profile-heading">
+                                    Thông tin bệnh nhân
+                                </h6>
+
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="record-name" class="form-label">
+                                            Họ tên
+                                            <span class="text-danger">*</span>
+                                        </label>
+
+                                        <input id="record-name"
+                                               type="text"
+                                               class="form-control"
+                                               maxlength="255"
+                                               autocomplete="name"
+                                               required>
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <label for="record-birth-date" class="form-label">
+                                            Ngày sinh
+                                        </label>
+
+                                        <div class="input-group">
+                                            <input id="record-birth-date"
+                                                   type="text"
+                                                   class="form-control"
+                                                   maxlength="10"
+                                                   inputmode="numeric"
+                                                   autocomplete="off"
+                                                   placeholder="dd/mm/yyyy">
+
+                                            <button id="record-open-calendar"
+                                                    type="button"
+                                                    class="btn btn-outline-secondary"
+                                                    aria-label="Chọn ngày sinh">
+                                                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+
+                                        <input id="record-birth-picker"
+                                               type="date"
+                                               class="patients-calendar-picker"
+                                               min="1000-01-01"
+                                               tabindex="-1"
+                                               aria-hidden="true">
+                                    </div>
+
+                                    <div class="col-sm-6">
+                                        <label for="record-gender" class="form-label">
+                                            Giới tính
+                                        </label>
+
+                                        <select id="record-gender" class="form-select">
+                                            <option value="">Chưa cung cấp</option>
+                                            <option value="Nam">Nam</option>
+                                            <option value="Nữ">Nữ</option>
+                                            <option value="Khác">Khác</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="record-phone" class="form-label">
+                                            Số điện thoại
+                                        </label>
+
+                                        <input id="record-phone"
+                                               type="tel"
+                                               class="form-control"
+                                               maxlength="15"
+                                               autocomplete="tel"
+                                               placeholder="Số điện thoại liên hệ">
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label for="record-medical-history" class="form-label">
+                                            Tiền sử bệnh
+                                        </label>
+
+                                        <textarea id="record-medical-history"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  placeholder="Nhập tiền sử bệnh nếu có"></textarea>
+                                    </div>
+                                </div>
+
+                                <details class="profile-extra mt-3">
+                                    <summary>Thông tin liên hệ bổ sung</summary>
+
+                                    <div class="profile-extra-content">
+                                        <div>
+                                            <label for="record-address" class="form-label">
+                                                Địa chỉ
+                                            </label>
+
+                                            <textarea id="record-address"
+                                                      class="form-control"
+                                                      maxlength="255"
+                                                      rows="2"
+                                                      autocomplete="street-address"></textarea>
+                                        </div>
+
+                                        <div>
+                                            <label for="record-email" class="form-label">
+                                                Email
+                                            </label>
+
+                                            <input id="record-email"
+                                                   type="email"
+                                                   class="form-control"
+                                                   maxlength="255"
+                                                   autocomplete="email">
+                                        </div>
+
+                                        <div>
+                                            <label for="record-emergency-phone" class="form-label">
+                                                Số điện thoại khẩn cấp
+                                            </label>
+
+                                            <input id="record-emergency-phone"
+                                                   type="tel"
+                                                   class="form-control"
+                                                   maxlength="15">
+                                        </div>
+                                    </div>
+                                </details>
+                            </section>
+
+                            <!-- LỊCH SỬ KHÁM VÀ SỐ ĐO -->
+                            <section class="profile-card">
+                                <h6 class="profile-heading">
+                                    Lịch sử khám và số đo
+                                </h6>
+
+                                <label for="record-visit-select" class="form-label">
+                                    Chọn lịch sử khám
+                                </label>
+
+                                <select id="record-visit-select"
+                                        class="form-select mb-3"
+                                        disabled>
+                                    <option value="">Đang tải lịch sử khám...</option>
+                                </select>
+
+                                <div id="record-no-visit"
+                                     class="alert alert-light border"
+                                     hidden>
+                                    Bệnh nhân chưa có lịch khám.
+                                    Bạn vẫn có thể cập nhật thông tin cá nhân.
+                                </div>
+
+                                <div id="record-visit-content" hidden>
+                                    <div class="d-flex justify-content-between
+                                                align-items-center gap-2 mb-3">
+                                        <span id="record-visit-code" class="fw-semibold">—</span>
+
+                                        <span id="record-visit-status"
+                                              class="badge bg-secondary">—</span>
+                                    </div>
+
+                                    <div class="profile-grid">
+                                        <div>
+                                            <span class="profile-label">
+                                                Ngày khám · Giờ
+                                            </span>
+                                            <div id="record-visit-time" class="profile-value">—</div>
+                                        </div>
+
+                                        <div>
+                                            <span class="profile-label">Số thứ tự</span>
+                                            <div id="record-visit-sequence" class="profile-value">—</div>
+                                        </div>
+
+                                        <div>
+                                            <span class="profile-label">Khoa</span>
+                                            <div id="record-visit-department" class="profile-value">—</div>
+                                        </div>
+
+                                        <div>
+                                            <span class="profile-label">Bác sĩ</span>
+                                            <div id="record-visit-doctor" class="profile-value">—</div>
+                                        </div>
+
+                                        <div class="profile-full-width">
+                                            <span class="profile-label">Phòng khám</span>
+                                            <div id="record-visit-room" class="profile-value">—</div>
+                                        </div>
+
+                                        <div class="profile-full-width">
+                                            <span class="profile-label">Lý do khám</span>
+                                            <div id="record-visit-reason" class="profile-value">—</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="profile-divider"></div>
+
+                                    <h6 class="profile-heading">
+                                        Số đo trước khám
+                                    </h6>
+
+                                    <fieldset id="record-vitals-fields" disabled>
+                                        <legend class="visually-hidden">
+                                            Số đo của lịch sử khám đang xem
+                                        </legend>
+
+                                        <div class="row g-3">
+                                            <div class="col-sm-6">
+                                                <label for="record-weight" class="form-label">
+                                                    Cân nặng
+                                                </label>
+
+                                                <div class="input-group">
+                                                    <input id="record-weight"
+                                                           type="number"
+                                                           class="form-control"
+                                                           min="0.01"
+                                                           max="999.99"
+                                                           step="0.01"
+                                                           inputmode="decimal">
+                                                    <span class="input-group-text">kg</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <label for="record-height" class="form-label">
+                                                    Chiều cao
+                                                </label>
+
+                                                <div class="input-group">
+                                                    <input id="record-height"
+                                                           type="number"
+                                                           class="form-control"
+                                                           min="0.01"
+                                                           max="999.99"
+                                                           step="0.01"
+                                                           inputmode="decimal">
+                                                    <span class="input-group-text">cm</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <label for="record-systolic" class="form-label">
+                                                    Huyết áp tâm thu
+                                                </label>
+
+                                                <div class="input-group">
+                                                    <input id="record-systolic"
+                                                           type="number"
+                                                           class="form-control"
+                                                           min="1"
+                                                           max="65535"
+                                                           step="1"
+                                                           inputmode="numeric">
+                                                    <span class="input-group-text">mmHg</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-sm-6">
+                                                <label for="record-diastolic" class="form-label">
+                                                    Huyết áp tâm trương
+                                                </label>
+
+                                                <div class="input-group">
+                                                    <input id="record-diastolic"
+                                                           type="number"
+                                                           class="form-control"
+                                                           min="1"
+                                                           max="65535"
+                                                           step="1"
+                                                           inputmode="numeric">
+                                                    <span class="input-group-text">mmHg</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+
+                                    <div id="record-vitals-note"
+                                         class="profile-edit-note"
+                                         role="status"></div>
+                                </div>
+                            </section>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button id="patient-record-save"
+                        type="submit"
+                        form="patient-record-form"
+                        class="btn btn-primary"
+                        disabled>
+                    <i class="fa-regular fa-floppy-disk me-1" aria-hidden="true"></i>
+                    Lưu hồ sơ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/Js/TiepNhan/patients.js"></script>
+<script src="/Js/Auth/logout.js"></script>
+
+</body>
+</html>

@@ -28,96 +28,62 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-
-                // =========================
-                // TẮT CSRF
-                // =========================
+                // Tắt CSRF
                 .csrf(csrf -> csrf.disable())
 
-                // =========================
-                // USER DETAILS SERVICE
-                // =========================
+                // User details service
                 .userDetailsService(customUserDetailsService)
 
-                // =========================
-                // JWT -> KHÔNG DÙNG SESSION
-                // =========================
+                // JWT, không dùng session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // =========================
-                // PHÂN QUYỀN API / PAGE
-                // =========================
+                // Phân quyền API và trang
                 .authorizeHttpRequests(auth -> auth
 
-                        // -------------------------
-                        // PUBLIC
-                        // -------------------------
+                        // Các đường dẫn công khai
                         .requestMatchers(
                                 "/",
                                 "/news",
                                 "/auth/**",
                                 "/favicon.ico",
-
-                                // CSS / JS / Images
                                 "/Css/**",
                                 "/Js/**",
                                 "/Images/**",
-
-                                // API authentication
                                 "/api/auth/**",
-
-                                // API test
                                 "/api/test-email",
-
-                                // API upload image
-                                "/api/images/**",
-
-                                // Các trang giao diện
-                                "/Admin/**",
-                                "/DuocSi/**",
-
-                                // WebSocket
-                                "/ws",
-                                "/ws/**"
+                                "/api/images/**"
                         ).permitAll()
 
-                        // -------------------------
-                        // KHO THUỐC
-                        // CHỈ DƯỢC SĨ
-                        // -------------------------
+                        // Các trang giao diện
+                        .requestMatchers(
+                                "/Admin/**",
+                                "/DuocSi/**",
+                                "/TiepNhan/**"
+                        ).permitAll()
+
+                        // API kho thuốc: chỉ Dược sĩ
                         .requestMatchers(
                                 "/api/kho-thuoc",
                                 "/api/kho-thuoc/**"
-                        )
-                        .hasRole("DUOCSI")
+                        ).hasRole("DUOCSI")
 
-                        // -------------------------
-                        // THÔNG BÁO
-                        // PHẢI ĐĂNG NHẬP
-                        // -------------------------
+                        // API thông báo: yêu cầu đăng nhập
                         .requestMatchers("/api/thong-bao/**")
                         .authenticated()
 
-                        // -------------------------
-                        // CÁC API CÒN LẠI
-                        // PHẢI ĐĂNG NHẬP
-                        // -------------------------
+                        // Các API còn lại yêu cầu đăng nhập
                         .anyRequest()
                         .authenticated()
                 )
 
-                // =========================
-                // TẮT FORM LOGIN MẶC ĐỊNH
-                // =========================
+                // Tắt form login mặc định
                 .formLogin(form -> form.disable())
 
-                // =========================
-                // JWT FILTER
-                // =========================
+                // JWT filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

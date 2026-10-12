@@ -1,0 +1,664 @@
+/* =========================================================
+   NỘI DUNG DASHBOARD
+   Header, sidebar và màu sắc dùng layout.css
+   ========================================================= */
+
+.dashboard-page .header-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.dashboard-page .dashboard-heading {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+/* =========================================================
+   THẺ THỐNG KÊ
+   ========================================================= */
+
+.dashboard-page .kpi-card {
+    height: 105px;
+    padding: 16px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.dashboard-page .kpi-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.dashboard-page .kpi-label {
+    color: #53627B;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.dashboard-page .kpi-icon-pill {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 7px;
+    background: #EDEAFF;
+    color: #6558F5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dashboard-page .kpi-icon-patients {
+    background: #EDEAFF;
+    color: #6558F5;
+}
+
+.dashboard-page .kpi-icon-appointments {
+    background: #EEEAFF;
+    color: #7264FF;
+}
+
+.dashboard-page .kpi-icon-waiting {
+    background: #FFE6A6;
+    color: #A66B09;
+}
+
+.dashboard-page .kpi-icon-examining {
+    background: #D9FFF0;
+    color: #059A77;
+}
+
+.dashboard-page .kpi-value {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   BẢNG DANH SÁCH LỊCH KHÁM
+   ========================================================= */
+
+.dashboard-page .table-responsive-custom {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.dashboard-page .table-custom {
+    width: 100%;
+    min-width: 780px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.dashboard-page .table-custom th {
+    padding: 10px 6px;
+    background: #F7F9FF;
+    border-block: 1px solid var(--border-color);
+    color: var(--text-sub);
+    font-size: 10px;
+    text-align: left;
+}
+
+.dashboard-page .table-custom td {
+    padding: 10px 6px;
+    border-bottom: 1px solid #F0F3FA;
+    vertical-align: middle;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.dashboard-page .table-custom tbody tr:hover {
+    background: #FAFBFF;
+}
+
+.dashboard-page .queue-col-stt {
+    width: 7%;
+}
+
+.dashboard-page .queue-col-code {
+    width: 8%;
+}
+
+.dashboard-page .queue-col-patient {
+    width: 21%;
+}
+
+.dashboard-page .queue-col-doctor {
+    width: 18%;
+}
+
+.dashboard-page .queue-col-room {
+    width: 12%;
+}
+
+.dashboard-page .queue-col-time {
+    width: 8%;
+}
+
+.dashboard-page .queue-col-status {
+    width: 14%;
+}
+
+.dashboard-page .queue-col-actions {
+    width: 12%;
+}
+
+.dashboard-page .avatar-initial {
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    margin-right: 6px;
+    border-radius: 50%;
+    color: #FFFFFF;
+    background: var(--primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.dashboard-page .status-pill {
+    display: inline-block;
+    padding: 4px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+/* =========================================================
+   NÚT GỌI VÀ XEM HỒ SƠ
+   ========================================================= */
+
+.dashboard-page .queue-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.dashboard-page .btn-action-call-compact,
+.dashboard-page .btn-action-vitals-compact {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: 1px solid var(--primary);
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.dashboard-page .btn-action-call-compact {
+    background: var(--primary);
+    color: #FFFFFF;
+}
+
+.dashboard-page .btn-action-call-compact:hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.dashboard-page .btn-action-vitals-compact {
+    background: #FFFFFF;
+    color: var(--primary);
+}
+
+.dashboard-page .btn-action-vitals-compact:hover:not(:disabled) {
+    background: var(--primary-soft);
+}
+
+.dashboard-page #table-record-count {
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    font-size: 12px;
+}
+
+/* =========================================================
+   LỊCH KHÁM CHỜ GỌI
+   ========================================================= */
+
+.dashboard-page .schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F0F3FA;
+    font-size: 11px;
+}
+
+.dashboard-page .schedule-item:last-child {
+    border-bottom: 0;
+}
+
+.dashboard-page .schedule-stt-box {
+    min-width: 44px;
+    padding: 5px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: #FFFFFF;
+    text-align: center;
+}
+
+/* =========================================================
+   FORM GỌI BỆNH NHÂN
+   ========================================================= */
+
+.dashboard-page #modalGoiKham .modal-content {
+    border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.dashboard-page #modalGoiKham .modal-title i {
+    color: var(--primary);
+}
+
+.dashboard-page #modalGoiKham .modal-header,
+.dashboard-page #modalGoiKham .modal-footer {
+    border-color: var(--border-color);
+}
+
+/* =========================================================
+   FORM HỒ SƠ BỆNH NHÂN
+   ========================================================= */
+
+.dashboard-page #modalHoSoBenhNhan .modal-dialog {
+    max-width: 1080px;
+    margin: 24px auto;
+    min-height: calc(100% - 48px);
+}
+
+.dashboard-page #modalHoSoBenhNhan .modal-content {
+    height: min(680px, calc(100dvh - 48px));
+    max-height: calc(100dvh - 48px);
+    border: none;
+    border-radius: 18px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-page #modalHoSoBenhNhan .modal-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.dashboard-page #modalHoSoBenhNhan .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-title);
+}
+
+.dashboard-page #modalHoSoBenhNhan .modal-title i {
+    color: var(--primary);
+}
+
+.dashboard-page #modalHoSoBenhNhan .modal-body {
+    padding: 18px 22px;
+    background: var(--bg-body);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-page #modalHoSoBenhNhan #patient-profile-modal-message {
+    flex-shrink: 0;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    font-size: 13px;
+}
+
+.dashboard-page #modalHoSoBenhNhan #patient-profile-modal-content {
+    flex: 1;
+    min-height: 0;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+    gap: 16px;
+    align-items: stretch;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-card {
+    padding: 18px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-heading {
+    margin: 0 0 14px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-title);
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-name {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-title);
+    overflow-wrap: anywhere;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-label {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-value {
+    font-size: 14px;
+    color: var(--text-title);
+    overflow-wrap: anywhere;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-full-width {
+    grid-column: 1 / -1;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-divider {
+    border-top: 1px solid var(--border-color);
+    margin: 14px 0;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-note-box {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--primary-soft);
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-extra {
+    margin-top: 14px;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-extra summary {
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-extra-content {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.dashboard-page #modalHoSoBenhNhan fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.dashboard-page #modalHoSoBenhNhan .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #414E66;
+    margin-bottom: 5px;
+}
+
+.dashboard-page #modalHoSoBenhNhan .form-control {
+    min-height: 40px;
+    font-size: 14px;
+}
+
+.dashboard-page #modalHoSoBenhNhan .input-group-text {
+    font-size: 12px;
+    color: var(--text-sub);
+    background: var(--bg-body);
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-edit-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-sub);
+}
+
+.dashboard-page #modalHoSoBenhNhan .modal-footer {
+    padding: 12px 22px;
+    background: #FFFFFF;
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.dashboard-page #modalHoSoBenhNhan .profile-save-button {
+    min-width: 140px;
+    border-radius: 8px;
+}
+
+/* =========================================================
+   HAI KHUNG DANH SÁCH LẤP ĐẦY PHẦN CÒN LẠI
+   Chỉ vùng danh sách cuộn
+   ========================================================= */
+
+.dashboard-page .main-wrapper > .page-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dashboard-page .main-wrapper #dashboard-message,
+.dashboard-page .main-wrapper .page-content > .row.mb-4 {
+    flex-shrink: 0;
+}
+
+.dashboard-page .main-wrapper .page-content > .row:last-child {
+    flex: 1;
+    min-height: 0;
+    flex-wrap: nowrap;
+}
+
+.dashboard-page .main-wrapper .page-content > .row:last-child > section {
+    display: flex;
+    min-height: 0;
+}
+
+.dashboard-page .main-wrapper .content-card {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dashboard-page .main-wrapper .content-card-header {
+    flex-shrink: 0;
+}
+
+.dashboard-page .main-wrapper .table-responsive-custom {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+}
+
+.dashboard-page .main-wrapper .table-custom th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #F7F9FF;
+}
+
+.dashboard-page .main-wrapper .table-custom:has(tbody td[colspan="8"]) {
+    height: 100%;
+}
+
+.dashboard-page .main-wrapper .table-custom:has(tbody td[colspan="8"]) thead {
+    height: 40px;
+}
+
+.dashboard-page .main-wrapper .table-custom tbody td[colspan="8"] {
+    vertical-align: middle;
+}
+
+.dashboard-page .main-wrapper #table-record-count {
+    flex-shrink: 0;
+}
+
+.dashboard-page .main-wrapper #lich-kham-sap-toi-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.dashboard-page .main-wrapper
+#lich-kham-sap-toi-container:not(:has(.schedule-item)) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 12px;
+    text-align: center;
+    color: var(--text-sub);
+}
+
+.dashboard-page .main-wrapper #lich-kham-sap-toi-container > p {
+    margin: 0;
+}
+
+/* =========================================================
+   GIỮ SỐ THỨ TỰ TRÊN MỘT DÒNG
+   ========================================================= */
+
+.dashboard-page .table-custom th:first-child,
+.dashboard-page .table-custom td:first-child {
+    width: 64px;
+    min-width: 64px;
+    white-space: nowrap;
+}
+
+.dashboard-page .table-custom .badge-stt-purple {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    padding: 5px 7px;
+    white-space: nowrap;
+    word-break: normal;
+    overflow-wrap: normal;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+/* =========================================================
+   MÀN HÌNH NHỎ
+   ========================================================= */
+
+@media (max-width: 1199px) {
+    body.reception-layout.dashboard-page {
+        height: auto;
+        min-height: 100dvh;
+        overflow-y: auto;
+    }
+
+    .dashboard-page .reception-main {
+        height: auto;
+        min-height: 100dvh;
+        overflow: visible;
+    }
+
+    .dashboard-page .main-wrapper > .page-content {
+        overflow: visible;
+    }
+
+    .dashboard-page .main-wrapper .page-content > .row:last-child {
+        flex-wrap: wrap;
+        flex: none;
+    }
+
+    .dashboard-page .main-wrapper
+    .page-content > .row:last-child > section:first-child
+    .content-card {
+        height: 450px;
+    }
+
+    .dashboard-page .main-wrapper
+    .page-content > .row:last-child > section:last-child
+    .content-card {
+        height: 350px;
+    }
+}
+
+@media (max-width: 991px) {
+    .dashboard-page .header-title-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 767px) {
+    .dashboard-page #modalHoSoBenhNhan .modal-dialog {
+        margin: 12px;
+        min-height: calc(100% - 24px);
+    }
+
+    .dashboard-page #modalHoSoBenhNhan .modal-content {
+        height: calc(100dvh - 24px);
+        max-height: calc(100dvh - 24px);
+    }
+
+    .dashboard-page #modalHoSoBenhNhan .modal-body {
+        padding: 14px;
+        overflow-y: auto;
+    }
+
+    .dashboard-page #modalHoSoBenhNhan #patient-profile-modal-content {
+        flex: none;
+    }
+
+    .dashboard-page #modalHoSoBenhNhan .profile-layout {
+        height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+
+    .dashboard-page #modalHoSoBenhNhan .profile-card {
+        overflow: visible;
+    }
+}
+
+@media (max-width: 575px) {
+    .dashboard-page .kpi-card {
+        height: 115px;
+        padding: 12px;
+    }
+
+    .dashboard-page .kpi-label {
+        font-size: 11px;
+    }
+}
