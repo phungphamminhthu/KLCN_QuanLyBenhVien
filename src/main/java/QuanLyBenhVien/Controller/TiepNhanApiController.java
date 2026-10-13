@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+//BỔ SUNG CODE CHO VỊ TRÍ PHÒNG
+
 @RestController
 @RequestMapping("/api/tiepnhan")
 public class TiepNhanApiController {
@@ -80,7 +82,19 @@ public class TiepNhanApiController {
                       AND lk.GioKham < lv.GioKetThuc
                     ORDER BY lv.MaLichLamViec
                     LIMIT 1
-                ) AS TenPhong
+                ) AS TenPhong,
+                (
+                    SELECT p.ViTri
+                    FROM lichlamviec lv
+                    JOIN phongchuyentrach p
+                      ON p.MaPhong = lv.MaPhong
+                    WHERE lv.MaBacSi = lk.MaBacSi
+                      AND lv.NgayLamViec = lk.NgayKham
+                      AND lk.GioKham >= lv.GioBatDau
+                      AND lk.GioKham < lv.GioKetThuc
+                    ORDER BY lv.MaLichLamViec
+                    LIMIT 1
+                ) AS ViTriPhong
 
             FROM lichdangkykham lk
 

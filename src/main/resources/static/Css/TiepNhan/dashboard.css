@@ -141,6 +141,9 @@
 .dashboard-page .queue-col-room {
     width: 12%;
 }
+.dashboard-page .queue-col-location {
+    width: 12%;
+}
 
 .dashboard-page .queue-col-time {
     width: 8%;
@@ -660,5 +663,354 @@
 
     .dashboard-page .kpi-label {
         font-size: 11px;
+    }
+}
+
+
+/* FIX LAYOUT: dashboard content uses the shared layout fragment */
+.dashboard-page {
+    min-width: 0;
+    color: var(--text-title, #1E293B);
+}
+.dashboard-page .page-content {
+    min-width: 0;
+}
+.dashboard-page .main-wrapper .page-content > .row.g-3:last-child {
+    min-width: 0;
+}
+.dashboard-page .main-wrapper .content-card-header {
+    padding: 16px;
+    gap: 12px;
+}
+.dashboard-page .main-wrapper .table-responsive-custom {
+    width: 100%;
+    max-width: 100%;
+}
+.dashboard-page .table-custom th,
+.dashboard-page .table-custom td {
+    word-break: normal;
+}
+.dashboard-page .table-custom th {
+    white-space: nowrap;
+}
+.dashboard-page .table-custom td {
+    font-size: 12px;
+    line-height: 1.45;
+}
+.dashboard-page .kpi-label {
+    font-weight: 500;
+}
+.dashboard-page .content-card h6 {
+    font-weight: 600;
+}
+/* =========================================================
+   FIX DASHBOARD BỊ DỒN SANG PHẢI
+   ========================================================= */
+
+/* Không cộng margin sidebar lần thứ hai */
+.dashboard-page .reception-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin-left: 0 !important;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Nội dung tận dụng toàn bộ chiều rộng còn lại */
+.dashboard-page .page-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 24px;
+    overflow-x: auto;
+}
+
+/* Hai hàng thống kê và bảng không bị co bất thường */
+.dashboard-page .page-content > .row {
+    width: 100%;
+    min-width: 0;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.dashboard-page .page-content > .row:first-of-type > div {
+    min-width: 0;
+}
+
+.dashboard-page .page-content > .row:last-child > section {
+    min-width: 0;
+}
+
+.dashboard-page .content-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+}
+
+/* =========================================================
+   LÀM ĐẸP BỘ LỌC PHÒNG VÀ TRẠNG THÁI
+   ========================================================= */
+
+.dashboard-page .content-card-header .d-flex {
+    min-width: 0;
+    align-items: center;
+}
+
+.dashboard-page .filter-select {
+    min-width: 145px;
+    max-width: 190px;
+    height: 38px;
+    padding: 0 34px 0 12px;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    color: #334155;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    outline: none;
+    transition:
+        border-color .2s ease,
+        box-shadow .2s ease,
+        background-color .2s ease;
+}
+
+.dashboard-page .filter-select:hover {
+    border-color: #93C5FD;
+    background-color: #F8FAFC;
+}
+
+.dashboard-page .filter-select:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 12%);
+}
+
+/* Bảng không ép nội dung tràn khỏi thẻ */
+.dashboard-page .table-responsive-custom {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.dashboard-page .table-custom {
+    width: 100%;
+    min-width: 780px;
+    table-layout: fixed;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1199px) {
+    .dashboard-page .reception-main {
+        height: auto;
+        min-height: 100%;
+        overflow: visible;
+    }
+
+    .dashboard-page .page-content {
+        height: auto;
+        overflow: visible;
+        padding: 20px;
+    }
+
+    .dashboard-page .page-content > .row:last-child {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-page .page-content > .row:last-child > section {
+        margin-bottom: 16px;
+    }
+}
+
+@media (max-width: 767px) {
+    .dashboard-page .page-content {
+        padding: 12px;
+    }
+
+    .dashboard-page .filter-select {
+        min-width: 0;
+        max-width: 100%;
+        flex: 1 1 140px;
+    }
+
+    .dashboard-page .content-card-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+/* =========================================================
+   DASHBOARD - CAN CHINH KICH THUOC VA FONT
+========================================================= */
+
+/* Nội dung dashboard */
+.dashboard-page .main-wrapper > .page-content {
+    padding: 20px 24px;
+    gap: 16px;
+}
+
+/* Khoảng cách giữa các thẻ thống kê */
+.dashboard-page .page-content > .row.mb-4 {
+    --bs-gutter-x: 14px;
+    --bs-gutter-y: 14px;
+    margin-bottom: 10px !important;
+}
+
+/* Thẻ thống kê: thấp và gọn hơn */
+.dashboard-page .kpi-card {
+    height: 96px;
+    padding: 13px 15px;
+    border-radius: 12px;
+}
+
+/* Chữ mô tả thống kê */
+.dashboard-page .kpi-label {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Icon thống kê */
+.dashboard-page .kpi-icon-pill {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+}
+
+/* Số liệu thống kê */
+.dashboard-page .kpi-value {
+    font-size: 28px;
+    line-height: 1.1;
+}
+
+/* Hai khung danh sách */
+.dashboard-page .main-wrapper .page-content > .row:last-child {
+    --bs-gutter-x: 16px;
+    --bs-gutter-y: 16px;
+}
+
+/* Tiêu đề khung */
+.dashboard-page .main-wrapper .content-card-header {
+    padding: 15px 17px;
+    gap: 12px;
+}
+
+.dashboard-page .content-card h6 {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* Bộ lọc phòng và trạng thái */
+.dashboard-page .filter-select {
+    min-width: 150px;
+    height: 40px;
+    padding: 0 30px 0 12px;
+    font-size: 13px;
+}
+
+/* Bảng lịch khám */
+.dashboard-page .table-custom {
+    min-width: 760px;
+}
+
+.dashboard-page .table-custom th {
+    padding: 12px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.dashboard-page .table-custom td {
+    padding: 12px 8px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Tên bệnh nhân */
+.dashboard-page .table-custom td strong,
+.dashboard-page .table-custom td b {
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+/* Avatar chữ cái */
+.dashboard-page .avatar-initial {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    font-size: 12px;
+}
+
+/* Nhãn trạng thái */
+.dashboard-page .status-pill {
+    padding: 5px 8px;
+    font-size: 11px;
+    line-height: 1.3;
+    white-space: nowrap;
+}
+
+/* Nút thao tác trong bảng */
+.dashboard-page .btn-action-call-compact,
+.dashboard-page .btn-action-vitals-compact {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+}
+
+/* Danh sách lịch khám chờ gọi */
+.dashboard-page .schedule-item {
+    gap: 12px;
+    padding: 14px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.dashboard-page .schedule-stt-box {
+    min-width: 46px;
+    padding: 7px 5px;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+/* Nội dung trong danh sách chờ gọi */
+.dashboard-page .schedule-item strong,
+.dashboard-page .schedule-item b {
+    font-size: 12px;
+}
+
+/* Dòng đếm số lịch khám */
+.dashboard-page #table-record-count {
+    padding: 12px 0 0;
+    font-size: 13px;
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 767px) {
+    .dashboard-page .main-wrapper > .page-content {
+        padding: 14px 12px;
+    }
+
+    .dashboard-page .kpi-card {
+        height: 96px;
+        padding: 12px;
+    }
+
+    .dashboard-page .kpi-label {
+        font-size: 12px;
+    }
+
+    .dashboard-page .kpi-value {
+        font-size: 25px;
+    }
+
+    .dashboard-page .filter-select {
+        min-width: 0;
+        flex: 1 1 140px;
     }
 }

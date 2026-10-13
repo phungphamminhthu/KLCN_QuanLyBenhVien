@@ -88,6 +88,7 @@ public class TiepNhanDashboardDTO {
         private String khoa;
         private String bacSi;
         private String phong;
+        private String viTriPhong;
         private String gioHen;
         private String thoiGianCho;
         private String trangThai;
@@ -165,6 +166,14 @@ public class TiepNhanDashboardDTO {
 
         public void setPhong(String phong) {
             this.phong = phong;
+        }
+
+        public String getViTriPhong() {
+            return viTriPhong;
+        }
+
+        public void setViTriPhong(String viTriPhong) {
+            this.viTriPhong = viTriPhong;
         }
 
         public String getGioHen() {

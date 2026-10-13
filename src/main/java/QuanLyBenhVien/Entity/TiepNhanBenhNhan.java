@@ -25,6 +25,11 @@ public class TiepNhanBenhNhan {
     @Column(name = "GhiChu", length = 255)
     private String ghiChu;
 
+    // Người dùng thực hiện tiếp nhận, có thể NULL
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "MaNhanVienTiepNhan")
+    private NguoiDung nhanVienTiepNhan;
+
     public Integer getMaTiepNhan() {
         return maTiepNhan;
     }
@@ -63,5 +68,13 @@ public class TiepNhanBenhNhan {
 
     public void setGhiChu(String ghiChu) {
         this.ghiChu = ghiChu;
+    }
+
+    public NguoiDung getNhanVienTiepNhan() {
+        return nhanVienTiepNhan;
+    }
+
+    public void setNhanVienTiepNhan(NguoiDung nhanVienTiepNhan) {
+        this.nhanVienTiepNhan = nhanVienTiepNhan;
     }
 }

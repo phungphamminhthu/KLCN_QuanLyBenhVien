@@ -1,0 +1,412 @@
+
+/* =========================================================
+   NOTIFICATION - TIEP NHAN
+========================================================= */
+
+.notification-wrapper,
+#notification-wrapper {
+    position: relative;
+    z-index: 10000;
+}
+
+/* ==================== CHUONG ==================== */
+
+.notification-button,
+#notification-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none !important;
+    outline: none !important;
+    border-radius: 10px;
+    background: transparent !important;
+    box-shadow: none !important;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    z-index: 10001;
+}
+
+/* Hover xam nhat giong Admin, khong nen vang */
+.notification-button:hover,
+#notification-button:hover {
+    background: #f1f5f9 !important;
+}
+
+.notification-button:focus,
+.notification-button:focus-visible,
+.notification-button:active,
+#notification-button:focus,
+#notification-button:focus-visible,
+#notification-button:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.notification-icon,
+.notification-button > i,
+#notification-button > i {
+    color: #eab308 !important;
+    font-size: 22px;
+    line-height: 1;
+}
+
+/* ==================== BADGE ==================== */
+
+.notification-badge,
+#notificationBadge {
+    position: absolute;
+    top: 2px;
+    right: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    box-sizing: border-box;
+    background: #ef4444;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.notification-badge[hidden],
+#notificationBadge[hidden],
+.notification-badge.hidden {
+    display: none !important;
+}
+
+/* ==================== PANEL ==================== */
+
+.notification-panel,
+#notification-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: 440px;
+    max-width: calc(100vw - 30px);
+    max-height: min(625px, calc(100vh - 100px));
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #fff;
+    color: #1e293b;
+    box-shadow: 0 12px 36px rgb(15 23 42 / 15%);
+    z-index: 10000;
+}
+
+/* Ho tro ca hidden cua HTML va class show cua Admin */
+.notification-panel[hidden],
+#notification-panel[hidden] {
+    display: none !important;
+}
+
+.notification-panel.show,
+#notification-panel.show {
+    display: block;
+}
+
+/* ==================== HEADER ==================== */
+
+.notification-header,
+.notification-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 18px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #fff;
+}
+
+.notification-header > div,
+.notification-panel-header > div {
+    min-width: 0;
+}
+
+.notification-header h3,
+.notification-title,
+.notification-panel-title,
+#notification-title {
+    margin: 0 0 5px;
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.notification-header small,
+.notification-header span,
+.notification-panel-header small,
+#notificationCountText {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.notification-close,
+#notification-close {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+}
+
+.notification-close:hover,
+#notification-close:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* ==================== VUNG DANH SACH ==================== */
+
+.notification-list,
+.notification-panel-body {
+    max-height: 430px;
+    padding: 6px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background: #fff;
+}
+
+.notification-list::-webkit-scrollbar,
+.notification-panel-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-track,
+.notification-panel-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notification-list::-webkit-scrollbar-thumb,
+.notification-panel-body::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #cbd5e1;
+}
+
+/* ==================== TUNG THONG BAO ==================== */
+
+.notification-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    min-height: 70px;
+    margin: 0 0 4px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+    border: none !important;
+    border-radius: 12px;
+    outline: none !important;
+    background: #fff;
+    color: #1e293b;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.notification-item:last-child {
+    margin-bottom: 0;
+}
+
+.notification-item:not(.unread):not(.is-unread) {
+    background: #fff;
+}
+
+.notification-item.unread,
+.notification-item.is-unread {
+    background: #eaf3ff;
+}
+
+.notification-item:hover {
+    background: #f2f6fc;
+}
+
+.notification-item.unread:hover,
+.notification-item.is-unread:hover {
+    background: #dfeeff;
+}
+
+.notification-item:focus,
+.notification-item:focus-visible,
+.notification-item:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* ==================== ICON THONG BAO ==================== */
+
+.notification-item-icon {
+    display: flex;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #e5efff;
+    color: #2563eb;
+    font-size: 20px;
+    line-height: 1;
+}
+
+.notification-item-icon i {
+    color: inherit;
+}
+
+/* ==================== NOI DUNG ==================== */
+
+.notification-item-content {
+    flex: 1;
+    min-width: 0;
+    padding-top: 1px;
+}
+
+.notification-item-title {
+    margin: 0 0 3px;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.notification-item-message {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.notification-item-time {
+    display: block;
+    margin-top: 4px;
+    color: #94a3b8;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+/* Cham xanh cho thong bao chua doc */
+.notification-unread-dot {
+    flex: 0 0 8px;
+    width: 8px;
+    height: 8px;
+    margin-top: 7px;
+    border-radius: 50%;
+    background: #2563eb;
+}
+
+/* ==================== THONG BAO TRONG ==================== */
+
+.notification-empty {
+    padding: 35px 20px;
+    color: #64748b;
+    text-align: center;
+    font-size: 13px;
+}
+
+.notification-empty i {
+    display: block;
+    margin-bottom: 10px;
+    color: #94a3b8;
+    font-size: 24px;
+}
+
+.notification-empty p {
+    margin: 0;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* ==================== FOOTER ==================== */
+
+.notification-footer,
+.notification-panel-footer {
+    padding: 13px 16px;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    text-align: center;
+}
+
+.notification-footer a,
+.notification-panel-footer a {
+    display: block;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.notification-footer a:hover,
+.notification-panel-footer a:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+/* Nut danh dau da doc neu JS tao ra */
+.notification-mark-all {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.notification-mark-all:hover {
+    background: #eff6ff;
+}
+
+.notification-mark-all:disabled {
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+/* ==================== RESPONSIVE ==================== */
+
+@media (max-width: 600px) {
+    .notification-panel,
+    #notification-panel {
+        position: fixed;
+        top: 65px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        max-width: none;
+        max-height: calc(100vh - 85px);
+    }
+
+    .notification-list,
+    .notification-panel-body {
+        max-height: calc(100vh - 210px);
+    }
+}

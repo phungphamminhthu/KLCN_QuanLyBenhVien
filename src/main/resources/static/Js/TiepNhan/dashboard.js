@@ -13,8 +13,12 @@ let patientProfileTrigger = null;
 
 const CALLABLE_STATUSES = new Set([
     'Chờ gọi',
+    'ChoGoi',
+    'ChoKham',
     'Lịch đã xác nhận',
-    'Đã gọi'
+    'DaXacNhan',
+    'Đã gọi',
+    'DaGoi'
 ]);
 
 const KPI_FIELDS = {
@@ -421,6 +425,9 @@ function renderQueueTable(list) {
             </td>
             <td class="text-center">
                 ${escapeHtml(item.phong)}
+            </td>
+            <td class="text-center">
+                ${escapeHtml(item.viTriPhong || 'Chưa cập nhật')}
             </td>
             <td>
                 ${escapeHtml(item.gioHen)}

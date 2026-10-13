@@ -173,6 +173,18 @@ public class TiepNhanDashboardService {
                         ORDER BY lv.MaLichLamViec
                         LIMIT 1
                     ) AS TenPhong,
+                    (
+                        SELECT p.ViTri
+                        FROM lichlamviec lv
+                        JOIN phongchuyentrach p
+                          ON p.MaPhong = lv.MaPhong
+                        WHERE lv.MaBacSi = l.MaBacSi
+                          AND lv.NgayLamViec = l.NgayKham
+                          AND l.GioKham >= lv.GioBatDau
+                          AND l.GioKham < lv.GioKetThuc
+                        ORDER BY lv.MaLichLamViec
+                        LIMIT 1
+                    ) AS ViTriPhong,
 
                     EXISTS (
                         SELECT 1
@@ -276,6 +288,10 @@ public class TiepNhanDashboardService {
 
             item.setPhong(
                     layChuoi(row, "TenPhong", "Chưa phân công")
+            );
+
+            item.setViTriPhong(
+                    layChuoi(row, "ViTriPhong", "Chưa cập nhật")
             );
 
             String gioKham =

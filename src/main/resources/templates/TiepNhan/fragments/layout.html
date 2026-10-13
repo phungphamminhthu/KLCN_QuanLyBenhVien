@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+        MedCare Hospital
+    </title>
+
+    <!-- CSS LAYOUT TIẾP NHẬN -->
+    <link rel="stylesheet"
+          th:href="@{/Css/TiepNhan/layout.css}">
+
+    <!-- CSS ĐĂNG XUẤT -->
+    <link rel="stylesheet"
+          th:href="@{/Css/Auth/logout.css}">
+
+    <!-- CSS THÔNG BÁO -->
+    <link rel="stylesheet"
+          th:href="@{/Css/TiepNhan/notification.css}">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS RIÊNG CỦA TRANG CON -->
+    <th:block layout:fragment="css"></th:block>
+</head>
+
+<body class="reception-layout">
+
+<div class="reception-layout-container">
+
+    <!-- SIDEBAR -->
+<!--    <aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar(${activePage})}">-->
+<!--    </aside>-->
+    <aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar}"></aside>
+
+    <!-- KHU VỰC CHÍNH -->
+    <div class="reception-main">
+
+        <!-- HEADER -->
+<!--        <header th:replace="~{TiepNhan/fragments/header :: header}">-->
+<!--        </header>-->
+<!--        <header th:replace="~{TiepNhan/fragments/header :: header('refreshDataButton', 'Nhân viên tiếp nhận')}">-->
+<!--        </header>-->
+        <!-- Header Tiếp Nhận -->
+        <header th:replace="~{TiepNhan/fragments/header :: header('refresh-dashboard-button', 'Nhân viên tiếp nhận')}"></header>
+
+
+        <!-- NỘI DUNG TRANG CON -->
+        <main class="page-content">
+            <div layout:fragment="content"></div>
+        </main>
+
+    </div>
+</div>
+
+
+
+<!-- LOGOUT -->
+<script th:src="@{/Js/Auth/logout.js}"></script>
+
+<!-- LAYOUT TIẾP NHẬN -->
+<script th:src="@{/Js/TiepNhan/layout.js}"></script>
+
+<!-- STOMP -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7/bundles/stomp.umd.min.js"></script>
+
+<!-- THÔNG BÁO -->
+<script th:src="@{/Js/TiepNhan/notification.js}"></script>
+
+<!-- JS RIÊNG CỦA TRANG CON -->
+<th:block layout:fragment="js"></th:block>
+
+</body>
+</html>

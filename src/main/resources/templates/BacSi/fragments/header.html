@@ -13,13 +13,21 @@
     <!-- THÔNG BÁO -->
     <div class="notification-wrapper">
 
+
       <button type="button"
               class="notification-button"
-              id="notificationButton"
-              aria-label="Thông báo">
-        <span class="notification-icon">🔔</span>
-        <span class="notification-badge" id="notificationBadge">0</span>
+              id="notification-button"
+              aria-label="Mở thông báo"
+              aria-expanded="false"
+              aria-controls="notification-panel">
+
+        <span class="notification-icon" aria-hidden="true">🔔</span>
+
+        <span id="notificationBadge"
+              class="notification-badge"
+              hidden>0</span>
       </button>
+
 
       <div class="notification-panel"
            id="notificationPanel" hidden>
@@ -54,14 +62,19 @@
     <div class="doctor-info">
 
       <div class="doctor-text">
+        <img id="doctorAvatar"
+             class="doctor-avatar-image"
+             th:src="@{/Images/default-avatar.jpg}"
+             alt="Ảnh đại diện bác sĩ">
+
         <strong id="doctorName">Bác sĩ</strong>
         <small id="doctorEmail">Đang tải thông tin...</small>
       </div>
 
-      <img id="doctorAvatar"
-           class="doctor-avatar-image"
-           th:src="@{/Images/default-avatar.jpg}"
-           alt="Ảnh đại diện bác sĩ">
+<!--      <img id="doctorAvatar"-->
+<!--           class="doctor-avatar-image"-->
+<!--           th:src="@{/Images/default-avatar.jpg}"-->
+<!--           alt="Ảnh đại diện bác sĩ">-->
 
     </div>
 
