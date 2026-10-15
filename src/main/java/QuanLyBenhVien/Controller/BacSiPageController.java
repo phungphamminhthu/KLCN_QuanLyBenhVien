@@ -13,6 +13,15 @@ public class BacSiPageController {
         return "BacSi/ho-so-ca-nhan";
     }
 
+    @GetMapping("/auth/bac-si/kham-benh/{maLichKham}/can-lam-sang/{maChiDinh}/ket-qua")
+    public String xemChiTietKetQua(
+            @PathVariable Integer maLichKham,
+            @PathVariable Integer maChiDinh) {
+
+        return "BacSi/chi-tiet-ket-qua-cls";
+    }
+
+
 
     // =========================================================
     // TRANG CHỦ BÁC SĨ

@@ -1,0 +1,544 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title th:text="${article.tieuDe} + ' | MedCare Hospital'">
+        Chi tiết tin tức | MedCare Hospital
+    </title>
+
+    <!-- CSS HEADER DÙNG CHUNG -->
+    <link rel="stylesheet"
+          th:href="@{/Css/Public/common.css}">
+
+    <!-- CSS TRANG TIN TỨC -->
+    <link rel="stylesheet"
+          th:href="@{/Css/Public/news.css}">
+</head>
+
+<body>
+
+<!-- =========================================
+     HEADER DÙNG CHUNG VỚI HOME VÀ NEWS
+========================================= -->
+<div th:replace="~{Public/fragments/header :: publicHeader}">
+</div>
+
+
+<!-- =========================================
+     NỘI DUNG CHI TIẾT BÀI VIẾT
+========================================= -->
+<main class="news-container detail-main">
+
+    <!-- ĐƯỜNG DẪN ĐIỀU HƯỚNG -->
+    <nav class="breadcrumb"
+         aria-label="Đường dẫn điều hướng">
+
+        <a th:href="@{/home}">
+            Trang chủ
+        </a>
+
+        <span>›</span>
+
+        <a th:href="@{/news}">
+            Tin tức
+        </a>
+
+        <span>›</span>
+
+        <span th:text="${article.tenDanhMuc}">
+            Danh mục
+        </span>
+
+    </nav>
+
+
+    <!-- =====================================
+         THÔNG TIN VÀ NỘI DUNG BÀI VIẾT
+    ===================================== -->
+    <article class="detail-article">
+
+        <!-- TIÊU ĐỀ BÀI VIẾT -->
+        <header class="detail-heading">
+
+            <!-- DANH MỤC -->
+            <span class="article-category"
+                  th:text="${article.tenDanhMuc}">
+                Danh mục tin tức
+            </span>
+
+            <!-- TIÊU ĐỀ -->
+            <h1 th:text="${article.tieuDe}">
+                Tiêu đề bài viết
+            </h1>
+
+            <!-- THÔNG TIN NGÀY ĐĂNG -->
+            <div class="detail-meta">
+
+                <span>
+                    MedCare Hospital
+                </span>
+
+                <span>•</span>
+
+                <span th:text="${article.ngayDang}">
+                    Ngày đăng
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================
+             ẢNH ĐẠI DIỆN BÀI VIẾT
+        ================================= -->
+        <div class="detail-cover"
+             th:if="${article.anh != null
+                     and !#strings.isEmpty(article.anh)}">
+
+            <img th:src="${article.anh}"
+                 th:alt="${article.tieuDe}"
+                 loading="eager"
+                 onerror="this.parentElement.style.display='none'">
+
+        </div>
+
+
+        <!-- =================================
+             MÔ TẢ NGẮN BÀI VIẾT
+        ================================= -->
+        <div class="detail-summary"
+             th:if="${article.moTa != null
+                     and !#strings.isEmpty(article.moTa)}">
+
+            <p th:text="${article.moTa}">
+                Tóm tắt nội dung bài viết.
+            </p>
+
+        </div>
+
+
+        <!-- =================================
+             NỘI DUNG ĐẦY ĐỦ
+        ================================= -->
+        <section class="detail-content"
+                 aria-label="Nội dung bài viết">
+
+            <div th:text="${article.noiDung}">
+                Nội dung đầy đủ của bài viết.
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             NÚT QUAY LẠI
+        ================================= -->
+        <div class="detail-back">
+
+            <a th:href="@{/news}">
+                ← Quay lại danh sách tin tức
+            </a>
+
+        </div>
+
+    </article>
+
+
+    <!-- =====================================
+         BÀI VIẾT LIÊN QUAN
+    ===================================== -->
+    <section class="related-section"
+             th:if="${relatedArticles != null
+                     and !#lists.isEmpty(relatedArticles)}">
+
+        <div class="section-heading">
+
+            <h2>
+                Bài viết liên quan
+            </h2>
+
+            <p>
+                Khám phá các thông tin khác
+                thuộc cùng danh mục.
+            </p>
+
+        </div>
+
+
+        <!-- DANH SÁCH BÀI LIÊN QUAN -->
+        <div class="article-grid">
+
+            <a class="article-card"
+               th:each="item : ${relatedArticles}"
+               th:href="@{/news/{id}(id=${item.maTinTuc})}">
+
+
+                <!-- ẢNH BÀI VIẾT -->
+                <div class="card-image image-container">
+
+                    <!-- ẢNH DỰ PHÒNG -->
+                    <span class="image-fallback">
+                        ✚
+                    </span>
+
+                    <!-- ẢNH TỪ DATABASE -->
+                    <img th:if="${item.anh != null
+                                 and !#strings.isEmpty(item.anh)}"
+                         th:src="${item.anh}"
+                         th:alt="${item.tieuDe}"
+                         loading="lazy"
+                         onerror="this.style.display='none'">
+
+                </div>
+
+
+                <!-- NỘI DUNG THẺ -->
+                <div class="card-body">
+
+                    <!-- DANH MỤC -->
+                    <span class="article-category"
+                          th:text="${item.tenDanhMuc}">
+                        Danh mục
+                    </span>
+
+                    <!-- TIÊU ĐỀ -->
+                    <h3 th:text="${item.tieuDe}">
+                        Tiêu đề bài viết liên quan
+                    </h3>
+
+                    <!-- MÔ TẢ -->
+                    <p th:text="${item.moTa}">
+                        Mô tả ngắn của bài viết.
+                    </p>
+
+
+                    <!-- NGÀY ĐĂNG VÀ ĐỌC THÊM -->
+                    <div class="card-bottom">
+
+                        <small th:text="${item.ngayDang}">
+                            Ngày đăng
+                        </small>
+
+                        <span>
+                            Đọc thêm →
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================================
+     FOOTER
+========================================= -->
+<footer class="news-footer">
+
+    <div class="news-container">
+
+        <strong>
+            MedCare Hospital
+        </strong>
+
+        <p>
+            Đồng hành cùng sức khỏe
+            của bạn và gia đình.
+        </p>
+
+        <small>
+            © 2026 MedCare Hospital
+        </small>
+
+    </div>
+
+</footer>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title th:text="${article.tieuDe} + ' | MedCare Hospital'">
+        Chi tiết tin tức | MedCare Hospital
+    </title>
+
+    <!-- CSS HEADER DÙNG CHUNG -->
+    <link rel="stylesheet"
+          th:href="@{/Css/Public/common.css}">
+
+    <!-- CSS TRANG TIN TỨC -->
+    <link rel="stylesheet"
+          th:href="@{/Css/Public/news.css}">
+</head>
+
+<body>
+
+<!-- =========================================
+     HEADER DÙNG CHUNG VỚI HOME VÀ NEWS
+========================================= -->
+<div th:replace="~{Public/fragments/header :: publicHeader}">
+</div>
+
+
+<!-- =========================================
+     NỘI DUNG CHI TIẾT BÀI VIẾT
+========================================= -->
+<main class="news-container detail-main">
+
+    <!-- ĐƯỜNG DẪN ĐIỀU HƯỚNG -->
+    <nav class="breadcrumb"
+         aria-label="Đường dẫn điều hướng">
+
+        <a th:href="@{/home}">
+            Trang chủ
+        </a>
+
+        <span>›</span>
+
+        <a th:href="@{/news}">
+            Tin tức
+        </a>
+
+        <span>›</span>
+
+        <span th:text="${article.tenDanhMuc}">
+            Danh mục
+        </span>
+
+    </nav>
+
+
+    <!-- =====================================
+         THÔNG TIN VÀ NỘI DUNG BÀI VIẾT
+    ===================================== -->
+    <article class="detail-article">
+
+        <!-- TIÊU ĐỀ BÀI VIẾT -->
+        <header class="detail-heading">
+
+            <!-- DANH MỤC -->
+            <span class="article-category"
+                  th:text="${article.tenDanhMuc}">
+                Danh mục tin tức
+            </span>
+
+            <!-- TIÊU ĐỀ -->
+            <h1 th:text="${article.tieuDe}">
+                Tiêu đề bài viết
+            </h1>
+
+            <!-- THÔNG TIN NGÀY ĐĂNG -->
+            <div class="detail-meta">
+
+                <span>
+                    MedCare Hospital
+                </span>
+
+                <span>•</span>
+
+                <span th:text="${article.ngayDang}">
+                    Ngày đăng
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================
+             ẢNH ĐẠI DIỆN BÀI VIẾT
+        ================================= -->
+        <div class="detail-cover"
+             th:if="${article.anh != null
+                     and !#strings.isEmpty(article.anh)}">
+
+            <img th:src="${article.anh}"
+                 th:alt="${article.tieuDe}"
+                 loading="eager"
+                 onerror="this.parentElement.style.display='none'">
+
+        </div>
+
+
+        <!-- =================================
+             MÔ TẢ NGẮN BÀI VIẾT
+        ================================= -->
+        <div class="detail-summary"
+             th:if="${article.moTa != null
+                     and !#strings.isEmpty(article.moTa)}">
+
+            <p th:text="${article.moTa}">
+                Tóm tắt nội dung bài viết.
+            </p>
+
+        </div>
+
+
+        <!-- =================================
+             NỘI DUNG ĐẦY ĐỦ
+        ================================= -->
+        <section class="detail-content"
+                 aria-label="Nội dung bài viết">
+
+            <div th:text="${article.noiDung}">
+                Nội dung đầy đủ của bài viết.
+            </div>
+
+        </section>
+
+
+        <!-- =================================
+             NÚT QUAY LẠI
+        ================================= -->
+        <div class="detail-back">
+
+            <a th:href="@{/news}">
+                ← Quay lại danh sách tin tức
+            </a>
+
+        </div>
+
+    </article>
+
+
+    <!-- =====================================
+         BÀI VIẾT LIÊN QUAN
+    ===================================== -->
+    <section class="related-section"
+             th:if="${relatedArticles != null
+                     and !#lists.isEmpty(relatedArticles)}">
+
+        <div class="section-heading">
+
+            <h2>
+                Bài viết liên quan
+            </h2>
+
+            <p>
+                Khám phá các thông tin khác
+                thuộc cùng danh mục.
+            </p>
+
+        </div>
+
+
+        <!-- DANH SÁCH BÀI LIÊN QUAN -->
+        <div class="article-grid">
+
+            <a class="article-card"
+               th:each="item : ${relatedArticles}"
+               th:href="@{/news/{id}(id=${item.maTinTuc})}">
+
+
+                <!-- ẢNH BÀI VIẾT -->
+                <div class="card-image image-container">
+
+                    <!-- ẢNH DỰ PHÒNG -->
+                    <span class="image-fallback">
+                        ✚
+                    </span>
+
+                    <!-- ẢNH TỪ DATABASE -->
+                    <img th:if="${item.anh != null
+                                 and !#strings.isEmpty(item.anh)}"
+                         th:src="${item.anh}"
+                         th:alt="${item.tieuDe}"
+                         loading="lazy"
+                         onerror="this.style.display='none'">
+
+                </div>
+
+
+                <!-- NỘI DUNG THẺ -->
+                <div class="card-body">
+
+                    <!-- DANH MỤC -->
+                    <span class="article-category"
+                          th:text="${item.tenDanhMuc}">
+                        Danh mục
+                    </span>
+
+                    <!-- TIÊU ĐỀ -->
+                    <h3 th:text="${item.tieuDe}">
+                        Tiêu đề bài viết liên quan
+                    </h3>
+
+                    <!-- MÔ TẢ -->
+                    <p th:text="${item.moTa}">
+                        Mô tả ngắn của bài viết.
+                    </p>
+
+
+                    <!-- NGÀY ĐĂNG VÀ ĐỌC THÊM -->
+                    <div class="card-bottom">
+
+                        <small th:text="${item.ngayDang}">
+                            Ngày đăng
+                        </small>
+
+                        <span>
+                            Đọc thêm →
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </a>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================================
+     FOOTER
+========================================= -->
+<footer class="news-footer">
+
+    <div class="news-container">
+
+        <strong>
+            MedCare Hospital
+        </strong>
+
+        <p>
+            Đồng hành cùng sức khỏe
+            của bạn và gia đình.
+        </p>
+
+        <small>
+            © 2026 MedCare Hospital
+        </small>
+
+    </div>
+
+</footer>
+
+</body>
+</html>

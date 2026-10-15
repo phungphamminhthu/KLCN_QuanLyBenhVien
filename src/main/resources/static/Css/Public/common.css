@@ -1,0 +1,113 @@
+
+/* HEADER DÙNG CHUNG CHO CÁC TRANG PUBLIC */
+
+.public-header,
+.public-header * {
+    box-sizing: border-box;
+}
+
+.public-header {
+    width: 100%;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.public-header-container {
+    max-width: 1400px;
+    min-height: 76px;
+    padding: 0 24px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.public-header a {
+    text-decoration: none;
+}
+
+.public-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.public-logo-icon {
+    width: 43px;
+    height: 43px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 26px;
+    font-weight: bold;
+}
+
+.public-logo-text strong {
+    display: block;
+    color: #2563eb;
+    font-size: 18px;
+}
+
+.public-logo-text small {
+    display: block;
+    color: #64748b;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.public-nav {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    margin-right: auto;
+    margin-left: 70px;
+}
+
+.public-nav a {
+    font-size: 14px;
+    color: #475569;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.public-nav a:hover {
+    color: #2563eb;
+}
+
+.public-login {
+    padding: 10px 18px;
+    border: 1px solid #2563eb;
+    border-radius: 8px;
+    color: #2563eb;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.public-login:hover {
+    background: #eff6ff;
+}
+
+@media (max-width: 900px) {
+    .public-header-container {
+        flex-wrap: wrap;
+        padding: 12px 20px;
+    }
+
+    .public-nav {
+        order: 3;
+        width: 100%;
+        margin: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+}

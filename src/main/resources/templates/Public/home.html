@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>MedCare Hospital - Trang chủ</title>
+
+    <link rel="stylesheet"
+          th:href="@{/Css/Public/common.css}">
+
+    <link rel="stylesheet"
+          th:href="@{/Css/Public/home.css}">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+
+    <div class="logo">
+        <span>✚</span>
+
+        <div>
+            <strong>MedCare Hospital</strong>
+            <small>Hệ thống quản lý bệnh viện</small>
+        </div>
+    </div>
+
+    <nav>
+        <a href="/home">Trang chủ</a>
+        <a href="/news">Tin tức</a>
+        <a href="/home#services">Dịch vụ</a>
+        <a href="/home#about">Giới thiệu</a>
+    </nav>
+
+    <div class="auth-buttons">
+        <a href="/auth/login" class="btn-login">
+            Đăng nhập
+        </a>
+    </div>
+
+</header>
+
+<!-- HERO -->
+<section class="hero">
+
+    <div class="hero-content">
+
+        <span class="hero-label">
+            MEDCARE HOSPITAL
+        </span>
+
+        <h1>
+            Tin tức &amp; thông tin<br>
+            sức khỏe
+        </h1>
+
+        <p>
+            Cập nhật những thông tin mới nhất từ bệnh viện,
+            hướng dẫn khám chữa bệnh và kiến thức chăm sóc sức khỏe.
+        </p>
+
+    </div>
+
+</section>
+
+<!-- TIN TỨC MỚI NHẤT -->
+<section class="news-section" id="news">
+
+    <div class="section-title">
+
+        <span>TIN TỨC</span>
+
+        <h2>Tin tức mới nhất</h2>
+
+        <p>
+            Những thông tin và hoạt động mới nhất
+            từ MedCare Hospital
+        </p>
+
+    </div>
+
+    <!-- DANH SÁCH ĐỘNG TỪ MYSQL -->
+    <div class="news-list"
+         th:if="${latestNews != null and !#lists.isEmpty(latestNews)}">
+
+        <article class="news-card"
+                 th:each="article : ${latestNews}">
+
+            <!-- ẢNH TIN TỨC -->
+            <div class="news-image">
+
+                <img th:if="${article.anh != null and !#strings.isEmpty(article.anh)}"
+                     th:src="${article.anh}"
+                     th:alt="${article.tieuDe}"
+                     loading="lazy"
+                     onerror="this.style.display='none'">
+
+                <span class="news-image-fallback">✚</span>
+
+            </div>
+
+            <!-- NỘI DUNG -->
+            <div class="news-content">
+
+                <span class="category"
+                      th:text="${article.tenDanhMuc}">
+                    Danh mục
+                </span>
+
+                <h3 th:text="${article.tieuDe}">
+                    Tiêu đề tin tức
+                </h3>
+
+                <p th:text="${article.moTa}">
+                    Mô tả ngắn của bài viết
+                </p>
+
+                <a th:href="@{/news/{id}(id=${article.maTinTuc})}">
+                    Xem chi tiết →
+                </a>
+
+            </div>
+
+        </article>
+
+    </div>
+
+    <!-- CHƯA CÓ BÀI VIẾT -->
+    <div class="news-empty"
+         th:if="${latestNews == null or #lists.isEmpty(latestNews)}">
+
+        <p>Hiện chưa có tin tức được đăng tải.</p>
+
+    </div>
+
+    <!-- XEM TẤT CẢ -->
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/news"
+           style="color: #2563eb; font-weight: 700;">
+            Xem tất cả tin tức →
+        </a>
+    </div>
+
+</section>
+
+<!-- FOOTER -->
+<footer>
+
+    <strong>MedCare Hospital</strong>
+
+    <p>
+        Giải pháp quản lý bệnh viện hiện đại,
+        hiệu quả và an toàn.
+    </p>
+
+    <small>© 2026 MedCare Hospital</small>
+
+</footer>
+
+<script th:src="@{/Js/Public/home.js}"></script>
+
+</body>
+</html>
