@@ -1,392 +1,694 @@
-'use strict';
+"use strict";
 
 let globalQueueData = [];
 let currentCallItem = null;
 let dashboardLoading = false;
 let callingPatient = false;
+let confirmingReception = false;
+let vienPhiOpen = false;
 
-let patientProfileRequestVersion = 0;
-let currentProfileAppointment = null;
-let patientProfileLoading = false;
-let patientProfileSaving = false;
-let patientProfileTrigger = null;
+const STATUS_LABELS = {
+    ChoGoi: "Chờ gọi",
+    DaGoi: "Đã gọi",
+    DaTiepNhan: "Đã tiếp nhận",
+    ChoKham: "Chờ khám",
+    DangKham: "Đang khám",
+    ChoThanhToan: "Chờ thanh toán",
+    ChoCLS: "Chờ CLS",
+    DangCLS: "Đang CLS",
+    ChoLayThuoc: "Chờ lấy thuốc",
+    DangLayThuoc: "Đang lấy thuốc",
+    HoanTat: "Hoàn tất",
+    DaHuy: "Đã hủy",
+    KhongDen: "Không đến"
+};
 
-const CALLABLE_STATUSES = new Set([
-    'Chờ gọi',
-    'Lịch đã xác nhận',
-    'Đã gọi'
-]);
+const STATUS_PRIORITIES = {
+    DaGoi: 0,
+    ChoGoi: 1,
+    DaTiepNhan: 2,
+    ChoKham: 3,
+    DangKham: 4,
+    ChoThanhToan: 5,
+    ChoCLS: 6,
+    DangCLS: 7,
+    ChoLayThuoc: 8,
+    DangLayThuoc: 9,
+    HoanTat: 10,
+    DaHuy: 11,
+    KhongDen: 12
+};
 
 const KPI_FIELDS = {
-    'kpi-tong-bn': 'tongBnHienTai',
-    'kpi-lich-hen': 'lichHenHomNay',
-    'kpi-dang-cho': 'bnDangCho',
-    'kpi-dang-kham': 'dangTrongPhongKham'
+    "kpi-tong-bn": "tongBnHienTai",
+    "kpi-lich-hen": "lichHenHomNay",
+    "kpi-dang-cho": "bnDangCho",
+    "kpi-dang-kham": "dangTrongPhongKham"
 };
 
 // =========================================================
 // HÀM DÙNG CHUNG
 // =========================================================
 
-function setText(id, value) {
-    const element = document.getElementById(id);
-    if (element) element.textContent = value ?? '';
+function $(id) {
+    return document.getElementById(id);
 }
 
-function setInputValue(id, value) {
-    const input = document.getElementById(id);
-    if (input) input.value = value ?? '';
+function setText(id, value) {
+    const element = $(id);
+    if (element) {
+        element.textContent = value ?? "";
+    }
 }
 
 function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, character => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-    })[character]);
+    return String(value ?? "").replace(
+        /[&<>"']/g,
+        character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[character]
+    );
+}
+
+function positiveId(value) {
+    const number = Number(value);
+    return Number.isSafeInteger(number) && number > 0
+        ? number
+        : null;
+}
+
+function normalizeSearch(value) {
+    return String(value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/gi, "d")
+        .toLowerCase()
+        .trim();
+}
+
+function getStatusCode(value) {
+    const status = String(value ?? "").trim();
+
+    if (Object.hasOwn(STATUS_LABELS, status)) {
+        return status;
+    }
+
+    return Object.keys(STATUS_LABELS).find(
+        code => normalizeSearch(STATUS_LABELS[code])
+            === normalizeSearch(status)
+    ) || status;
+}
+
+function getStatusLabel(value) {
+    return STATUS_LABELS[getStatusCode(value)]
+        || String(value || "Chưa xác định");
+}
+
+function getSequenceNumber(value) {
+    const match = String(value ?? "")
+        .trim()
+        .match(/(?:^#?|-[ ]*)(\d+)$/);
+
+    const number = match ? Number(match[1]) : NaN;
+
+    return Number.isSafeInteger(number) && number > 0
+        ? number
+        : null;
+}
+
+function isBusy() {
+    return dashboardLoading
+        || callingPatient
+        || confirmingReception
+        || vienPhiOpen;
 }
 
 function getToken() {
-    return sessionStorage.getItem('Token')
-        || localStorage.getItem('Token');
+    return (
+        sessionStorage.getItem("Token")
+        || localStorage.getItem("Token")
+        || sessionStorage.getItem("token")
+        || localStorage.getItem("token")
+        || ""
+    ).trim();
 }
 
 async function requestApi(url, options = {}) {
     const token = getToken();
 
     if (!token) {
-        throw new Error('Bạn cần đăng nhập để sử dụng Dashboard.');
+        throw new Error(
+            "Bạn cần đăng nhập để sử dụng Dashboard."
+        );
     }
 
     const headers = new Headers(options.headers || {});
-    headers.set('Authorization', `Bearer ${token}`);
-    headers.set('Accept', 'application/json');
 
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
+    headers.set(
+        "Authorization",
+        /^Bearer\s/i.test(token) ? token : `Bearer ${token}`
+    );
+    headers.set("Accept", "application/json");
 
-    const data = await response.json().catch(() => null);
+    const controller = new AbortController();
+    const timeout = window.setTimeout(
+        () => controller.abort(),
+        20000
+    );
 
-    if (!response.ok) {
-        let message = data?.message;
+    try {
+        const response = await fetch(url, {
+            ...options,
+            headers,
+            cache: "no-store",
+            credentials: "same-origin",
+            signal: controller.signal
+        });
 
-        if (!message) {
-            if (response.status === 401) {
-                message =
-                    'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
-            } else if (response.status === 403) {
-                message =
-                    'Tài khoản không có quyền truy cập chức năng này.';
-            } else {
-                message =
-                    'Không thể xử lý yêu cầu. Vui lòng thử lại.';
-            }
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok) {
+            const fallback = response.status === 401
+                ? "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+                : response.status === 403
+                    ? "Tài khoản không có quyền sử dụng chức năng này."
+                    : `Không thể xử lý yêu cầu (HTTP ${response.status}).`;
+
+            throw new Error(data?.message || fallback);
         }
 
-        throw new Error(message);
-    }
+        if (!data || typeof data !== "object") {
+            throw new Error(
+                "Máy chủ trả về dữ liệu không hợp lệ."
+            );
+        }
 
-    if (!data || typeof data !== 'object') {
-        throw new Error('Máy chủ trả về dữ liệu không hợp lệ.');
+        return data;
+    } catch (error) {
+        if (error.name === "AbortError") {
+            throw new Error(
+                "Chưa nhận được phản hồi. Hãy tải lại thông tin "
+                + "để kiểm tra kết quả trước khi thực hiện lại."
+            );
+        }
+        throw error;
+    } finally {
+        window.clearTimeout(timeout);
     }
-
-    return data;
 }
 
-function showDashboardMessage(message = '', isError = false) {
-    const element = document.getElementById('dashboard-message');
+function postJson(url, body) {
+    return requestApi(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    });
+}
+
+function showDashboardMessage(message = "", isError = false) {
+    const element = $("dashboard-message");
 
     if (!element) {
-        if (message && isError) window.alert(message);
+        if (message) {
+            window.alert(message);
+        }
         return;
     }
 
     element.textContent = message;
-    element.className = isError
-        ? 'alert alert-danger py-2'
-        : 'alert alert-info py-2';
+    element.className =
+        `alert ${isError ? "alert-danger" : "alert-info"} py-2`;
     element.hidden = !message;
 }
 
 function updateCurrentHeaderDate() {
-    const formatted = new Intl.DateTimeFormat('vi-VN', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-        weekday: 'long',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    }).format(new Date());
+    const now = new Date();
+    const timeZone = "Asia/Ho_Chi_Minh";
 
-    setText('header-date-display', formatted);
+    const weekday = new Intl.DateTimeFormat("vi-VN", {
+        weekday: "long",
+        timeZone
+    }).format(now);
+
+    const date = new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        timeZone
+    }).format(now);
+
+    setText(
+        "header-date-display",
+        `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)}, ${date}`
+    );
 }
 
-function statusClass(status) {
-    switch (status) {
-        case 'Đang khám':
-            return 'bg-success-subtle text-success';
-        case 'Hoàn tất':
-            return 'bg-success-subtle text-success';
-        case 'Đã hủy':
-        case 'Không đến':
-            return 'bg-danger-subtle text-danger';
-        case 'Đã gọi':
-            return 'bg-info-subtle text-info-emphasis';
+function statusClass(value) {
+    switch (getStatusCode(value)) {
+        case "DangKham":
+        case "HoanTat":
+            return "bg-success-subtle text-success";
+
+        case "DaGoi":
+        case "DangCLS":
+        case "DangLayThuoc":
+            return "bg-info-subtle text-info-emphasis";
+
+        case "DaTiepNhan":
+            return "bg-primary-subtle text-primary";
+
+        case "DaHuy":
+        case "KhongDen":
+            return "bg-danger-subtle text-danger";
+
         default:
-            return 'bg-warning-subtle text-warning-emphasis';
+            return "bg-warning-subtle text-warning-emphasis";
     }
 }
 
-function hasValidAppointmentId(item) {
-    return Number.isInteger(item?.maLichKham)
-        && item.maLichKham > 0;
-}
+// =========================================================
+// ĐIỀU KIỆN THAO TÁC
+// =========================================================
 
 function hasValidPatientProfileIds(item) {
-    return Number.isInteger(item?.maBenhNhan)
-        && item.maBenhNhan > 0
-        && hasValidAppointmentId(item);
+    return positiveId(item?.maBenhNhan) !== null
+        && positiveId(item?.maLichKham) !== null;
 }
 
 function canCallPatient(item) {
-    return CALLABLE_STATUSES.has(item.trangThai)
-        && hasValidAppointmentId(item)
-        && Boolean(item.phong)
-        && item.phong !== 'Chưa phân công';
+    const room = String(item?.phong ?? "").trim();
+
+    return ["ChoGoi", "DaGoi"].includes(
+        getStatusCode(item?.trangThai)
+    )
+        && positiveId(item?.maLichKham) !== null
+        && Boolean(room)
+        && !["Chưa phân công", "—", "--"].includes(room);
 }
 
-function renderPatientName(container, item) {
-    if (!container) return;
-
-    container.textContent = item.tenBenhNhan || 'Bệnh nhân';
-    container.style.cursor = 'default';
+function canConfirmReception(item) {
+    return getStatusCode(item?.trangThai) === "DaGoi"
+        && positiveId(item?.maLichKham) !== null;
 }
 
 // =========================================================
-// SẮP XẾP THEO TRẠNG THÁI
+// SẮP XẾP DANH SÁCH
 // =========================================================
-
-function queueStatusPriority(status) {
-    if (['Đã gọi', 'DaGoi'].includes(status)) {
-        return 0;
-    }
-
-    if ([
-        'Chờ gọi',
-        'Chờ gọi vào',
-        'ChoKham',
-        'Lịch đã xác nhận',
-        'DaXacNhan'
-    ].includes(status)) {
-        return 1;
-    }
-
-    if (['Đang khám', 'DangKham'].includes(status)) {
-        return 3;
-    }
-
-    return 2;
-}
 
 function compareQueueAppointments(a, b) {
     const priority =
-        queueStatusPriority(a.trangThai)
-        - queueStatusPriority(b.trangThai);
+        (STATUS_PRIORITIES[getStatusCode(a.trangThai)] ?? 99)
+        - (STATUS_PRIORITIES[getStatusCode(b.trangThai)] ?? 99);
 
-    if (priority) return priority;
-
-    const timeA = /^\d{2}:\d{2}$/.test(a.gioHen || '')
-        ? a.gioHen : '99:99';
-
-    const timeB = /^\d{2}:\d{2}$/.test(b.gioHen || '')
-        ? b.gioHen : '99:99';
-
-    const time = timeA.localeCompare(timeB);
-    if (time) return time;
-
-    const sequence = item => {
-        const raw = String(item.stt ?? '')
-            .replace(/^#/, '')
-            .trim();
-
-        return /^\d+$/.test(raw)
-            ? Number(raw)
-            : Number.MAX_SAFE_INTEGER;
-    };
-
-    return sequence(a) - sequence(b)
-        || Number(a.maLichKham || 0) - Number(b.maLichKham || 0);
-}
-
-// =========================================================
-// TẢI VÀ TỰ ĐỘNG CẬP NHẬT DASHBOARD
-// =========================================================
-
-function refreshDashboardWhenIdle() {
-    if (
-        document.hidden
-        || dashboardLoading
-        || callingPatient
-        || patientProfileLoading
-        || patientProfileSaving
-        || document.querySelector('.modal.show')
-    ) {
-        return;
+    if (priority) {
+        return priority;
     }
 
-    void loadDashboardRealData(true);
+    const time = item =>
+        /^\d{2}:\d{2}$/.test(item.gioHen || "")
+            ? item.gioHen
+            : "99:99";
+
+    return time(a).localeCompare(time(b))
+        || (getSequenceNumber(a.stt) ?? Number.MAX_SAFE_INTEGER)
+        - (getSequenceNumber(b.stt) ?? Number.MAX_SAFE_INTEGER)
+        || Number(a.maLichKham || 0)
+        - Number(b.maLichKham || 0);
 }
 
-async function loadDashboardRealData(silent = false) {
-    if (dashboardLoading) return false;
+// =========================================================
+// TẢI DASHBOARD
+// =========================================================
+
+function renderDashboardTables() {
+    applyFiltersAndRender();
+    renderUpcomingAppointments();
+}
+
+function updateBusyControls() {
+    const button = $("refresh-dashboard-button");
+    if (button) {
+        button.disabled = isBusy();
+    }
+}
+
+async function loadDashboardRealData(
+    silent = false,
+    fromAction = false
+) {
+    if (dashboardLoading || (!fromAction && isBusy())) {
+        return false;
+    }
 
     dashboardLoading = true;
-
-    const refreshButton = document.getElementById(
-        'refresh-dashboard-button'
-    );
-
-    if (refreshButton) refreshButton.disabled = true;
-
+    updateBusyControls();
     updateCurrentHeaderDate();
+    renderDashboardTables();
 
     try {
-        const data = await requestApi('/api/tiepnhan/dashboard-data');
+        const data = await requestApi(
+            "/api/tiepnhan/dashboard-data"
+        );
 
         if (!Array.isArray(data.hangDoiKham)) {
-            throw new Error('Danh sách lịch khám trả về không hợp lệ.');
+            throw new Error(
+                "Danh sách lịch khám không hợp lệ."
+            );
         }
 
         Object.entries(KPI_FIELDS).forEach(([id, field]) => {
             setText(id, data[field] ?? 0);
         });
 
-        globalQueueData = data.hangDoiKham;
+        globalQueueData = data.hangDoiKham.map(item => ({
+            ...item,
+            trangThai: getStatusLabel(item.trangThai)
+        }));
 
         updateFilterOptions();
-        applyFiltersAndRender();
-        renderUpcomingAppointments();
 
-        if (!silent) showDashboardMessage();
+        if (!silent) {
+            showDashboardMessage();
+        }
 
         return true;
     } catch (error) {
         if (!silent) {
             showDashboardMessage(
-                `${error.message} Dữ liệu trên màn hình chưa được cập nhật.`,
+                `${error.message} Dữ liệu chưa được cập nhật.`,
                 true
             );
         }
-
         return false;
     } finally {
         dashboardLoading = false;
-        if (refreshButton) refreshButton.disabled = false;
+        updateBusyControls();
+        renderDashboardTables();
+    }
+}
+
+function refreshDashboardWhenIdle() {
+    if (
+        !document.hidden
+        && !isBusy()
+        && !document.querySelector(".modal.show")
+    ) {
+        void loadDashboardRealData(true);
     }
 }
 
 // =========================================================
-// TÌM KIẾM VÀ BỘ LỌC
+// BỘ LỌC
 // =========================================================
 
 function populateSelect(select, values, allLabel) {
-    if (!select) return;
+    if (!select) {
+        return;
+    }
 
     const previous = select.value;
-    select.replaceChildren(new Option(allLabel, ''));
+    select.replaceChildren(new Option(allLabel, ""));
 
     [...new Set(values.filter(Boolean))]
-        .sort((a, b) => a.localeCompare(b, 'vi'))
+        .sort((a, b) => a.localeCompare(b, "vi"))
         .forEach(value => {
             select.add(new Option(value, value));
         });
 
-    select.value = [...select.options].some(
-        option => option.value === previous
-    ) ? previous : '';
+    if (
+        previous
+        && ![...select.options].some(
+            option => option.value === previous
+        )
+    ) {
+        select.add(new Option(previous, previous));
+    }
+
+    select.value = previous;
 }
 
 function updateFilterOptions() {
     populateSelect(
-        document.getElementById('room-filter'),
+        $("room-filter"),
         globalQueueData.map(item => item.phong),
-        'Tất cả phòng'
+        "Tất cả phòng"
     );
 
     populateSelect(
-        document.getElementById('status-filter'),
-        globalQueueData.map(item => item.trangThai),
-        'Tất cả trạng thái'
+        $("doctor-filter"),
+        globalQueueData.map(item => item.bacSi),
+        "Tất cả bác sĩ"
     );
-}
 
-function normalizeSearch(value) {
-    return String(value ?? '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/đ/g, 'd')
-        .replace(/Đ/g, 'D')
-        .toLowerCase()
-        .trim();
+    populateSelect(
+        $("department-filter"),
+        globalQueueData.map(item => item.khoa),
+        "Tất cả khoa"
+    );
+
+    populateSelect(
+        $("status-filter"),
+        Object.values(STATUS_LABELS),
+        "Tất cả trạng thái"
+    );
 }
 
 function applyFiltersAndRender() {
-    const room =
-        document.getElementById('room-filter')?.value || '';
+    const room = $("room-filter")?.value || "";
+    const doctor = $("doctor-filter")?.value || "";
+    const department = $("department-filter")?.value || "";
 
-    const status =
-        document.getElementById('status-filter')?.value || '';
-
-    const search = normalizeSearch(
-        document.getElementById('queue-search')?.value
+    const status = getStatusCode(
+        $("status-filter")?.value || ""
     );
 
-    const filtered = globalQueueData.filter(item => {
-        const searchable = [
+    const search = normalizeSearch(
+        $("queue-search")?.value
+    );
+
+    const list = globalQueueData.filter(item => {
+        const text = [
             item.tenBenhNhan,
             item.maBn,
+            item.maBenhNhan,
             item.maLichKham,
             item.stt,
             item.khoa,
             item.bacSi,
             item.phong
-        ].map(normalizeSearch).join(' ');
+        ].map(normalizeSearch).join(" ");
 
         return (!room || item.phong === room)
-            && (!status || item.trangThai === status)
-            && (!search || searchable.includes(search));
+            && (!doctor || item.bacSi === doctor)
+            && (!department || item.khoa === department)
+            && (
+                !status
+                || getStatusCode(item.trangThai) === status
+            )
+            && (!search || text.includes(search));
     });
 
-    filtered.sort(compareQueueAppointments);
-    renderQueueTable(filtered);
+    renderQueueTable(list.sort(compareQueueAppointments));
 }
 
 // =========================================================
-// BẢNG HÀNG ĐỢI
+// CÁC NÚT THAO TÁC
+// =========================================================
+
+function iconButton(
+    className,
+    iconName,
+    label,
+    disabled,
+    action
+) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = className;
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    button.disabled = disabled;
+
+    const icon = document.createElement("i");
+    icon.className = `fa-solid ${iconName}`;
+    icon.setAttribute("aria-hidden", "true");
+    button.append(icon);
+
+    button.addEventListener("click", () => {
+        if (!button.disabled) {
+            action();
+        }
+    });
+
+    return button;
+}
+
+function createPatientCallButton(item, extraClass = "") {
+    const allowed = canCallPatient(item);
+
+    const label = allowed
+        ? `${getStatusCode(item.trangThai) === "DaGoi"
+            ? "Gọi lại"
+            : "Gọi"} bệnh nhân ${item.tenBenhNhan || ""}`
+        : "Chưa có phòng hợp lệ hoặc trạng thái không cho phép gọi tiếp nhận";
+
+    return iconButton(
+        `btn-action-call-compact ${extraClass}`.trim(),
+        "fa-volume-high",
+        label,
+        isBusy() || !allowed,
+        () => void handleCallPatient(item.maLichKham)
+    );
+}
+
+function openPatientProfile(item) {
+    if (isBusy() || !hasValidPatientProfileIds(item)) {
+        return;
+    }
+
+    const params = new URLSearchParams({
+        maLichKham: String(positiveId(item.maLichKham)),
+        from: "dashboard"
+    });
+
+    window.location.assign(
+        `/TiepNhan/ho-so-benh-nhan/${
+            positiveId(item.maBenhNhan)
+        }?${params}`
+    );
+}
+
+function createWorkflowButton(item) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+        "btn btn-sm text-nowrap btn-workflow btn-outline-success";
+    button.textContent = "Đã tiếp nhận";
+
+    button.title = canConfirmReception(item)
+        ? "Kiểm tra phí khám và xác nhận tiếp nhận sau khi đã lưu đủ số đo"
+        : "Cần gọi bệnh nhân và lưu số đo trước khi xác nhận tiếp nhận";
+
+    button.setAttribute(
+        "aria-label",
+        `Đã tiếp nhận: ${item.tenBenhNhan || "Bệnh nhân"}`
+    );
+
+    Object.assign(button.style, {
+        width: "100%",
+        minWidth: "0",
+        minHeight: "30px",
+        padding: "4px 5px",
+        fontSize: "11px",
+        flexShrink: "0"
+    });
+
+    button.disabled = isBusy() || !canConfirmReception(item);
+
+    button.addEventListener("click", () => {
+        if (!button.disabled) {
+            void handleConfirmReception(item.maLichKham);
+        }
+    });
+
+    return button;
+}
+
+function createVienPhiButton(item) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className =
+        "btn btn-sm btn-outline-primary btn-vienphi";
+    button.title =
+        `Xem hóa đơn và lịch sử thanh toán của ${
+            item.tenBenhNhan || "bệnh nhân"
+        }`;
+    button.disabled = isBusy() || !positiveId(item.maLichKham);
+
+    const icon = document.createElement("i");
+    icon.className = "fa-solid fa-file-invoice-dollar";
+    icon.setAttribute("aria-hidden", "true");
+
+    const text = document.createElement("span");
+    text.textContent = "Viện phí";
+
+    button.append(icon, text);
+
+    button.addEventListener("click", event => {
+        event.stopPropagation();
+
+        if (!button.disabled) {
+            void openVienPhi(item);
+        }
+    });
+
+    return button;
+}
+
+async function openVienPhi(item) {
+    if (isBusy()) {
+        return;
+    }
+
+    const id = positiveId(item?.maLichKham);
+
+    if (!id) {
+        showDashboardMessage(
+            "Mã lịch khám không hợp lệ.",
+            true
+        );
+        return;
+    }
+
+    if (typeof window.VienPhi?.mo !== "function") {
+        showDashboardMessage(
+            "Không mở được viện phí. Kiểm tra file "
+            + "vienphi.js và fragment vienphi.html.",
+            true
+        );
+        return;
+    }
+
+    await window.VienPhi.mo(id, document.activeElement);
+}
+
+// =========================================================
+// DANH SÁCH LỊCH KHÁM
+// Bấm dòng để mở hồ sơ; nút thao tác không mở hồ sơ.
 // =========================================================
 
 function renderQueueTable(list) {
-    const tbody = document.getElementById('hang-doi-table-body');
-    if (!tbody) return;
+    const tbody = $("hang-doi-table-body");
+
+    if (!tbody) {
+        return;
+    }
 
     tbody.replaceChildren();
 
-    if (list.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center text-muted py-4">
-                    Không có lịch khám phù hợp.
-                </td>
-            </tr>
-        `;
+    if (!list.length) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+
+        cell.colSpan = 8;
+        cell.className = "text-center text-muted py-4";
+        cell.textContent = dashboardLoading
+            ? "Đang tải danh sách lịch khám..."
+            : "Không có lịch khám phù hợp.";
+
+        row.append(cell);
+        tbody.append(row);
     }
 
-    list.forEach(item => {
-        const row = document.createElement('tr');
-        const name = String(item.tenBenhNhan || 'Bệnh nhân');
+    for (const item of list) {
+        const row = document.createElement("tr");
+        const name = String(item.tenBenhNhan || "Bệnh nhân");
 
         row.innerHTML = `
             <td>
@@ -394,23 +696,28 @@ function renderQueueTable(list) {
                     ${escapeHtml(item.stt)}
                 </span>
             </td>
+
             <td class="fw-bold text-primary">
                 ${escapeHtml(item.maBn)}
             </td>
+
             <td>
                 <div class="d-flex align-items-center">
-                    <span class="avatar-initial"
-                          style="background-color: #4F46E5;">
+                    <span class="avatar-initial">
                         ${escapeHtml(name.charAt(0))}
                     </span>
-                    <div style="min-width: 0; flex: 1;">
-                        <div class="patient-name-container fw-bold"></div>
+
+                    <div style="min-width:0;flex:1">
+                        <div class="patient-name-container fw-bold">
+                            ${escapeHtml(name)}
+                        </div>
                         <div class="text-muted">
                             ${escapeHtml(item.thongTinPhu)}
                         </div>
                     </div>
                 </div>
             </td>
+
             <td>
                 <div class="fw-semibold">
                     ${escapeHtml(item.khoa)}
@@ -419,137 +726,82 @@ function renderQueueTable(list) {
                     ${escapeHtml(item.bacSi)}
                 </div>
             </td>
+
             <td class="text-center">
                 ${escapeHtml(item.phong)}
             </td>
-            <td>
-                ${escapeHtml(item.gioHen)}
-            </td>
+
+            <td>${escapeHtml(item.gioHen)}</td>
+
             <td class="text-center">
-                <span class="status-pill ${statusClass(item.trangThai)}">
-                    ${escapeHtml(item.trangThai)}
+                <span class="status-pill ${
+                    statusClass(item.trangThai)
+                }">
+                    ${escapeHtml(getStatusLabel(item.trangThai))}
                 </span>
             </td>
+
             <td class="text-center">
                 <div class="queue-actions"></div>
             </td>
         `;
 
-        renderPatientName(
-            row.querySelector('.patient-name-container'),
-            item
+        const actions = row.querySelector(".queue-actions");
+        actions.classList.add("dashboard-fee-actions");
+
+        actions.append(
+            createPatientCallButton(item),
+            createWorkflowButton(item),
+            createVienPhiButton(item)
         );
 
-        const actions = row.querySelector('.queue-actions');
-
-        Object.assign(actions.style, {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            flexWrap: 'nowrap'
+        actions.addEventListener("click", event => {
+            event.stopPropagation();
         });
 
-        // Luôn giữ nút gọi, làm mờ khi không được phép gọi.
-        {
-            const button = document.createElement('button');
-            const allowed = canCallPatient(item);
-
-            let label = item.trangThai === 'Đã gọi'
-                ? 'Gọi lại bệnh nhân'
-                : 'Gọi bệnh nhân';
-
-            if (['Đang khám', 'DangKham'].includes(item.trangThai)) {
-                label = 'Bệnh nhân đang khám, không thể gọi lại.';
-            } else if (!CALLABLE_STATUSES.has(item.trangThai)) {
-                label = 'Trạng thái hiện tại không cho phép gọi bệnh nhân.';
-            } else if (!allowed) {
-                label = 'Lịch khám chưa có phòng hoặc mã lịch hợp lệ.';
-            } else if (callingPatient || patientProfileSaving) {
-                label = 'Đang xử lý, vui lòng chờ.';
-            }
-
-            button.type = 'button';
-            button.className = 'btn-action-call-compact';
-            button.title = label;
-            button.setAttribute('aria-label', label);
-
-            button.disabled = callingPatient
-                || patientProfileSaving
-                || !allowed;
-
-            Object.assign(button.style, {
-                width: '30px',
-                height: '30px',
-                padding: '0',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: '0',
-                opacity: button.disabled ? '0.35' : '1',
-                cursor: button.disabled ? 'not-allowed' : 'pointer'
-            });
-
-            const icon = document.createElement('i');
-            icon.className = 'fa-solid fa-volume-high';
-            icon.setAttribute('aria-hidden', 'true');
-            button.appendChild(icon);
-
-            button.addEventListener('click', () => {
-                if (button.disabled) return;
-                handleCallPatient(item.maLichKham);
-            });
-
-            actions.appendChild(button);
-        }
-
-        // Bệnh nhân đang khám vẫn xem được hồ sơ.
         if (hasValidPatientProfileIds(item)) {
-            const button = document.createElement('button');
+            row.classList.add("patient-row-clickable");
+            row.style.cursor = "pointer";
+            row.tabIndex = 0;
+            row.title =
+                "Bấm vào dòng hoặc nhấn Enter để xem hồ sơ bệnh nhân";
 
-            const label = item.trangThai === 'Đã gọi'
-                ? 'Xem hồ sơ và chỉnh sửa số đo trước khám'
-                : 'Xem hồ sơ bệnh nhân';
-
-            button.type = 'button';
-            button.className = 'btn-action-vitals-compact';
-            button.title = label;
-            button.setAttribute('aria-label', label);
-            button.setAttribute('aria-haspopup', 'dialog');
-            button.setAttribute(
-                'aria-controls',
-                'modalHoSoBenhNhan'
+            row.setAttribute(
+                "aria-label",
+                `Xem hồ sơ bệnh nhân ${name}, `
+                + `số thứ tự ${item.stt || ""}`
             );
 
-            Object.assign(button.style, {
-                width: '30px',
-                height: '30px',
-                padding: '0',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: '0'
+            row.addEventListener("click", event => {
+                if (
+                    event.target instanceof Element
+                    && event.target.closest(
+                        "button, a, input, select, textarea, "
+                        + "label, [role='button']"
+                    )
+                ) {
+                    return;
+                }
+
+                openPatientProfile(item);
             });
 
-            const icon = document.createElement('i');
-            icon.className = 'fa-solid fa-file-medical';
-            icon.setAttribute('aria-hidden', 'true');
-            button.appendChild(icon);
-
-            button.disabled = callingPatient || patientProfileSaving;
-
-            button.addEventListener('click', () => {
-                openPatientProfileModal(item, button);
+            row.addEventListener("keydown", event => {
+                if (
+                    event.target === row
+                    && event.key === "Enter"
+                ) {
+                    event.preventDefault();
+                    openPatientProfile(item);
+                }
             });
-
-            actions.appendChild(button);
         }
 
-        tbody.appendChild(row);
-    });
+        tbody.append(row);
+    }
 
     setText(
-        'table-record-count',
+        "table-record-count",
         `Hiển thị ${list.length}/${globalQueueData.length} lịch khám hôm nay`
     );
 }
@@ -559,52 +811,49 @@ function renderQueueTable(list) {
 // =========================================================
 
 function renderUpcomingAppointments() {
-    const container = document.getElementById(
-        'lich-kham-sap-toi-container'
-    );
+    const container = $("lich-kham-sap-toi-container");
 
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
-    const upcoming = globalQueueData
-        .filter(item => [
-            'Chờ gọi',
-            'Lịch đã xác nhận'
-        ].includes(item.trangThai))
-        .sort((a, b) => {
-            const timeA = /^\d{2}:\d{2}$/.test(a.gioHen || '')
-                ? a.gioHen : '99:99';
-
-            const timeB = /^\d{2}:\d{2}$/.test(b.gioHen || '')
-                ? b.gioHen : '99:99';
-
-            return timeA.localeCompare(timeB)
-                || a.maLichKham - b.maLichKham;
-        })
+    const list = globalQueueData
+        .filter(
+            item => getStatusCode(item.trangThai) === "ChoGoi"
+        )
+        .sort(compareQueueAppointments)
         .slice(0, 5);
 
     container.replaceChildren();
 
-    if (upcoming.length === 0) {
-        container.textContent =
-            'Không còn lịch khám chưa gọi trong ngày.';
+    if (!list.length) {
+        container.textContent = dashboardLoading
+            ? "Đang tải lịch chờ gọi..."
+            : "Không còn lịch chờ gọi tiếp nhận trong ngày.";
         return;
     }
 
-    upcoming.forEach(item => {
-        const element = document.createElement('div');
-        element.className = 'schedule-item';
+    for (const item of list) {
+        const element = document.createElement("div");
+        element.className = "schedule-item";
 
         element.innerHTML = `
             <div class="schedule-stt-box">
-                <small>STT</small>
-                <div class="fw-bold">${escapeHtml(item.stt)}</div>
+                <div class="fw-bold">
+                    ${escapeHtml(item.stt)}
+                </div>
             </div>
-            <div class="flex-grow-1" style="min-width: 0;">
-                <div class="patient-name-container fw-bold"></div>
+
+            <div class="schedule-patient-info">
+                <div class="patient-name-container fw-bold">
+                    ${escapeHtml(item.tenBenhNhan || "Bệnh nhân")}
+                </div>
+
                 <div class="text-muted mt-1">
                     ${escapeHtml(item.gioHen)}
                     • ${escapeHtml(item.bacSi)}
                 </div>
+
                 <div class="text-muted">
                     ${escapeHtml(item.khoa)}
                     • ${escapeHtml(item.phong)}
@@ -612,13 +861,15 @@ function renderUpcomingAppointments() {
             </div>
         `;
 
-        renderPatientName(
-            element.querySelector('.patient-name-container'),
-            item
+        element.append(
+            createPatientCallButton(
+                item,
+                "schedule-call-button"
+            )
         );
 
-        container.appendChild(element);
-    });
+        container.append(element);
+    }
 }
 
 // =========================================================
@@ -626,680 +877,393 @@ function renderUpcomingAppointments() {
 // =========================================================
 
 async function handleCallPatient(maLichKham) {
-    if (callingPatient || patientProfileSaving) return;
+    if (isBusy()) {
+        return;
+    }
 
+    const id = positiveId(maLichKham);
     const item = globalQueueData.find(
-        row => row.maLichKham === maLichKham
+        row => positiveId(row.maLichKham) === id
     );
 
-    if (!item || !canCallPatient(item)) {
-        showDashboardMessage(
-            'Lịch khám này chưa đủ điều kiện gọi.',
-            true
-        );
+    if (!id || !item || !canCallPatient(item)) {
         return;
     }
 
     callingPatient = true;
-    applyFiltersAndRender();
+    updateBusyControls();
+    renderDashboardTables();
+    showDashboardMessage("Đang gọi bệnh nhân...");
 
     try {
-        const result = await requestApi(
-            '/api/tiepnhan/call-patient',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ maLichKham })
-            }
+        const result = await postJson(
+            "/api/tiepnhan/call-patient",
+            { maLichKham: id }
         );
 
         if (result.success !== true) {
             throw new Error(
-                result.message || 'Không thể gọi bệnh nhân.'
+                result.message || "Không thể gọi bệnh nhân."
             );
         }
 
-        item.trangThai = 'Đã gọi';
+        item.trangThai = STATUS_LABELS.DaGoi;
 
         currentCallItem = {
-            maLichKham,
+            maLichKham: id,
             stt: result.soThuTu ?? item.stt,
             ten: result.tenBenhNhan ?? item.tenBenhNhan,
             phong: result.phong ?? item.phong,
             khoa: result.khoa ?? item.khoa
         };
 
-        setText('modal-stt', `STT ${currentCallItem.stt}`);
-        setText('modal-ten', currentCallItem.ten);
         setText(
-            'modal-phong',
+            "modal-stt",
+            `STT ${item.stt || result.soThuTu || "—"}`
+        );
+
+        setText("modal-ten", currentCallItem.ten);
+
+        setText(
+            "modal-phong",
             `Mời đến khu vực chờ trước ${currentCallItem.phong}`
         );
 
-        const modalElement = document.getElementById('modalGoiKham');
+        try {
+            const element = $("modalGoiKham");
 
-        if (modalElement && window.bootstrap?.Modal) {
-            bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            if (element && window.bootstrap?.Modal) {
+                window.bootstrap.Modal
+                    .getOrCreateInstance(element)
+                    .show();
+            }
+
+            speakAnnouncement(currentCallItem);
+        } catch (error) {
+            console.error(error);
+
+            setText(
+                "voice-status",
+                "Đã ghi nhận gọi. Không phát được loa, vui lòng gọi trực tiếp."
+            );
         }
 
-        speakAnnouncement(currentCallItem);
-        await loadDashboardRealData();
+        const refreshed = await loadDashboardRealData(
+            true,
+            true
+        );
+
+        showDashboardMessage(
+            refreshed
+                ? "Đã gọi bệnh nhân. Mở hồ sơ để nhập và lưu số đo."
+                : "Đã ghi nhận gọi nhưng chưa tải lại được dữ liệu. Hãy làm mới dữ liệu.",
+            !refreshed
+        );
     } catch (error) {
+        await loadDashboardRealData(true, true);
         showDashboardMessage(error.message, true);
     } finally {
         callingPatient = false;
-        applyFiltersAndRender();
-        renderUpcomingAppointments();
+        updateBusyControls();
+        renderDashboardTables();
     }
-}
-
-function replayVoice() {
-    if (currentCallItem) {
-        handleCallPatient(currentCallItem.maLichKham);
-    }
-}
-
-function speakAnnouncement(item) {
-    if (!('speechSynthesis' in window)) {
-        setText(
-            'voice-status',
-            'Trình duyệt không hỗ trợ đọc thông báo. Vui lòng gọi trực tiếp.'
-        );
-        return;
-    }
-
-    const sequence = String(item.stt ?? '')
-        .replace(/^#/, '')
-        .replace(/^0+(?=\d)/, '');
-
-    const sequenceText = sequence && sequence !== '—'
-        ? `, số thứ tự ${sequence}`
-        : '';
-
-    const announcement = new SpeechSynthesisUtterance(
-        `Xin mời bệnh nhân ${item.ten}${sequenceText}, `
-        + `đến khu vực chờ trước ${item.phong}, `
-        + `khoa ${item.khoa}, để kiểm tra thông tin trước khi khám.`
-    );
-
-    announcement.lang = 'vi-VN';
-    announcement.rate = 0.9;
-
-    const vietnameseVoice = window.speechSynthesis.getVoices().find(
-        voice => voice.lang.toLowerCase().startsWith('vi')
-    );
-
-    if (vietnameseVoice) announcement.voice = vietnameseVoice;
-
-    announcement.onstart = () => {
-        setText(
-            'voice-status',
-            'Đang phát thông báo gọi bệnh nhân...'
-        );
-    };
-
-    announcement.onend = () => {
-        setText('voice-status', 'Đã phát xong thông báo.');
-    };
-
-    announcement.onerror = () => {
-        setText(
-            'voice-status',
-            'Không phát được thông báo. Kiểm tra âm thanh hoặc gọi trực tiếp.'
-        );
-    };
-
-    window.speechSynthesis.cancel();
-    setText('voice-status', 'Đang chuẩn bị phát thông báo...');
-    window.speechSynthesis.speak(announcement);
 }
 
 // =========================================================
-// HỒ SƠ BỆNH NHÂN
+// XÁC NHẬN TIẾP NHẬN
 // =========================================================
 
-function showPatientProfileMessage(message = '', isError = false) {
-    const element = document.getElementById(
-        'patient-profile-modal-message'
-    );
-
-    if (!element) return;
-
-    element.textContent = message;
-    element.className = isError
-        ? 'alert alert-danger'
-        : 'alert alert-info';
-    element.hidden = !message;
-}
-
-function patientProfileText(value) {
-    return value === null
-        || value === undefined
-        || String(value).trim() === ''
-        ? 'Chưa cập nhật'
-        : String(value);
-}
-
-function formatPatientProfileDate(value) {
-    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(
-        String(value ?? '')
-    );
-
-    return match
-        ? `${match[3]}/${match[2]}/${match[1]}`
-        : 'Chưa cập nhật';
-}
-
-function getPatientProfileToday() {
-    const parts = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Ho_Chi_Minh',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    }).formatToParts(new Date());
-
-    const values = Object.fromEntries(
-        parts.map(part => [part.type, part.value])
-    );
-
-    return `${values.year}-${values.month}-${values.day}`;
-}
-
-function canEditPatientProfileVitals() {
-    return currentProfileAppointment !== null
-        && currentProfileAppointment.ngayKham === getPatientProfileToday()
-        && currentProfileAppointment.trangThai === 'Đã gọi';
-}
-
-function updatePatientProfileControls() {
-    const editable = canEditPatientProfileVitals();
-
-    const disabled = !editable
-        || patientProfileLoading
-        || patientProfileSaving;
-
-    const fields = document.getElementById(
-        'patient-profile-vitals-fields'
-    );
-
-    const saveButton = document.getElementById(
-        'patient-profile-save-button'
-    );
-
-    const closeButton = document.querySelector(
-        '#modalHoSoBenhNhan .btn-close'
-    );
-
-    if (fields) fields.disabled = disabled;
-
-    if (saveButton) {
-        saveButton.disabled = disabled;
-        saveButton.textContent = patientProfileSaving
-            ? 'Đang lưu...'
-            : 'Lưu hồ sơ';
-    }
-
-    if (closeButton) closeButton.disabled = patientProfileSaving;
-
-    let note;
-
-    if (patientProfileLoading) {
-        note = 'Đang tải hồ sơ và số đo đã lưu...';
-    } else if (!currentProfileAppointment) {
-        note = 'Chưa tải được lần khám để nhập số đo.';
-    } else if (editable) {
-        note = 'Nhập hoặc chỉnh sửa số đo của lần khám này.';
-    } else if (
-        currentProfileAppointment.ngayKham !== getPatientProfileToday()
-    ) {
-        note = 'Lần khám khác ngày hôm nay: chỉ xem số đo.';
-    } else if (
-        currentProfileAppointment.trangThai === 'Chờ gọi'
-        || currentProfileAppointment.trangThai === 'Lịch đã xác nhận'
-    ) {
-        note = 'Hãy gọi bệnh nhân trước khi nhập số đo.';
-    } else {
-        note = 'Trạng thái lần khám này chỉ cho phép xem số đo.';
-    }
-
-    setText('patient-profile-edit-note', note);
-}
-
-function renderPatientProfileModal(profile, appointment) {
-    const patientFields = {
-        'patient-modal-name': profile.hoTen,
-        'patient-modal-id': profile.maBenhNhan,
-        'patient-modal-gender': profile.gioiTinh,
-        'patient-modal-phone': profile.soDienThoai,
-        'patient-modal-emergency-phone': profile.soDienThoaiKhanCap,
-        'patient-modal-email': profile.email,
-        'patient-modal-address': profile.diaChi,
-        'patient-modal-medical-history': profile.tienSuBenh
-    };
-
-    Object.entries(patientFields).forEach(([id, value]) => {
-        setText(id, patientProfileText(value));
-    });
-
-    setText(
-        'patient-modal-birth-date',
-        formatPatientProfileDate(profile.ngaySinh)
-    );
-
-    setText(
-        'patient-modal-appointment-id',
-        appointment.maLichKham
-    );
-
-    setText(
-        'patient-modal-appointment-date',
-        formatPatientProfileDate(appointment.ngayKham)
-    );
-
-    setText(
-        'patient-modal-appointment-time',
-        appointment.gioKham
-            ? String(appointment.gioKham).slice(0, 5)
-            : 'Chưa cập nhật'
-    );
-
-    setText(
-        'patient-modal-sequence-number',
-        Number.isInteger(appointment.soThuTu)
-            ? `#${String(appointment.soThuTu).padStart(3, '0')}`
-            : 'Chưa cấp số'
-    );
-
-    setText(
-        'patient-modal-department',
-        patientProfileText(appointment.khoa)
-    );
-
-    setText(
-        'patient-modal-doctor',
-        patientProfileText(appointment.bacSi)
-    );
-
-    setText(
-        'patient-modal-room',
-        appointment.phong || 'Chưa phân công'
-    );
-
-    setText(
-        'patient-modal-reason',
-        patientProfileText(appointment.lyDoKham)
-    );
-
-    const status = document.getElementById('patient-modal-status');
-
-    if (status) {
-        status.textContent = patientProfileText(appointment.trangThai);
-        status.className =
-            `badge ${statusClass(appointment.trangThai)}`;
-    }
-
-    setInputValue(
-        'patient-profile-weight-input',
-        appointment.canNang
-    );
-
-    setInputValue(
-        'patient-profile-height-input',
-        appointment.chieuCao
-    );
-
-    setInputValue(
-        'patient-profile-systolic-input',
-        appointment.huyetApTamThu
-    );
-
-    setInputValue(
-        'patient-profile-diastolic-input',
-        appointment.huyetApTamTruong
-    );
-}
-
-async function openPatientProfileModal(item, triggerButton) {
-    if (patientProfileSaving || callingPatient) return;
-
-    if (!hasValidPatientProfileIds(item)) {
-        showDashboardMessage(
-            'Mã bệnh nhân hoặc lịch khám không hợp lệ.',
-            true
-        );
+async function handleConfirmReception(maLichKham) {
+    if (isBusy()) {
         return;
     }
 
-    const modalElement = document.getElementById('modalHoSoBenhNhan');
-
-    const content = document.getElementById(
-        'patient-profile-modal-content'
+    const id = positiveId(maLichKham);
+    const item = globalQueueData.find(
+        row => positiveId(row.maLichKham) === id
     );
 
-    const form = document.getElementById(
-        'patient-profile-vitals-form'
-    );
-
-    if (
-        !modalElement
-        || !content
-        || !form
-        || !window.bootstrap?.Modal
-    ) {
-        showDashboardMessage(
-            'Chưa tìm thấy form hồ sơ. Kiểm tra lại dashboard.html.',
-            true
-        );
+    if (!id || !item || !canConfirmReception(item)) {
         return;
     }
 
-    const requestVersion = ++patientProfileRequestVersion;
-
-    patientProfileTrigger = triggerButton;
-    currentProfileAppointment = null;
-    patientProfileLoading = true;
-
-    form.reset();
-    content.hidden = true;
-
-    updatePatientProfileControls();
-    showPatientProfileMessage('Đang tải hồ sơ bệnh nhân...');
-
-    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+    confirmingReception = true;
+    updateBusyControls();
+    renderDashboardTables();
 
     try {
-        const profile = await requestApi(
-            `/api/tiepnhan/ho-so-benh-nhan/${item.maBenhNhan}`
+        const invoiceData = await requestApi(
+            `/api/tiepnhan/hoa-don/lich-kham/${id}`
         );
-
-        if (requestVersion !== patientProfileRequestVersion) return;
 
         if (
-            profile.maBenhNhan !== item.maBenhNhan
-            || !Array.isArray(profile.danhSachLanKham)
+            positiveId(invoiceData.maLichKham) !== id
+            || !Array.isArray(invoiceData.danhSachHoaDon)
         ) {
-            throw new Error('Hồ sơ trả về không đúng bệnh nhân.');
+            throw new Error(
+                "Thông tin viện phí không khớp lịch khám."
+            );
         }
 
-        const appointment = profile.danhSachLanKham.find(
-            visit => visit.maLichKham === item.maLichKham
-        );
+        if (invoiceData.daThanhToanPhiKham !== true) {
+            confirmingReception = false;
+            updateBusyControls();
+            renderDashboardTables();
 
-        if (!appointment) {
-            throw new Error('Không tìm thấy lần khám đã chọn.');
+            showDashboardMessage(
+                "Chưa xác nhận được phí khám đã thanh toán đủ. "
+                + "Hãy kiểm tra hóa đơn trước khi tiếp nhận.",
+                true
+            );
+
+            await openVienPhi(item);
+            return;
         }
 
-        renderPatientProfileModal(profile, appointment);
-        currentProfileAppointment = appointment;
-        content.hidden = false;
-        showPatientProfileMessage();
-    } catch (error) {
-        if (requestVersion !== patientProfileRequestVersion) return;
+        const confirmed = window.confirm(
+            `Xác nhận đã tiếp nhận bệnh nhân ${
+                item.tenBenhNhan || ""
+            }?\n\n`
+            + "Hãy bảo đảm đã kiểm tra thông tin và lưu đủ "
+            + "cân nặng, chiều cao, huyết áp tâm thu, huyết áp tâm trương."
+        );
 
-        currentProfileAppointment = null;
-        content.hidden = true;
-        showPatientProfileMessage(error.message, true);
-    } finally {
-        if (requestVersion === patientProfileRequestVersion) {
-            patientProfileLoading = false;
-            updatePatientProfileControls();
+        if (!confirmed) {
+            return;
         }
-    }
-}
 
-// =========================================================
-// KIỂM TRA SỐ ĐO
-// =========================================================
-
-function readOptionalNumber(id) {
-    const input = document.getElementById(id);
-
-    if (!input) {
-        throw new Error('Form số đo thiếu trường nhập liệu.');
-    }
-
-    if (input.value.trim() === '') return null;
-
-    const value = input.valueAsNumber;
-
-    if (!Number.isFinite(value)) {
-        throw new Error('Số đo phải là số hợp lệ.');
-    }
-
-    return value;
-}
-
-function validateDecimal(value, label) {
-    if (value === null) return;
-
-    if (value <= 0 || value > 999.99) {
-        throw new Error(
-            `${label} phải lớn hơn 0 và không vượt quá 999,99.`
-        );
-    }
-
-    const scaled = value * 100;
-
-    if (Math.abs(scaled - Math.round(scaled)) > 0.000001) {
-        throw new Error(
-            `${label} chỉ được có tối đa 2 chữ số thập phân.`
-        );
-    }
-}
-
-function validateBloodPressure(value, label) {
-    if (value === null) return;
-
-    if (!Number.isInteger(value) || value < 1 || value > 65535) {
-        throw new Error(
-            `${label} phải là số nguyên từ 1 đến 65535.`
-        );
-    }
-}
-
-function buildPatientProfileVitalsPayload() {
-    if (!canEditPatientProfileVitals()) {
-        throw new Error(
-            'Chỉ nhập số đo cho lịch khám hôm nay đã gọi bệnh nhân.'
-        );
-    }
-
-    const payload = {
-        maLichKham: currentProfileAppointment.maLichKham,
-        canNang: readOptionalNumber('patient-profile-weight-input'),
-        chieuCao: readOptionalNumber('patient-profile-height-input'),
-        huyetApTamThu: readOptionalNumber(
-            'patient-profile-systolic-input'
-        ),
-        huyetApTamTruong: readOptionalNumber(
-            'patient-profile-diastolic-input'
-        )
-    };
-
-    validateDecimal(payload.canNang, 'Cân nặng');
-    validateDecimal(payload.chieuCao, 'Chiều cao');
-    validateBloodPressure(payload.huyetApTamThu, 'Huyết áp tâm thu');
-
-    validateBloodPressure(
-        payload.huyetApTamTruong,
-        'Huyết áp tâm trương'
-    );
-
-    if (
-        (payload.huyetApTamThu === null)
-        !== (payload.huyetApTamTruong === null)
-    ) {
-        throw new Error(
-            'Nhập đủ huyết áp tâm thu và tâm trương, '
-            + 'hoặc để trống cả hai nếu chưa đo.'
-        );
-    }
-
-    if (
-        payload.canNang === null
-        && payload.chieuCao === null
-        && payload.huyetApTamThu === null
-        && payload.huyetApTamTruong === null
-    ) {
-        throw new Error(
-            'Hãy nhập ít nhất một loại số đo trước khi lưu.'
-        );
-    }
-
-    return payload;
-}
-
-// =========================================================
-// LƯU SỐ ĐO
-// =========================================================
-
-async function handleSavePatientProfile(event) {
-    event.preventDefault();
-
-    if (
-        patientProfileLoading
-        || patientProfileSaving
-        || callingPatient
-    ) {
-        return;
-    }
-
-    const form = document.getElementById(
-        'patient-profile-vitals-form'
-    );
-
-    if (!form || !form.reportValidity()) return;
-
-    let payload;
-
-    try {
-        payload = buildPatientProfileVitalsPayload();
-    } catch (error) {
-        showPatientProfileMessage(error.message, true);
-        return;
-    }
-
-    patientProfileSaving = true;
-    updatePatientProfileControls();
-    applyFiltersAndRender();
-    showPatientProfileMessage('Đang lưu số đo vào hồ sơ...');
-
-    let saved = false;
-
-    try {
-        const result = await requestApi(
-            '/api/tiepnhan/chi-so-truoc-kham',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            }
+        const result = await postJson(
+            "/api/tiepnhan/confirm-reception",
+            { maLichKham: id }
         );
 
         if (result.success !== true) {
             throw new Error(
-                result.message || 'Không thể lưu số đo.'
+                result.message || "Không thể xác nhận tiếp nhận."
             );
         }
 
-        Object.assign(currentProfileAppointment, payload);
-        saved = true;
-        showPatientProfileMessage('Đã lưu số đo của lần khám này.');
+        item.trangThai = STATUS_LABELS.DaTiepNhan;
+
+        const refreshed = await loadDashboardRealData(
+            true,
+            true
+        );
+
+        showDashboardMessage(
+            refreshed
+                ? "Đã tiếp nhận bệnh nhân. Chờ bác sĩ bắt đầu khám."
+                : "Đã tiếp nhận nhưng chưa tải lại được dữ liệu. Hãy làm mới dữ liệu.",
+            !refreshed
+        );
     } catch (error) {
-        showPatientProfileMessage(error.message, true);
+        await loadDashboardRealData(true, true);
+        showDashboardMessage(error.message, true);
     } finally {
-        patientProfileSaving = false;
-        updatePatientProfileControls();
-        applyFiltersAndRender();
+        confirmingReception = false;
+        updateBusyControls();
+        renderDashboardTables();
+    }
+}
+
+// =========================================================
+// PHÁT LOA
+// =========================================================
+
+function replayVoice() {
+    if (currentCallItem && !isBusy()) {
+        void handleCallPatient(currentCallItem.maLichKham);
+    }
+}
+
+function speakAnnouncement(item) {
+    if (!("speechSynthesis" in window)) {
+        setText(
+            "voice-status",
+            "Trình duyệt không hỗ trợ đọc thông báo. Vui lòng gọi trực tiếp."
+        );
+        return;
     }
 
-    if (saved) {
-        const refreshed = await loadDashboardRealData();
+    const number = getSequenceNumber(item.stt);
+    const khoa = String(item.khoa || "").trim();
 
-        if (!refreshed) {
-            showDashboardMessage(
-                'Số đo đã lưu thành công, nhưng chưa tải lại được Dashboard.',
-                true
-            );
+    const department = /^khoa\s/i.test(khoa)
+        ? khoa
+        : khoa
+            ? `khoa ${khoa}`
+            : "";
+
+    const announcement = new SpeechSynthesisUtterance(
+        `Xin mời bệnh nhân ${item.ten}${
+            number ? `, số thứ tự ${number}` : ""
+        }, `
+        + `đến khu vực chờ trước ${item.phong}${
+            department ? `, ${department}` : ""
+        }, `
+        + "để nhân viên tiếp nhận kiểm tra thông tin và lấy số đo trước khám."
+    );
+
+    announcement.lang = "vi-VN";
+    announcement.rate = 0.9;
+
+    const voice = window.speechSynthesis
+        .getVoices()
+        .find(
+            value => value.lang.toLowerCase().startsWith("vi")
+        );
+
+    if (voice) {
+        announcement.voice = voice;
+    }
+
+    announcement.onstart = () => {
+        setText(
+            "voice-status",
+            "Đang phát thông báo gọi bệnh nhân..."
+        );
+    };
+
+    announcement.onend = () => {
+        setText("voice-status", "Đã phát xong thông báo.");
+    };
+
+    announcement.onerror = () => {
+        setText(
+            "voice-status",
+            "Không phát được thông báo. Kiểm tra âm thanh hoặc gọi trực tiếp."
+        );
+    };
+
+    window.speechSynthesis.cancel();
+
+    setText(
+        "voice-status",
+        "Đang chuẩn bị phát thông báo..."
+    );
+
+    window.speechSynthesis.speak(announcement);
+}
+
+// =========================================================
+// THÔNG BÁO TRÊN HEADER
+// =========================================================
+
+function setupDashboardNotifications() {
+    const wrapper = $("notification-wrapper");
+    const button = $("notification-button");
+    const panel = $("notification-panel");
+
+    if (!wrapper || !button || !panel) {
+        return;
+    }
+
+    const close = () => {
+        panel.hidden = true;
+        button.setAttribute("aria-expanded", "false");
+    };
+
+    button.addEventListener("click", () => {
+        panel.hidden = !panel.hidden;
+
+        button.setAttribute(
+            "aria-expanded",
+            String(!panel.hidden)
+        );
+    });
+
+    $("notification-close")?.addEventListener(
+        "click",
+        close
+    );
+
+    document.addEventListener("click", event => {
+        if (!wrapper.contains(event.target)) {
+            close();
         }
-    }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && !panel.hidden) {
+            close();
+            button.focus();
+        }
+    });
 }
 
 // =========================================================
 // KHỞI TẠO
 // =========================================================
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('refresh-dashboard-button')
-        ?.addEventListener('click', () => {
-            void loadDashboardRealData();
-        });
-
-    document.getElementById('room-filter')
-        ?.addEventListener('change', applyFiltersAndRender);
-
-    document.getElementById('status-filter')
-        ?.addEventListener('change', applyFiltersAndRender);
-
-    document.getElementById('queue-search')
-        ?.addEventListener('input', applyFiltersAndRender);
-
-    document.getElementById('replay-voice-button')
-        ?.addEventListener('click', replayVoice);
-
-    document.getElementById('patient-profile-vitals-form')
-        ?.addEventListener('submit', handleSavePatientProfile);
-
-    const profileModal = document.getElementById(
-        'modalHoSoBenhNhan'
+function initDashboard() {
+    $("refresh-dashboard-button")?.addEventListener(
+        "click",
+        () => void loadDashboardRealData()
     );
 
-    profileModal?.addEventListener('hide.bs.modal', event => {
-        if (patientProfileSaving) {
-            event.preventDefault();
-            return;
-        }
-
-        patientProfileRequestVersion++;
-        patientProfileLoading = false;
-    });
-
-    profileModal?.addEventListener('hidden.bs.modal', () => {
-        currentProfileAppointment = null;
-
-        document.getElementById('patient-profile-vitals-form')
-            ?.reset();
-
-        const content = document.getElementById(
-            'patient-profile-modal-content'
+    [
+        "room-filter",
+        "doctor-filter",
+        "department-filter",
+        "status-filter"
+    ].forEach(id => {
+        $(id)?.addEventListener(
+            "change",
+            applyFiltersAndRender
         );
-
-        if (content) content.hidden = true;
-
-        showPatientProfileMessage();
-        updatePatientProfileControls();
-
-        if (patientProfileTrigger?.isConnected) {
-            patientProfileTrigger.focus();
-        }
-
-        patientProfileTrigger = null;
     });
 
-    updatePatientProfileControls();
+    $("queue-search")?.addEventListener(
+        "input",
+        applyFiltersAndRender
+    );
+
+    $("replay-voice-button")?.addEventListener(
+        "click",
+        replayVoice
+    );
+
+    const feeModal = $("vien-phi-modal");
+
+    feeModal?.addEventListener("show.bs.modal", () => {
+        vienPhiOpen = true;
+        updateBusyControls();
+    });
+
+    feeModal?.addEventListener("hidden.bs.modal", () => {
+        vienPhiOpen = false;
+        updateBusyControls();
+        renderDashboardTables();
+        refreshDashboardWhenIdle();
+    });
+
+    setupDashboardNotifications();
+    updateCurrentHeaderDate();
+    updateFilterOptions();
+
     void loadDashboardRealData();
 
-    // Tạm ngừng cập nhật tự động khi đang mở form hoặc xử lý.
-    window.setInterval(refreshDashboardWhenIdle, 15000);
+    window.setInterval(
+        refreshDashboardWhenIdle,
+        15000
+    );
 
     document.addEventListener(
-        'visibilitychange',
+        "visibilitychange",
         refreshDashboardWhenIdle
     );
 
-    window.addEventListener('focus', refreshDashboardWhenIdle);
-});
+    window.addEventListener(
+        "focus",
+        refreshDashboardWhenIdle
+    );
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        initDashboard
+    );
+} else {
+    initDashboard();
+}

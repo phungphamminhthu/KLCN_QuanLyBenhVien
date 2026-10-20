@@ -3,16 +3,23 @@ package QuanLyBenhVien.Controller;
 import QuanLyBenhVien.DTO.ChiSoTruocKhamDTO;
 import QuanLyBenhVien.Service.ChiSoTruocKhamService;
 import QuanLyBenhVien.Service.TiepNhanDashboardService;
+import QuanLyBenhVien.Service.TiepNhanPhanCongService;
+import QuanLyBenhVien.Service.TiepNhanPhanCongService.CaTrucHienTai;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -33,19 +40,25 @@ public class TiepNhanApiController {
 
     private final TiepNhanDashboardService tiepNhanDashboardService;
     private final ChiSoTruocKhamService chiSoTruocKhamService;
+    private final TiepNhanPhanCongService phanCongService;
     private final JdbcTemplate jdbcTemplate;
 
     public TiepNhanApiController(
             TiepNhanDashboardService tiepNhanDashboardService,
             ChiSoTruocKhamService chiSoTruocKhamService,
+            TiepNhanPhanCongService phanCongService,
             JdbcTemplate jdbcTemplate
     ) {
         this.tiepNhanDashboardService = tiepNhanDashboardService;
         this.chiSoTruocKhamService = chiSoTruocKhamService;
+        this.phanCongService = phanCongService;
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // Truy vấn thông tin lịch khám dùng chung.
+    // =========================================================
+    // TRUY VẤN THÔNG TIN LỊCH KHÁM DÙNG CHUNG
+    // =========================================================
+
     private static final String SQL_LICH_KHAM = """
             SELECT
                 lk.MaLichKham,
@@ -78,7 +91,9 @@ public class TiepNhanApiController {
                       AND lv.NgayLamViec = lk.NgayKham
                       AND lk.GioKham >= lv.GioBatDau
                       AND lk.GioKham < lv.GioKetThuc
-                    ORDER BY lv.MaLichLamViec
+                    ORDER BY
+                        lv.GioBatDau DESC,
+                        lv.MaLichLamViec DESC
                     LIMIT 1
                 ) AS TenPhong
 
@@ -101,22 +116,28 @@ public class TiepNhanApiController {
 
             LEFT JOIN sothutu s
               ON s.MaSoThuTu = lk.MaSoThuTu
+             AND s.MaKhoa = lk.MaKhoa
+             AND s.NgayCapSo = lk.NgayKham
             """;
 
-    // 1. Dashboard.
+    // =========================================================
+    // 1. DASHBOARD
+    // Service đã kiểm tra tài khoản, ca trực và khoa phụ trách.
+    // =========================================================
+
     @GetMapping("/dashboard-data")
     public ResponseEntity<?> getDashboardData(
             Authentication authentication
     ) {
-        kiemTraQuyen(authentication);
-
-        return ResponseEntity.ok(
+        return thanhCong(
                 tiepNhanDashboardService.getDashboardData()
         );
     }
 
-    // 2. Gọi bệnh nhân.
-    // JavaScript phát loa sau khi API thành công.
+    // =========================================================
+    // 2. GỌI BỆNH NHÂN
+    // =========================================================
+
     public record GoiBenhNhanRequest(Integer maLichKham) {
     }
 
@@ -125,55 +146,39 @@ public class TiepNhanApiController {
             Authentication authentication,
             @RequestBody GoiBenhNhanRequest request
     ) {
-        kiemTraQuyen(authentication);
+        CaTrucHienTai caTruc = layCaTruc(authentication);
 
-        if (request == null
-                || request.maLichKham() == null
-                || request.maLichKham() <= 0) {
-            return ResponseEntity.badRequest().body(
-                    Map.of(
-                            "success", false,
-                            "message", "Vui lòng chọn lịch khám cần gọi."
-                    )
+        if (request == null || !maHopLe(request.maLichKham())) {
+            return phanHoiLoi(
+                    HttpStatus.BAD_REQUEST,
+                    "Vui lòng chọn lịch khám cần gọi."
             );
         }
 
         Integer maLichKham = request.maLichKham();
 
-        List<Map<String, Object>> danhSach =
-                jdbcTemplate.queryForList(
-                        SQL_LICH_KHAM + " WHERE lk.MaLichKham = ?",
-                        maLichKham
+        Map<String, Object> lichKham =
+                layLichKhamTrongKhoa(
+                        maLichKham,
+                        caTruc.maKhoa()
                 );
 
-        if (danhSach.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    Map.of(
-                            "success", false,
-                            "message", "Không tìm thấy lịch khám."
-                    )
-            );
-        }
-
-        boolean thanhCong =
+        boolean daGoi =
                 tiepNhanDashboardService.updateTrangThaiHangDoi(
                         String.valueOf(maLichKham),
                         "DaGoi"
                 );
 
-        if (!thanhCong) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                    Map.of(
-                            "success", false,
-                            "message",
-                            "Không thể gọi lịch này. "
-                                    + "Chỉ gọi lịch hôm nay "
-                                    + "chưa được tiếp nhận khám."
-                    )
+        if (!daGoi) {
+            return phanHoiLoi(
+                    HttpStatus.CONFLICT,
+                    "Không thể gọi tiếp nhận lịch này. "
+                            + "Lịch phải thuộc hôm nay, ở trạng thái "
+                            + "Chờ gọi hoặc Đã gọi và ca trực còn hiệu lực. "
+                            + "Hãy làm mới dữ liệu."
             );
         }
 
-        Map<String, Object> lichKham = danhSach.get(0);
         Map<String, Object> response = new HashMap<>();
 
         response.put("success", true);
@@ -185,61 +190,190 @@ public class TiepNhanApiController {
         response.put("phong", lichKham.get("TenPhong"));
         response.put("khoa", lichKham.get("ChuyenKhoa"));
         response.put("trangThai", "DaGoi");
+        response.put("trangThaiHienThi", "Đã gọi");
 
-        return ResponseEntity.ok(response);
+        return thanhCong(response);
     }
 
-    // 3. Đọc số đo đã lưu theo mã lịch khám.
+    // =========================================================
+    // 3. XEM SỐ ĐO ĐÃ LƯU
+    // Có thể xem lịch cũ nhưng phải thuộc khoa đang phụ trách.
+    // =========================================================
+
     @GetMapping("/chi-so-truoc-kham/{maLichKham}")
     public ResponseEntity<ChiSoTruocKhamDTO> getChiSoTruocKham(
             Authentication authentication,
             @PathVariable("maLichKham") Integer maLichKham
     ) {
-        kiemTraQuyen(authentication);
+        phanCongService.kiemTraQuyenVoiLichKham(
+                authentication,
+                maLichKham
+        );
 
-        return ResponseEntity.ok(
+        return thanhCong(
                 chiSoTruocKhamService.getChiSo(maLichKham)
         );
     }
 
-    // 4. Lưu số đo trước khám.
-    // Không xác nhận tiếp nhận và không chuyển sang DangKham.
+    // =========================================================
+    // 4. LƯU SỐ ĐO
+    // Chỉ cho sửa lịch hôm nay đang ở trạng thái DaGoi.
+    // =========================================================
+
     @PostMapping("/chi-so-truoc-kham")
+    @Transactional
     public ResponseEntity<?> luuChiSoTruocKham(
             Authentication authentication,
             @RequestBody ChiSoTruocKhamDTO request
     ) {
-        kiemTraQuyen(authentication);
+        CaTrucHienTai caTruc = layCaTruc(authentication);
+
+        if (request == null || !maHopLe(request.getMaLichKham())) {
+            return phanHoiLoi(
+                    HttpStatus.BAD_REQUEST,
+                    "Vui lòng chọn lịch khám cần lưu số đo."
+            );
+        }
+
+        /*
+         * Giữ khóa lịch trong cùng transaction với thao tác lưu.
+         * Tránh sửa số đo đồng thời với việc xác nhận tiếp nhận.
+         */
+        String sql = """
+                SELECT MaLichKham
+                FROM lichdangkykham
+                WHERE MaLichKham = ?
+                  AND MaKhoa = ?
+                  AND NgayKham = ?
+                  AND TrangThai = 'DaGoi'
+                FOR UPDATE
+                """;
+
+        List<Integer> lichChoPhep = jdbcTemplate.query(
+                sql,
+                (rs, rowNum) -> rs.getInt("MaLichKham"),
+                request.getMaLichKham(),
+                caTruc.maKhoa(),
+                homNay()
+        );
+
+        if (lichChoPhep.isEmpty()) {
+            return phanHoiLoi(
+                    HttpStatus.CONFLICT,
+                    "Không thể sửa số đo. "
+                            + "Lịch phải thuộc khoa đang phụ trách, "
+                            + "có ngày khám hôm nay và đang ở trạng thái Đã gọi. "
+                            + "Hãy làm mới hồ sơ."
+            );
+        }
+
+        // Kiểm tra lại ca sau khi lấy được khóa lịch khám.
+        phanCongService.kiemTraQuyenVoiLichKham(
+                authentication,
+                request.getMaLichKham()
+        );
 
         chiSoTruocKhamService.luuChiSo(request);
 
-        return ResponseEntity.ok(
+        return thanhCong(
                 Map.of(
                         "success", true,
-                        "message", "Đã lưu số đo trước khám.",
+                        "message",
+                        "Đã lưu số đo trước khám. "
+                                + "Bạn có thể xác nhận Đã tiếp nhận "
+                                + "sau khi kiểm tra đầy đủ thông tin.",
                         "maLichKham", request.getMaLichKham()
                 )
         );
     }
 
-    // 5. Tra cứu bệnh nhân.
+    // =========================================================
+    // 5. XÁC NHẬN ĐÃ TIẾP NHẬN
+    // Service cập nhật trạng thái và lưu người tiếp nhận.
+    // =========================================================
+
+    public record XacNhanTiepNhanRequest(Integer maLichKham) {
+    }
+
+    @PostMapping({
+            "/confirm-reception",
+            "/checkin"
+    })
+    public ResponseEntity<?> xacNhanTiepNhan(
+            Authentication authentication,
+            @RequestBody XacNhanTiepNhanRequest request
+    ) {
+        CaTrucHienTai caTruc = layCaTruc(authentication);
+
+        if (request == null || !maHopLe(request.maLichKham())) {
+            return phanHoiLoi(
+                    HttpStatus.BAD_REQUEST,
+                    "Vui lòng chọn lịch khám cần xác nhận tiếp nhận."
+            );
+        }
+
+        Integer maLichKham = request.maLichKham();
+
+        kiemTraLichKhamTrongKhoa(
+                maLichKham,
+                caTruc.maKhoa()
+        );
+
+        boolean daTiepNhan =
+                tiepNhanDashboardService.xacNhanTiepNhan(
+                        String.valueOf(maLichKham)
+                );
+
+        if (!daTiepNhan) {
+            return phanHoiLoi(
+                    HttpStatus.CONFLICT,
+                    "Chưa thể xác nhận tiếp nhận. "
+                            + "Lịch phải thuộc hôm nay, đang Đã gọi, "
+                            + "ca trực còn hiệu lực và đã lưu đủ "
+                            + "cân nặng, chiều cao, huyết áp hợp lệ. "
+                            + "Hãy làm mới dữ liệu để kiểm tra trạng thái."
+            );
+        }
+
+        return thanhCong(
+                Map.of(
+                        "success", true,
+                        "message",
+                        "Đã tiếp nhận bệnh nhân. "
+                                + "Bệnh nhân chờ bác sĩ bắt đầu khám.",
+                        "maLichKham", maLichKham,
+                        "trangThai", "DaTiepNhan",
+                        "trangThaiHienThi", "Đã tiếp nhận"
+                )
+        );
+    }
+
+    // =========================================================
+    // 6. TRA CỨU BỆNH NHÂN ĐỂ ĐĂNG KÝ KHÁM
+    // Thông tin cơ bản được tra cứu trên toàn bệnh viện.
+    // Chi tiết lịch hẹn chỉ trả về trong khoa đang phụ trách.
+    // =========================================================
+
     @GetMapping("/patient-search")
     public ResponseEntity<?> searchPatient(
             Authentication authentication,
             @RequestParam("keyword") String keyword
     ) {
-        kiemTraQuyen(authentication);
+        CaTrucHienTai caTruc = layCaTruc(authentication);
 
         String tuKhoa = keyword.trim();
 
         if (tuKhoa.isEmpty() || tuKhoa.length() > 100) {
-            return ResponseEntity.badRequest().body(
-                    Map.of(
-                            "message",
-                            "Nhập từ khóa từ 1 đến 100 ký tự."
-                    )
+            return phanHoiLoi(
+                    HttpStatus.BAD_REQUEST,
+                    "Nhập từ khóa từ 1 đến 100 ký tự."
             );
         }
+
+        String tuKhoaLike = tuKhoa
+                .replace("!", "!!")
+                .replace("%", "!%")
+                .replace("_", "!_");
 
         String sql = """
                 SELECT
@@ -249,15 +383,12 @@ public class TiepNhanApiController {
                     bn.DiaChi,
                     nd.HoTen,
                     nd.SoDienThoai
-
                 FROM benhnhan bn
                 JOIN nguoidung nd
                   ON nd.MaNguoiDung = bn.MaNguoiDung
-
                 WHERE CAST(bn.MaBenhNhan AS CHAR) = ?
                    OR nd.SoDienThoai = ?
-                   OR nd.HoTen LIKE ?
-
+                   OR nd.HoTen LIKE ? ESCAPE '!'
                 ORDER BY bn.MaBenhNhan
                 LIMIT 2
                 """;
@@ -267,44 +398,79 @@ public class TiepNhanApiController {
                         sql,
                         tuKhoa,
                         tuKhoa,
-                        "%" + tuKhoa + "%"
+                        "%" + tuKhoaLike + "%"
                 );
 
         if (danhSach.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                    Map.of("message", "Không tìm thấy bệnh nhân.")
+            return phanHoiLoi(
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy bệnh nhân."
             );
         }
 
         if (danhSach.size() > 1) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                    Map.of(
-                            "message",
-                            "Có nhiều bệnh nhân phù hợp. "
-                                    + "Hãy tìm bằng mã bệnh nhân "
-                                    + "hoặc số điện thoại."
-                    )
+            return phanHoiLoi(
+                    HttpStatus.CONFLICT,
+                    "Có nhiều bệnh nhân phù hợp. "
+                            + "Hãy tìm bằng mã bệnh nhân hoặc số điện thoại."
             );
         }
 
         Map<String, Object> patient =
                 new HashMap<>(danhSach.get(0));
 
+        Object maBenhNhan = patient.get("MaBenhNhan");
+
         patient.put(
                 "rawMaBenhNhan",
-                patient.get("MaBenhNhan").toString()
+                maBenhNhan.toString()
         );
+
+        LocalDate ngay = homNay();
 
         List<Map<String, Object>> lichHen =
                 jdbcTemplate.queryForList(
                         SQL_LICH_KHAM + """
                                  WHERE lk.MaBenhNhan = ?
                                    AND lk.NgayKham = ?
-                                 ORDER BY lk.GioKham, lk.MaLichKham
+                                   AND lk.MaKhoa = ?
+                                 ORDER BY
+                                     lk.GioKham,
+                                     lk.MaLichKham
                                 """,
-                        patient.get("MaBenhNhan"),
-                        homNay()
+                        maBenhNhan,
+                        ngay,
+                        caTruc.maKhoa()
                 );
+
+        /*
+         * Không hiểu nhầm là chưa có lịch
+         * khi bệnh nhân đã đăng ký ở khoa khác.
+         */
+        Long soLichKhacKhoa = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM lichdangkykham
+                WHERE MaBenhNhan = ?
+                  AND NgayKham = ?
+                  AND MaKhoa <> ?
+                """,
+                Long.class,
+                maBenhNhan,
+                ngay,
+                caTruc.maKhoa()
+        );
+
+        if (lichHen.isEmpty()
+                && soLichKhacKhoa != null
+                && soLichKhacKhoa > 0) {
+
+            return phanHoiLoi(
+                    HttpStatus.CONFLICT,
+                    "Bệnh nhân đã có lịch khám hôm nay tại khoa khác. "
+                            + "Vui lòng hướng dẫn bệnh nhân đến khoa đã đăng ký."
+            );
+        }
 
         patient.put("coLichHen", !lichHen.isEmpty());
         patient.put("danhSachLichHen", lichHen);
@@ -313,63 +479,44 @@ public class TiepNhanApiController {
             patient.put("lichHen", lichHen.get(0));
         }
 
-        return ResponseEntity.ok(patient);
+        return thanhCong(patient);
     }
 
-    // 6. Chặn luồng tiếp nhận cũ.
-    // Bác sĩ thực hiện xác nhận tiếp nhận khám.
-    @PostMapping("/checkin")
-    public ResponseEntity<?> doCheckIn(
-            Authentication authentication
-    ) {
-        kiemTraQuyen(authentication);
+    // =========================================================
+    // 7. LỊCH CHỜ GỌI TIẾP THEO CỦA KHOA
+    // =========================================================
 
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(
-                Map.of(
-                        "success", false,
-                        "message",
-                        "Xác nhận tiếp nhận khám thuộc bác sĩ. "
-                                + "Nhân viên thực hiện gọi bệnh nhân "
-                                + "và ghi thông tin trước khám."
-                )
-        );
-    }
-
-    // 7. Lịch chờ gọi tiếp theo hôm nay.
     @GetMapping("/next-appointment")
     public ResponseEntity<?> getNextAppointment(
             Authentication authentication
     ) {
-        kiemTraQuyen(authentication);
+        CaTrucHienTai caTruc = layCaTruc(authentication);
 
         String sql = SQL_LICH_KHAM + """
                  WHERE lk.NgayKham = ?
-                   AND lk.TrangThai IN (
-                       'ChoKham',
-                       'DaDat',
-                       'DaXacNhan'
-                   )
-                   AND NOT EXISTS (
-                       SELECT 1
-                       FROM hosobenhan h
-                       WHERE h.MaLichKham = lk.MaLichKham
-                         AND h.TrangThai IN (
-                             'DangKham',
-                             'HoanTat'
-                         )
-                   )
-                 ORDER BY lk.GioKham, lk.MaLichKham
+                   AND lk.MaKhoa = ?
+                   AND lk.TrangThai = 'ChoGoi'
+                 ORDER BY
+                     lk.GioKham,
+                     s.SoThuTu,
+                     lk.MaLichKham
                  LIMIT 1
                 """;
 
         List<Map<String, Object>> danhSach =
-                jdbcTemplate.queryForList(sql, homNay());
+                jdbcTemplate.queryForList(
+                        sql,
+                        homNay(),
+                        caTruc.maKhoa()
+                );
 
         if (danhSach.isEmpty()) {
-            return ResponseEntity.ok(
+            return thanhCong(
                     Map.of(
                             "hasData", false,
-                            "message", "Không còn lịch chờ gọi hôm nay."
+                            "message",
+                            "Không còn lịch chờ gọi tiếp nhận hôm nay "
+                                    + "tại khoa đang phụ trách."
                     )
             );
         }
@@ -379,41 +526,65 @@ public class TiepNhanApiController {
 
         response.put("hasData", true);
 
-        return ResponseEntity.ok(response);
+        return thanhCong(response);
     }
 
-    // 8. Toàn bộ lịch hẹn hôm nay.
+    // =========================================================
+    // 8. LỊCH HẸN HÔM NAY CỦA KHOA
+    // =========================================================
+
     @GetMapping("/lich-hen-hom-nay")
     public ResponseEntity<?> getLichHenHomNay(
             Authentication authentication
     ) {
-        kiemTraQuyen(authentication);
+        CaTrucHienTai caTruc = layCaTruc(authentication);
 
         String sql = SQL_LICH_KHAM + """
                  WHERE lk.NgayKham = ?
-                 ORDER BY lk.GioKham, lk.MaBacSi, lk.MaLichKham
+                   AND lk.MaKhoa = ?
+                 ORDER BY
+                     lk.GioKham,
+                     lk.MaBacSi,
+                     lk.MaLichKham
                 """;
 
-        return ResponseEntity.ok(
-                jdbcTemplate.queryForList(sql, homNay())
+        return thanhCong(
+                jdbcTemplate.queryForList(
+                        sql,
+                        homNay(),
+                        caTruc.maKhoa()
+                )
         );
     }
 
-    // 9. Lịch sử tiếp nhận đã ghi trong database.
+    // =========================================================
+    // 9. LỊCH SỬ THAO TÁC TIẾP NHẬN CỦA KHOA
+    // Kèm tài khoản đã thực tế tiếp nhận.
+    // =========================================================
+
     @GetMapping("/lich-su-tiep-nhan")
     public ResponseEntity<?> getLichSuTiepNhan(
             Authentication authentication
     ) {
-        kiemTraQuyen(authentication);
+        CaTrucHienTai caTruc = layCaTruc(authentication);
 
         String sql = """
                 SELECT
                     t.MaTiepNhan,
                     t.ThoiGianTiepNhan,
                     t.ThoiGianTiepNhan AS NgayKham,
+                    t.TrangThai AS TrangThaiTiepNhan,
+
+                    t.MaNhanVienTiepNhan,
+                    t.MaPhanCong,
+                    nv.HoTen AS TenNhanVienTiepNhan,
+                    nv.TenDangNhap AS TaiKhoanTiepNhan,
+
+                    lk.NgayKham AS NgayHenKham,
                     lk.MaLichKham,
                     lk.MaBenhNhan,
                     lk.TrangThai,
+
                     nd.HoTen,
                     k.TenKhoa AS Khoa,
                     s.SoThuTu
@@ -432,71 +603,164 @@ public class TiepNhanApiController {
                 JOIN khoa k
                   ON k.MaKhoa = lk.MaKhoa
 
+                LEFT JOIN nguoidung nv
+                  ON nv.MaNguoiDung = t.MaNhanVienTiepNhan
+
                 LEFT JOIN sothutu s
                   ON s.MaSoThuTu = lk.MaSoThuTu
+                 AND s.MaKhoa = lk.MaKhoa
+                 AND s.NgayCapSo = lk.NgayKham
+
+                WHERE lk.MaKhoa = ?
 
                 ORDER BY
                     t.ThoiGianTiepNhan DESC,
                     t.MaTiepNhan DESC
+
                 LIMIT 5
                 """;
 
-        return ResponseEntity.ok(
-                jdbcTemplate.queryForList(sql)
+        return thanhCong(
+                jdbcTemplate.queryForList(
+                        sql,
+                        caTruc.maKhoa()
+                )
         );
     }
 
-    // Kiểm tra tài khoản có quyền nhân viên tiếp nhận.
-    private void kiemTraQuyen(Authentication authentication) {
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(
-                authentication.getPrincipal()
-        )) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNAUTHORIZED,
-                    "Vui lòng đăng nhập."
-            );
-        }
+    // =========================================================
+    // HÀM HỖ TRỢ
+    // =========================================================
 
-        boolean laNhanVienTiepNhan =
-                authentication.getAuthorities()
-                        .stream()
-                        .anyMatch(
-                                quyen -> "ROLE_TIEPNHAN".equals(
-                                        quyen.getAuthority()
-                                )
-                        );
+    private CaTrucHienTai layCaTruc(
+            Authentication authentication
+    ) {
+        return phanCongService.layCaTrucHienTai(
+                authentication
+        );
+    }
 
-        if (!laNhanVienTiepNhan) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Tài khoản không có quyền tiếp nhận."
-            );
-        }
+    private boolean maHopLe(Integer ma) {
+        return ma != null && ma > 0;
     }
 
     private LocalDate homNay() {
         return LocalDate.now(MUI_GIO);
     }
 
-    // Trả lỗi quyền và lỗi kiểm tra nghiệp vụ dưới dạng JSON.
+    private Map<String, Object> layLichKhamTrongKhoa(
+            Integer maLichKham,
+            Integer maKhoa
+    ) {
+        List<Map<String, Object>> danhSach =
+                jdbcTemplate.queryForList(
+                        SQL_LICH_KHAM
+                                + " WHERE lk.MaLichKham = ?"
+                                + " AND lk.MaKhoa = ?",
+                        maLichKham,
+                        maKhoa
+                );
+
+        if (danhSach.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy lịch khám trong khoa đang phụ trách."
+            );
+        }
+
+        return danhSach.get(0);
+    }
+
+    private void kiemTraLichKhamTrongKhoa(
+            Integer maLichKham,
+            Integer maKhoa
+    ) {
+        Long soLuong = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM lichdangkykham
+                WHERE MaLichKham = ?
+                  AND MaKhoa = ?
+                """,
+                Long.class,
+                maLichKham,
+                maKhoa
+        );
+
+        if (soLuong == null || soLuong == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy lịch khám trong khoa đang phụ trách."
+            );
+        }
+    }
+
+    private <T> ResponseEntity<T> thanhCong(T body) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(body);
+    }
+
+    private ResponseEntity<?> phanHoiLoi(
+            HttpStatus status,
+            String message
+    ) {
+        return ResponseEntity.status(status)
+                .cacheControl(CacheControl.noStore())
+                .body(
+                        Map.of(
+                                "success", false,
+                                "message", message
+                        )
+                );
+    }
+
+    // =========================================================
+    // XỬ LÝ LỖI
+    // =========================================================
+
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<?> xuLyLoiQuyen(
+    public ResponseEntity<?> xuLyLoiNghiepVu(
             ResponseStatusException exception
     ) {
         String message = exception.getReason();
 
-        return ResponseEntity.status(
-                exception.getStatusCode()
-        ).body(
-                Map.of(
-                        "success", false,
-                        "message",
-                        message != null
-                                ? message
-                                : "Yêu cầu không hợp lệ."
-                )
+        return ResponseEntity.status(exception.getStatusCode())
+                .cacheControl(CacheControl.noStore())
+                .body(
+                        Map.of(
+                                "success", false,
+                                "message",
+                                message == null || message.isBlank()
+                                        ? "Yêu cầu không hợp lệ."
+                                        : message
+                        )
+                );
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> xuLyDuLieuKhongHopLe(
+            IllegalArgumentException exception
+    ) {
+        return phanHoiLoi(
+                HttpStatus.BAD_REQUEST,
+                "Dữ liệu gửi lên không hợp lệ. "
+                        + "Vui lòng kiểm tra thông tin nhập."
+        );
+    }
+
+    @ExceptionHandler({
+            HttpMessageNotReadableException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class
+    })
+    public ResponseEntity<?> xuLySaiDinhDang(
+            Exception exception
+    ) {
+        return phanHoiLoi(
+                HttpStatus.BAD_REQUEST,
+                "Dữ liệu yêu cầu không đúng định dạng "
+                        + "hoặc thiếu tham số bắt buộc."
         );
     }
 
@@ -509,13 +773,10 @@ public class TiepNhanApiController {
                 exception
         );
 
-        return ResponseEntity.internalServerError().body(
-                Map.of(
-                        "success", false,
-                        "message",
-                        "Không thể xử lý dữ liệu. "
-                                + "Kiểm tra nhật ký Spring Boot."
-                )
+        return phanHoiLoi(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Không thể xử lý dữ liệu. "
+                        + "Vui lòng thử lại hoặc liên hệ quản trị viên."
         );
     }
 }

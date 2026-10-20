@@ -2,50 +2,64 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
   <title>Dashboard Tiếp Nhận - BỆNH VIỆN ABC</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
         rel="stylesheet">
+
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         rel="stylesheet">
 
   <link href="/Css/Auth/logout.css" rel="stylesheet">
   <link href="/Css/TiepNhan/layout.css" rel="stylesheet">
   <link href="/Css/TiepNhan/dashboard.css" rel="stylesheet">
+  <link href="/Css/TiepNhan/vienphi.css" rel="stylesheet">
 </head>
 
 <body class="reception-layout dashboard-page">
 
 <!-- SIDEBAR DÙNG CHUNG -->
-<aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar('dashboard')}"></aside>
+<aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar('dashboard')}">
+</aside>
 
 <main class="main-wrapper reception-main">
 
   <!-- HEADER DÙNG CHUNG -->
-  <header th:replace="~{TiepNhan/fragments/header :: header('refresh-dashboard-button', 'Quản lý lịch khám trong ngày')}"></header>
+  <header th:replace="~{TiepNhan/fragments/header :: header('refresh-dashboard-button', 'Quản lý lịch khám trong ngày')}">
+  </header>
 
-  <div class="page-content">
+  <div class="page-content dashboard-content">
+
     <div id="dashboard-message"
          class="alert alert-info py-2"
          role="status"
          aria-live="polite"
-         hidden></div>
+         hidden>
+    </div>
 
-    <!-- CÁC CHỈ SỐ THỐNG KÊ -->
-    <div class="row g-3 mb-4">
+    <!-- THỐNG KÊ -->
+    <div class="row g-3 mb-4 dashboard-kpi-row">
+
       <div class="col-6 col-lg-3">
         <div class="kpi-card">
           <div class="kpi-top">
-            <span class="kpi-label">Tổng BN hôm nay</span>
+                        <span class="kpi-label">
+                            Tổng BN hôm nay
+                        </span>
+
             <span class="kpi-icon-pill text-primary bg-primary-subtle">
                             <i class="fa-solid fa-user-group"
                                aria-hidden="true"></i>
                         </span>
           </div>
+
           <h3 id="kpi-tong-bn" class="kpi-value">—</h3>
         </div>
       </div>
@@ -53,12 +67,16 @@
       <div class="col-6 col-lg-3">
         <div class="kpi-card">
           <div class="kpi-top">
-            <span class="kpi-label">Lịch hẹn hôm nay</span>
+                        <span class="kpi-label">
+                            Lịch hẹn hôm nay
+                        </span>
+
             <span class="kpi-icon-pill kpi-icon-appointments">
                             <i class="fa-regular fa-calendar-check"
                                aria-hidden="true"></i>
                         </span>
           </div>
+
           <h3 id="kpi-lich-hen" class="kpi-value">—</h3>
         </div>
       </div>
@@ -66,12 +84,16 @@
       <div class="col-6 col-lg-3">
         <div class="kpi-card">
           <div class="kpi-top">
-            <span class="kpi-label">BN đang chờ</span>
+                        <span class="kpi-label">
+                            BN đang chờ
+                        </span>
+
             <span class="kpi-icon-pill kpi-icon-waiting">
                             <i class="fa-solid fa-hourglass-half"
                                aria-hidden="true"></i>
                         </span>
           </div>
+
           <h3 id="kpi-dang-cho" class="kpi-value">—</h3>
         </div>
       </div>
@@ -79,23 +101,33 @@
       <div class="col-6 col-lg-3">
         <div class="kpi-card">
           <div class="kpi-top">
-            <span class="kpi-label">Đang trong phòng khám</span>
+                        <span class="kpi-label">
+                            Đang trong phòng khám
+                        </span>
+
             <span class="kpi-icon-pill kpi-icon-examining">
                             <i class="fa-solid fa-stethoscope"
                                aria-hidden="true"></i>
                         </span>
           </div>
+
           <h3 id="kpi-dang-kham" class="kpi-value">—</h3>
         </div>
       </div>
+
     </div>
 
-    <div class="row g-3">
+    <!-- HAI KHUNG DANH SÁCH -->
+    <div class="row g-3 dashboard-lists-row">
 
-      <!-- DANH SÁCH LỊCH KHÁM -->
-      <section class="col-xl-8">
+      <!-- DANH SÁCH LỊCH KHÁM HÔM NAY -->
+      <section class="col-12 dashboard-queue-section"
+               aria-labelledby="dashboard-queue-title">
+
         <div class="content-card">
+
           <div class="content-card-header">
+
             <div class="header-with-icon">
               <div class="icon-circle-header">
                 <i class="fa-solid fa-list-ol"
@@ -103,29 +135,40 @@
               </div>
 
               <div>
-                <h6 class="fw-bold mb-1">
+                <h6 id="dashboard-queue-title"
+                    class="fw-bold mb-1">
                   Danh sách lịch khám hôm nay
                 </h6>
               </div>
             </div>
 
             <div class="d-flex flex-wrap gap-2">
+
               <select id="room-filter"
                       class="filter-select"
                       aria-label="Lọc theo phòng khám">
-                <option value="">Tất cả phòng</option>
+                <option value="">
+                  Tất cả phòng
+                </option>
               </select>
 
               <select id="status-filter"
                       class="filter-select"
                       aria-label="Lọc theo trạng thái">
-                <option value="">Tất cả trạng thái</option>
+                <option value="">
+                  Tất cả trạng thái
+                </option>
               </select>
+
             </div>
           </div>
 
-          <div class="table-responsive-custom">
+          <div class="table-responsive-custom"
+               tabindex="0"
+               aria-label="Danh sách lịch khám hôm nay">
+
             <table class="table-custom">
+
               <colgroup>
                 <col class="queue-col-stt">
                 <col class="queue-col-code">
@@ -143,14 +186,22 @@
                 <th scope="col">MÃ BN</th>
                 <th scope="col">BỆNH NHÂN</th>
                 <th scope="col">KHOA &amp; BS</th>
-                <th scope="col" class="text-center">PHÒNG</th>
+
+                <th scope="col" class="text-center">
+                  PHÒNG
+                </th>
+
                 <th scope="col">GIỜ</th>
+
                 <th scope="col" class="text-center">
                   TRẠNG THÁI
                 </th>
+
+                <!-- Không hiện tên cột thao tác -->
                 <th scope="col">
                                     <span class="visually-hidden">
-                                        Gọi bệnh nhân và xem hồ sơ
+                                        Gọi bệnh nhân, xác nhận tiếp nhận
+                                        và xem viện phí
                                     </span>
                 </th>
               </tr>
@@ -164,31 +215,41 @@
                 </td>
               </tr>
               </tbody>
+
             </table>
           </div>
 
           <div id="table-record-count"
-               class="text-muted mt-3">
+               class="text-muted mt-3"
+               role="status"
+               aria-live="polite">
             Đang tải dữ liệu...
           </div>
+
         </div>
       </section>
 
       <!-- LỊCH KHÁM CHỜ GỌI -->
-      <section class="col-xl-4">
+      <section class="col-12 dashboard-upcoming-section"
+               aria-labelledby="dashboard-upcoming-title">
+
         <div class="content-card">
+
           <div class="content-card-header">
             <div class="header-with-icon">
+
               <div class="icon-circle-header">
                 <i class="fa-regular fa-calendar-check"
                    aria-hidden="true"></i>
               </div>
 
               <div>
-                <h6 class="fw-bold mb-1">
+                <h6 id="dashboard-upcoming-title"
+                    class="fw-bold mb-1">
                   Lịch khám chờ gọi
                 </h6>
               </div>
+
             </div>
           </div>
 
@@ -197,13 +258,15 @@
               Đang tải lịch khám...
             </p>
           </div>
+
         </div>
       </section>
+
     </div>
   </div>
 </main>
 
-<!-- FORM GỌI BỆNH NHÂN -->
+<!-- POPUP GỌI BỆNH NHÂN -->
 <div class="modal fade"
      id="modalGoiKham"
      tabindex="-1"
@@ -212,40 +275,54 @@
 
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
+
       <div class="modal-header">
-        <h6 id="call-modal-title" class="modal-title fw-bold">
+        <h6 id="call-modal-title"
+            class="modal-title fw-bold">
+
           <i class="fa-solid fa-bullhorn me-2"
              aria-hidden="true"></i>
+
           Gọi bệnh nhân
         </h6>
 
         <button type="button"
                 class="btn-close"
                 data-bs-dismiss="modal"
-                aria-label="Đóng"></button>
+                aria-label="Đóng">
+        </button>
       </div>
 
       <div class="modal-body text-center p-4">
+
         <div id="modal-stt"
              class="badge bg-light text-primary border px-3 py-2 mb-2">
           —
         </div>
 
-        <h4 id="modal-ten" class="fw-bold mb-2">—</h4>
-        <p id="modal-phong" class="text-muted">—</p>
+        <h4 id="modal-ten" class="fw-bold mb-2">
+          —
+        </h4>
+
+        <p id="modal-phong" class="text-muted">
+          —
+        </p>
 
         <div class="alert alert-info py-2 mb-0">
           <i class="fa-solid fa-volume-high me-1"
              aria-hidden="true"></i>
+
           <span id="voice-status"
                 role="status"
                 aria-live="polite">
                         Đang chuẩn bị thông báo...
                     </span>
         </div>
+
       </div>
 
       <div class="modal-footer justify-content-center">
+
         <button type="button"
                 class="btn btn-secondary"
                 data-bs-dismiss="modal">
@@ -255,378 +332,28 @@
         <button id="replay-voice-button"
                 type="button"
                 class="btn btn-primary">
+
           <i class="fa-solid fa-rotate-right me-1"
              aria-hidden="true"></i>
+
           Gọi lại
         </button>
+
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- FORM HỒ SƠ BỆNH NHÂN -->
-<div class="modal fade"
-     id="modalHoSoBenhNhan"
-     tabindex="-1"
-     aria-labelledby="patient-profile-modal-title"
-     aria-hidden="true">
-
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="patient-profile-modal-title">
-          <i class="fa-solid fa-address-card me-2"
-             aria-hidden="true"></i>
-          Hồ sơ bệnh nhân
-        </h5>
-
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Đóng hồ sơ"></button>
-      </div>
-
-      <div class="modal-body">
-        <div id="patient-profile-modal-message"
-             class="alert alert-info"
-             role="status"
-             aria-live="polite"
-             hidden></div>
-
-        <div id="patient-profile-modal-content" hidden>
-          <div class="profile-layout">
-
-            <!-- THÔNG TIN BỆNH NHÂN -->
-            <section class="profile-card">
-              <h6 class="profile-heading">
-                Thông tin bệnh nhân
-              </h6>
-
-              <div class="profile-name"
-                   id="patient-modal-name"></div>
-
-              <div class="profile-value text-muted">
-                Mã bệnh nhân:
-                <span id="patient-modal-id"></span>
-              </div>
-
-              <div class="profile-divider"></div>
-
-              <div class="profile-grid">
-                <div>
-                                    <span class="profile-label">
-                                        Ngày sinh
-                                    </span>
-                  <div class="profile-value"
-                       id="patient-modal-birth-date"></div>
-                </div>
-
-                <div>
-                                    <span class="profile-label">
-                                        Giới tính
-                                    </span>
-                  <div class="profile-value"
-                       id="patient-modal-gender"></div>
-                </div>
-
-                <div class="profile-full-width">
-                                    <span class="profile-label">
-                                        Số điện thoại
-                                    </span>
-                  <div class="profile-value"
-                       id="patient-modal-phone"></div>
-                </div>
-              </div>
-
-              <div class="profile-divider"></div>
-
-              <div class="profile-note-box">
-                                <span class="profile-label">
-                                    Tiền sử bệnh
-                                </span>
-                <div class="profile-value"
-                     id="patient-modal-medical-history"></div>
-              </div>
-
-              <details class="profile-extra">
-                <summary>
-                  Thông tin liên hệ bổ sung
-                </summary>
-
-                <div class="profile-extra-content">
-                  <div>
-                                        <span class="profile-label">
-                                            Địa chỉ
-                                        </span>
-                    <div class="profile-value"
-                         id="patient-modal-address"></div>
-                  </div>
-
-                  <div>
-                                        <span class="profile-label">
-                                            Email
-                                        </span>
-                    <div class="profile-value"
-                         id="patient-modal-email"></div>
-                  </div>
-
-                  <div>
-                                        <span class="profile-label">
-                                            Điện thoại khẩn cấp
-                                        </span>
-                    <div class="profile-value"
-                         id="patient-modal-emergency-phone"></div>
-                  </div>
-                </div>
-              </details>
-            </section>
-
-            <!-- LẦN KHÁM VÀ SỐ ĐO -->
-            <section class="profile-card">
-              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                <h6 class="profile-heading mb-0">
-                  Lần khám đang kiểm tra
-                </h6>
-                <span class="badge"
-                      id="patient-modal-status"></span>
-              </div>
-
-              <div class="profile-grid">
-                <div>
-                                    <span class="profile-label">
-                                        Ngày khám · Giờ hẹn
-                                    </span>
-                  <div class="profile-value">
-                    <span id="patient-modal-appointment-date"></span>
-                    ·
-                    <span id="patient-modal-appointment-time"></span>
-                  </div>
-                </div>
-
-                <div>
-                                    <span class="profile-label">
-                                        Số thứ tự · Mã lịch
-                                    </span>
-                  <div class="profile-value">
-                    <span id="patient-modal-sequence-number"></span>
-                    ·
-                    <span id="patient-modal-appointment-id"></span>
-                  </div>
-                </div>
-
-                <div>
-                                    <span class="profile-label">
-                                        Bác sĩ
-                                    </span>
-                  <div class="profile-value"
-                       id="patient-modal-doctor"></div>
-                </div>
-
-                <div>
-                                    <span class="profile-label">
-                                        Khoa · Phòng khám
-                                    </span>
-                  <div class="profile-value">
-                    <span id="patient-modal-department"></span>
-                    <br>
-                    <span id="patient-modal-room"></span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-3">
-                                <span class="profile-label">
-                                    Lý do khám
-                                </span>
-                <div class="profile-value"
-                     id="patient-modal-reason"></div>
-              </div>
-
-              <div class="profile-divider"></div>
-
-              <h6 class="profile-heading">
-                Số đo trước khám
-              </h6>
-
-              <form id="patient-profile-vitals-form">
-                <fieldset id="patient-profile-vitals-fields"
-                          disabled>
-                  <legend class="visually-hidden">
-                    Các số đo trước khám
-                  </legend>
-
-                  <div class="profile-grid">
-                    <div>
-                      <label class="form-label"
-                             for="patient-profile-weight-input">
-                        Cân nặng
-                      </label>
-
-                      <div class="input-group">
-                        <input type="number"
-                               class="form-control"
-                               id="patient-profile-weight-input"
-                               name="canNang"
-                               min="0.01"
-                               max="999.99"
-                               step="0.01"
-                               inputmode="decimal"
-                               placeholder="Nhập cân nặng">
-                        <span class="input-group-text">
-                                                    kg
-                                                </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="form-label"
-                             for="patient-profile-height-input">
-                        Chiều cao
-                      </label>
-
-                      <div class="input-group">
-                        <input type="number"
-                               class="form-control"
-                               id="patient-profile-height-input"
-                               name="chieuCao"
-                               min="0.01"
-                               max="999.99"
-                               step="0.01"
-                               inputmode="decimal"
-                               placeholder="Nhập chiều cao">
-                        <span class="input-group-text">
-                                                    cm
-                                                </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="form-label"
-                             for="patient-profile-systolic-input">
-                        Huyết áp tâm thu
-                      </label>
-
-                      <div class="input-group">
-                        <input type="number"
-                               class="form-control"
-                               id="patient-profile-systolic-input"
-                               name="huyetApTamThu"
-                               min="1"
-                               max="65535"
-                               step="1"
-                               inputmode="numeric"
-                               placeholder="Ví dụ: 120">
-                        <span class="input-group-text">
-                                                    mmHg
-                                                </span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label class="form-label"
-                             for="patient-profile-diastolic-input">
-                        Huyết áp tâm trương
-                      </label>
-
-                      <div class="input-group">
-                        <input type="number"
-                               class="form-control"
-                               id="patient-profile-diastolic-input"
-                               name="huyetApTamTruong"
-                               min="1"
-                               max="65535"
-                               step="1"
-                               inputmode="numeric"
-                               placeholder="Ví dụ: 80">
-                        <span class="input-group-text">
-                                                    mmHg
-                                                </span>
-                      </div>
-                    </div>
-                  </div>
-                </fieldset>
-              </form>
-
-              <div class="profile-edit-note"
-                   id="patient-profile-edit-note"
-                   role="status"></div>
-            </section>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="submit"
-                form="patient-profile-vitals-form"
-                class="btn btn-primary profile-save-button"
-                id="patient-profile-save-button"
-                disabled>
-          Lưu hồ sơ
-        </button>
-      </div>
-    </div>
-  </div>
+<!-- POPUP VIỆN PHÍ DÙNG CHUNG -->
+<div th:replace="~{TiepNhan/fragments/vienphi :: popupVienPhi}">
 </div>
 
+<!-- THỨ TỰ NẠP SCRIPT -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/Js/TiepNhan/vienphi.js"></script>
 <script src="/Js/TiepNhan/dashboard.js"></script>
 <script src="/Js/Auth/logout.js"></script>
-
-<!-- ĐÓNG / MỞ BẢNG THÔNG BÁO -->
-<script>
-  (() => {
-      "use strict";
-
-      const wrapper = document.getElementById("notification-wrapper");
-      const button = document.getElementById("notification-button");
-      const panel = document.getElementById("notification-panel");
-      const closeButton = document.getElementById("notification-close");
-
-      if (!wrapper || !button || !panel || !closeButton) {
-          return;
-      }
-
-      function setNotificationOpen(open, returnFocus = false) {
-          panel.hidden = !open;
-
-          button.setAttribute("aria-expanded", String(open));
-          button.setAttribute(
-              "aria-label",
-              open ? "Đóng thông báo" : "Mở thông báo"
-          );
-
-          if (returnFocus) {
-              button.focus();
-          }
-      }
-
-      button.addEventListener("click", () => {
-          setNotificationOpen(panel.hidden);
-      });
-
-      closeButton.addEventListener("click", () => {
-          setNotificationOpen(false, true);
-      });
-
-      document.addEventListener("click", event => {
-          if (!wrapper.contains(event.target)) {
-              setNotificationOpen(false);
-          }
-      });
-
-      document.addEventListener("keydown", event => {
-          if (event.key === "Escape" && !panel.hidden) {
-              setNotificationOpen(false, true);
-          }
-      });
-
-      wrapper.addEventListener("focusout", event => {
-          if (!wrapper.contains(event.relatedTarget)) {
-              setNotificationOpen(false);
-          }
-      });
-  })();
-</script>
 
 </body>
 </html>
