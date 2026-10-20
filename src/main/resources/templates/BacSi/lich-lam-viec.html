@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{BacSi/fragments/layout}">
+
+<head>
+    <title>Lịch làm việc</title>
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/BacSi/lich-lam-viec.css}">
+    </th:block>
+</head>
+
+<body>
+<section layout:fragment="content" class="schedule-page">
+
+    <div class="page-heading">
+        <div>
+            <h1>
+<!--                <i class="fa-regular fa-calendar-check"></i>-->
+                Lịch làm việc
+            </h1>
+            <p>Quản lý thời gian làm việc và phòng khám của bạn.</p>
+        </div>
+
+        <button class="btn-primary" id="btnAddSchedule">
+            <i class="fa-solid fa-plus"></i>
+            Thêm lịch làm việc
+        </button>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-icon blue">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+            <div>
+                <span>Lịch trong tháng</span>
+                <strong id="totalSchedules">0</strong>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon green">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+            <div>
+                <span>Lịch sắp tới</span>
+                <strong id="upcomingSchedules">0</strong>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon orange">
+                <i class="fa-solid fa-door-open"></i>
+            </div>
+            <div>
+                <span>Phòng được sử dụng</span>
+                <strong id="roomCount">0</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="schedule-toolbar">
+        <div class="filter-group">
+            <label for="filterFrom">Từ ngày</label>
+            <input type="date" id="filterFrom">
+
+            <label for="filterTo">Đến ngày</label>
+            <input type="date" id="filterTo">
+
+            <button class="btn-outline" id="btnFilter">
+                <i class="fa-solid fa-filter"></i> Lọc
+            </button>
+        </div>
+
+        <button class="btn-outline" id="btnReset">
+            Đặt lại
+        </button>
+    </div>
+
+<!--    <div class="schedule-card">-->
+<!--        <div class="table-heading">-->
+<!--            <div>-->
+<!--                <h2>Danh sách lịch làm việc</h2>-->
+<!--                <p>Các lịch được phân công cho tài khoản bác sĩ đang đăng nhập.</p>-->
+<!--            </div>-->
+<!--            <span class="result-count" id="resultCount">0 lịch</span>-->
+<!--        </div>-->
+
+<!--        <div class="table-responsive">-->
+<!--            <table>-->
+<!--                <thead>-->
+<!--                <tr>-->
+<!--                    <th>Ngày làm việc</th>-->
+<!--                    <th>Thời gian</th>-->
+<!--                    <th>Phòng khám</th>-->
+<!--                    <th>Trạng thái</th>-->
+<!--                    <th class="text-center">Thao tác</th>-->
+<!--                </tr>-->
+<!--                </thead>-->
+<!--                <tbody id="scheduleTableBody">-->
+<!--                <tr>-->
+<!--                    <td colspan="5" class="loading-cell">-->
+<!--                        Đang tải lịch làm việc...-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                </tbody>-->
+<!--            </table>-->
+<!--        </div>-->
+
+<!--        <div class="empty-state" id="emptyState" hidden>-->
+<!--            <i class="fa-regular fa-calendar-xmark"></i>-->
+<!--            <h3>Chưa có lịch làm việc</h3>-->
+<!--            <p>Hãy thêm lịch làm việc để bệnh nhân có thể chọn khung giờ khám phù hợp.</p>-->
+<!--            <button class="btn-primary" id="btnAddFirst">-->
+<!--                Thêm lịch làm việc-->
+<!--            </button>-->
+<!--        </div>-->
+<!--    </div>-->
+
+    <!-- LỊCH TUẦN + DANH SÁCH LỊCH -->
+    <div class="schedule-workspace">
+
+        <!-- CỘT TRÁI: LỊCH TUẦN -->
+        <section class="schedule-calendar-card">
+            <div class="calendar-toolbar">
+                <div>
+                    <h2>Lịch theo tuần</h2>
+                    <p id="calendarDateRange">Đang tải tuần...</p>
+                </div>
+
+                <div class="calendar-navigation">
+                    <button type="button" class="btn-outline"
+                            id="btnPrevWeek" aria-label="Tuần trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <button type="button" class="btn-outline"
+                            id="btnToday">Hôm nay</button>
+
+                    <button type="button" class="btn-outline"
+                            id="btnNextWeek" aria-label="Tuần sau">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="calendar-legend">
+                <span><i class="legend-dot blue"></i> Lịch làm việc</span>
+                <span><i class="legend-dot green"></i> Có bệnh nhân đặt</span>
+                <span><i class="legend-dot red"></i> Đã hết chỗ</span>
+                <span><i class="legend-dot gray"></i> Lịch đã qua</span>
+            </div>
+
+            <div class="calendar-scroll">
+                <div class="calendar-grid" id="calendarGrid">
+                    <div class="calendar-loading">
+                        Đang tải lịch làm việc...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT PHẢI: DANH SÁCH -->
+        <aside class="schedule-list-card" id="scheduleListPanel">
+            <div class="schedule-list-header">
+                <div>
+                    <h2>Danh sách lịch làm việc</h2>
+                    <p id="scheduleListSubtitle">Lịch trong tuần đang chọn</p>
+                </div>
+
+                <span class="result-count" id="resultCount">0 lịch</span>
+            </div>
+
+            <div class="schedule-list-content" id="scheduleListContent">
+                <div class="schedule-list-empty">
+                    Đang tải lịch làm việc...
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- MODAL THÊM / SỬA -->
+    <div class="modal-overlay" id="scheduleModal" hidden>
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div>
+                    <h2 id="modalTitle">Thêm lịch làm việc</h2>
+                    <p>Nhập đầy đủ thông tin lịch làm việc.</p>
+                </div>
+                <button type="button" class="icon-button"
+                        id="btnCloseModal" aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="scheduleForm">
+                <input type="hidden" id="scheduleId">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="workDate">Ngày làm việc <b>*</b></label>
+                        <input type="date" id="workDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="roomId">Phòng khám <b>*</b></label>
+                        <select id="roomId" required>
+                            <option value="">Đang tải phòng khám...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startTime">Giờ bắt đầu <b>*</b></label>
+                        <input
+                                type="time"
+                                id="startTime"
+                                name="startTime"
+                                step="60"
+                                required
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="endTime">Giờ kết thúc <b>*</b></label>
+                        <input
+                                type="time"
+                                id="endTime"
+                                name="endTime"
+                                step="60"
+                                required
+                        />
+                    </div>
+
+                </div>
+
+                <div class="form-notice">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Lịch phải đúng thời gian làm việc, không trùng lịch bác sĩ
+                    hoặc phòng khám. Lịch có bệnh nhân đặt sẽ được bảo vệ.
+                </div>
+
+                <div class="form-error" id="formError" hidden></div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-outline"
+                            id="btnCancel">
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn-primary"
+                            id="btnSave">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Lưu lịch
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL XÁC NHẬN XÓA -->
+    <div class="modal-overlay" id="deleteModal" hidden>
+        <div class="modal-dialog modal-small">
+            <div class="delete-icon">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+            <h2>Xóa lịch làm việc?</h2>
+            <p id="deleteMessage">
+                Bạn có chắc chắn muốn xóa lịch này không?
+            </p>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline"
+                        id="btnCancelDelete">Hủy</button>
+                <button type="button" class="btn-danger"
+                        id="btnConfirmDelete">Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-message" id="toastMessage" hidden></div>
+
+</section>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/BacSi/lich-lam-viec.js}"></script>
+</th:block>
+</body>
+</html>

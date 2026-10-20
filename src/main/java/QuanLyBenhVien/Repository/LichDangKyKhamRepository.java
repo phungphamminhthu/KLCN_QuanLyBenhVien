@@ -43,6 +43,13 @@ public interface LichDangKyKhamRepository
             String trangThai
     );
 
+    // ===================================================
+    //
+    // ===================================================
+    List<LichDangKyKham>
+    findByBenhNhan_NguoiDung_MaNguoiDungOrderByNgayKhamDescGioKhamDesc(
+            Integer maNguoiDung);
+
 
     // =========================================================
     // 4. DANH SÁCH BỆNH NHÂN ĐÃ TIẾP NHẬN VÀ ĐANG CHỜ KHÁM
@@ -129,5 +136,24 @@ public interface LichDangKyKhamRepository
             String trangThai,
             LocalDate tuNgay,
             LocalDate denNgay
+    );
+
+    // =============================================
+    // KIEM TRA LICH KHAM
+    // =============================================
+    @Query("""
+    SELECT COUNT(l)
+    FROM LichDangKyKham l
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayKham = :ngayKham
+      AND l.gioKham >= :gioBatDau
+      AND l.gioKham < :gioKetThuc
+      AND l.trangThai <> 'DaHuy'
+    """)
+    long countLuotDatTrongKhungGio(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham,
+            @Param("gioBatDau") java.time.LocalTime gioBatDau,
+            @Param("gioKetThuc") java.time.LocalTime gioKetThuc
     );
 }

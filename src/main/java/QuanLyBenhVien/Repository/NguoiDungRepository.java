@@ -17,7 +17,6 @@ public interface NguoiDungRepository
 
     Optional<NguoiDung> findByTenDangNhap(String tenDangNhap);
 
-
     // =====================================================
     // LẤY NGƯỜI DÙNG THEO 1 VAI TRÒ
     // =====================================================
@@ -116,4 +115,6 @@ public interface NguoiDungRepository
     List<NguoiDung> timNguoiDungTheoNhieuVaiTro(
             @Param("tenVaiTro") List<String> tenVaiTro
     );
+
+
 }

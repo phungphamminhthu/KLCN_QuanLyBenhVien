@@ -70,186 +70,107 @@ document.addEventListener("DOMContentLoaded", function () {
        THÔNG TIN ADMIN
     ===================================================== */
 
-    const adminName =
-        document.getElementById("adminName");
-
-    const adminEmail =
-        document.getElementById("adminEmail");
-
-    const adminAvatar =
-        document.getElementById("adminAvatar");
-
+    const adminName = document.getElementById("adminName");
+    const adminEmail = document.getElementById("adminEmail");
+    const adminAvatar = document.getElementById("adminAvatar");
 
     /* =====================================================
-       LẤY TOKEN LOGIN
+       ẢNH MẶC ĐỊNH
     ===================================================== */
 
-    const token =
-        localStorage.getItem("Token") ||
-        sessionStorage.getItem("Token");
-
+    const DEFAULT_AVATAR = "/Images/default-avatar.jpg";
 
     /* =====================================================
-       LẤY VAI TRÒ
+       LẤY FILE KEY ẢNH ĐẠI DIỆN
     ===================================================== */
 
-    const vaiTro =
-        localStorage.getItem("VaiTro") ||
-        sessionStorage.getItem("VaiTro");
-
-
-    /* =====================================================
-       KIỂM TRA ĐĂNG NHẬP
-    ===================================================== */
-
-    if (!token) {
-
-        alert("Vui lòng đăng nhập.");
-
-        window.location.href =
-            "/auth/login";
-
-        return;
+    function getAvatarKey() {
+        return (
+            localStorage.getItem("AnhDaiDien") ||
+            sessionStorage.getItem("AnhDaiDien") ||
+            ""
+        ).trim();
     }
 
-
     /* =====================================================
-       KIỂM TRA ROLE ADMIN
+       TẠO URL ẢNH R2
     ===================================================== */
-
-    if (
-        !vaiTro ||
-        vaiTro.toUpperCase() !== "ADMIN"
-    ) {
-
-        alert(
-            "Bạn không có quyền truy cập trang Quản trị viên."
-        );
-
-        window.location.href =
-            "/auth/login";
-
-        return;
-    }
-
-
-    /* =====================================================
-       CẬP NHẬT THÔNG TIN HEADER
-    ===================================================== */
-
-    function updateHeaderInfo() {
-
-        const hoTen =
-            localStorage.getItem("HoTen") ||
-            sessionStorage.getItem("HoTen");
-
-
-        const email =
-            localStorage.getItem("Email") ||
-            sessionStorage.getItem("Email");
-
-
-        if (adminName) {
-
-            adminName.textContent =
-                hoTen || "Quản trị viên";
-
-        }
-
-
-        if (adminEmail) {
-
-            adminEmail.textContent =
-                email || "";
-
-        }
-
-    }
-
-
-    /* =====================================================
-       AVATAR CLOUDFLARE R2
-    ===================================================== */
-
-    const defaultAvatar =
-        "images/2b1261cf-87ab-4b5c-9097-50cd95b2fc24.jpg";
-
 
     function getAvatarUrl(fileKey) {
-
         return (
             "/api/images/view?fileKey=" +
             encodeURIComponent(fileKey) +
             "&t=" +
             Date.now()
         );
-
     }
 
+    /* =====================================================
+       CẬP NHẬT THÔNG TIN HEADER
+    ===================================================== */
+
+    function updateHeaderInfo() {
+        const hoTen =
+            localStorage.getItem("HoTen") ||
+            sessionStorage.getItem("HoTen");
+
+        const email =
+            localStorage.getItem("Email") ||
+            sessionStorage.getItem("Email");
+
+        if (adminName) {
+            adminName.textContent = hoTen || "Quản trị viên";
+        }
+
+        if (adminEmail) {
+            adminEmail.textContent = email || "";
+        }
+    }
 
     /* =====================================================
        CẬP NHẬT AVATAR
     ===================================================== */
 
     function updateHeaderAvatar() {
-
         if (!adminAvatar) {
             return;
         }
 
+        // Tránh lặp sự kiện lỗi ảnh
+        adminAvatar.onerror = null;
 
-        const anhDaiDien =
-            localStorage.getItem("AnhDaiDien") ||
-            sessionStorage.getItem("AnhDaiDien");
+        // Lấy file key được lưu sau khi đăng nhập hoặc cập nhật hồ sơ
+        const fileKey = getAvatarKey();
 
+        // Không có file key thì sử dụng ảnh mặc định trực tiếp
+        if (!fileKey || fileKey.toLowerCase() === "null") {
+            adminAvatar.src = DEFAULT_AVATAR;
+            return;
+        }
 
-        const fileKey =
-            anhDaiDien || defaultAvatar;
+        // Có file key thì tải ảnh từ API R2
+        adminAvatar.onerror = function () {
+            this.onerror = null;
+            this.src = DEFAULT_AVATAR;
+        };
 
-
-        adminAvatar.src =
-            getAvatarUrl(fileKey);
-
-
-        /* ================================================
-           NẾU ẢNH LỖI → DÙNG ẢNH DEFAULT
-        ================================================= */
-
-        adminAvatar.onerror =
-            function () {
-
-                this.onerror = null;
-
-                this.src =
-                    getAvatarUrl(defaultAvatar);
-
-            };
-
+        adminAvatar.src = getAvatarUrl(fileKey);
     }
-
 
     /* =====================================================
        LOAD HEADER BAN ĐẦU
     ===================================================== */
 
     updateHeaderInfo();
-
     updateHeaderAvatar();
-
 
     /* =====================================================
        ĐỒNG BỘ PROFILE → HEADER
     ===================================================== */
 
-    window.addEventListener(
-        "profileUpdated",
-        function () {
-
-            updateHeaderInfo();
-
-            updateHeaderAvatar();
-
-        }
-    );
+    window.addEventListener("profileUpdated", function () {
+        updateHeaderInfo();
+        updateHeaderAvatar();
+    });
 
 });

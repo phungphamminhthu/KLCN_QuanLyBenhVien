@@ -928,3 +928,112 @@ BỔ SUNG HEADER
     color: #64748b;
     font-size: 12px;
 }
+
+/* =========================================================
+   HEADER - THÔNG TIN BÁC SĨ
+   Ảnh bên trái, tên và email bên phải
+========================================================= */
+
+.main > .header .doctor-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 12px;
+
+    flex-shrink: 0;
+    min-width: 0;
+    margin-left: 4px;
+    padding-left: 16px;
+
+    border-left: 1px solid #e2e8f0;
+}
+
+/* Ảnh đại diện */
+.main > .header .doctor-avatar-image {
+    display: block;
+
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    flex: 0 0 44px;
+
+    object-fit: cover;
+    object-position: center;
+
+    border: 2px solid #dbeafe;
+    border-radius: 50%;
+    background: #f1f5f9;
+}
+
+/* Khối tên và email */
+.main > .header .doctor-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 4px;
+
+    min-width: 0;
+    max-width: 200px;
+    text-align: left;
+}
+
+/* Tên bác sĩ */
+.main > .header .doctor-details strong {
+    display: block;
+    width: 100%;
+
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Email bên dưới tên */
+.main > .header .doctor-details small {
+    display: block;
+    width: 100%;
+    margin-top: 0;
+
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.4;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Giữ tên và email hiển thị trên màn hình nhỏ */
+@media (max-width: 760px) {
+    .main > .header .doctor-info {
+        gap: 8px;
+        margin-left: 0;
+        padding-left: 10px;
+    }
+
+    .main > .header .doctor-avatar-image {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        flex-basis: 36px;
+    }
+
+    .main > .header .doctor-details {
+        max-width: 135px;
+    }
+
+    .main > .header .doctor-details strong {
+        font-size: 13px;
+    }
+
+    .main > .header .doctor-details small {
+        font-size: 11px;
+    }
+}

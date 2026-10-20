@@ -2,6 +2,7 @@ package QuanLyBenhVien.Config;
 
 import QuanLyBenhVien.Security.CustomUserDetailsService;
 import QuanLyBenhVien.Security.JwtAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -42,9 +43,18 @@ public class SecurityConfig {
                 )
 
                 // Phân quyền API và trang
-                .authorizeHttpRequests(auth -> auth
 
-                        // Các đường dẫn công khai
+                .authorizeHttpRequests(auth -> auth
+                        // Endpoint xử lý lỗi của Spring
+                        .requestMatchers("/error").permitAll()
+
+                        // Webhook SePay: cho phép nhận callback không có JWT
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/sepay/webhook"
+                        ).permitAll()
+
+                        // Tài nguyên công khai
                         .requestMatchers(
                                 "/",
                                 "/news",
@@ -53,12 +63,14 @@ public class SecurityConfig {
                                 "/Css/**",
                                 "/Js/**",
                                 "/Images/**",
+                                "/ws",
+                                "/ws/**",
                                 "/api/auth/**",
                                 "/api/test-email",
                                 "/api/images/**"
                         ).permitAll()
 
-                        // Các trang giao diện
+                        // Giao diện hiện tại
                         .requestMatchers(
                                 "/Admin/**",
                                 "/DuocSi/**",
@@ -71,13 +83,11 @@ public class SecurityConfig {
                                 "/api/kho-thuoc/**"
                         ).hasRole("DUOCSI")
 
-                        // API thông báo: yêu cầu đăng nhập
-                        .requestMatchers("/api/thong-bao/**")
-                        .authenticated()
+                        // API thông báo cần đăng nhập
+                        .requestMatchers("/api/thong-bao/**").authenticated()
 
-                        // Các API còn lại yêu cầu đăng nhập
-                        .anyRequest()
-                        .authenticated()
+                        // Những request còn lại cần đăng nhập
+                        .anyRequest().authenticated()
                 )
 
                 // Tắt form login mặc định

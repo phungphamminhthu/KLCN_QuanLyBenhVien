@@ -18,6 +18,26 @@ document.addEventListener("DOMContentLoaded", function () {
     let deletingId = null;
 
 
+
+    const LOAI_PHONG_LABELS = {
+        KHAM_BENH: "Phòng khám bệnh",
+        XET_NGHIEM: "Phòng xét nghiệm",
+        CHAN_DOAN_HINH_ANH: "Chẩn đoán hình ảnh",
+        THAM_DO_CHUC_NANG: "Thăm dò chức năng",
+        NOI_SOI: "Phòng nội soi",
+        HOI_SUC_CAP_CUU: "Hồi sức - cấp cứu"
+    };
+
+    function getLoaiPhongLabel(loaiPhong) {
+        if (!loaiPhong) {
+            return "Chưa phân loại";
+        }
+
+        return LOAI_PHONG_LABELS[loaiPhong] || loaiPhong;
+    }
+
+
+
     /* =========================
        ELEMENTS
     ========================= */
@@ -521,10 +541,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     </td>
 
                     <td>
-                        ${escapeHtml(
-                            phong.loaiPhong || "—"
-                        )}
+                        ${getLoaiPhongLabel(phong.loaiPhong)}
                     </td>
+
 
                     <td>
                         <span class="phong-description">
@@ -1094,20 +1113,15 @@ document.addEventListener("DOMContentLoaded", function () {
             valid = false;
 
         }
+        const loaiPhongHopLe = Object.keys(LOAI_PHONG_LABELS);
 
-
-        if (
-            loaiPhong.value.trim().length > 100
-        ) {
-
-            setError(
-                "loaiPhongError",
-                "Loại phòng không được vượt quá 100 ký tự."
-            );
-
-            valid = false;
-
+        if (!loaiPhong.value || !loaiPhongHopLe.includes(loaiPhong.value)) {
+            loaiPhongError.textContent = "Vui lòng chọn loại phòng hợp lệ.";
+            isValid = false;
+        } else {
+            loaiPhongError.textContent = "";
         }
+
 
 
         if (
@@ -1179,11 +1193,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             tenPhong:
                 tenPhong.value.trim(),
-
-            loaiPhong:
-                loaiPhong.value.trim() ||
-                null,
-
+            loaiPhong: loaiPhong.value,
             viTri:
                 viTri.value.trim() ||
                 null,

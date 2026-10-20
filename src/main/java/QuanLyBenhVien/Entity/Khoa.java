@@ -1,7 +1,7 @@
-
 package QuanLyBenhVien.Entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "Khoa")
@@ -18,12 +18,16 @@ public class Khoa {
     @Column(name = "MoTa", length = 255)
     private String moTa;
 
+    @Column(name = "GiaKham", nullable = false, precision = 12, scale = 2)
+    private BigDecimal giaKham = BigDecimal.ZERO;
+
     public Khoa() {
     }
 
     public Khoa(String tenKhoa, String moTa) {
         this.tenKhoa = tenKhoa;
         this.moTa = moTa;
+        this.giaKham = BigDecimal.ZERO;
     }
 
     public Integer getMaKhoa() {
@@ -48,5 +52,13 @@ public class Khoa {
 
     public void setMoTa(String moTa) {
         this.moTa = moTa;
+    }
+
+    public BigDecimal getGiaKham() {
+        return giaKham;
+    }
+
+    public void setGiaKham(BigDecimal giaKham) {
+        this.giaKham = giaKham;
     }
 }

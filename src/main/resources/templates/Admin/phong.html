@@ -382,29 +382,54 @@
 
                 <!-- LOẠI PHÒNG -->
 
+<!--                <div class="form-group">-->
+
+<!--                    <label for="loaiPhong">-->
+
+<!--                        Loại phòng-->
+
+<!--                    </label>-->
+
+
+<!--                    <input-->
+<!--                            type="text"-->
+<!--                            id="loaiPhong"-->
+<!--                            maxlength="100"-->
+<!--                            placeholder="Ví dụ: Phòng khám, Phòng xét nghiệm...">-->
+
+
+<!--                    <small-->
+<!--                            id="loaiPhongError"-->
+<!--                            class="field-error">-->
+
+<!--                    </small>-->
+
+<!--                </div>-->
+
                 <div class="form-group">
-
                     <label for="loaiPhong">
-
-                        Loại phòng
-
+                        Loại phòng <span class="required">*</span>
                     </label>
 
+                    <select id="loaiPhong" class="form-select" required>
+                        <option value="">Chọn loại phòng</option>
+                        <option value="KHAM_BENH">Phòng khám bệnh</option>
+                        <option value="XET_NGHIEM">Phòng xét nghiệm</option>
+                        <option value="CHAN_DOAN_HINH_ANH">
+                            Chẩn đoán hình ảnh
+                        </option>
+                        <option value="THAM_DO_CHUC_NANG">
+                            Thăm dò chức năng
+                        </option>
+                        <option value="NOI_SOI">Phòng nội soi</option>
+                        <option value="HOI_SUC_CAP_CUU">
+                            Hồi sức - cấp cứu
+                        </option>
+                    </select>
 
-                    <input
-                            type="text"
-                            id="loaiPhong"
-                            maxlength="100"
-                            placeholder="Ví dụ: Phòng khám, Phòng xét nghiệm...">
-
-
-                    <small
-                            id="loaiPhongError"
-                            class="field-error">
-
-                    </small>
-
+                    <small id="loaiPhongError" class="error-message"></small>
                 </div>
+
 
 
                 <!-- VỊ TRÍ -->

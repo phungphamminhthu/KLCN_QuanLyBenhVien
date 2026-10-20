@@ -91,4 +91,13 @@ public class BacSiPageController {
 
         return "BacSi/ket-qua-can-lam-sang";
     }
+    
+     // ======================================================
+     // LỊCH LÀM VIỆC
+     // ======================================================
+     @GetMapping("/auth/bac-si/lich-lam-viec")
+     public String lichLamViec() {
+         return "BacSi/lich-lam-viec";
+     }
+
 }

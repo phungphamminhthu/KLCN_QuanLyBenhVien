@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
 
@@ -27,6 +28,12 @@ public class JwtAuthenticationFilter
         this.JwtService = JwtService;
         this.CustomUserDetailsService =
                 CustomUserDetailsService;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return HttpMethod.POST.matches(request.getMethod())
+                && "/api/sepay/webhook".equals(request.getServletPath());
     }
 
     @Override
@@ -48,10 +55,14 @@ public class JwtAuthenticationFilter
                 + " "
                 + Request.getRequestURI());
 
-        System.out.println("Authorization: "
-                + (Authorization != null
-                ? "Bearer token exists"
-                : "NULL"));
+        System.out.println("Authorization type: "
+                + (Authorization == null
+                ? "NONE"
+                : Authorization.startsWith("Bearer ")
+                ? "BEARER"
+                : Authorization.startsWith("Apikey ")
+                ? "SEPAY_API_KEY"
+                : "OTHER"));
 
         // Không có token
         if (Authorization == null

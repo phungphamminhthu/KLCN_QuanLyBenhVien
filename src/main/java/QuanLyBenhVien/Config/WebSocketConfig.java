@@ -5,6 +5,7 @@ import QuanLyBenhVien.Security.CustomUserDetails;
 import QuanLyBenhVien.Security.CustomUserDetailsService;
 import QuanLyBenhVien.Security.JwtService;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -14,12 +15,15 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -28,13 +32,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final JwtService jwtService;
     private final CustomUserDetailsService userDetailsService;
 
+    @Value("${app.websocket.allowed-origins:*}")
+    private String allowedOrigins;
+
     public WebSocketConfig(
             JwtService jwtService,
             CustomUserDetailsService userDetailsService) {
+
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
     }
 
+    // Cấu hình STOMP broker
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/queue");
@@ -42,15 +51,28 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.setUserDestinationPrefix("/user");
     }
 
+    // Endpoint WebSocket, không phụ thuộc địa chỉ máy cụ thể
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+
+        List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .collect(Collectors.toList());
+
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns(
+                        origins.toArray(new String[0])
+                );
     }
 
+    // Xác thực JWT khi client gửi STOMP CONNECT
     @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
+    public void configureClientInboundChannel(
+            ChannelRegistration registration) {
+
         registration.interceptors(new ChannelInterceptor() {
+
             @Override
             public Message<?> preSend(
                     Message<?> message,
@@ -58,37 +80,55 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 StompHeaderAccessor accessor =
                         MessageHeaderAccessor.getAccessor(
-                                message, StompHeaderAccessor.class);
+                                message,
+                                StompHeaderAccessor.class
+                        );
 
-                if (accessor != null
-                        && StompCommand.CONNECT.equals(accessor.getCommand())) {
+                if (accessor == null) {
+                    return message;
+                }
+
+                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
 
                     String authorization =
                             accessor.getFirstNativeHeader("Authorization");
 
                     if (authorization == null
-                            || !authorization.startsWith("Bearer ")) {
+                            || !authorization.startsWith("Bearer ")
+                            || authorization.substring(7).trim().isEmpty()) {
+
                         throw new IllegalArgumentException(
-                                "Thiếu JWT khi kết nối WebSocket");
+                                "Thiếu JWT khi kết nối WebSocket"
+                        );
                     }
 
-                    String token = authorization.substring(7);
+                    String token = authorization.substring(7).trim();
+
                     String username =
                             jwtService.extractTenDangNhap(token);
+
+                    if (username == null || username.isBlank()) {
+                        throw new IllegalArgumentException(
+                                "Không lấy được tài khoản từ JWT"
+                        );
+                    }
 
                     CustomUserDetails userDetails =
                             (CustomUserDetails) userDetailsService
                                     .loadUserByUsername(username);
 
                     if (!jwtService.isTokenValid(token, userDetails)) {
-                        throw new IllegalArgumentException("JWT không hợp lệ");
+                        throw new IllegalArgumentException(
+                                "JWT không hợp lệ hoặc đã hết hạn"
+                        );
                     }
 
                     Authentication authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
                                     null,
-                                    userDetails.getAuthorities());
+                                    userDetails.getAuthorities()
+                            );
 
                     accessor.setUser(authentication);
                 }

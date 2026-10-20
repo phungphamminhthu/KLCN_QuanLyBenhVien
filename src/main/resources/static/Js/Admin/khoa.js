@@ -39,6 +39,9 @@ document.addEventListener(
         const moTa =
             document.getElementById("moTa");
 
+        const giaKham = document.getElementById("giaKham");
+        const giaKhamError = document.getElementById("giaKhamError");
+
         const tenKhoaError =
             document.getElementById("tenKhoaError");
 
@@ -466,6 +469,9 @@ document.addEventListener(
                         ??
                         "";
 
+                    const GiaKham = Number(
+                        Khoa.giaKham ?? Khoa.GiaKham ?? 0
+                    );
 
                     const STT =
                         StartIndex
@@ -524,6 +530,12 @@ document.addEventListener(
 
                             </span>
 
+                        </td>
+
+                        <td class="col-price">
+                            <span class="khoa-price">
+                                ${GiaKham.toLocaleString("vi-VN")} đ
+                            </span>
                         </td>
 
 
@@ -957,6 +969,8 @@ document.addEventListener(
                 Khoa.MoTa
                 ??
                 "";
+            giaKham.value = Khoa.giaKham ?? Khoa.GiaKham ?? 0;
+            giaKham.disabled = false;
 
 
             tenKhoa.disabled =
@@ -1043,6 +1057,9 @@ document.addEventListener(
                 Khoa.MoTa
                 ??
                 "";
+
+            giaKham.value = Khoa.giaKham ?? Khoa.GiaKham ?? 0;
+            giaKham.disabled = true;
 
 
             tenKhoa.disabled =
@@ -1148,6 +1165,9 @@ document.addEventListener(
             const MoTa =
                 moTa.value.trim();
 
+            const GiaKhamText = giaKham.value.trim();
+            const GiaKham = Number(GiaKhamText);
+
 
             let IsValid =
                 true;
@@ -1191,6 +1211,19 @@ document.addEventListener(
 
             }
 
+            /* Giá Khám*/
+            if (GiaKhamText === "") {
+                giaKhamError.textContent = "Vui lòng nhập giá khám.";
+                IsValid = false;
+            } else if (
+                !Number.isFinite(GiaKham) ||
+                GiaKham < 0 ||
+                GiaKham > 9999999999.99
+            ) {
+                giaKhamError.textContent =
+                    "Giá khám phải từ 0 đến 9.999.999.999,99 VNĐ.";
+                IsValid = false;
+            }
 
             if (!IsValid) {
 
@@ -1207,8 +1240,9 @@ document.addEventListener(
                 moTa:
                     MoTa
                         ? MoTa
-                        : null
+                        : null,
 
+                giaKham: GiaKham
             };
 
 
@@ -1818,6 +1852,7 @@ document.addEventListener(
             moTaError.textContent =
                 "";
 
+            giaKhamError.textContent = "";
         }
 
 
@@ -1832,6 +1867,9 @@ document.addEventListener(
 
             moTa.value =
                 "";
+
+            giaKham.value = "";
+            giaKham.disabled = false;
 
 
             tenKhoa.disabled =
