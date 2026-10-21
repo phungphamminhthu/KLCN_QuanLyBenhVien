@@ -18,6 +18,11 @@ public class TiepNhanPageController {
         return "TiepNhan/checkin";
     }
 
+    @GetMapping("/appointment-history")
+    public String appointmentHistory() {
+        return "TiepNhan/appointment-history";
+    }
+
     @GetMapping("/patients")
     public String patients() {
         return "TiepNhan/patients";

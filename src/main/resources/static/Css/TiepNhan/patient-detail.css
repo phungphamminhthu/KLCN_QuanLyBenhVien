@@ -1,0 +1,1121 @@
+/* =========================================================
+   HỒ SƠ BỆNH NHÂN
+   Header và sidebar dùng layout.css.
+   ========================================================= */
+
+.patient-detail-page {
+    --detail-primary: var(--primary, #7c3aed);
+    --detail-soft: var(--primary-soft, #f3efff);
+    --detail-border: #e8eaf2;
+    --detail-text: #343954;
+    --detail-muted: #858aa0;
+    --detail-surface: #ffffff;
+    --detail-green: #16a34a;
+}
+
+.patient-detail-page [hidden] {
+    display: none !important;
+}
+
+/* =========================================================
+   NỘI DUNG CUỘN DƯỚI HEADER
+   ========================================================= */
+
+.patient-detail-page .reception-main > .patient-detail-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    gap: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #d5d8e5 transparent;
+}
+
+.patient-detail-page .patient-detail-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.patient-detail-page .patient-detail-content::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #d5d8e5;
+}
+
+/* =========================================================
+   TIÊU ĐỀ
+   ========================================================= */
+
+.patient-detail-page .patient-detail-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    gap: 16px;
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-heading-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-title-group {
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-title-group h1 {
+    margin: 0 0 5px;
+    color: var(--detail-text);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.patient-detail-page .patient-detail-subtitle {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    color: var(--detail-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.patient-detail-page #profile-patient-heading {
+    color: var(--detail-text);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-heading-icon,
+.patient-detail-page .patient-detail-section-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--detail-soft);
+    color: var(--detail-primary);
+    font-size: 16px;
+}
+
+.patient-detail-page .patient-detail-heading-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 19px;
+}
+
+/* =========================================================
+   NÚT QUAY LẠI
+   JavaScript thêm is-floating khi cuộn.
+   ========================================================= */
+
+.patient-detail-page .patient-detail-back-slot {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    min-height: 38px;
+}
+
+.patient-detail-page .patient-detail-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 8px;
+    min-height: 38px;
+    padding: 8px 12px;
+    border: 1px solid var(--detail-border);
+    border-radius: 9px;
+    background: var(--detail-surface);
+    color: var(--detail-primary);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 20px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .15s, border-color .15s;
+}
+
+.patient-detail-page .patient-detail-back:hover {
+    border-color: var(--detail-primary);
+    background: var(--detail-soft);
+}
+
+.patient-detail-page .patient-detail-back:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: 3px;
+}
+
+.patient-detail-page .patient-detail-back.is-floating {
+    position: fixed;
+    top: var(--detail-back-top, 88px);
+    left: var(--detail-back-left, 264px);
+    z-index: 1020;
+    width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    gap: 0;
+    border-color: var(--detail-primary);
+    border-radius: 12px;
+    box-shadow: 0 5px 18px rgb(45 34 85 / 16%);
+}
+
+.patient-detail-page .patient-detail-back.is-floating
+#patient-detail-back-label {
+    display: none;
+}
+
+/* =========================================================
+   THÔNG BÁO ĐẨY
+   ========================================================= */
+
+.patient-detail-page .patient-detail-toast {
+    --toast-accent: #198754;
+    --toast-icon-bg: #e7f6ee;
+
+    position: fixed;
+    top: var(--detail-toast-top, 88px);
+    left: var(--detail-toast-left, 50%);
+    z-index: 1080;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    width: min(460px, calc(100vw - 32px));
+    max-width: var(--detail-toast-max-width, calc(100vw - 32px));
+    margin: 0;
+    padding: 14px;
+
+    border: 1px solid var(--detail-border);
+    border-left: 4px solid var(--toast-accent);
+    border-radius: 12px;
+
+    background: var(--detail-surface);
+    color: var(--detail-text);
+    box-shadow: 0 10px 32px rgb(40 45 80 / 16%);
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translate(-50%, -18px);
+
+    transition:
+        opacity .22s ease,
+        transform .22s ease,
+        visibility .22s ease;
+}
+
+.patient-detail-page .patient-detail-toast.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, 0);
+}
+
+.patient-detail-page .patient-detail-toast.is-success {
+    --toast-accent: #198754;
+    --toast-icon-bg: #e7f6ee;
+}
+
+.patient-detail-page .patient-detail-toast.is-danger {
+    --toast-accent: #dc3545;
+    --toast-icon-bg: #fdebed;
+}
+
+.patient-detail-page .patient-detail-toast.is-warning {
+    --toast-accent: #a66b09;
+    --toast-icon-bg: #fff4d8;
+}
+
+.patient-detail-page .patient-detail-toast.is-info {
+    --toast-accent: var(--detail-primary);
+    --toast-icon-bg: var(--detail-soft);
+}
+
+.patient-detail-page .patient-detail-toast-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30px;
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: var(--toast-icon-bg);
+    color: var(--toast-accent);
+    font-size: 15px;
+}
+
+.patient-detail-page .patient-detail-toast-text {
+    flex: 1;
+    min-width: 0;
+    padding-top: 4px;
+    color: var(--detail-text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.65;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-toast-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--detail-muted);
+    cursor: pointer;
+}
+
+.patient-detail-page .patient-detail-toast-close:hover {
+    background: #f2f3f8;
+}
+
+.patient-detail-page .patient-detail-toast-close:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: 2px;
+}
+
+/* Thông báo thay đổi chưa lưu. */
+
+.patient-detail-page .patient-detail-leave-toast {
+    z-index: 1090;
+}
+
+.patient-detail-page .patient-detail-toast-body {
+    flex: 1;
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-toast-body > strong {
+    display: block;
+    margin: 2px 0 4px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.patient-detail-page .patient-detail-toast-body
+> .patient-detail-toast-text {
+    margin: 0;
+    padding: 0;
+}
+
+.patient-detail-page .patient-detail-toast-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.patient-detail-page .patient-detail-toast-actions > .btn {
+    min-height: 34px;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.patient-detail-page #patient-detail-stay {
+    border-color: var(--detail-border);
+    background: white;
+    color: var(--detail-text);
+}
+
+.patient-detail-page #patient-detail-stay:hover {
+    background: #f2f3f8;
+}
+
+.patient-detail-page #patient-detail-discard {
+    border-color: var(--detail-primary);
+    background: var(--detail-primary);
+    color: white;
+}
+
+.patient-detail-page #patient-detail-discard:hover {
+    filter: brightness(.95);
+}
+
+/* =========================================================
+   LỖI VÀ TRẠNG THÁI TẢI
+   ========================================================= */
+
+.patient-detail-page #appointment-profile-message {
+    flex-shrink: 0;
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 10px;
+    padding: 18px;
+    border: 1px solid var(--detail-border);
+    border-radius: 12px;
+    background: var(--detail-surface);
+    color: var(--detail-muted);
+    font-size: 13px;
+}
+
+.patient-detail-page .patient-detail-loading i {
+    color: var(--detail-primary);
+}
+
+/* =========================================================
+   MỘT BẢNG LỚN, BA PHẦN XẾP DỌC
+   ========================================================= */
+
+.patient-detail-page .patient-detail-form {
+    display: flex;
+    flex: 1 0 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.patient-detail-page #appointment-profile-fields,
+.patient-detail-page #profile-vitals-fields {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.patient-detail-page #appointment-profile-fields {
+    display: flex;
+    flex: 1;
+}
+
+.patient-detail-page .patient-detail-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid var(--detail-border);
+    border-radius: 14px;
+    background: var(--detail-surface);
+    box-shadow: 0 3px 14px rgb(40 45 80 / 3%);
+}
+
+.patient-detail-page .patient-detail-section {
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-section
++ .patient-detail-section {
+    margin-top: 22px;
+    padding-top: 20px;
+    border-top: 1px solid var(--detail-border);
+}
+
+.patient-detail-page .patient-detail-card-heading {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.patient-detail-page .patient-detail-card-heading h2 {
+    margin: 0;
+    color: var(--detail-text);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+/* =========================================================
+   THÔNG TIN CÁ NHÂN
+   ========================================================= */
+
+.patient-detail-page .patient-detail-personal-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px 20px;
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-field-wide {
+    grid-column: 1 / -1;
+}
+
+.patient-detail-page .patient-detail-form .form-label {
+    margin-bottom: 7px;
+    color: var(--detail-text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.patient-detail-page .patient-detail-form .form-control,
+.patient-detail-page .patient-detail-form .form-select {
+    min-width: 0;
+    min-height: 40px;
+    border-color: #e2e5ef;
+    border-radius: 8px;
+    background-color: white;
+    color: var(--detail-text);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.patient-detail-page .patient-detail-form .form-control {
+    padding: 9px 12px;
+}
+
+.patient-detail-page .patient-detail-form .form-select {
+    padding: 9px 36px 9px 12px;
+}
+
+.patient-detail-page .patient-detail-form .form-control::placeholder {
+    color: #a3a8bb;
+    font-size: 12px;
+}
+
+.patient-detail-page .patient-detail-form .form-control:focus,
+.patient-detail-page .patient-detail-form .form-select:focus {
+    border-color: var(--detail-primary);
+    box-shadow: 0 0 0 3px rgb(124 58 237 / 12%);
+}
+
+.patient-detail-page .patient-detail-form .form-control:disabled,
+.patient-detail-page .patient-detail-form .form-select:disabled {
+    border-color: var(--detail-border);
+    background-color: #f7f8fc;
+    color: #73798f;
+    opacity: 1;
+}
+
+.patient-detail-page .patient-detail-history-field
+> textarea.form-control {
+    width: 100%;
+    min-height: 100px;
+    background-color: #f7f8fc;
+    resize: vertical;
+}
+
+.patient-detail-page .patient-detail-form .input-group {
+    flex-wrap: nowrap;
+}
+
+.patient-detail-page .patient-detail-form .input-group-text {
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 44px;
+    padding: 8px 10px;
+    border-color: #e2e5ef;
+    background: #f7f8fc;
+    color: var(--detail-muted);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* =========================================================
+   NGÀY SINH VÀ BIỂU TƯỢNG LỊCH
+   ========================================================= */
+
+.patient-detail-page .birth-date-group {
+    position: relative;
+}
+
+.patient-detail-page .birth-date-group > .form-control {
+    padding-right: 46px;
+}
+
+.patient-detail-page .calendar-button {
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 40px;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--detail-border);
+    border-radius: 0 8px 8px 0;
+
+    background: transparent;
+    color: var(--detail-primary);
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.patient-detail-page .calendar-button:hover {
+    background: var(--detail-soft);
+}
+
+.patient-detail-page .calendar-button:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: -3px;
+}
+
+.patient-detail-page fieldset:disabled .calendar-button {
+    background: transparent;
+    color: #a3a8bb;
+    cursor: default;
+}
+
+.patient-detail-page .native-date-picker {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* =========================================================
+   LỊCH KHÁM HÔM NAY VÀ CA TIẾP NHẬN
+   ========================================================= */
+
+.patient-detail-page .patient-detail-current-visit {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 4px 14px;
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--detail-soft);
+}
+
+.patient-detail-page .patient-detail-current-visit-label {
+    grid-column: 1;
+    color: var(--detail-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.patient-detail-page #profile-current-visit-summary {
+    grid-column: 1;
+    min-width: 0;
+    color: var(--detail-text);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page #profile-current-visit-status {
+    grid-column: 2;
+    grid-row: 1 / 3;
+}
+
+.patient-detail-page .patient-detail-current-shift {
+    margin-bottom: 8px;
+    color: var(--detail-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-vitals-note {
+    margin-bottom: 14px;
+    color: var(--detail-primary);
+    font-size: 11px;
+    line-height: 1.7;
+}
+
+.patient-detail-page .patient-detail-vitals-note:empty {
+    display: none;
+}
+
+/* Bốn số đo cùng hàng trên màn hình lớn. */
+
+.patient-detail-page .patient-detail-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px 20px;
+}
+
+/* =========================================================
+   LỊCH SỬ KHÁM DẠNG DANH SÁCH
+   ========================================================= */
+
+.patient-detail-page .patient-detail-history-card {
+    display: flex;
+    flex-direction: column;
+    height: 300px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.patient-detail-page .patient-detail-history-card
+> .patient-detail-empty {
+    flex: 1;
+    min-height: 0;
+}
+
+.patient-detail-page .patient-detail-visit-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 7px;
+    min-height: 0;
+    min-width: 0;
+
+    margin: 0;
+    padding: 2px 5px 2px 2px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #d5d8e5 transparent;
+    scrollbar-gutter: stable;
+
+    list-style: none;
+}
+
+.patient-detail-page .patient-detail-visit-list:empty {
+    display: none;
+}
+
+.patient-detail-page .patient-detail-visit-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.patient-detail-page .patient-detail-visit-list::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #d5d8e5;
+}
+
+.patient-detail-page .patient-detail-visit-item {
+    flex: 0 0 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+}
+
+.patient-detail-page .patient-detail-visit-link {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+
+    width: 100%;
+    min-height: 68px;
+    padding: 10px 12px;
+
+    border: 1px solid var(--detail-border);
+    border-radius: 9px;
+    background: var(--detail-surface);
+    color: var(--detail-text);
+
+    text-align: left;
+    text-decoration: none;
+
+    transition: background-color .15s, border-color .15s;
+}
+
+.patient-detail-page .patient-detail-visit-link:hover,
+.patient-detail-page .patient-detail-visit-link[aria-current="true"] {
+    border-color: #ded0fa;
+    background: var(--detail-soft);
+    color: var(--detail-text);
+}
+
+.patient-detail-page .patient-detail-visit-link:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: -2px;
+}
+
+.patient-detail-page .patient-detail-visit-link[aria-disabled="true"] {
+    opacity: .6;
+    cursor: default;
+}
+
+.patient-detail-page .patient-detail-visit-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--detail-soft);
+    color: var(--detail-primary);
+    font-size: 14px;
+}
+
+.patient-detail-page .patient-detail-visit-main {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.patient-detail-page .patient-detail-visit-date {
+    color: var(--detail-text);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-visit-meta {
+    color: var(--detail-muted);
+    font-size: 11px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-visit-trailing {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 16px;
+}
+
+.patient-detail-page .patient-detail-visit-arrow {
+    color: var(--detail-primary);
+    font-size: 12px;
+}
+
+.patient-detail-page .patient-detail-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-height: 28px;
+    padding: 5px 10px;
+    border-radius: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.patient-detail-page .patient-detail-status.text-primary {
+    color: var(--detail-primary) !important;
+}
+
+.patient-detail-page .patient-detail-status.bg-primary-subtle {
+    background-color: #eee7ff !important;
+}
+
+/* Không có lịch sử khám. */
+
+.patient-detail-page .patient-detail-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 150px;
+    padding: 20px;
+    color: var(--detail-muted);
+    text-align: center;
+}
+
+.patient-detail-page .patient-detail-empty i {
+    color: var(--detail-primary);
+    font-size: 28px;
+    opacity: .65;
+}
+
+.patient-detail-page .patient-detail-empty p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* =========================================================
+   HAI NÚT Ở CUỐI TRANG
+   Không ghim và không có khung trắng.
+   ========================================================= */
+
+.patient-detail-page .patient-detail-footer {
+    position: static;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    gap: 14px;
+
+    min-height: 42px;
+    margin: 0;
+    padding: 0 0 4px;
+
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.patient-detail-page .patient-detail-save-status {
+    min-width: 0;
+    color: var(--detail-muted);
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page .patient-detail-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.patient-detail-page .patient-detail-save-button,
+.patient-detail-page .patient-detail-checkin-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 8px;
+
+    min-width: 140px;
+    min-height: 40px;
+    padding: 9px 14px;
+
+    border: 1px solid;
+    border-radius: 9px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 20px;
+    white-space: nowrap;
+
+    transition:
+        background-color .15s,
+        border-color .15s,
+        box-shadow .15s;
+}
+
+/* Lưu hồ sơ: viền tím. */
+
+.patient-detail-page .patient-detail-save-button {
+    --bs-btn-disabled-opacity: .55;
+    border-color: var(--detail-primary);
+    background: white;
+    color: var(--detail-primary);
+}
+
+.patient-detail-page .patient-detail-save-button:hover:not(:disabled) {
+    border-color: var(--detail-primary);
+    background: var(--detail-soft);
+    color: var(--detail-primary);
+}
+
+.patient-detail-page .patient-detail-save-button:active:not(:disabled) {
+    border-color: var(--detail-primary);
+    background: var(--detail-primary);
+    color: white;
+}
+
+.patient-detail-page .patient-detail-save-button:disabled {
+    border-color: var(--detail-primary);
+    background: white;
+    color: var(--detail-primary);
+}
+
+/* Đã tiếp nhận: xanh lá. */
+
+.patient-detail-page .patient-detail-checkin-button {
+    --bs-btn-disabled-opacity: .55;
+    border-color: var(--detail-green);
+    background: var(--detail-green);
+    color: white;
+}
+
+.patient-detail-page .patient-detail-checkin-button:hover:not(:disabled),
+.patient-detail-page .patient-detail-checkin-button:active:not(:disabled) {
+    border-color: #15803d;
+    background: #15803d;
+    color: white;
+}
+
+.patient-detail-page .patient-detail-checkin-button:disabled {
+    border-color: var(--detail-green);
+    background: var(--detail-green);
+    color: white;
+}
+
+.patient-detail-page .patient-detail-save-button:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: 3px;
+    box-shadow: none;
+}
+
+.patient-detail-page .patient-detail-checkin-button:focus-visible {
+    outline: 2px solid var(--detail-green);
+    outline-offset: 3px;
+    box-shadow: none;
+}
+
+/* =========================================================
+   MÀN HÌNH NHỎ
+   ========================================================= */
+
+@media (max-width: 1199.98px) {
+    .patient-detail-page .patient-detail-panel {
+        padding: 18px;
+    }
+
+    .patient-detail-page .patient-detail-personal-fields,
+    .patient-detail-page .patient-detail-vitals-grid {
+        gap: 14px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .patient-detail-page .patient-detail-personal-fields,
+    .patient-detail-page .patient-detail-vitals-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .patient-detail-page .patient-detail-heading-left {
+        gap: 12px;
+    }
+
+    .patient-detail-page .patient-detail-title-group h1 {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .patient-detail-page .patient-detail-panel {
+        padding: 14px;
+    }
+
+    .patient-detail-page .patient-detail-heading {
+        align-items: flex-start;
+    }
+
+    .patient-detail-page .patient-detail-heading-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .patient-detail-page .patient-detail-heading-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .patient-detail-page .patient-detail-title-group h1 {
+        font-size: 18px;
+    }
+
+    .patient-detail-page .patient-detail-personal-fields {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .patient-detail-page .patient-detail-vitals-grid {
+        gap: 14px 10px;
+    }
+
+    .patient-detail-page .patient-detail-form .input-group-text {
+        min-width: 34px;
+        padding: 8px 6px;
+        font-size: 10px;
+    }
+
+    .patient-detail-page .patient-detail-card-heading h2 {
+        font-size: 15px;
+    }
+
+    .patient-detail-page .patient-detail-current-visit {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .patient-detail-page #profile-current-visit-status {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: start;
+        margin-top: 5px;
+    }
+
+    .patient-detail-page .patient-detail-visit-link {
+        grid-template-columns: 30px minmax(0, 1fr);
+        gap: 8px 10px;
+    }
+
+    .patient-detail-page .patient-detail-visit-trailing {
+        grid-column: 2;
+        justify-content: space-between;
+    }
+
+    .patient-detail-page .patient-detail-footer {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .patient-detail-page .patient-detail-footer-actions {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .patient-detail-page .patient-detail-footer-actions > .btn {
+        flex: 1;
+        min-width: 0;
+        padding: 9px 10px;
+    }
+
+    .patient-detail-page .patient-detail-toast {
+        gap: 9px;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .patient-detail-page .patient-detail-vitals-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .patient-detail-page .patient-detail-toast,
+    .patient-detail-page .patient-detail-back,
+    .patient-detail-page .patient-detail-visit-link,
+    .patient-detail-page .patient-detail-save-button,
+    .patient-detail-page .patient-detail-checkin-button {
+        transition: none;
+    }
+}

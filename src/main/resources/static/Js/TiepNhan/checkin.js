@@ -22,40 +22,14 @@
     let loadVersion = 0;
     let openRegistrationAfterCreate = false;
 
-    let profileVersion = 0;
-    let profileLoading = false;
-    let profileSaving = false;
-    let currentProfile = null;
-    let currentVisit = null;
-    let profileTrigger = null;
-
     const createElement = $("create-patient-modal");
     const registrationElement = $("registration-modal");
-    const profileElement = $("appointment-profile-modal");
 
     const createModal =
         bootstrap.Modal.getOrCreateInstance(createElement);
+
     const registrationModal =
         bootstrap.Modal.getOrCreateInstance(registrationElement);
-    const profileModal =
-        bootstrap.Modal.getOrCreateInstance(profileElement);
-
-    const personalInputIds = [
-        "profile-name",
-        "profile-birth-date",
-        "profile-phone",
-        "profile-email",
-        "profile-address",
-        "profile-emergency-phone",
-        "profile-medical-history"
-    ];
-
-    const vitalFields = {
-        canNang: "profile-weight",
-        chieuCao: "profile-height",
-        huyetApTamThu: "profile-systolic",
-        huyetApTamTruong: "profile-diastolic"
-    };
 
     const callableStatuses = [
         "Chờ gọi",
@@ -363,7 +337,7 @@
                 actions.appendChild(callButton);
             }
 
-            // Nút xem và chỉnh sửa hồ sơ.
+            // Mở trang hồ sơ riêng.
             const profileButton = document.createElement("button");
             profileButton.type = "button";
             profileButton.className =
@@ -381,8 +355,9 @@
             profileButton.disabled =
                 !positiveId(item.maBenhNhan)
                 || !positiveId(item.maLichKham)
-                || profileLoading
-                || profileSaving;
+                || searching || savingPatient || registering
+                || callingAppointmentId !== null
+                || loadingAppointments;
 
             actions.appendChild(profileButton);
             actionCell.appendChild(actions);
@@ -429,10 +404,7 @@
             return "Đang tải danh sách lịch khám.";
         }
 
-        if (
-            profileLoading || profileSaving
-            || registering || searching || savingPatient
-        ) {
+        if (registering || searching || savingPatient) {
             return "Vui lòng chờ thao tác hiện tại hoàn tất.";
         }
 
@@ -458,6 +430,17 @@
     }
 
     function updateCallButtons() {
+        const profileBusy = searching || savingPatient || registering
+            || callingAppointmentId !== null || loadingAppointments;
+
+        $("appointments-table-body")
+            .querySelectorAll('[data-action="open-profile"]')
+            .forEach(button => {
+                button.disabled = profileBusy
+                    || !positiveId(button.dataset.patientId)
+                    || !positiveId(button.dataset.appointmentId);
+            });
+
         $("appointments-table-body")
             .querySelectorAll('[data-action="call-patient"]')
             .forEach(button => {
@@ -943,8 +926,7 @@
     function updateControls() {
         updateCallButtons();
 
-        const busy =
-            searching || savingPatient || registering || profileSaving;
+        const busy = searching || savingPatient || registering;
 
         $("patient-search-input").disabled = busy;
         $("patient-search-button").disabled = busy;
@@ -959,6 +941,7 @@
             "aria-label",
             searching ? "Đang tra cứu bệnh nhân" : "Tra cứu bệnh nhân"
         );
+
         $("patient-search-button").setAttribute(
             "aria-busy",
             String(searching)
@@ -1075,11 +1058,7 @@
     async function searchPatient(event) {
         event.preventDefault();
 
-        if (
-            searching || savingPatient || registering || profileSaving
-        ) {
-            return;
-        }
+        if (searching || savingPatient || registering) return;
 
         if (!$("patient-search-form").reportValidity()) return;
 
@@ -1445,7 +1424,7 @@
 
         if (
             registering || searching || savingPatient
-            || loadingSchedules || registrationLocked || profileSaving
+            || loadingSchedules || registrationLocked
         ) {
             return;
         }
@@ -1551,11 +1530,13 @@
                 || error.status === 200 || error.status === 201
             ) {
                 registrationLocked = true;
+
                 showMessage(
                     "registration-message",
                     error.message
                     + " Hãy kiểm tra danh sách trước khi đăng ký lại."
                 );
+
                 void loadAppointments();
             } else {
                 showMessage("registration-message", error.message);
@@ -1567,139 +1548,20 @@
     }
 
     // =====================================================
-    // XEM VÀ CHỈNH SỬA HỒ SƠ
+    // MỞ TRANG HỒ SƠ BỆNH NHÂN RIÊNG
     // =====================================================
 
-    function canEditVitals() {
-        if (!currentVisit) return false;
-
-        const date =
-            String(currentVisit.ngayKham || "").slice(0, 10);
-        const status = currentVisit.trangThai;
-
-        return date === todayVietnam()
-            && (status === "Đã gọi" || status === "DaGoi");
-    }
-
-    function updateProfileControls() {
-        updateCallButtons();
-
-        const busy = profileLoading || profileSaving;
-        const canEdit = !!currentProfile && !busy;
-
-        $("appointment-profile-loading").hidden = !profileLoading;
-        $("appointment-profile-fields").disabled = !canEdit;
-
-        personalInputIds.forEach(id => {
-            $(id).readOnly = !canEdit;
-        });
-
-        $("profile-gender").disabled = !canEdit;
-        $("profile-open-birth-calendar").disabled = !canEdit;
-        $("profile-birth-date-picker").disabled = !canEdit;
-        $("profile-vitals-fields").disabled =
-            !canEdit || !canEditVitals();
-
-        $("appointment-profile-close").disabled = profileSaving;
-        $("appointment-profile-save").disabled = !canEdit;
-        $("appointment-profile-save").textContent =
-            profileSaving ? "Đang lưu…" : "Lưu hồ sơ";
-
-        $("appointment-profile-form").setAttribute(
-            "aria-busy",
-            String(busy)
-        );
-
-        document.querySelectorAll(
-            '[data-action="open-profile"]'
-        ).forEach(button => {
-            button.disabled =
-                busy
-                || !positiveId(button.dataset.patientId)
-                || !positiveId(button.dataset.appointmentId);
-        });
-    }
-
-    function clearProfile() {
-        currentProfile = null;
-        currentVisit = null;
-        $("appointment-profile-form").reset();
-
-        setText("profile-patient-code", "—");
-        setText("profile-patient-heading", "Đang tải...");
-
-        [
-            "code", "sequence", "date", "time", "department",
-            "doctor", "room", "status", "reason"
-        ].forEach(field => {
-            setText(`profile-visit-${field}`, "—");
-        });
-
-        $("profile-vitals-note").textContent = "";
-
-        profileElement.querySelectorAll("details").forEach(details => {
-            details.open = false;
-        });
-
-        showMessage("appointment-profile-message", "");
-    }
-
-    function fillProfile(patient, visit) {
-        currentProfile = patient;
-        currentVisit = visit;
-
-        setValue("profile-patient-id", patient.maBenhNhan);
-        setValue("profile-appointment-id", visit.maLichKham);
-        setText(
-            "profile-patient-code",
-            `Mã BN: ${patient.maBenhNhan}`
-        );
-        setText("profile-patient-heading", patient.hoTen);
-
-        setValue("profile-name", patient.hoTen);
-        setValue(
-            "profile-birth-date",
-            patient.ngaySinh ? formatDate(patient.ngaySinh) : ""
-        );
-        setValue("profile-gender", patient.gioiTinh);
-        setValue("profile-phone", patient.soDienThoai);
-        setValue("profile-email", patient.email);
-        setValue("profile-address", patient.diaChi);
-        setValue("profile-emergency-phone", patient.soDienThoaiKhanCap);
-        setValue("profile-medical-history", patient.tienSuBenh);
-
-        setText("profile-visit-code", visit.maLichKham);
-        setText(
-            "profile-visit-sequence",
-            positiveId(visit.soThuTu)
-                ? `#${String(visit.soThuTu).padStart(3, "0")}`
-                : "—"
-        );
-        setText("profile-visit-date", formatDate(visit.ngayKham));
-        setText(
-            "profile-visit-time",
-            visit.gioKham ? String(visit.gioKham).slice(0, 5) : "—"
-        );
-        setText("profile-visit-department", visit.khoa);
-        setText("profile-visit-doctor", visit.bacSi);
-        setText("profile-visit-room", visit.phong || "Chưa phân công");
-        setText("profile-visit-status", visit.trangThai);
-        setText("profile-visit-reason", visit.lyDoKham);
-
-        Object.entries(vitalFields).forEach(([key, id]) => {
-            setValue(id, visit[key]);
-        });
-
-        $("profile-vitals-note").textContent = canEditVitals()
-            ? "Có thể nhập và lưu số đo cho lượt khám đã gọi hôm nay."
-            : "Số đo chỉ xem. Bạn vẫn có thể cập nhật thông tin cá nhân.";
-    }
-
-    async function openProfile(patientId, appointmentId, trigger) {
+    function openProfile(patientId, appointmentId) {
         if (
-            profileSaving || profileLoading
-            || searching || savingPatient || registering
+            searching || savingPatient || registering
+            || callingAppointmentId !== null
+            || loadingAppointments
         ) {
+            showMessage(
+                "page-message",
+                "Vui lòng chờ thao tác hiện tại hoàn tất.",
+                "warning"
+            );
             return;
         }
 
@@ -1714,387 +1576,14 @@
             return;
         }
 
-        const version = ++profileVersion;
-        profileTrigger = trigger;
-        clearProfile();
-
-        profileLoading = true;
-        updateProfileControls();
-        profileModal.show();
-
-        try {
-            const patient = await requestApi(
-                `/api/tiepnhan/ho-so-benh-nhan/${id}`
-            );
-
-            if (version !== profileVersion) return;
-
-            if (
-                positiveId(patient.maBenhNhan) !== id
-                || !Array.isArray(patient.danhSachLanKham)
-            ) {
-                throw new Error(
-                    "Dữ liệu hồ sơ bệnh nhân không hợp lệ."
-                );
-            }
-
-            const visit = patient.danhSachLanKham.find(
-                item => positiveId(item.maLichKham) === visitId
-            );
-
-            if (!visit) {
-                throw new Error(
-                    "Không tìm thấy lượt khám trong hồ sơ bệnh nhân."
-                );
-            }
-
-            fillProfile(patient, visit);
-
-            showMessage(
-                "appointment-profile-message",
-                "Bạn có thể chỉnh sửa thông tin bệnh nhân "
-                + "và bấm Lưu hồ sơ.",
-                "info"
-            );
-        } catch (error) {
-            if (version !== profileVersion) return;
-            showMessage("appointment-profile-message", error.message);
-        } finally {
-            if (version === profileVersion) {
-                profileLoading = false;
-                updateProfileControls();
-            }
-        }
-    }
-
-    // =====================================================
-    // KIỂM TRA THÔNG TIN CÁ NHÂN
-    // =====================================================
-
-    function readPersonalProfile() {
-        const payload = {
-            hoTen: readValue("profile-name"),
-            ngaySinh: readBirthDate("profile-birth-date", true),
-            gioiTinh: readValue("profile-gender"),
-            soDienThoai: readValue("profile-phone"),
-            email: readValue("profile-email"),
-            diaChi: readValue("profile-address"),
-            soDienThoaiKhanCap: readValue("profile-emergency-phone"),
-            tienSuBenh: readValue("profile-medical-history")
-        };
-
-        if (!payload.hoTen) {
-            throw new Error("Vui lòng nhập họ tên bệnh nhân.");
-        }
-
-        for (const [key, label, limit] of [
-            ["hoTen", "Họ tên", 255],
-            ["diaChi", "Địa chỉ", 255],
-            ["email", "Email", 255]
-        ]) {
-            if (payload[key] && [...payload[key]].length > limit) {
-                throw new Error(
-                    `${label} không được vượt quá ${limit} ký tự.`
-                );
-            }
-        }
-
-        if (
-            payload.gioiTinh
-            && !["Nam", "Nữ", "Khác"].includes(payload.gioiTinh)
-        ) {
-            throw new Error("Giới tính phải là Nam, Nữ hoặc Khác.");
-        }
-
-        for (const [key, label] of [
-            ["soDienThoai", "Số điện thoại"],
-            ["soDienThoaiKhanCap", "Số điện thoại khẩn cấp"]
-        ]) {
-            if (
-                payload[key]
-                && !/^\+?[0-9]{9,14}$/.test(payload[key])
-            ) {
-                throw new Error(
-                    `${label} phải gồm 9 đến 14 chữ số, `
-                    + "có thể bắt đầu bằng +."
-                );
-            }
-        }
-
-        if (
-            payload.email
-            && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)
-        ) {
-            throw new Error("Email không đúng định dạng.");
-        }
-
-        if (
-            payload.tienSuBenh
-            && new TextEncoder().encode(payload.tienSuBenh).length > 65535
-        ) {
-            throw new Error("Nội dung tiền sử bệnh quá dài.");
-        }
-
-        return payload;
-    }
-
-    function personalProfileChanged(payload) {
-        return Object.keys(payload).some(key => {
-            const old = currentProfile[key];
-
-            const normalized = key === "ngaySinh"
-                ? (old ? String(old).slice(0, 10) : null)
-                : (old == null ? null : String(old).trim() || null);
-
-            return payload[key] !== normalized;
+        const params = new URLSearchParams({
+            maLichKham: String(visitId),
+            from: "checkin"
         });
-    }
 
-    function applyPersonalProfile(payload) {
-        Object.assign(currentProfile, payload);
-        setText("profile-patient-heading", payload.hoTen);
-
-        if (
-            selectedPatientId === positiveId(currentProfile.maBenhNhan)
-        ) {
-            selectedPatientName = payload.hoTen;
-
-            setText("selected-name", payload.hoTen);
-            setText("selected-birth-date", formatDate(payload.ngaySinh));
-            setText("selected-gender", payload.gioiTinh);
-            setText("selected-phone", payload.soDienThoai);
-            setText("selected-address", payload.diaChi);
-        }
-    }
-
-    // =====================================================
-    // KIỂM TRA SỐ ĐO
-    // =====================================================
-
-    function readOptionalNumber(id) {
-        const input = $(id);
-
-        if (input.validity.badInput) {
-            throw new Error("Số đo phải là số hợp lệ.");
-        }
-
-        const value = input.value.trim();
-        if (!value) return null;
-
-        const number = Number(value);
-
-        if (!Number.isFinite(number)) {
-            throw new Error("Số đo phải là số hợp lệ.");
-        }
-
-        return number;
-    }
-
-    function validateVitals(payload) {
-        for (const [key, label] of [
-            ["canNang", "Cân nặng"],
-            ["chieuCao", "Chiều cao"]
-        ]) {
-            const value = payload[key];
-            if (value === null) continue;
-
-            if (
-                value <= 0 || value > 999.99
-                || Math.abs(
-                    value * 100 - Math.round(value * 100)
-                ) > 0.000001
-            ) {
-                throw new Error(
-                    `${label} phải lớn hơn 0, tối đa 999,99 `
-                    + "và có tối đa hai chữ số thập phân."
-                );
-            }
-        }
-
-        for (const [key, label] of [
-            ["huyetApTamThu", "Huyết áp tâm thu"],
-            ["huyetApTamTruong", "Huyết áp tâm trương"]
-        ]) {
-            const value = payload[key];
-
-            if (
-                value !== null
-                && (
-                    !Number.isInteger(value)
-                    || value < 1 || value > 65535
-                )
-            ) {
-                throw new Error(
-                    `${label} phải là số nguyên từ 1 đến 65535.`
-                );
-            }
-        }
-
-        if (
-            (payload.huyetApTamThu === null)
-            !== (payload.huyetApTamTruong === null)
-        ) {
-            throw new Error(
-                "Nhập đủ cả huyết áp tâm thu và tâm trương."
-            );
-        }
-
-        if (
-            Object.keys(vitalFields).every(
-                key => payload[key] === null
-            )
-        ) {
-            throw new Error("Vui lòng nhập ít nhất một loại số đo.");
-        }
-    }
-
-    // =====================================================
-    // LƯU HỒ SƠ VÀ SỐ ĐO
-    // =====================================================
-
-    async function saveProfile(event) {
-        event.preventDefault();
-
-        if (
-            profileSaving || profileLoading
-            || !currentProfile || !currentVisit
-        ) {
-            return;
-        }
-
-        showMessage("appointment-profile-message", "");
-
-        let personalPayload;
-        let personalChanged;
-        let vitalsPayload = null;
-
-        try {
-            personalPayload = readPersonalProfile();
-            personalChanged = personalProfileChanged(personalPayload);
-
-            if (canEditVitals()) {
-                const candidate = {
-                    maLichKham: positiveId(currentVisit.maLichKham)
-                };
-
-                Object.entries(vitalFields).forEach(([key, id]) => {
-                    candidate[key] = readOptionalNumber(id);
-                });
-
-                const changed = Object.keys(vitalFields).some(key =>
-                    candidate[key] !== (
-                        currentVisit[key] == null
-                            ? null : Number(currentVisit[key])
-                    )
-                );
-
-                if (changed) {
-                    validateVitals(candidate);
-                    vitalsPayload = candidate;
-                }
-            }
-
-            if (!personalChanged && !vitalsPayload) {
-                showMessage(
-                    "appointment-profile-message",
-                    "Chưa có thông tin thay đổi cần lưu.",
-                    "info"
-                );
-                return;
-            }
-        } catch (error) {
-            showMessage("appointment-profile-message", error.message);
-            return;
-        }
-
-        profileSaving = true;
-        updateProfileControls();
-        updateControls();
-
-        let personalSaved = false;
-        let stage = "thông tin bệnh nhân";
-
-        try {
-            if (personalChanged) {
-                const result = await requestApi(
-                    "/api/tiepnhan/ho-so-benh-nhan/"
-                    + positiveId(currentProfile.maBenhNhan),
-                    {
-                        method: "PUT",
-                        body: JSON.stringify(personalPayload)
-                    }
-                );
-
-                if (result.success !== true) {
-                    throw new Error(
-                        result.message
-                        || "Máy chủ chưa xác nhận cập nhật thông tin bệnh nhân."
-                    );
-                }
-
-                personalSaved = true;
-                applyPersonalProfile(personalPayload);
-            }
-
-            if (vitalsPayload) {
-                stage = "số đo trước khám";
-
-                const result = await requestApi(
-                    "/api/tiepnhan/chi-so-truoc-kham",
-                    {
-                        method: "POST",
-                        body: JSON.stringify(vitalsPayload)
-                    }
-                );
-
-                if (result.success !== true) {
-                    throw new Error(
-                        result.message
-                        || "Máy chủ chưa xác nhận lưu số đo."
-                    );
-                }
-
-                Object.keys(vitalFields).forEach(key => {
-                    currentVisit[key] = vitalsPayload[key];
-                });
-            }
-
-            showMessage(
-                "appointment-profile-message",
-                personalSaved && vitalsPayload
-                    ? "Đã cập nhật thông tin bệnh nhân và lưu số đo trước khám."
-                    : personalSaved
-                        ? "Đã cập nhật thông tin bệnh nhân."
-                        : "Đã lưu số đo trước khám.",
-                "success"
-            );
-        } catch (error) {
-            const uncertain =
-                !error.status || error.status >= 500
-                || (error.status >= 200 && error.status < 300);
-
-            showMessage(
-                "appointment-profile-message",
-                (
-                    personalSaved
-                        ? "Thông tin bệnh nhân đã lưu; "
-                            + "số đo chưa được xác nhận lưu. "
-                        : ""
-                )
-                + error.message
-                + (
-                    uncertain
-                        ? ` Đóng và mở lại hồ sơ để kiểm tra ${stage} `
-                            + "trước khi thử lại."
-                        : ""
-                )
-            );
-        } finally {
-            profileSaving = false;
-            updateProfileControls();
-            updateControls();
-            void loadAppointments();
-        }
+        window.location.assign(
+            `/TiepNhan/ho-so-benh-nhan/${id}?${params.toString()}`
+        );
     }
 
     // =====================================================
@@ -2105,6 +1594,9 @@
         const wrapper = $("notification-wrapper");
         const button = $("notification-button");
         const panel = $("notification-panel");
+        const closeButton = $("notification-close");
+
+        if (!wrapper || !button || !panel || !closeButton) return;
 
         function setOpen(open, returnFocus = false) {
             panel.hidden = !open;
@@ -2121,7 +1613,7 @@
             setOpen(panel.hidden);
         });
 
-        $("notification-close").addEventListener("click", () => {
+        closeButton.addEventListener("click", () => {
             setOpen(false, true);
         });
 
@@ -2156,10 +1648,6 @@
 
     $("registration-form").addEventListener(
         "submit", registerAppointment
-    );
-
-    $("appointment-profile-form").addEventListener(
-        "submit", saveProfile
     );
 
     $("department-select").addEventListener(
@@ -2209,20 +1697,15 @@
         if (button.dataset.action === "call-patient") {
             void callPatient(button.dataset.appointmentId);
         } else if (button.dataset.action === "open-profile") {
-            void openProfile(
+            openProfile(
                 button.dataset.patientId,
-                button.dataset.appointmentId,
-                button
+                button.dataset.appointmentId
             );
         }
     });
 
     $("open-create-patient").addEventListener("click", () => {
-        if (
-            savingPatient || searching || registering || profileSaving
-        ) {
-            return;
-        }
+        if (savingPatient || searching || registering) return;
 
         openRegistrationAfterCreate = false;
         showMessage("create-patient-message", "");
@@ -2252,52 +1735,14 @@
         $("patient-search-input").focus();
     });
 
-    profileElement.addEventListener("hide.bs.modal", event => {
-        if (profileSaving) {
-            event.preventDefault();
-            return;
-        }
-
-        profileVersion++;
-        profileLoading = false;
-    });
-
-    profileElement.addEventListener("hidden.bs.modal", () => {
-        clearProfile();
-        updateProfileControls();
-
-        if (profileTrigger?.isConnected) {
-            profileTrigger.focus();
-        } else {
-            $("refresh-appointments-button").focus();
-        }
-
-        profileTrigger = null;
-    });
-
     // =====================================================
     // KHỞI TẠO
     // =====================================================
 
     initBirthDateInput();
-
-    initBirthDateInput({
-        inputId: "profile-birth-date",
-        pickerId: "profile-birth-date-picker",
-        buttonId: "profile-open-birth-calendar",
-        formId: "appointment-profile-form",
-        messageId: "appointment-profile-message",
-        modalElement: profileElement,
-        isBusy: () => profileLoading || profileSaving
-    });
-
-    $("profile-birth-date").required = false;
-    $("profile-phone").required = false;
-
     initNotifications();
     updateTodayDisplay();
     updateControls();
-    updateProfileControls();
 
     void loadAppointments();
 })();
