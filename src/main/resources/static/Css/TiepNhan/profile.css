@@ -1,550 +1,112 @@
-/* =========================================================
-   TRANG HỒ SƠ CÁ NHÂN — NHÂN VIÊN TIẾP NHẬN
-   Dùng cùng dashboard.css
-   ========================================================= */
-
-.profile-page {
-    --profile-primary: #7c3aed;
-    --profile-primary-hover: #6d28d9;
-    --profile-primary-light: #f3efff;
-    --profile-background: #f7f7ff;
-    --profile-border: #e9eaf5;
-    --profile-text: #30364f;
-    --profile-muted: #858ca8;
-
-    min-height: 100vh;
-    background: var(--profile-background);
-    color: var(--profile-text);
-    font-family: "Plus Jakarta Sans", sans-serif;
-}
-
-.profile-page [hidden] {
-    display: none !important;
-}
-
-.profile-page button,
-.profile-page input {
-    font-family: inherit;
-}
-
-/* =========================================================
-   KHUNG TRANG
-   Giữ kích thước menu và topbar từ Dashboard
-   ========================================================= */
-
-.profile-page .main-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.profile-page .topbar {
-    flex-shrink: 0;
-}
-
-.profile-page .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-}
-
-.profile-page .topbar-actions {
-    margin-left: auto;
-    flex-shrink: 0;
-}
-
-.profile-page-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.profile-page #profile-message {
-    margin-bottom: 16px;
-    font-size: 13px;
-    line-height: 1.6;
-}
-
-.profile-layout {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr) 240px;
-    align-items: start;
-    gap: 24px;
-}
-
-/* =========================================================
-   KHUNG CHUNG
-   ========================================================= */
-
-.profile-card {
-    min-width: 0;
-    background: #ffffff;
-    border: 1px solid var(--profile-border);
-    border-radius: 14px;
-    box-shadow: 0 2px 4px rgba(38, 45, 84, 0.025);
-}
-
-.profile-card-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 40px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f0f1f8;
-}
-
-.profile-card-header h2 {
-    margin: 0;
-    color: var(--profile-text);
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.5;
-}
-
-.profile-section-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 28px;
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: var(--profile-primary-light);
-    color: var(--profile-primary);
-    font-size: 13px;
-}
-
-/* =========================================================
-   THẺ NHÂN VIÊN BÊN TRÁI
-   ========================================================= */
-
-.profile-summary {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 380px;
-    padding: 28px 22px;
-}
-
-.profile-avatar-wrapper {
-    position: relative;
-    width: 104px;
-    height: 104px;
-    margin-bottom: 18px;
-}
-
-.profile-avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 104px;
-    height: 104px;
-    overflow: hidden;
-    border: 3px solid #e4e8ff;
-    border-radius: 50%;
-    background: #f1f4ff;
-    color: #7760ff;
-}
-
-.profile-avatar > i {
-    font-size: 48px;
-    line-height: 1;
-}
-
-.profile-avatar > img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.profile-avatar-button {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 3px solid #ffffff;
-    border-radius: 50%;
-    background: var(--profile-primary);
-    color: #ffffff;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
-
-.profile-avatar-button:hover:not(:disabled) {
-    background: var(--profile-primary-hover);
-}
-
-.profile-display-name {
-    width: 100%;
-    margin: 0 0 10px;
-    text-align: center;
-    color: var(--profile-text);
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-}
-
-.profile-employee-code {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 26px;
-    margin-bottom: 8px;
-    padding: 4px 12px;
-    border-radius: 6px;
-    background: #f3f5fa;
-    color: #66708c;
-    font-size: 12px;
-    font-weight: 600;
-    overflow-wrap: anywhere;
-}
-
-.profile-role-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px 12px;
-    border-radius: 20px;
-    background: var(--profile-primary-light);
-    color: var(--profile-primary);
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.5;
-}
-
-.profile-summary-divider {
-    width: 100%;
-    height: 1px;
-    margin: 24px 0 20px;
-    background: #f0f1f8;
-}
-
-.profile-contact-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-}
-
-.profile-contact-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    min-width: 0;
-    color: #69728f;
-    font-size: 12px;
-    line-height: 1.6;
-}
-
-.profile-contact-item > i {
-    flex: 0 0 16px;
-    width: 16px;
-    margin-top: 3px;
-    text-align: center;
-    color: var(--profile-primary);
-    font-size: 13px;
-}
-
-.profile-contact-item > span {
-    min-width: 0;
-    overflow-wrap: anywhere;
-}
-
-/* =========================================================
-   THÔNG TIN CÁ NHÂN Ở GIỮA
-   ========================================================= */
-
-.profile-information {
-    padding: 24px;
-}
-
-.profile-information-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    margin: 0;
-}
-
-.profile-information-row {
-    display: grid;
-    grid-template-columns: 135px minmax(0, 1fr);
-    align-items: start;
-    gap: 18px;
-    min-width: 0;
-}
-
-.profile-information-row dt {
-    position: relative;
-    margin: 0;
-    padding-right: 12px;
-    color: var(--profile-muted);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.7;
-}
-
-.profile-information-row dt::after {
-    position: absolute;
-    right: 0;
-    content: ":";
-}
-
-.profile-information-row dd {
-    min-width: 0;
-    margin: 0;
-    color: var(--profile-text);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.7;
-    overflow-wrap: anywhere;
-}
-
-/* =========================================================
-   KHUNG HÀNH ĐỘNG BÊN PHẢI
-   ========================================================= */
-
-.profile-actions {
-    padding: 24px;
-}
-
-.profile-action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.profile-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 38px;
-    padding: 9px 14px;
-    border: 1px solid transparent;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.5;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease;
-}
-
-.profile-button > i {
-    flex-shrink: 0;
-    font-size: 12px;
-}
-
-.profile-button-primary {
-    border-color: var(--profile-primary);
-    background: var(--profile-primary);
-    color: #ffffff;
-}
-
-.profile-button-primary:hover:not(:disabled) {
-    border-color: var(--profile-primary-hover);
-    background: var(--profile-primary-hover);
-    color: #ffffff;
-}
-
-.profile-button-outline {
-    border-color: var(--profile-primary);
-    background: #ffffff;
-    color: var(--profile-primary);
-}
-
-.profile-button-outline:hover:not(:disabled) {
-    background: var(--profile-primary-light);
-    color: var(--profile-primary-hover);
-}
-
-.profile-button:disabled,
-.profile-avatar-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.profile-button:focus-visible,
-.profile-avatar-button:focus-visible {
-    outline: 3px solid #d9cbff;
-    outline-offset: 3px;
-}
-
-/* =========================================================
-   FORM CHỈNH SỬA VÀ ĐỔI MẬT KHẨU
-   ========================================================= */
-
-.profile-page .modal-dialog {
-    max-width: 480px;
-}
-
-.profile-modal-content {
-    overflow: hidden;
-    border: 1px solid var(--profile-border);
-    border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(38, 45, 84, 0.12);
-}
-
-.profile-modal-content .modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--profile-border);
-}
-
-.profile-modal-content .modal-title {
-    color: var(--profile-text);
-    font-weight: 700;
-}
-
-.profile-modal-content .modal-body {
-    padding: 24px;
-}
-
-.profile-modal-content .modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--profile-border);
-}
-
-.profile-modal-content fieldset {
-    min-width: 0;
-    margin: 0;
-    padding: 0;
     border: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, .18);
 }
 
-.profile-modal-content .form-label {
-    margin-bottom: 8px;
-    color: #68718c;
-    font-size: 12px;
-    font-weight: 600;
+#passwordModal .modal-header,
+#passwordModal .modal-footer {
+    padding: 18px 22px;
+    border-color: #e2e8f0;
 }
 
-.profile-modal-content .form-control {
-    min-height: 40px;
-    border-color: #e2e5f0;
-    border-radius: 7px;
-    color: var(--profile-text);
-    font-size: 13px;
+#passwordModal .modal-title {
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 700;
 }
 
-.profile-modal-content .form-control:focus {
-    border-color: #b79aff;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+#passwordModal .modal-body {
+    padding: 22px;
 }
 
-.profile-modal-content .alert {
-    font-size: 12px;
-    line-height: 1.6;
+#passwordModal .modal-footer {
+    display: flex;
+    gap: 10px;
 }
 
-.profile-modal-content .btn-close:focus {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+#passwordModal .modal-footer > button {
+    margin: 0;
 }
 
-/* =========================================================
-   MÀN HÌNH NHỎ
-   ========================================================= */
-
-@media (max-width: 1199.98px) {
-    .profile-layout {
-        grid-template-columns: 210px minmax(0, 1fr);
-        gap: 20px;
-    }
-
-    .profile-actions {
-        grid-column: 2;
-    }
-
-    .profile-summary {
-        grid-row: span 2;
-    }
-
-    .profile-action-buttons {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .profile-action-buttons .profile-button {
-        flex: 1;
-    }
-
-    .profile-information-row {
-        grid-template-columns: 115px minmax(0, 1fr);
-        gap: 14px;
-    }
+.profile-message {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    font-size: 14px;
 }
 
-@media (max-width: 767.98px) {
-    .profile-layout {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 16px;
-    }
+.profile-message.success {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
 
-    .profile-summary {
-        grid-row: auto;
-        min-height: auto;
-    }
+.profile-message.error {
+    color: #991b1b;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
 
-    .profile-actions {
-        grid-column: auto;
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 16px;
     }
 
     .profile-summary,
-    .profile-information,
-    .profile-actions {
-        padding: 20px;
+    .profile-card {
+        padding: 18px;
     }
 
-    .profile-contact-list {
-        max-width: 360px;
+    .profile-summary {
+        gap: 16px;
     }
 
-    .profile-page .header-actions {
-        gap: 8px;
+    .profile-avatar {
+        flex-basis: 78px;
+        width: 78px;
+        height: 78px;
     }
 
-    .profile-page #refresh-profile-button > span {
-        display: none;
+    .profile-summary-info h2 {
+        font-size: 18px;
     }
 
-    .profile-information-row {
-        grid-template-columns: 120px minmax(0, 1fr);
-    }
-}
-
-@media (max-width: 575.98px) {
-    .profile-page .header-actions {
-        flex-wrap: wrap !important;
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
     }
 
-    .profile-information-row {
-        grid-template-columns: 100px minmax(0, 1fr);
-        gap: 12px;
-    }
-
-    .profile-action-buttons {
+    .section-header {
+        align-items: flex-start;
         flex-direction: column;
     }
 
-    .profile-page .modal-dialog {
-        margin: 12px;
+    .section-header > button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .profile-summary {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
-    .profile-modal-content .modal-header,
-    .profile-modal-content .modal-body,
-    .profile-modal-content .modal-footer {
-        padding: 18px;
+    .form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .form-actions button {
+        width: 100%;
+    }
+
+    #passwordModal .modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    #passwordModal .modal-footer button {
+        width: 100%;
     }
 }

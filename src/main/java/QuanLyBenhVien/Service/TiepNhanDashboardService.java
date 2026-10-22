@@ -569,15 +569,16 @@ public class TiepNhanDashboardService {
                   AND NgayKham = ?
                   AND MaKhoa = ?
                   AND TrangThai = 'DaGoi'
-                  AND CanNang IS NOT NULL
-                  AND CanNang > 0
-                  AND ChieuCao IS NOT NULL
-                  AND ChieuCao > 0
-                  AND HuyetApTamThu IS NOT NULL
-                  AND HuyetApTamThu > 0
-                  AND HuyetApTamTruong IS NOT NULL
-                  AND HuyetApTamTruong > 0
-                  AND HuyetApTamThu > HuyetApTamTruong
+                  AND EXISTS (
+                     SELECT 1
+                     FROM hosobenhan h
+                     WHERE h.MaLichKham = lichdangkykham.MaLichKham
+                     AND h.CanNang > 0
+                     AND h.ChieuCao > 0
+                     AND h.HuyetApTamThu > 0
+                     AND h.HuyetApTamTruong > 0
+                     AND h.HuyetApTamThu > h.HuyetApTamTruong
+                  )
                 """ + DIEU_KIEN_CA_TRUC;
 
         int soDongCapNhat = jdbcTemplate.update(

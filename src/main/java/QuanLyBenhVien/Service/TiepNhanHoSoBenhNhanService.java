@@ -415,10 +415,10 @@ public class TiepNhanHoSoBenhNhanService {
                     k.TenKhoa,
                     ndBacSi.HoTen AS TenBacSi,
                     l.LyDoKham,
-                    l.CanNang,
-                    l.ChieuCao,
-                    l.HuyetApTamThu,
-                    l.HuyetApTamTruong,
+                    h.CanNang,
+                    h.ChieuCao,
+                    h.HuyetApTamThu,
+                    h.HuyetApTamTruong,
 
                     (
                         SELECT p.TenPhong

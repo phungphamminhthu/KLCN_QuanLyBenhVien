@@ -355,7 +355,7 @@
     border-bottom: 1px solid var(--border-color);
     background: var(--bg-body);
     color: var(--text-sub);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
 }
@@ -364,7 +364,7 @@
     padding: 12px;
     border-bottom: 1px solid var(--border-color);
     color: var(--text-title);
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.6;
     vertical-align: middle;
     overflow-wrap: anywhere;

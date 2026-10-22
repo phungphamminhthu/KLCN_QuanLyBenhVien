@@ -326,10 +326,10 @@
             );
         }
 
-        const params = new URLSearchParams({
-            trang: String(page),
-            kichThuocTrang: $("history-page-size").value
-        });
+       const params = new URLSearchParams({
+           trang: String(page),
+           kichThuocTrang: "5"
+       });
 
         const filters = {
             tuKhoa: $("history-search-input").value.trim(),
@@ -450,7 +450,7 @@
                 || responsePages < responsePage
                 || !Number.isSafeInteger(total)
                 || total < 0
-                || ![10, 20, 50].includes(size)
+                || ![5, 10, 20, 50].includes(size)
             ) {
                 throw new Error("Thông tin phân trang từ API không hợp lệ.");
             }
@@ -580,7 +580,6 @@
             "history-empty",
             "history-empty-message",
             "history-record-count",
-            "history-page-size",
             "history-prev-page",
             "history-next-page",
             "history-page-label"
@@ -608,8 +607,7 @@
             "history-doctor-filter",
             "history-department-filter",
             "history-from-date",
-            "history-to-date",
-            "history-page-size"
+            "history-to-date"
         ].forEach(id => {
             $(id).addEventListener("change", reloadFirstPage);
         });

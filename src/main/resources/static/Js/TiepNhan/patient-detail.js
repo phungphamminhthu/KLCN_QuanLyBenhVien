@@ -10,6 +10,7 @@
 
     const patientId = positiveId(page.dataset.patientId);
     const requestedVisitId = positiveId(page.dataset.appointmentId);
+    const isHistoryView = requestedVisitId !== null;
 
     const allowedSources = [
         "dashboard",
@@ -119,13 +120,45 @@
         return nowVietnam().slice(0, 10);
     }
 
-    function formatDate(value) {
-        const match = /^(\d{4})-(\d{2})-(\d{2})/
-            .exec(String(value ?? ""));
+    function todayVietnamDate(value) {
+        if (!value) return "";
 
-        return match
-            ? `${match[3]}/${match[2]}/${match[1]}`
-            : "";
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) return "";
+
+        return new Intl.DateTimeFormat("en-CA", {
+            timeZone: "Asia/Ho_Chi_Minh",
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).format(date);
+    }
+
+//    function formatDate(value) {
+//        const match = /^(\d{4})-(\d{2})-(\d{2})/
+//            .exec(String(value ?? ""));
+//
+//        return match
+//            ? `${match[3]}/${match[2]}/${match[1]}`
+//            : "";
+//    }
+
+    function formatDate(value) {
+        if (!value) return "";
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "";
+        }
+
+        return new Intl.DateTimeFormat("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+        }).format(date);
     }
 
     function setText(id, value) {
@@ -200,16 +233,36 @@
         return !!start && !!end && start <= now && now < end;
     }
 
+//    function canEditVitals() {
+//        return !!visit
+//            && !needsRefresh
+//            && shiftActive()
+//            && String(visit.ngayKham).slice(0, 10)
+//                === todayVietnam()
+//            && positiveId(visit.maKhoa)
+//                === positiveId(currentShift.maKhoa)
+//            && rawStatus(visit.trangThai) === "DaGoi";
+//    }
+
+
     function canEditVitals() {
-        return !!visit
-            && !needsRefresh
-            && shiftActive()
-            && String(visit.ngayKham).slice(0, 10)
-                === todayVietnam()
-            && positiveId(visit.maKhoa)
-                === positiveId(currentShift.maKhoa)
-            && rawStatus(visit.trangThai) === "DaGoi";
+        const checks = {
+            coLichKham: !!visit,
+            canLamMoi: !needsRefresh,
+            caTrucConHieuLuc: shiftActive(),
+            ngayKhamLaHomNay: !!visit
+                && todayVietnamDate(visit.ngayKham) === todayVietnam(),
+            cungKhoa: !!visit
+                && positiveId(visit.maKhoa)
+                    === positiveId(currentShift?.maKhoa),
+            trangThaiDaGoi: !!visit
+                && rawStatus(visit.trangThai) === "DaGoi"
+        };
+
+        return Object.values(checks).every(Boolean);
     }
+
+
 
     // =====================================================
     // THÔNG BÁO ĐẨY
@@ -766,15 +819,27 @@
                 "patient-detail-visit-link"
             );
 
+//            const url = new URL(
+//                `/TiepNhan/chi-tiet-lich-kham/${patientId}/${id}`,
+//                window.location.origin
+//            );
+//
+//            url.searchParams.set("from", source);
+//
+//            link.href = url.pathname + url.search;
+//            link.dataset.appointmentId = String(id);
+
             const url = new URL(
-                `/TiepNhan/chi-tiet-lich-kham/${patientId}/${id}`,
+                `/TiepNhan/ho-so-benh-nhan/${patientId}`,
                 window.location.origin
             );
 
+            url.searchParams.set("maLichKham", String(id));
             url.searchParams.set("from", source);
 
             link.href = url.pathname + url.search;
             link.dataset.appointmentId = String(id);
+
 
             link.setAttribute(
                 "aria-label",
@@ -887,8 +952,7 @@
             .map(mapTodayAppointment)
             .filter(item =>
                 item.maBenhNhan === patientId
-                && String(item.ngayKham).slice(0, 10)
-                    === todayVietnam()
+                && todayVietnamDate(item.ngayKham) === todayVietnam()
                 && item.maKhoa === positiveId(shift.maKhoa)
                 && !["DaHuy", "KhongDen"]
                     .includes(rawStatus(item.trangThai))
@@ -948,7 +1012,7 @@
                     formatDate(visit.ngayKham),
                     String(visit.gioKham || "").slice(0, 5),
                     visit.khoa || currentShift.tenKhoa,
-                    `Lịch #${visit.maLichKham}`,
+//                    `Lịch #${visit.maLichKham}`,
                     stt
                         ? `Số ${String(stt).padStart(3, "0")}`
                         : "Chưa cấp số"
@@ -1061,13 +1125,70 @@
                 );
             }
 
+                //            const nextShift = validateShift(shiftData);
+                //
+                //            const nextVisit = findTodayAppointment(
+                //                rows,
+                //                nextShift
+                //            );
+                //
+                //            if (nextVisit) {
+                //                const vitals = await requestApi(
+                //                    "/api/tiepnhan/chi-so-truoc-kham/"
+                //                    + nextVisit.maLichKham
+                //                );
+                //
+                //                if (
+                //                    positiveId(vitals.maLichKham)
+                //                        !== nextVisit.maLichKham
+                //                ) {
+                //                    throw new Error(
+                //                        "Số đo trả về không đúng lịch khám."
+                //                    );
+                //                }
+                //
+                //                for (const key of Object.keys(vitalFields)) {
+                //                    nextVisit[key] = vitals[key] ?? null;
+                //                }
+                //            }
+                //
+                //            patient = data;
+                //            currentShift = nextShift;
+                //            visit = nextVisit;
+                //            needsRefresh = false;
             const nextShift = validateShift(shiftData);
 
-            const nextVisit = findTodayAppointment(
-                rows,
-                nextShift
-            );
+            // Nếu mở từ lịch sử thì lấy đúng lịch được chọn.
+            // Nếu mở hồ sơ bình thường thì vẫn lấy lịch hôm nay.
+            let nextVisit;
 
+            if (isHistoryView) {
+                nextVisit = data.danhSachLanKham.find(
+                    item =>
+                        positiveId(item.maLichKham) === requestedVisitId
+                );
+
+                if (!nextVisit) {
+                    throw new Error("Không tìm thấy lịch khám đã chọn.");
+                }
+
+                nextVisit = { ...nextVisit };
+
+                // Chỉ bổ sung mã khoa nếu đúng cùng một mã lịch.
+                const todayVisit = findTodayAppointment(rows, nextShift);
+
+                if (
+                    todayVisit
+                    && positiveId(todayVisit.maLichKham)
+                        === positiveId(nextVisit.maLichKham)
+                ) {
+                    nextVisit.maKhoa = todayVisit.maKhoa;
+                }
+            } else {
+                nextVisit = findTodayAppointment(rows, nextShift);
+            }
+
+            // Lấy số đo theo đúng mã lịch đang xem.
             if (nextVisit) {
                 const vitals = await requestApi(
                     "/api/tiepnhan/chi-so-truoc-kham/"
@@ -1076,11 +1197,9 @@
 
                 if (
                     positiveId(vitals.maLichKham)
-                        !== nextVisit.maLichKham
+                    !== positiveId(nextVisit.maLichKham)
                 ) {
-                    throw new Error(
-                        "Số đo trả về không đúng lịch khám."
-                    );
+                    throw new Error("Số đo trả về không đúng lịch khám.");
                 }
 
                 for (const key of Object.keys(vitalFields)) {
@@ -1124,15 +1243,24 @@
             renderVisitList();
             renderVisit();
 
-            if (!shiftActive()) {
-                needsRefresh = true;
+//            if (!shiftActive()) {
+//                needsRefresh = true;
+//
+//                showMessage(
+//                    "Ca tiếp nhận đã kết thúc. "
+//                    + "Hãy làm mới để kiểm tra phân công.",
+//                    "warning"
+//                );
+//            }
+                if (!isHistoryView && !shiftActive()) {
+                    needsRefresh = true;
 
-                showMessage(
-                    "Ca tiếp nhận đã kết thúc. "
-                    + "Hãy làm mới để kiểm tra phân công.",
-                    "warning"
-                );
-            }
+                    showMessage(
+                        "Ca tiếp nhận đã kết thúc. "
+                        + "Hãy làm mới để kiểm tra phân công.",
+                        "warning"
+                    );
+                }
         } catch (error) {
             needsRefresh = true;
             showMessage(error.message);

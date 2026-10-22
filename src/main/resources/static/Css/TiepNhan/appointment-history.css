@@ -312,7 +312,7 @@
     border-bottom: 1px solid var(--history-border);
     background: #f8f7fc;
     color: var(--history-muted);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
     line-height: 1.5;
     text-align: left;
@@ -327,6 +327,7 @@
     line-height: 1.65;
     vertical-align: middle;
     overflow-wrap: anywhere;
+    font-size: 14px;
 }
 
 .appointment-history-page .history-table tbody tr:hover td {
@@ -345,7 +346,7 @@
 
 .appointment-history-page .history-primary-text {
     color: var(--history-text);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     line-height: 1.6;
 }

@@ -259,11 +259,12 @@ public class TiepNhanLichSuKhamService {
             );
         }
 
-        if (kichThuocTrang != 10
+        if (kichThuocTrang != 5
+                && kichThuocTrang != 10
                 && kichThuocTrang != 20
                 && kichThuocTrang != 50) {
             throw new IllegalArgumentException(
-                    "Số dòng mỗi trang phải là 10, 20 hoặc 50."
+                    "Số dòng mỗi trang phải là 5, 10, 20 hoặc 50."
             );
         }
     }

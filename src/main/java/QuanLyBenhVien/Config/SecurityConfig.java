@@ -91,6 +91,17 @@ public class SecurityConfig {
                         // API thông báo cần đăng nhập
                         .requestMatchers("/api/thong-bao/**").authenticated()
 
+                        // API hồ sơ cá nhân nhân viên tiếp nhận
+                        .requestMatchers(
+                                "/api/tiep-nhan/ho-so-ca-nhan",
+                                "/api/tiep-nhan/ho-so-ca-nhan/**"
+                        ).hasRole("TIEPNHAN")
+
+                        // API đổi mật khẩu nhân viên tiếp nhận
+                        .requestMatchers(
+                                        "/api/tiep-nhan/doi-mat-khau"
+                        ).hasRole("TIEPNHAN")
+
                         // API phân công tiếp nhận: chỉ Admin
                         .requestMatchers(
                                 "/api/phan-cong-tiep-nhan",
