@@ -48,6 +48,11 @@ public class SecurityConfig {
                         // Endpoint xử lý lỗi của Spring
                         .requestMatchers("/error").permitAll()
 
+                        // Chrome DevTools: tránh log 403 không liên quan
+                        .requestMatchers(
+                                "/.well-known/appspecific/com.chrome.devtools.json"
+                        ).permitAll()
+
                         // Webhook SePay: cho phép nhận callback không có JWT
                         .requestMatchers(
                                 HttpMethod.POST,
@@ -85,6 +90,12 @@ public class SecurityConfig {
 
                         // API thông báo cần đăng nhập
                         .requestMatchers("/api/thong-bao/**").authenticated()
+
+                        // API phân công tiếp nhận: chỉ Admin
+                        .requestMatchers(
+                                "/api/phan-cong-tiep-nhan",
+                                "/api/phan-cong-tiep-nhan/**"
+                        ).hasRole("ADMIN")
 
                         // Những request còn lại cần đăng nhập
                         .anyRequest().authenticated()

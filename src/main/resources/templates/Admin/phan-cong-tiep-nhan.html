@@ -1,0 +1,291 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân công tiếp nhận | MedCare</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              href="/Css/Admin/phan-cong-tiep-nhan.css">
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="pct-page">
+
+    <!-- Tiêu đề -->
+    <section class="pct-page-heading">
+        <div>
+<!--            <div class="pct-breadcrumb">-->
+<!--                <span>Quản lý bệnh viện</span>-->
+<!--                <span class="pct-breadcrumb-separator">/</span>-->
+<!--                <span>Phân công tiếp nhận</span>-->
+<!--            </div>-->
+
+            <h1>Phân công tiếp nhận</h1>
+            <p>
+                Quản lý nhân viên tiếp nhận, khoa phụ trách
+                và thời gian làm việc.
+            </p>
+        </div>
+
+        <button type="button"
+                class="pct-btn pct-btn-primary"
+                id="btnOpenCreate">
+            <span class="pct-btn-icon">+</span>
+            Tạo phân công
+        </button>
+    </section>
+
+    <!-- Thống kê -->
+    <section class="pct-stat-grid">
+        <article class="pct-stat-card">
+            <div class="pct-stat-icon pct-icon-blue">PC</div>
+            <div>
+                <p>Tổng phân công</p>
+                <h2 id="statTotal">0</h2>
+                <span>Tất cả bản ghi</span>
+            </div>
+        </article>
+
+        <article class="pct-stat-card">
+            <div class="pct-stat-icon pct-icon-green">✓</div>
+            <div>
+                <p>Đang hoạt động</p>
+                <h2 id="statActive">0</h2>
+                <span>Trạng thái hoạt động</span>
+            </div>
+        </article>
+
+        <article class="pct-stat-card">
+            <div class="pct-stat-icon pct-icon-orange">◷</div>
+            <div>
+                <p>Sắp diễn ra</p>
+                <h2 id="statUpcoming">0</h2>
+                <span>Chưa đến thời gian bắt đầu</span>
+            </div>
+        </article>
+    </section>
+
+    <!-- Danh sách -->
+    <section class="pct-panel">
+
+        <div class="pct-panel-heading">
+            <div>
+                <h2>Danh sách phân công</h2>
+                <p>Tra cứu và theo dõi lịch phân công tiếp nhận.</p>
+            </div>
+
+            <button type="button"
+                    class="pct-btn pct-btn-outline"
+                    id="btnRefresh">
+                ↻ Làm mới
+            </button>
+        </div>
+
+        <!-- Bộ lọc -->
+        <div class="pct-filter-grid">
+
+            <div class="pct-form-group pct-search-group">
+                <label for="filterSearch">Tìm kiếm</label>
+                <input type="search"
+                       id="filterSearch"
+                       placeholder="Tên nhân viên, khoa, Admin...">
+            </div>
+
+            <div class="pct-form-group">
+                <label for="filterEmployee">Nhân viên tiếp nhận</label>
+                <select id="filterEmployee">
+                    <option value="">Tất cả nhân viên</option>
+                </select>
+            </div>
+
+            <div class="pct-form-group">
+                <label for="filterDepartment">Khoa</label>
+                <select id="filterDepartment">
+                    <option value="">Tất cả khoa</option>
+                </select>
+            </div>
+
+            <div class="pct-form-group">
+                <label for="filterStatus">Trạng thái</label>
+                <select id="filterStatus">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="upcoming">Sắp diễn ra</option>
+                    <option value="ended">Đã kết thúc</option>
+                    <option value="inactive">Ngừng hoạt động</option>
+                </select>
+            </div>
+
+            <div class="pct-filter-actions">
+                <button type="button"
+                        class="pct-btn pct-btn-outline"
+                        id="btnResetFilter">
+                    Xóa lọc
+                </button>
+            </div>
+        </div>
+
+        <!-- Thông báo -->
+        <div id="pageMessage"
+             class="pct-alert"
+             role="status"
+             aria-live="polite"
+             hidden></div>
+
+        <!-- Bảng dữ liệu -->
+        <div class="pct-table-wrapper">
+            <table class="pct-table">
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Nhân viên tiếp nhận</th>
+                    <th>Khoa phụ trách</th>
+                    <th>Thời gian bắt đầu</th>
+                    <th>Thời gian kết thúc</th>
+                    <th>Người phân công</th>
+                    <th>Trạng thái</th>
+                </tr>
+                </thead>
+
+                <tbody id="assignmentTableBody">
+                <tr>
+                    <td colspan="7" class="pct-table-message">
+                        Đang tải dữ liệu...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pct-table-footer">
+            <span id="tableSummary">Đang tải dữ liệu...</span>
+        </div>
+    </section>
+
+    <!-- Modal tạo phân công -->
+    <div class="pct-modal"
+         id="createModal"
+         aria-hidden="true">
+
+        <div class="pct-modal-backdrop" data-close-modal></div>
+
+        <section class="pct-modal-dialog"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="modalTitle">
+
+            <div class="pct-modal-header">
+                <div>
+                    <h2 id="modalTitle">Tạo phân công tiếp nhận</h2>
+                    <p>Nhập thông tin nhân viên, khoa và thời gian.</p>
+                </div>
+
+                <button type="button"
+                        class="pct-modal-close"
+                        id="btnCloseModal"
+                        aria-label="Đóng">
+                    ×
+                </button>
+            </div>
+
+            <form id="assignmentForm">
+
+                <div class="pct-modal-body">
+
+                    <div class="pct-form-group">
+                        <label for="employeeId">
+                            Nhân viên tiếp nhận
+                            <span class="pct-required">*</span>
+                        </label>
+
+                        <select id="employeeId"
+                                name="maNhanVienTiepNhan"
+                                required>
+                            <option value="">Đang tải nhân viên...</option>
+                        </select>
+                    </div>
+
+                    <div class="pct-form-group">
+                        <label for="departmentId">
+                            Khoa phụ trách
+                            <span class="pct-required">*</span>
+                        </label>
+
+                        <select id="departmentId"
+                                name="maKhoa"
+                                required>
+                            <option value="">Đang tải danh sách khoa...</option>
+                        </select>
+                    </div>
+
+                    <div class="pct-form-row">
+                        <div class="pct-form-group">
+                            <label for="startTime">
+                                Thời gian bắt đầu
+                                <span class="pct-required">*</span>
+                            </label>
+
+                            <input type="datetime-local"
+                                   id="startTime"
+                                   name="thoiGianBatDau"
+                                   required>
+                        </div>
+
+                        <div class="pct-form-group">
+                            <label for="endTime">
+                                Thời gian kết thúc
+                                <span class="pct-required">*</span>
+                            </label>
+
+                            <input type="datetime-local"
+                                   id="endTime"
+                                   name="thoiGianKetThuc"
+                                   required>
+                        </div>
+                    </div>
+
+                    <div class="pct-info-note">
+                        <span>ⓘ</span>
+                        <p>
+                            Một nhân viên không thể có hai phân công
+                            đang hoạt động bị trùng thời gian.
+                        </p>
+                    </div>
+
+                    <div id="formMessage"
+                         class="pct-alert"
+                         role="alert"
+                         hidden></div>
+                </div>
+
+                <div class="pct-modal-footer">
+                    <button type="button"
+                            class="pct-btn pct-btn-outline"
+                            id="btnCancelCreate">
+                        Hủy
+                    </button>
+
+                    <button type="submit"
+                            class="pct-btn pct-btn-primary"
+                            id="btnSubmitCreate">
+                        Lưu phân công
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <th:block layout:fragment="js">
+        <script src="/Js/Admin/phan-cong-tiep-nhan.js"></script>
+    </th:block>
+</div>
+</body>
+</html>

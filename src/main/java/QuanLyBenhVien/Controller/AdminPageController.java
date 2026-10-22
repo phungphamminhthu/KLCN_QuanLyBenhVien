@@ -90,6 +90,12 @@ public class AdminPageController {
         return "Admin/audit-log";
     }
 
+    // phân công tiếp nhận
+    @GetMapping("/phan-cong-tiep-nhan")
+    public String phanCongTiepNhan() {
+        return "Admin/phan-cong-tiep-nhan";
+    }
+
     @ModelAttribute
     public void addCurrentUri(
             HttpServletRequest request,

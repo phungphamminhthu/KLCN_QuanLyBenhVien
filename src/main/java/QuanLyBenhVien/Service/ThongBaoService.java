@@ -163,5 +163,59 @@ public class ThongBaoService {
         return nguoiNhans.size();
     }
 
+    // =================================
+    // tạo thông báo realtime
+    // =================================
+
+    @Transactional
+    public ThongBao taoThongBaoVaGuiRealtime(
+            Integer maNguoiDung,
+            String tieuDe,
+            String noiDung,
+            String loaiThongBao
+    ) {
+        NguoiDung nguoiDung = nguoiDungRepository.findById(maNguoiDung)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Không tìm thấy người nhận thông báo"));
+
+        ThongBao thongBao = new ThongBao();
+        thongBao.setNguoiDung(nguoiDung);
+        thongBao.setTieuDe(tieuDe);
+        thongBao.setNoiDung(noiDung);
+        thongBao.setLoaiThongBao(loaiThongBao);
+        thongBao.setDaDoc(false);
+        thongBao.setTrangThai("MOI");
+
+        ThongBao saved = thongBaoRepository.save(thongBao);
+
+        Runnable gui = () -> {
+            thongBaoWebSocketService.guiThongBaoRealtime(
+                    nguoiDung.getTenDangNhap(),
+                    saved.getTieuDe(),
+                    saved.getNoiDung(),
+                    saved.getLoaiThongBao()
+            );
+
+            thongBaoWebSocketService.guiSoThongBaoChuaDoc(nguoiDung);
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            gui.run();
+                        }
+                    }
+            );
+        } else {
+            gui.run();
+        }
+
+        return saved;
+    }
+
+
 
 }

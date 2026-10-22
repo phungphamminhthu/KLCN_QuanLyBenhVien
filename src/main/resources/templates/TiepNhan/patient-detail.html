@@ -23,7 +23,8 @@
 <body class="reception-layout patient-detail-page">
 
 <!-- SIDEBAR DÙNG CHUNG -->
-<aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar(${trangNguon})}"></aside>
+<!--<aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar(${trangNguon})}"></aside>-->
+<aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar}"></aside>
 
 <main id="patient-detail-page"
       class="main-wrapper reception-main"
@@ -540,6 +541,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/Js/Auth/logout.js"></script>
+<script th:src="@{/Js/TiepNhan/layout.js}"></script>
 <script src="/Js/TiepNhan/patient-detail.js"></script>
 
 </body>
