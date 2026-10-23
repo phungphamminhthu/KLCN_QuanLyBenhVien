@@ -62,7 +62,9 @@ public class SecurityConfig {
                                 "/Images/**",
                                 "/api/auth/**",
                                 "/api/test-email",
-                                "/api/images/**"
+                                "/api/images/**",
+                                "/ws",
+                                "/ws/**"
                         ).permitAll()
 
                         // Các trang giao diện

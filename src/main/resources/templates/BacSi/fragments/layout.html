@@ -52,14 +52,23 @@
 </div>
 
 <!-- JS MENU SIDEBAR -->
+
+<!-- JS MENU SIDEBAR -->
 <script src="/Js/BacSi/sidebar.js"></script>
 <script th:src="@{/Js/BacSi/layout.js}"></script>
+
+<!-- THƯ VIỆN STOMP WEBSOCKET -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.0/bundles/stomp.umd.min.js"></script>
+
+<!-- WEBSOCKET THÔNG BÁO BÁC SĨ -->
+<script src="/Js/BacSi/bac-si-websocket.js"></script>
 
 <!-- POPUP ĐĂNG XUẤT DÙNG CHUNG -->
 <script src="/Js/Auth/logout.js"></script>
 
 <!-- JS RIÊNG CỦA TỪNG TRANG -->
 <th:block layout:fragment="js"></th:block>
+
 
 </body>
 </html>

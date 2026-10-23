@@ -513,10 +513,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                 break;
 
+
                             case "BACSI":
-                                window.location.href = "/auth/bac-si/trang-chu";
+
+                                // Đánh dấu bác sĩ vừa đăng nhập thành công
+                                sessionStorage.setItem(
+                                    "thongBaoChoKhamSauDangNhap",
+                                    "1"
+                                );
+
+                                // Chuyển đến trang chủ bác sĩ
+                                window.location.href =
+                                    "/auth/bac-si/trang-chu";
 
                                 break;
+
                             case "TIEPNHAN":
 
                                 window.location.href =

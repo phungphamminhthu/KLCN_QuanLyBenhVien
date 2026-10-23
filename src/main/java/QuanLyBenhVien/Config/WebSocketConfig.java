@@ -45,7 +45,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns(
+                        "http://localhost:8080",
+                        "http://127.0.0.1:8080"
+                );
     }
 
     @Override
@@ -84,6 +87,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         throw new IllegalArgumentException("JWT không hợp lệ");
                     }
 
+                    boolean laBacSi = userDetails.getAuthorities()
+                            .stream()
+                            .anyMatch(role ->
+                                    "ROLE_BACSI".equals(role.getAuthority())
+                            );
+
+                    if (!laBacSi) {
+                        throw new IllegalArgumentException(
+                                "Chỉ tài khoản bác sĩ được kết nối WebSocket."
+                        );
+                    }
+
+
                     Authentication authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -92,6 +108,40 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                     accessor.setUser(authentication);
                 }
+
+                if (accessor != null
+                        && StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+
+                    String destination = accessor.getDestination();
+
+                    // Chỉ cho đăng ký đúng kênh thông báo cá nhân.
+                    if (!"/user/queue/thong-bao".equals(destination)) {
+                        throw new IllegalArgumentException(
+                                "Không được đăng ký kênh WebSocket này."
+                        );
+                    }
+
+                    if (!(accessor.getUser() instanceof Authentication auth)
+                            || !auth.isAuthenticated()
+                            || auth.getAuthorities().stream().noneMatch(
+                            role -> "ROLE_BACSI".equals(role.getAuthority())
+                    )) {
+
+                        throw new IllegalArgumentException(
+                                "Chỉ bác sĩ đã đăng nhập mới được nhận thông báo."
+                        );
+                    }
+                }
+
+// Không cho client tự gửi tin vào broker.
+                if (accessor != null
+                        && StompCommand.SEND.equals(accessor.getCommand())) {
+
+                    throw new IllegalArgumentException(
+                            "Client không được tự gửi thông báo."
+                    );
+                }
+
 
                 return message;
             }

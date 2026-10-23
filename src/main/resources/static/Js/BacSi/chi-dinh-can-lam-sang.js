@@ -1,4 +1,3 @@
-
 /* =========================================
    CHỈ ĐỊNH CẬN LÂM SÀNG - BÁC SĨ
 ========================================= */
@@ -266,9 +265,29 @@ async function clsTaiDichVu() {
         }
     );
 
-    clsDanhSachDichVu = Array.isArray(data)
-        ? data
-        : [];
+    // Giữ lại dịch vụ có mã nhỏ nhất cho mỗi tên.
+    // Không xóa hoặc thay đổi dữ liệu trong MySQL.
+    const danhSach = Array.isArray(data) ? data : [];
+
+    const dichVuKhongTrung = new Map();
+
+    danhSach
+        .slice()
+        .sort((a, b) =>
+            Number(clsGiaTri(a, "maDichVu", "MaDichVu")) -
+            Number(clsGiaTri(b, "maDichVu", "MaDichVu"))
+        )
+        .forEach(item => {
+            const ten = String(
+                clsGiaTri(item, "tenDichVu", "TenDichVu") || ""
+            ).trim().toLocaleLowerCase("vi-VN");
+
+            if (ten && !dichVuKhongTrung.has(ten)) {
+                dichVuKhongTrung.set(ten, item);
+            }
+        });
+
+    clsDanhSachDichVu = [...dichVuKhongTrung.values()];
 
     const select = clsEl("serviceSelect");
 
@@ -296,24 +315,124 @@ async function clsTaiDichVu() {
     });
 }
 
-function clsChonDichVu() {
-    const id = Number(
-        clsEl("serviceSelect").value
-    );
+// Lấy thông số theo mã dịch vụ, không thay đổi API tạo chỉ định.
+let clsThongSoRequestId = 0;
+const clsThongSoCache = new Map();
 
+function clsAnThongSo() {
+    const panel = clsEl("clsParameterPanel");
+    if (!panel) return;
+    panel.hidden = true;
+    clsEl("clsParameterGroups").replaceChildren();
+    clsEl("clsParameterMessage").hidden = true;
+    clsEl("clsParameterCount").textContent = "0 thông số";
+}
+
+function clsHienThongBaoThongSo(message) {
+    const panel = clsEl("clsParameterPanel");
+    const el = clsEl("clsParameterMessage");
+    panel.hidden = false;
+    el.hidden = false;
+    el.textContent = message;
+    clsEl("clsParameterGroups").replaceChildren();
+}
+
+function clsVeThongSo(thongSo) {
+    const panel = clsEl("clsParameterPanel");
+    const groups = clsEl("clsParameterGroups");
+    panel.hidden = false;
+    groups.replaceChildren();
+    clsEl("clsParameterMessage").hidden = true;
+    clsEl("clsParameterCount").textContent = `${thongSo.length} thông số`;
+
+    if (thongSo.length === 0) {
+        clsHienThongBaoThongSo(
+            "Dịch vụ này chưa được cấu hình thông số. " +
+            "Bác sĩ vẫn có thể tạo chỉ định; KTV sẽ cần biểu mẫu phù hợp."
+        );
+        return;
+    }
+
+    const byGroup = new Map();
+    for (const item of thongSo) {
+        const groupName = String(
+            clsGiaTri(item, "nhomChiSo", "NhomChiSo") || "Thông số khác"
+        ).trim() || "Thông số khác";
+        if (!byGroup.has(groupName)) byGroup.set(groupName, []);
+        byGroup.get(groupName).push(item);
+    }
+
+    for (const [groupName, values] of byGroup) {
+        const section = document.createElement("section");
+        section.className = "cls-parameter-group";
+
+        const title = document.createElement("h5");
+        title.textContent = groupName;
+        section.appendChild(title);
+
+        const list = document.createElement("div");
+        list.className = "cls-parameter-chips";
+
+        for (const item of values) {
+            const chip = document.createElement("div");
+            chip.className = "cls-parameter-chip";
+            const name = document.createElement("strong");
+            name.textContent = String(
+                clsGiaTri(item, "tenChiSo", "TenChiSo") || "Thông số"
+            );
+            chip.appendChild(name);
+
+            const unitText = clsGiaTri(item, "donVi", "DonVi");
+            if (unitText) {
+                const unit = document.createElement("small");
+                unit.textContent = String(unitText);
+                chip.appendChild(unit);
+            }
+            list.appendChild(chip);
+        }
+        section.appendChild(list);
+        groups.appendChild(section);
+    }
+}
+
+async function clsChonDichVu() {
+    const requestId = ++clsThongSoRequestId;
+    const id = Number(clsEl("serviceSelect").value);
     const dichVu = clsDanhSachDichVu.find(
-        item =>
-            Number(
-                clsGiaTri(
-                    item, "maDichVu", "MaDichVu"
-                )
-            ) === id
+        item => Number(clsGiaTri(item, "maDichVu", "MaDichVu")) === id
     );
 
     clsEl("orderType").value =
-        clsGiaTri(
-            dichVu, "loaiDichVu", "LoaiDichVu"
-        ) || "";
+        clsGiaTri(dichVu, "loaiDichVu", "LoaiDichVu") || "";
+
+    if (!Number.isInteger(id) || id <= 0) {
+        clsAnThongSo();
+        return;
+    }
+
+    if (clsThongSoCache.has(id)) {
+        clsVeThongSo(clsThongSoCache.get(id));
+        return;
+    }
+
+    clsHienThongBaoThongSo("Đang tải thông số dịch vụ...");
+    try {
+        const result = await clsApi(
+            `${CLS_API_BASE}/dich-vu/${id}/chi-so`,
+            { headers: clsHeaders() }
+        );
+        if (requestId !== clsThongSoRequestId) return;
+        if (!Array.isArray(result)) {
+            throw new Error("Dữ liệu thông số không hợp lệ.");
+        }
+        clsThongSoCache.set(id, result);
+        clsVeThongSo(result);
+    } catch (error) {
+        if (requestId !== clsThongSoRequestId) return;
+        clsHienThongBaoThongSo(
+            "Không tải được thông số: " + error.message
+        );
+    }
 }
 
 /* =========================================
@@ -321,6 +440,8 @@ function clsChonDichVu() {
 ========================================= */
 
 function clsDongForm() {
+    ++clsThongSoRequestId;
+    clsAnThongSo();
     clsEl("clinicalOrderForm")
         .classList.add("hidden");
 

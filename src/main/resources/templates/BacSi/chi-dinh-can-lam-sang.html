@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
@@ -10,7 +9,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>Chỉ định cận lâm sàng - Bệnh viện ABC</title>
+    <title>Chỉ định cận lâm sàng - MedCare Hospital</title>
 
     <!-- CSS dành riêng cho trang chỉ định -->
     <th:block layout:fragment="css">
@@ -19,6 +18,9 @@
 
         <link rel="stylesheet"
               th:href="@{/Css/BacSi/chi-dinh-can-lam-sang.css}">
+
+        <link rel="stylesheet"
+              th:href="@{/Css/BacSi/chi-dinh-thong-so.css}">
     </th:block>
 </head>
 
@@ -206,6 +208,31 @@
                 </small>
 
             </div>
+
+            <!-- XEM TRƯỚC THÔNG SỐ XÉT NGHIỆM (CHỈ ĐỌC) -->
+            <section class="cls-parameter-panel" id="clsParameterPanel"
+                     aria-labelledby="clsParameterHeading" hidden>
+                <div class="cls-parameter-heading">
+                    <div class="cls-parameter-heading-left">
+                        <span class="cls-parameter-icon" aria-hidden="true">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </span>
+                        <div>
+                            <h4 id="clsParameterHeading">Thông số của dịch vụ</h4>
+                            <p>Các thông số kỹ thuật viên sẽ sử dụng khi nhập kết quả.</p>
+                        </div>
+                    </div>
+                    <span class="cls-parameter-count" id="clsParameterCount">0 thông số</span>
+                </div>
+
+                <div class="cls-parameter-message" id="clsParameterMessage" hidden></div>
+                <div class="cls-parameter-groups" id="clsParameterGroups"></div>
+                <p class="cls-parameter-hint">
+                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                    Đây là danh sách tham khảo, bác sĩ không nhập kết quả.
+                    Kỹ thuật viên nhập giá trị sau khi thực hiện.
+                </p>
+            </section>
 
             <div class="order-form-actions">
 

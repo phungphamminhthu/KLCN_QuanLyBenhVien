@@ -1112,6 +1112,30 @@ async function loadThongKe() {
                 data.daHoanThanh ?? 0;
         }
 
+        // =====================================================
+        // HIỆN THÔNG BÁO SAU KHI BÁC SĨ ĐĂNG NHẬP
+        // =====================================================
+
+        const vuaDangNhap =
+            sessionStorage.getItem(
+                "thongBaoChoKhamSauDangNhap"
+            ) === "1";
+
+        if (vuaDangNhap) {
+
+            const soBenhNhan = Number(data.choKham) || 0;
+
+            if (soBenhNhan > 0) {
+                thongBaoBenhNhanChoKham(soBenhNhan);
+            }
+
+            // Xóa cờ để khi F5 không hiện lại
+            sessionStorage.removeItem(
+                "thongBaoChoKhamSauDangNhap"
+            );
+        }
+
+
     } catch (error) {
         console.error(
             "Không thể tải thống kê:",
@@ -1130,6 +1154,95 @@ async function loadThongKe() {
             completedCount.textContent = "0";
         }
     }
+}
+
+
+/* =====================================================
+   THÔNG BÁO BỆNH NHÂN CHỜ KHÁM SAU ĐĂNG NHẬP
+===================================================== */
+
+function thongBaoBenhNhanChoKham(soBenhNhan) {
+
+    if (soBenhNhan <= 0) {
+        return;
+    }
+
+    // Không tạo thông báo trùng
+    document.getElementById("thongBaoChoKham")
+        ?.remove();
+
+    const thongBao = document.createElement("div");
+
+    thongBao.id = "thongBaoChoKham";
+
+    thongBao.style.cssText = `
+        position: fixed;
+        top: 85px;
+        right: 25px;
+        z-index: 9999;
+        width: 340px;
+        max-width: calc(100vw - 40px);
+        padding: 18px;
+        background: white;
+        border-left: 5px solid #f59e0b;
+        border-radius: 12px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        font-family: Arial, sans-serif;
+    `;
+
+    const tieuDe = document.createElement("strong");
+    tieuDe.textContent = "🔔 Bệnh nhân đang chờ khám";
+
+    const noiDung = document.createElement("p");
+    noiDung.textContent =
+        `Hiện có ${soBenhNhan} bệnh nhân đang chờ khám.`;
+
+    noiDung.style.cssText = `
+        margin: 10px 0;
+        color: #555;
+        font-size: 14px;
+    `;
+
+    const nutXem = document.createElement("a");
+    nutXem.href = "/auth/bac-si/kham-benh";
+    nutXem.textContent = "Xem danh sách khám";
+
+    nutXem.style.cssText = `
+        color: #2563eb;
+        font-size: 14px;
+        font-weight: bold;
+        text-decoration: none;
+    `;
+
+    const nutDong = document.createElement("button");
+    nutDong.textContent = "×";
+    nutDong.setAttribute("aria-label", "Đóng thông báo");
+
+    nutDong.style.cssText = `
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        border: none;
+        background: transparent;
+        font-size: 24px;
+        cursor: pointer;
+    `;
+
+    nutDong.onclick = () => thongBao.remove();
+
+    thongBao.append(
+        nutDong,
+        tieuDe,
+        noiDung,
+        nutXem
+    );
+
+    document.body.appendChild(thongBao);
+
+    // Tự đóng sau 8 giây
+    setTimeout(() => {
+        thongBao.remove();
+    }, 8000);
 }
 
 /* ==================== TẢI DANH SÁCH CHỜ KHÁM ==================== */

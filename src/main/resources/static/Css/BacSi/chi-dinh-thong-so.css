@@ -1,0 +1,53 @@
+/* Thông số cận lâm sàng - bổ sung, không ghi đè CSS trang gốc */
+.cls-parameter-panel {
+    border: 1px solid #cfe0ff;
+    border-radius: 12px;
+    padding: 14px;
+    background: #f7faff;
+    margin: 14px 0 18px;
+}
+.cls-parameter-panel[hidden], .cls-parameter-message[hidden] { display: none !important; }
+.cls-parameter-heading {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px; margin-bottom: 12px;
+}
+.cls-parameter-heading-left { display:flex; gap:12px; align-items:center; }
+.cls-parameter-icon {
+    display:grid; place-items:center; width:40px; height:40px;
+    border-radius:12px; background:#deebff; color:#2563eb; font-size:17px;
+}
+.cls-parameter-heading h4 { margin:0; font-size:15px; color:#192e51; }
+.cls-parameter-heading p { margin:4px 0 0; color:#64748b; font-size:12px; }
+.cls-parameter-count {
+    display:inline-flex; padding:7px 12px; border-radius:999px;
+    background:#dbeafe; color:#1d4ed8; font-size:12px; font-weight:700;
+}
+.cls-parameter-groups {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(235px,1fr));
+    gap:10px;
+}
+.cls-parameter-group {
+    padding:12px; border:1px solid #e4eaf4; background:#fff;
+    border-radius:10px; min-width:0;
+}
+.cls-parameter-group h5 { margin:0 0 10px; font-size:13px; color:#2563eb; }
+.cls-parameter-group:nth-child(3n+2) h5 { color:#059669; }
+.cls-parameter-group:nth-child(3n+3) h5 { color:#ea580c; }
+.cls-parameter-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.cls-parameter-chip {
+    display:flex; flex-direction:column; justify-content:center;
+    min-width:76px; max-width:100%; border:1px solid #dae7fa;
+    border-radius:9px; background:#eff6ff; padding:8px 10px;
+}
+.cls-parameter-chip strong { font-size:12px; color:#233553; overflow-wrap:anywhere; }
+.cls-parameter-chip small { font-size:11px; color:#64748b; margin-top:2px; }
+.cls-parameter-message { font-size:13px; color:#52657f; padding:12px; background:#fff; border-radius:8px; }
+.cls-parameter-hint {
+    margin:12px 0 0; font-size:12px; line-height:1.6;
+    color:#335e9b; background:#e7f0ff; border-radius:8px; padding:10px;
+}
+.cls-parameter-hint i { margin-right:5px; }
+@media (max-width:640px) {
+    .cls-parameter-panel { padding:10px; }
+    .cls-parameter-groups { grid-template-columns:1fr; }
+}
