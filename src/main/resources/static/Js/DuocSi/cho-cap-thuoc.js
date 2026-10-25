@@ -593,18 +593,20 @@ document.addEventListener("DOMContentLoaded", function () {
                                     </button>
 
 
-                                    <!-- CẤP THUỐC -->
+
+                                    <!-- CẤP THUỐC / TIẾP TỤC -->
 
                                     <button
                                         type="button"
                                         class="dispense-button"
                                         onclick="dispensePrescription(${item.maDonThuoc})">
 
-                                        Cấp
-                                        <br>
-                                        thuốc
+                                        ${item.trangThai === "DangLayThuoc"
+                                            ? "Tiếp tục"
+                                            : "Cấp thuốc"}
 
                                     </button>
+
 
 
                                 </div>
@@ -646,55 +648,41 @@ document.addEventListener("DOMContentLoaded", function () {
     // STATUS
     // =====================================================
 
+
     function normalizeStatus(status) {
-
         switch (status) {
-
-            case "ChoCapThuoc":
-
+            case "ChoLayThuoc":
                 return {
-                    text: "Chờ cấp",
+                    text: "Chờ cấp thuốc",
                     className: "waiting"
                 };
 
-
-            case "DangCapThuoc":
-
+            case "DangLayThuoc":
                 return {
-                    text: "Đang xử lý",
+                    text: "Đang lấy thuốc",
                     className: "processing"
                 };
 
-
-            case "DaCapThuoc":
-
+            case "HoanTat":
                 return {
-                    text: "Đã cấp",
+                    text: "Hoàn tất",
                     className: "completed"
                 };
 
-
             case "DaHuy":
-
                 return {
                     text: "Đã hủy",
                     className: "cancelled"
                 };
 
-
             default:
-
                 return {
-
-                    text:
-                        status ||
-                        "Không xác định",
-
-                    className:
-                        "processing"
+                    text: status || "Không xác định",
+                    className: "processing"
                 };
         }
     }
+
 
 
     // =====================================================
@@ -718,17 +706,63 @@ document.addEventListener("DOMContentLoaded", function () {
     // CẤP THUỐC
     // =====================================================
 
-    window.dispensePrescription =
-        function (id) {
+    window.dispensePrescription = async function (id) {
+        if (!id) {
+            alert("Không tìm thấy mã đơn thuốc.");
+            return;
+        }
 
-            if (!id) {
-                return;
+        // Đơn đã bắt đầu lấy thuốc thì mở tiếp,
+        // không gọi API bắt đầu lần nữa.
+        const row = Array.from(table.querySelectorAll("tr"))
+            .find(tr => tr.querySelector(".dispense-button")
+                ?.getAttribute("onclick")
+                ?.includes(`(${id})`));
+
+        const statusText = row
+            ?.querySelector(".prescription-status")
+            ?.textContent.trim();
+
+        if (statusText === "Đang lấy thuốc") {
+            window.location.href = `/DuocSi/cho-cap-thuoc/${id}`;
+            return;
+        }
+
+        const token =
+            sessionStorage.getItem("Token") ||
+            localStorage.getItem("Token") ||
+            "";
+
+        if (!token) {
+            alert("Vui lòng đăng nhập lại.");
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/duocsi/cho-cap-thuoc/${id}/bat-dau`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                const message = await response.text();
+                throw new Error(message || "Không thể bắt đầu lấy thuốc.");
             }
 
-            window.location.href =
-                "/DuocSi/cap-thuoc/" +
-                id;
-        };
+            window.location.href = `/DuocSi/cho-cap-thuoc/${id}`;
+        } catch (error) {
+            console.error("Lỗi bắt đầu lấy thuốc:", error);
+            alert(error.message || "Có lỗi xảy ra khi bắt đầu lấy thuốc.");
+        }
+    };
+
+
 
 
     // =====================================================

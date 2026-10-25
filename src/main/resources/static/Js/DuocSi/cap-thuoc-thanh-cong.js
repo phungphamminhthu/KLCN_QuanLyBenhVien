@@ -224,32 +224,20 @@ document.addEventListener(
 
 
         // =====================================================
-        // XEM ĐƠN THUỐC
+        // XEM CHI TIẾT ĐƠN THUỐC VỪA CẤP THÀNH CÔNG
         // =====================================================
 
-        viewPrescriptionButton.addEventListener(
-            "click",
-            function () {
+        viewPrescriptionButton.addEventListener("click", function () {
 
-                if (
-                    !maDonThuoc ||
-                    !/^\d+$/.test(
-                        maDonThuoc
-                    )
-                ) {
-                    return;
-                }
-
-
-                window.location.href =
-                    "/DuocSi/chi-tiet-don-thuoc/"
-                    +
-                    encodeURIComponent(
-                        maDonThuoc
-                    );
-
+            if (!maDonThuoc || !/^\d+$/.test(maDonThuoc)) {
+                alert("Không tìm thấy mã đơn thuốc.");
+                return;
             }
-        );
+
+            window.location.href =
+                "/DuocSi/chi-tiet-don-thuoc/" + maDonThuoc;
+
+        });
 
 
         // =====================================================

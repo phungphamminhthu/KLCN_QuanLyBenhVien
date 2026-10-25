@@ -96,6 +96,12 @@ public class AdminPageController {
         return "Admin/phan-cong-tiep-nhan";
     }
 
+    ///Admin/quan-ly-bac-si
+    @GetMapping("/quan-ly-bac-si")
+    public String quanlyBacsi() {
+        return "Admin/quan-ly-bac-si";
+    }
+
     @ModelAttribute
     public void addCurrentUri(
             HttpServletRequest request,

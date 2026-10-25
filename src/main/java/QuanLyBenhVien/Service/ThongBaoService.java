@@ -174,10 +174,13 @@ public class ThongBaoService {
             String noiDung,
             String loaiThongBao
     ) {
-        NguoiDung nguoiDung = nguoiDungRepository.findById(maNguoiDung)
+        NguoiDung nguoiDung = nguoiDungRepository
+                .findById(maNguoiDung)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "Không tìm thấy người nhận thông báo"));
+                                "Không tìm thấy người nhận thông báo"
+                        )
+                );
 
         ThongBao thongBao = new ThongBao();
         thongBao.setNguoiDung(nguoiDung);
@@ -190,14 +193,25 @@ public class ThongBaoService {
         ThongBao saved = thongBaoRepository.save(thongBao);
 
         Runnable gui = () -> {
-            thongBaoWebSocketService.guiThongBaoRealtime(
-                    nguoiDung.getTenDangNhap(),
-                    saved.getTieuDe(),
-                    saved.getNoiDung(),
-                    saved.getLoaiThongBao()
+            long count = thongBaoRepository
+                    .countByNguoiDung_MaNguoiDungAndDaDocFalse(
+                            nguoiDung.getMaNguoiDung()
+                    );
+
+            Map<String, Object> payload = Map.of(
+                    "id", saved.getMaThongBao(),
+                    "title", saved.getTieuDe(),
+                    "message", saved.getNoiDung() == null
+                            ? "" : saved.getNoiDung(),
+                    "type", saved.getLoaiThongBao() == null
+                            ? "general" : saved.getLoaiThongBao(),
+                    "count", count
             );
 
-            thongBaoWebSocketService.guiSoThongBaoChuaDoc(nguoiDung);
+            thongBaoWebSocketService.guiThongBaoKemSoLuong(
+                    nguoiDung.getTenDangNhap(),
+                    payload
+            );
         };
 
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
@@ -215,7 +229,6 @@ public class ThongBaoService {
 
         return saved;
     }
-
 
 
 }

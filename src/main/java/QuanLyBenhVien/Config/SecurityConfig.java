@@ -82,6 +82,12 @@ public class SecurityConfig {
                                 "/TiepNhan/**"
                         ).permitAll()
 
+                        // API cấp thuốc và thanh toán dành riêng cho Dược sĩ
+                        .requestMatchers(
+                                "/api/duocsi",
+                                "/api/duocsi/**"
+                        ).hasRole("DUOCSI")
+
                         // API kho thuốc: chỉ Dược sĩ
                         .requestMatchers(
                                 "/api/kho-thuoc",

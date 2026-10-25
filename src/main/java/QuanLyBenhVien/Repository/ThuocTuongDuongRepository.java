@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ThuocTuongDuongRepository
         extends JpaRepository<ThuocTuongDuong, Integer> {
 
@@ -21,5 +23,11 @@ public interface ThuocTuongDuongRepository
     boolean existsByThuoc_MaThuocOrThuocThayThe_MaThuoc(
             Integer maThuoc,
             Integer maThuocThayThe
+    );
+
+    List<ThuocTuongDuong>
+    findByThuoc_MaThuocAndTrangThai(
+            Integer maThuoc,
+            String trangThai
     );
 }

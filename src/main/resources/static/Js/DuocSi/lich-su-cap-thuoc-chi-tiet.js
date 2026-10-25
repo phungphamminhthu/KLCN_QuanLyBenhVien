@@ -261,6 +261,14 @@ document.addEventListener("DOMContentLoaded", function () {
             data.ngayKe || "-"
         );
 
+        // NGÀY TÁI KHÁM
+        setText(
+            "ngayTaiKham",
+            formatDate(
+                data.ngayTaiKham || data.ngayTaiKhamFormatted
+            )
+        );
+
 
         setText(
             "ngayCap",
@@ -990,7 +998,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
+    // =====================================================
+    // FORMAT DATE
+    // Hỗ trợ yyyy-MM-dd hoặc chuỗi ISO datetime
+    // =====================================================
+    function formatDate(value) {
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return "Chưa có";
+        }
 
+        const text = String(value).trim();
+
+        const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+        if (match) {
+            return `${match[3]}-${match[2]}-${match[1]}`;
+        }
+
+        return text;
+    }
     // =====================================================
     // SET TEXT
     // =====================================================

@@ -27,6 +27,17 @@ public class ThongBaoWebSocketService {
         this.thongBaoRepository = thongBaoRepository;
     }
 
+    public void guiThongBaoKemSoLuong(
+            String tenDangNhap,
+            Map<String, Object> payload
+    ) {
+        messagingTemplate.convertAndSendToUser(
+                tenDangNhap,
+                "/queue/thong-bao",
+                payload
+        );
+    }
+
 
     // =====================================================
     // 1. TẠO THÔNG BÁO + LƯU DATABASE

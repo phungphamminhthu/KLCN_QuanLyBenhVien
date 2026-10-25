@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý bác sĩ | MedCare</title>
+
+    <link rel="stylesheet"
+          th:href="@{/Css/Admin/quan-ly-bac-si.css}">
+</head>
+
+<body>
+<div layout:fragment="content" class="qbs-page">
+
+    <section class="qbs-page-heading">
+        <div>
+            <h1>Quản lý bác sĩ</h1>
+            <p>Quản lý hồ sơ chuyên môn, khoa công tác và chứng chỉ hành nghề.</p>
+        </div>
+
+        <button type="button"
+                class="qbs-btn qbs-btn-primary"
+                id="btnOpenCreate">
+            <span class="qbs-btn-icon">+</span>
+            Bổ sung hồ sơ bác sĩ
+        </button>
+    </section>
+
+    <section class="qbs-stat-grid">
+        <article class="qbs-stat-card">
+            <div class="qbs-stat-icon qbs-icon-blue">BS</div>
+            <div>
+                <p>Tổng tài khoản bác sĩ</p>
+                <h2 id="statTotal">0</h2>
+            </div>
+        </article>
+
+        <article class="qbs-stat-card">
+            <div class="qbs-stat-icon qbs-icon-green">✓</div>
+            <div>
+                <p>Đã có hồ sơ</p>
+                <h2 id="statCompleted">0</h2>
+
+            </div>
+        </article>
+
+        <article class="qbs-stat-card">
+            <div class="qbs-stat-icon qbs-icon-orange">!</div>
+            <div>
+                <p>Chưa có hồ sơ</p>
+                <h2 id="statMissing">0</h2>
+
+            </div>
+        </article>
+    </section>
+
+    <section class="qbs-panel">
+
+        <div class="qbs-panel-heading">
+            <div>
+                <h2>Danh sách bác sĩ</h2>
+                <p>Tìm kiếm tài khoản, lọc theo khoa và trạng thái hồ sơ.</p>
+            </div>
+
+            <button type="button"
+                    class="qbs-btn qbs-btn-outline"
+                    id="btnRefresh">
+                ↻
+            </button>
+        </div>
+
+        <div class="qbs-filter-grid">
+            <div class="qbs-form-group">
+                <label for="filterSearch">Tìm kiếm</label>
+                <input type="search"
+                       id="filterSearch"
+                       placeholder="Tên bác sĩ, tài khoản, email...">
+            </div>
+
+            <div class="qbs-form-group">
+                <label for="filterDepartment">Khoa công tác</label>
+                <select id="filterDepartment">
+                    <option value="">Tất cả khoa</option>
+                </select>
+            </div>
+
+            <div class="qbs-form-group">
+                <label for="filterProfileStatus">Hồ sơ</label>
+                <select id="filterProfileStatus">
+                    <option value="">Tất cả</option>
+                    <option value="complete">Đã có hồ sơ</option>
+                    <option value="missing">Chưa có hồ sơ</option>
+                </select>
+            </div>
+
+            <div class="qbs-form-group">
+                <label for="filterStatus">Trạng thái</label>
+                <select id="filterStatus">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="inactive">Ngừng hoạt động</option>
+                </select>
+            </div>
+
+            <div class="qbs-filter-actions">
+                <button type="button"
+                        class="qbs-btn qbs-btn-outline"
+                        id="btnResetFilter">
+                    Xóa lọc
+                </button>
+            </div>
+        </div>
+
+        <div id="pageMessage"
+             class="qbs-alert"
+             role="status"
+             aria-live="polite"
+             hidden></div>
+
+        <div class="qbs-table-wrapper">
+            <table class="qbs-table">
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tài khoản bác sĩ</th>
+                    <th>Khoa công tác</th>
+                    <th>Chuyên môn</th>
+                    <th>Trình độ</th>
+                    <th>Chứng chỉ hành nghề</th>
+                    <th>Trạng thái hồ sơ</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody id="doctorTableBody">
+                <tr>
+                    <td colspan="8" class="qbs-table-message">
+                        Đang tải dữ liệu...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+        <div class="qbs-table-footer">
+            <span id="tableSummary">Đang tải dữ liệu...</span>
+
+            <div class="qbs-pagination" id="doctorPagination">
+                <button type="button"
+                        class="qbs-page-btn"
+                        id="btnPrevPage"
+                        disabled>
+                    ‹
+                </button>
+
+                <div class="qbs-page-numbers" id="pageNumbers"></div>
+
+                <button type="button"
+                        class="qbs-page-btn"
+                        id="btnNextPage"
+                        disabled>
+                    ›
+                </button>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- Modal tạo hoặc chỉnh sửa hồ sơ bác sĩ -->
+    <div class="qbs-modal"
+         id="doctorModal"
+         aria-hidden="true">
+
+        <div class="qbs-modal-backdrop"
+             data-close-modal></div>
+
+        <section class="qbs-modal-dialog"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="modalTitle">
+
+            <div class="qbs-modal-header">
+                <div>
+                    <h2 id="modalTitle">Bổ sung hồ sơ bác sĩ</h2>
+                    <p>Chọn tài khoản bác sĩ và nhập thông tin chuyên môn.</p>
+                </div>
+
+                <button type="button"
+                        class="qbs-modal-close"
+                        id="btnCloseModal"
+                        aria-label="Đóng">
+                    ×
+                </button>
+            </div>
+
+            <form id="doctorForm">
+                <div class="qbs-modal-body">
+
+                    <input type="hidden" id="maBacSi">
+
+                    <div class="qbs-form-group">
+                        <label for="doctorUserId">
+                            Tài khoản bác sĩ
+                            <span class="qbs-required">*</span>
+                        </label>
+
+                        <select id="doctorUserId" required>
+                            <option value="">
+                                Đang tải tài khoản...
+                            </option>
+                        </select>
+
+                        <small>
+                            Chỉ chọn tài khoản có vai trò BACSI chưa có hồ sơ.
+                        </small>
+                    </div>
+
+                    <div class="qbs-form-group">
+                        <label for="departmentId">
+                            Khoa công tác
+                            <span class="qbs-required">*</span>
+                        </label>
+
+                        <select id="departmentId" required>
+                            <option value="">
+                                Đang tải danh sách khoa...
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="qbs-form-row">
+                        <div class="qbs-form-group">
+                            <label for="specialty">Chuyên môn</label>
+                            <input type="text"
+                                   id="specialty"
+                                   maxlength="255"
+                                   placeholder="Ví dụ: Tim mạch">
+                        </div>
+
+                        <div class="qbs-form-group">
+                            <label for="degree">Trình độ</label>
+                            <input type="text"
+                                   id="degree"
+                                   maxlength="100"
+                                   placeholder="Ví dụ: Thạc sĩ">
+                        </div>
+                    </div>
+
+                    <div class="qbs-form-group">
+                        <label for="licenseNumber">
+                            Số chứng chỉ hành nghề
+                        </label>
+
+                        <input type="text"
+                               id="licenseNumber"
+                               maxlength="100"
+                               placeholder="Nhập số chứng chỉ hành nghề">
+                    </div>
+
+                    <div class="qbs-form-group">
+                        <label for="doctorStatus">Trạng thái hồ sơ</label>
+                        <select id="doctorStatus">
+                            <option value="1">Đang hoạt động</option>
+                            <option value="0">Ngừng hoạt động</option>
+                        </select>
+                    </div>
+
+                    <div class="qbs-info-note">
+                        <span>ⓘ</span>
+                        <p>
+                            Mỗi tài khoản chỉ được liên kết với một hồ sơ bác sĩ.
+                            Khoa công tác được lưu trong bảng BacSi.
+                        </p>
+                    </div>
+
+                    <div id="formMessage"
+                         class="qbs-alert"
+                         role="alert"
+                         hidden></div>
+                </div>
+
+                <div class="qbs-modal-footer">
+                    <button type="button"
+                            class="qbs-btn qbs-btn-outline"
+                            id="btnCancel">
+                        Hủy
+                    </button>
+
+                    <button type="submit"
+                            class="qbs-btn qbs-btn-primary"
+                            id="btnSubmit">
+                        Lưu hồ sơ
+                    </button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <th:block layout:fragment="js">
+        <script src="/Js/Admin/quan-ly-bac-si.js"></script>
+    </th:block>
+</div>
+</body>
+</html>

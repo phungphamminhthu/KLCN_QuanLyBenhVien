@@ -78,6 +78,9 @@ public class DuocSiChiTietDonThuocService {
                 hs.HuyetApTamThu,
 
                 hs.HuyetApTamTruong,
+                
+                -- NGÀY TÁI KHÁM
+                hs.NgayTaiKham AS NgayTaiKham,
 
                 -- =========================================
                 -- BÁC SĨ
@@ -384,6 +387,23 @@ public class DuocSiChiTietDonThuocService {
                                 );
                             }
 
+                            // =========================================
+                            // NGÀY TÁI KHÁM
+                            // =========================================
+
+                            java.sql.Date ngayTaiKham =
+                                    rs.getDate("NgayTaiKham");
+
+                            if (ngayTaiKham != null) {
+                                response.setNgayTaiKham(
+                                        ngayTaiKham.toLocalDate().format(
+                                                DateTimeFormatter.ofPattern("dd/MM/yyyy")
+                                        )
+                                );
+                            } else {
+                                response.setNgayTaiKham("Chưa có");
+                            }
+
 
                             // =========================================
                             // GHI CHÚ
@@ -495,305 +515,497 @@ public class DuocSiChiTietDonThuocService {
         // CHI TIẾT THUỐC
         // =================================================
 
+//        String medicineSql = """
+//            SELECT
+//
+//                ct.MaCTDonThuoc,
+//
+//                ct.MaThuoc,
+//
+//                t.TenThuoc,
+//
+//                t.DonViTinh,
+//
+//                ct.SoLuong,
+//
+//                ct.DonGiaBan,
+//
+//                ct.LieuDung,
+//
+//                ct.ThoiGianDung,
+//
+//                ct.HuongDanSuDung,
+//
+//                COALESCE(
+//                    SUM(k.SoLuongTon),
+//                    0
+//                ) AS TonKho,
+//
+//                COALESCE(
+//                    MIN(k.SoLuongToiThieu),
+//                    0
+//                ) AS SoLuongToiThieu
+//
+//            FROM CTDonThuoc ct
+//
+//            INNER JOIN Thuoc t
+//                ON t.MaThuoc =
+//                   ct.MaThuoc
+//
+//            LEFT JOIN KhoThuoc k
+//                ON k.MaThuoc =
+//                   ct.MaThuoc
+//
+//            WHERE ct.MaDonThuoc = ?
+//
+//            GROUP BY
+//
+//                ct.MaCTDonThuoc,
+//
+//                ct.MaThuoc,
+//
+//                t.TenThuoc,
+//
+//                t.DonViTinh,
+//
+//                ct.SoLuong,
+//
+//                ct.DonGiaBan,
+//
+//                ct.LieuDung,
+//
+//                ct.ThoiGianDung,
+//
+//                ct.HuongDanSuDung
+//
+//            ORDER BY
+//                ct.MaCTDonThuoc
+//            """;
+//
+//
+//        // =================================================
+//        // QUERY DANH SÁCH THUỐC
+//        // =================================================
+//
+//        List<DuocSiChiTietDonThuocResponse.ThuocItem>
+//                medicines =
+//
+//                jdbcTemplate.query(
+//
+//                        medicineSql,
+//
+//                        new Object[]{
+//                                maDonThuoc
+//                        },
+//
+//                        (rs, rowNum) -> {
+//
+//                            DuocSiChiTietDonThuocResponse.ThuocItem item =
+//                                    new DuocSiChiTietDonThuocResponse
+//                                            .ThuocItem();
+//
+//
+//                            // =========================================
+//                            // MÃ CHI TIẾT ĐƠN THUỐC
+//                            // =========================================
+//
+//                            Integer maCTDonThuoc =
+//                                    rs.getObject(
+//                                            "MaCTDonThuoc",
+//                                            Integer.class
+//                                    );
+//
+//                            item.setMaCTDonThuoc(
+//                                    maCTDonThuoc
+//                            );
+//
+//                            // =========================================
+//                            // MÃ THUỐC
+//                            // =========================================
+//
+//                            int maThuoc =
+//                                    rs.getInt(
+//                                            "MaThuoc"
+//                                    );
+//
+//
+//                            // =========================================
+//                            // SỐ LƯỢNG
+//                            // =========================================
+//
+//                            int soLuong =
+//                                    rs.getInt(
+//                                            "SoLuong"
+//                                    );
+//
+//
+//                            // =========================================
+//                            // ĐƠN GIÁ
+//                            // =========================================
+//
+//                            double donGia =
+//                                    rs.getDouble(
+//                                            "DonGiaBan"
+//                                    );
+//
+//
+//                            // =========================================
+//                            // TỒN KHO
+//                            // =========================================
+//
+//                            int tonKho =
+//                                    rs.getInt(
+//                                            "TonKho"
+//                                    );
+//
+//
+//                            // =========================================
+//                            // TỒN KHO TỐI THIỂU
+//                            // =========================================
+//
+//                            int tonKhoToiThieu =
+//                                    rs.getInt(
+//                                            "SoLuongToiThieu"
+//                                    );
+//
+//
+//                            // =========================================
+//                            // SET THÔNG TIN THUỐC
+//                            // =========================================
+//
+//                            item.setMaThuoc(
+//                                    maThuoc
+//                            );
+//
+//
+//                            item.setTenThuoc(
+//                                    rs.getString(
+//                                            "TenThuoc"
+//                                    )
+//                            );
+//
+//
+//                            item.setDonViTinh(
+//                                    rs.getString(
+//                                            "DonViTinh"
+//                                    )
+//                            );
+//
+//
+//                            item.setSoLuong(
+//                                    soLuong
+//                            );
+//
+//
+//                            // =========================================
+//                            // SỐ LƯỢNG HIỂN THỊ
+//                            // =========================================
+//
+//                            String donViTinh =
+//                                    rs.getString(
+//                                            "DonViTinh"
+//                                    );
+//
+//
+//                            item.setSoLuongHienThi(
+//                                    soLuong +
+//                                            " " +
+//                                            (
+//                                                    donViTinh != null
+//                                                            ? donViTinh
+//                                                            : ""
+//                                            )
+//                            );
+//
+//
+//                            // =========================================
+//                            // LIỀU DÙNG
+//                            // =========================================
+//
+//                            item.setLieuDung(
+//                                    rs.getString(
+//                                            "LieuDung"
+//                                    )
+//                            );
+//
+//
+//                            // =========================================
+//                            // THỜI GIAN DÙNG
+//                            // =========================================
+//
+//                            item.setThoiGianDung(
+//                                    rs.getObject(
+//                                            "ThoiGianDung",
+//                                            Integer.class
+//                                    )
+//                            );
+//
+//
+//                            // =========================================
+//                            // CÁCH DÙNG
+//                            // =========================================
+//
+//                            item.setCachDung(
+//                                    rs.getString(
+//                                            "HuongDanSuDung"
+//                                    )
+//                            );
+//
+//
+//                            // =========================================
+//                            // ĐƠN GIÁ
+//                            // =========================================
+//
+//                            item.setDonGia(
+//                                    donGia
+//                            );
+//
+//
+//                            // =========================================
+//                            // THÀNH TIỀN
+//                            // =========================================
+//
+//                            item.setThanhTien(
+//                                    donGia *
+//                                            soLuong
+//                            );
+//
+//
+//                            // =========================================
+//                            // TỒN KHO
+//                            // =========================================
+//
+//                            item.setTonKho(
+//                                    tonKho
+//                            );
+//
+//
+//                            // =========================================
+//                            // TỒN KHO TỐI THIỂU
+//                            // =========================================
+//
+//                            item.setTonKhoToiThieu(
+//                                    tonKhoToiThieu
+//                            );
+//
+//
+//                            // =========================================
+//                            // TÌNH TRẠNG KHO
+//                            // =========================================
+//
+//                            if (tonKho <= 0) {
+//
+//                                item.setTinhTrang(
+//                                        "Hết"
+//                                );
+//
+//                            } else if (
+//                                    tonKho <=
+//                                            tonKhoToiThieu
+//                            ) {
+//
+//                                item.setTinhTrang(
+//                                        "Sắp hết"
+//                                );
+//
+//                            } else {
+//
+//                                item.setTinhTrang(
+//                                        "Đủ"
+//                                );
+//                            }
+//
+//
+//                            return item;
+//                        }
+//                );
+//
+//
+//        // =================================================
+//        // GÁN DANH SÁCH THUỐC
+//        // =================================================
+//
+//        response.setDanhSachThuoc(
+//                medicines
+//        );
+
+
+        // =====================================================
+        // CHI TIẾT THUỐC + THUỐC THỰC TẾ ĐƯỢC CHỌN CẤP
+        // =====================================================
+
         String medicineSql = """
             SELECT
-
                 ct.MaCTDonThuoc,
-
                 ct.MaThuoc,
+                ct.MaThuocThucCap,
 
-                t.TenThuoc,
+                t.TenThuoc AS TenThuocGoc,
+                t.DonViTinh AS DonViTinhGoc,
 
-                t.DonViTinh,
+                COALESCE(tcap.TenThuoc, t.TenThuoc) AS TenThuoc,
+                COALESCE(tcap.DonViTinh, t.DonViTinh) AS DonViTinh,
 
                 ct.SoLuong,
-
                 ct.DonGiaBan,
-
                 ct.LieuDung,
-
                 ct.ThoiGianDung,
-
                 ct.HuongDanSuDung,
 
-                COALESCE(
-                    SUM(k.SoLuongTon),
-                    0
-                ) AS TonKho,
+                CASE
+                    WHEN ct.MaThuocThucCap IS NOT NULL
+                    THEN tcap.Gia
+                    ELSE ct.DonGiaBan
+                END AS DonGiaHienTai,
 
-                COALESCE(
-                    MIN(k.SoLuongToiThieu),
-                    0
-                ) AS SoLuongToiThieu
+                COALESCE((
+                    SELECT SUM(k.SoLuongTon)
+                    FROM KhoThuoc k
+                    WHERE k.MaThuoc =
+                        COALESCE(ct.MaThuocThucCap, ct.MaThuoc)
+                      AND k.HanSuDung >= CURDATE()
+                ), 0) AS TonKho,
+
+                COALESCE((
+                    SELECT MIN(k.SoLuongToiThieu)
+                    FROM KhoThuoc k
+                    WHERE k.MaThuoc =
+                        COALESCE(ct.MaThuocThucCap, ct.MaThuoc)
+                      AND k.HanSuDung >= CURDATE()
+                ), 0) AS SoLuongToiThieu
 
             FROM CTDonThuoc ct
 
             INNER JOIN Thuoc t
-                ON t.MaThuoc =
-                   ct.MaThuoc
+                ON t.MaThuoc = ct.MaThuoc
 
-            LEFT JOIN KhoThuoc k
-                ON k.MaThuoc =
-                   ct.MaThuoc
+            LEFT JOIN Thuoc tcap
+                ON tcap.MaThuoc = ct.MaThuocThucCap
 
             WHERE ct.MaDonThuoc = ?
 
-            GROUP BY
-
-                ct.MaCTDonThuoc,
-
-                ct.MaThuoc,
-
-                t.TenThuoc,
-
-                t.DonViTinh,
-
-                ct.SoLuong,
-
-                ct.DonGiaBan,
-
-                ct.LieuDung,
-
-                ct.ThoiGianDung,
-
-                ct.HuongDanSuDung
-
-            ORDER BY
-                ct.MaCTDonThuoc
+            ORDER BY ct.MaCTDonThuoc
             """;
 
-
-        // =================================================
-        // QUERY DANH SÁCH THUỐC
-        // =================================================
-
-        List<DuocSiChiTietDonThuocResponse.ThuocItem>
-                medicines =
-
+        List<DuocSiChiTietDonThuocResponse.ThuocItem> medicines =
                 jdbcTemplate.query(
-
                         medicineSql,
-
-                        new Object[]{
-                                maDonThuoc
-                        },
-
+                        new Object[]{maDonThuoc},
                         (rs, rowNum) -> {
+                            var item =
+                                    new DuocSiChiTietDonThuocResponse.ThuocItem();
 
-                            DuocSiChiTietDonThuocResponse.ThuocItem item =
-                                    new DuocSiChiTietDonThuocResponse
-                                            .ThuocItem();
+                            int maThuocGoc = rs.getInt("MaThuoc");
+                            Integer maThuocThucCap =
+                                    rs.getObject("MaThuocThucCap", Integer.class);
 
-
-                            // =========================================
-                            // MÃ THUỐC
-                            // =========================================
-
-                            int maThuoc =
-                                    rs.getInt(
-                                            "MaThuoc"
-                                    );
-
-
-                            // =========================================
-                            // SỐ LƯỢNG
-                            // =========================================
-
-                            int soLuong =
-                                    rs.getInt(
-                                            "SoLuong"
-                                    );
-
-
-                            // =========================================
-                            // ĐƠN GIÁ
-                            // =========================================
-
-                            double donGia =
-                                    rs.getDouble(
-                                            "DonGiaBan"
-                                    );
-
-
-                            // =========================================
-                            // TỒN KHO
-                            // =========================================
-
-                            int tonKho =
-                                    rs.getInt(
-                                            "TonKho"
-                                    );
-
-
-                            // =========================================
-                            // TỒN KHO TỐI THIỂU
-                            // =========================================
-
+                            int soLuong = rs.getInt("SoLuong");
+                            double donGia = rs.getDouble("DonGiaHienTai");
+                            int tonKho = rs.getInt("TonKho");
                             int tonKhoToiThieu =
-                                    rs.getInt(
-                                            "SoLuongToiThieu"
-                                    );
+                                    rs.getInt("SoLuongToiThieu");
 
+                            // Giữ mã thuốc gốc để API cấp thuốc hiện tại
+                            // vẫn xác định đúng dòng CTDonThuoc.
+                            item.setMaThuoc(maThuocGoc);
+                            item.setMaThuocThucCap(maThuocThucCap);
 
-                            // =========================================
-                            // SET THÔNG TIN THUỐC
-                            // =========================================
+                            item.setTenThuocGoc(
+                                    rs.getString("TenThuocGoc"));
 
-                            item.setMaThuoc(
-                                    maThuoc
-                            );
+                            // Thông tin thuốc đang được chọn cấp
+                            item.setTenThuoc(rs.getString("TenThuoc"));
+                            item.setDonViTinh(rs.getString("DonViTinh"));
 
+                            item.setMaCTDonThuoc(
+                                    rs.getObject("MaCTDonThuoc", Integer.class));
 
-                            item.setTenThuoc(
-                                    rs.getString(
-                                            "TenThuoc"
-                                    )
-                            );
-
-
-                            item.setDonViTinh(
-                                    rs.getString(
-                                            "DonViTinh"
-                                    )
-                            );
-
-
-                            item.setSoLuong(
-                                    soLuong
-                            );
-
-
-                            // =========================================
-                            // SỐ LƯỢNG HIỂN THỊ
-                            // =========================================
-
-                            String donViTinh =
-                                    rs.getString(
-                                            "DonViTinh"
-                                    );
-
-
+                            item.setSoLuong(soLuong);
                             item.setSoLuongHienThi(
-                                    soLuong +
-                                            " " +
-                                            (
-                                                    donViTinh != null
-                                                            ? donViTinh
-                                                            : ""
-                                            )
-                            );
+                                    soLuong + " " +
+                                            (rs.getString("DonViTinh") != null
+                                                    ? rs.getString("DonViTinh") : ""));
 
-
-                            // =========================================
-                            // LIỀU DÙNG
-                            // =========================================
-
-                            item.setLieuDung(
-                                    rs.getString(
-                                            "LieuDung"
-                                    )
-                            );
-
-
-                            // =========================================
-                            // THỜI GIAN DÙNG
-                            // =========================================
-
+                            item.setLieuDung(rs.getString("LieuDung"));
                             item.setThoiGianDung(
-                                    rs.getObject(
-                                            "ThoiGianDung",
-                                            Integer.class
-                                    )
-                            );
-
-
-                            // =========================================
-                            // CÁCH DÙNG
-                            // =========================================
-
+                                    rs.getObject("ThoiGianDung", Integer.class));
                             item.setCachDung(
-                                    rs.getString(
-                                            "HuongDanSuDung"
-                                    )
-                            );
+                                    rs.getString("HuongDanSuDung"));
 
-
-                            // =========================================
-                            // ĐƠN GIÁ
-                            // =========================================
-
-                            item.setDonGia(
-                                    donGia
-                            );
-
-
-                            // =========================================
-                            // THÀNH TIỀN
-                            // =========================================
-
-                            item.setThanhTien(
-                                    donGia *
-                                            soLuong
-                            );
-
-
-                            // =========================================
-                            // TỒN KHO
-                            // =========================================
-
-                            item.setTonKho(
-                                    tonKho
-                            );
-
-
-                            // =========================================
-                            // TỒN KHO TỐI THIỂU
-                            // =========================================
-
-                            item.setTonKhoToiThieu(
-                                    tonKhoToiThieu
-                            );
-
-
-                            // =========================================
-                            // TÌNH TRẠNG KHO
-                            // =========================================
+                            item.setDonGia(donGia);
+                            item.setThanhTien(donGia * soLuong);
+                            item.setTonKho(tonKho);
+                            item.setTonKhoToiThieu(tonKhoToiThieu);
 
                             if (tonKho <= 0) {
-
-                                item.setTinhTrang(
-                                        "Hết"
-                                );
-
-                            } else if (
-                                    tonKho <=
-                                            tonKhoToiThieu
-                            ) {
-
-                                item.setTinhTrang(
-                                        "Sắp hết"
-                                );
-
+                                item.setTinhTrang("Hết");
+                            } else if (tonKho <= tonKhoToiThieu) {
+                                item.setTinhTrang("Sắp hết");
                             } else {
-
-                                item.setTinhTrang(
-                                        "Đủ"
-                                );
+                                item.setTinhTrang("Đủ");
                             }
 
+                            // =========================================
+                            // DANH SÁCH THUỐC THAY THẾ
+                            // =========================================
+
+                            String alternativeSql = """
+                                SELECT
+                                    t.MaThuoc,
+                                    t.TenThuoc,
+                                    t.DonViTinh,
+                                    t.Gia,
+
+                                    COALESCE((
+                                        SELECT SUM(k.SoLuongTon)
+                                        FROM KhoThuoc k
+                                        WHERE k.MaThuoc = t.MaThuoc
+                                          AND k.HanSuDung >= CURDATE()
+                                    ), 0) AS TonKho
+
+                                FROM ThuocTuongDuong tt
+
+                                INNER JOIN Thuoc t
+                                    ON t.MaThuoc = tt.MaThuocThayThe
+
+                                WHERE tt.MaThuoc = ?
+                                  AND tt.TrangThai = 'Đang áp dụng'
+                                  AND t.TrangThai = TRUE
+
+                                ORDER BY t.TenThuoc
+                                """;
+
+                            List<DuocSiChiTietDonThuocResponse.ThuocThayTheItem>
+                                    alternatives =
+                                    jdbcTemplate.query(
+                                            alternativeSql,
+                                            new Object[]{maThuocGoc},
+                                            (ars, alternativeRow) -> {
+                                                var alternative =
+                                                        new DuocSiChiTietDonThuocResponse
+                                                                .ThuocThayTheItem();
+
+                                                alternative.setMaThuoc(
+                                                        ars.getInt("MaThuoc"));
+                                                alternative.setTenThuoc(
+                                                        ars.getString("TenThuoc"));
+                                                alternative.setDonViTinh(
+                                                        ars.getString("DonViTinh"));
+                                                alternative.setGia(
+                                                        ars.getBigDecimal("Gia"));
+                                                alternative.setTonKho(
+                                                        ars.getInt("TonKho"));
+
+                                                return alternative;
+                                            });
+
+                            item.setDanhSachThuocThayThe(alternatives);
 
                             return item;
-                        }
-                );
+                        });
 
+        response.setDanhSachThuoc(medicines);
 
-        // =================================================
-        // GÁN DANH SÁCH THUỐC
-        // =================================================
-
-        response.setDanhSachThuoc(
-                medicines
-        );
 
 
         // =================================================

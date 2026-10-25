@@ -192,22 +192,59 @@ public class SePayService {
                     "Số tiền giao dịch phải lớn hơn 0.");
         }
 
+        //        String noiDung = request.code();
+        //
+        //        if (noiDung == null || noiDung.isBlank()) {
+        //            noiDung = request.content();
+        //        }
+        //
+        //        if (noiDung == null || noiDung.isBlank()) {
+        //            throw new IllegalArgumentException(
+        //                    "Không có mã hóa đơn trong giao dịch.");
+        //        }
+        //
+        //        Matcher matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
+        //
+        //        if (!matcher.find()) {
+        //            throw new IllegalArgumentException(
+        //                    "Không tìm thấy mã hóa đơn dạng BV5.");
+        //        }
+        //
+        //        Integer maHoaDon;
+        //
+        //        try {
+        //            maHoaDon = Integer.valueOf(matcher.group(1));
+        //        } catch (NumberFormatException ex) {
+        //            throw new IllegalArgumentException(
+        //                    "Mã hóa đơn không hợp lệ.");
+        //        }
+
+
         String noiDung = request.code();
+        Matcher matcher = null;
 
-        if (noiDung == null || noiDung.isBlank()) {
+// Tìm mã hóa đơn trong trường code trước
+        if (noiDung != null && !noiDung.isBlank()) {
+            matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
+        }
+
+// Nếu code không chứa mã BV..., tìm tiếp trong content
+        if (matcher == null || !matcher.find()) {
             noiDung = request.content();
-        }
 
-        if (noiDung == null || noiDung.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Không có mã hóa đơn trong giao dịch.");
-        }
+            if (noiDung == null || noiDung.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Không có mã hóa đơn trong giao dịch."
+                );
+            }
 
-        Matcher matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
+            matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
 
-        if (!matcher.find()) {
-            throw new IllegalArgumentException(
-                    "Không tìm thấy mã hóa đơn dạng BV5.");
+            if (!matcher.find()) {
+                throw new IllegalArgumentException(
+                        "Không tìm thấy mã hóa đơn dạng BV trong giao dịch."
+                );
+            }
         }
 
         Integer maHoaDon;
@@ -216,14 +253,21 @@ public class SePayService {
             maHoaDon = Integer.valueOf(matcher.group(1));
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException(
-                    "Mã hóa đơn không hợp lệ.");
+                    "Mã hóa đơn không hợp lệ."
+            );
         }
+
 
         // Kiểm tra hóa đơn
         HoaDon hoaDon = hoaDonRepository.findById(maHoaDon)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy hóa đơn " + maHoaDon));
 
+//        if (!"Thuoc".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
+//            throw new IllegalArgumentException(
+//                    "Mã hóa đơn này không phải hóa đơn thuốc."
+//            );
+//        }
         // Chặn xử lý lại giao dịch đã lưu
         String maGiaoDich = String.valueOf(request.id());
 

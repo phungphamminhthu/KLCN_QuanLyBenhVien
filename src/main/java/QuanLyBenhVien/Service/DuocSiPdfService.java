@@ -144,6 +144,7 @@ public class DuocSiPdfService {
                 hs.HuyetApTamThu,
                 hs.HuyetApTamTruong,
                 hs.ChanDoan,
+                hs.NgayTaiKham,
 
                 nd_bs.HoTen AS TenBacSi,
 
@@ -202,32 +203,45 @@ public class DuocSiPdfService {
     // THUỐC TRONG ĐƠN
     // =====================================================
 
+
     private List<Map<String, Object>> getMedicines(
             Integer maDonThuoc
     ) {
-
         String sql = """
-            SELECT
-                ct.MaCTDonThuoc,
-                ct.MaThuoc,
-                t.TenThuoc,
-                t.DonViTinh,
+        SELECT
+            ct.MaCTDonThuoc,
+            ct.MaThuoc,
+            ct.MaThuocThucCap,
 
-                ct.SoLuong,
-                ct.DonGiaBan,
+            COALESCE(ct.MaThuocThucCap, ct.MaThuoc)
+                AS MaThuocHienThi,
 
-                ct.LieuDung,
-                ct.ThoiGianDung,
-                ct.HuongDanSuDung
+            t.TenThuoc,
+            t.DonViTinh,
 
-            FROM CTDonThuoc ct
+            ct.SoLuong,
 
-            INNER JOIN Thuoc t
-                ON t.MaThuoc = ct.MaThuoc
+            CASE
+                WHEN ct.MaThuocThucCap IS NOT NULL
+                    THEN t.Gia
+                ELSE ct.DonGiaBan
+            END AS DonGiaBan,
 
-            WHERE ct.MaDonThuoc = ?
+            ct.LieuDung,
+            ct.ThoiGianDung,
+            ct.HuongDanSuDung
 
-            ORDER BY ct.MaCTDonThuoc
+        FROM CTDonThuoc ct
+
+        INNER JOIN Thuoc t
+            ON t.MaThuoc = COALESCE(
+                ct.MaThuocThucCap,
+                ct.MaThuoc
+            )
+
+        WHERE ct.MaDonThuoc = ?
+
+        ORDER BY ct.MaCTDonThuoc
         """;
 
         return jdbcTemplate.queryForList(
@@ -235,6 +249,7 @@ public class DuocSiPdfService {
                 maDonThuoc
         );
     }
+
 
     // =====================================================
     // CHỈ ĐỊNH Y TẾ
@@ -694,17 +709,17 @@ public class DuocSiPdfService {
             );
 
             // =================================================
-// BÁC SĨ + NGÀY KÊ
-// =================================================
+            // BÁC SĨ + NGÀY KÊ
+            // =================================================
 
             PdfPTable doctorInfo =
                     new PdfPTable(1);
 
             doctorInfo.setWidthPercentage(100);
 
-// -------------------------------------------------
-// BÁC SĨ
-// -------------------------------------------------
+            // -------------------------------------------------
+            // BÁC SĨ
+            // -------------------------------------------------
 
             PdfPCell doctorCell =
                     new PdfPCell();
@@ -742,9 +757,9 @@ public class DuocSiPdfService {
                     doctorCell
             );
 
-// -------------------------------------------------
-// NGÀY KÊ - XUỐNG DÒNG
-// -------------------------------------------------
+            // -------------------------------------------------
+            // NGÀY KÊ - XUỐNG DÒNG
+            // -------------------------------------------------
 
             PdfPCell dateCell =
                     new PdfPCell();
@@ -782,6 +797,50 @@ public class DuocSiPdfService {
                     dateCell
             );
 
+            // -------------------------------------------------
+            // NGÀY TÁI KHÁM
+            // -------------------------------------------------
+
+            PdfPCell followUpDateCell =
+                    new PdfPCell();
+
+            followUpDateCell.setBorder(
+                    Rectangle.NO_BORDER
+            );
+
+            followUpDateCell.setPadding(5);
+
+            Paragraph followUpDateParagraph =
+                    new Paragraph();
+
+            followUpDateParagraph.add(
+                    new Chunk(
+                            "Ngày tái khám: ",
+                            normalFont(11)
+                    )
+            );
+
+            Object ngayTaiKham =
+                    order.get("NgayTaiKham");
+
+            followUpDateParagraph.add(
+                    new Chunk(
+                            ngayTaiKham != null
+                                    ? formatDate(ngayTaiKham)
+                                    : "Chưa có",
+                            normalFont(11)
+                    )
+            );
+
+            followUpDateCell.addElement(
+                    followUpDateParagraph
+            );
+
+            doctorInfo.addCell(
+                    followUpDateCell
+            );
+
+            // Thêm bảng sau khi đã có đầy đủ ngày kê và ngày tái khám
             document.add(
                     doctorInfo
             );
@@ -1710,10 +1769,65 @@ public class DuocSiPdfService {
                     dateCell
             );
 
-            document.add(
-                    patient
+            // -------------------------------------------------
+            // NGÀY TÁI KHÁM
+            // -------------------------------------------------
+
+            PdfPCell followUpDateCell =
+                    new PdfPCell();
+
+            followUpDateCell.setBorder(
+                    Rectangle.NO_BORDER
             );
 
+            followUpDateCell.setPadding(5);
+
+            Paragraph followUpDateParagraph =
+                    new Paragraph();
+
+            followUpDateParagraph.add(
+                    new Chunk(
+                            "Ngày tái khám: ",
+                            normalFont(11)
+                    )
+            );
+
+            Object ngayTaiKham =
+                    order.get("NgayTaiKham");
+
+            followUpDateParagraph.add(
+                    new Chunk(
+                            ngayTaiKham != null
+                                    ? formatDate(ngayTaiKham)
+                                    : "Chưa có",
+                            normalFont(11)
+                    )
+            );
+
+            followUpDateCell.addElement(
+                    followUpDateParagraph
+            );
+
+            patient.addCell(
+                    followUpDateCell
+            );
+
+            // Ô trống để giữ bố cục bảng 2 cột
+            PdfPCell emptyCell =
+                    new PdfPCell();
+
+            emptyCell.setBorder(
+                    Rectangle.NO_BORDER
+            );
+
+            emptyCell.setPadding(5);
+
+            patient.addCell(
+                    emptyCell
+            );
+
+            // Thêm bảng thông tin bệnh nhân sau khi đã có ngày tái khám
+            document.add(patient);
             // =================================================
             // BẢNG THUỐC
             // =================================================

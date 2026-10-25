@@ -38,9 +38,23 @@ public class DuocSiDashboardService {
 
         response.setDonThuocChoCap(
                 count("""
-            SELECT COUNT(*)
-            FROM DonThuoc
-            WHERE TrangThai = 'ChoCapThuoc'
+            SELECT COUNT(DISTINCT d.MaDonThuoc)
+            FROM DonThuoc d
+            INNER JOIN HoSoBenhAn hs
+                ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
+            INNER JOIN LichDangKyKham lk
+                ON lk.MaLichKham = hs.MaLichKham
+            INNER JOIN TiepNhanBenhNhan tn
+                ON tn.MaTiepNhan = (
+                    SELECT t2.MaTiepNhan
+                    FROM TiepNhanBenhNhan t2
+                    WHERE t2.MaLichKham = lk.MaLichKham
+                    ORDER BY t2.ThoiGianTiepNhan DESC,
+                             t2.MaTiepNhan DESC
+                    LIMIT 1
+                )
+            WHERE d.TrangThai = 'ChoLayThuoc'
+              AND tn.TrangThai = 'ChoLayThuoc'
         """)
         );
 
@@ -230,206 +244,104 @@ public class DuocSiDashboardService {
     // DANH SÁCH ĐƠN THUỐC CHỜ CẤP
     // =====================================================
 
+
     private List<DuocSiDashboardResponse.PrescriptionItem>
     getDonThuocChoCap() {
 
         String sql = """
-
         SELECT
-
             d.MaDonThuoc,
-
             nd_bn.HoTen AS TenBenhNhan,
-
             nd_bs.HoTen AS TenBacSi,
-
             d.NgayKeThuoc,
-
             COUNT(ct.MaCTDonThuoc) AS SoLoaiThuoc,
-
             d.TrangThai
-
 
         FROM DonThuoc d
 
-
         INNER JOIN HoSoBenhAn hs
-            ON hs.MaHoSoBenhAn =
-               d.MaHoSoBenhAn
-
+            ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
 
         INNER JOIN LichDangKyKham lk
-            ON lk.MaLichKham =
-               hs.MaLichKham
+            ON lk.MaLichKham = hs.MaLichKham
 
+        INNER JOIN TiepNhanBenhNhan tn
+            ON tn.MaTiepNhan = (
+                SELECT t2.MaTiepNhan
+                FROM TiepNhanBenhNhan t2
+                WHERE t2.MaLichKham = lk.MaLichKham
+                ORDER BY t2.ThoiGianTiepNhan DESC,
+                         t2.MaTiepNhan DESC
+                LIMIT 1
+            )
 
         INNER JOIN BenhNhan bn
-            ON bn.MaBenhNhan =
-               lk.MaBenhNhan
-
+            ON bn.MaBenhNhan = lk.MaBenhNhan
 
         INNER JOIN Nguoidung nd_bn
-            ON nd_bn.MaNguoiDung =
-               bn.MaNguoiDung
-
+            ON nd_bn.MaNguoiDung = bn.MaNguoiDung
 
         INNER JOIN BacSi bs
-            ON bs.MaBacSi =
-               d.MaBacSi
-
+            ON bs.MaBacSi = d.MaBacSi
 
         INNER JOIN Nguoidung nd_bs
-            ON nd_bs.MaNguoiDung =
-               bs.MaNguoiDung
-
+            ON nd_bs.MaNguoiDung = bs.MaNguoiDung
 
         LEFT JOIN CTDonThuoc ct
-            ON ct.MaDonThuoc =
-               d.MaDonThuoc
+            ON ct.MaDonThuoc = d.MaDonThuoc
 
-
-        WHERE d.TrangThai = 'ChoCapThuoc'
-
+        WHERE d.TrangThai = 'ChoLayThuoc'
+          AND tn.TrangThai = 'ChoLayThuoc'
 
         GROUP BY
-
             d.MaDonThuoc,
-
             nd_bn.HoTen,
-
             nd_bs.HoTen,
-
             d.NgayKeThuoc,
-
             d.TrangThai
 
-
-        ORDER BY
-            d.NgayKeThuoc DESC
-
-
+        ORDER BY d.NgayKeThuoc DESC
         LIMIT 5
-
         """;
-
 
         return jdbcTemplate.query(
                 sql,
                 (rs, rowNum) -> {
-
                     DuocSiDashboardResponse.PrescriptionItem item =
                             new DuocSiDashboardResponse.PrescriptionItem();
 
+                    int maDonThuoc = rs.getInt("MaDonThuoc");
 
-                    // =========================================
-                    // MÃ ĐƠN
-                    // =========================================
-
-                    int maDonThuoc =
-                            rs.getInt("MaDonThuoc");
-
-
-                    item.setMaDonThuoc(
-                            maDonThuoc
-                    );
-
-
-                    /*
-                     * Ví dụ:
-                     *
-                     * MaDonThuoc = 1
-                     * => DP00001
-                     *
-                     * MaDonThuoc = 25
-                     * => DP00025
-                     */
-
+                    item.setMaDonThuoc(maDonThuoc);
                     item.setMaHienThi(
-                            "DP" +
-                                    String.format(
-                                            "%05d",
-                                            maDonThuoc
-                                    )
+                            "DP" + String.format("%05d", maDonThuoc)
                     );
 
+                    item.setBenhNhan(rs.getString("TenBenhNhan"));
+                    item.setBacSi(rs.getString("TenBacSi"));
 
-                    // =========================================
-                    // BỆNH NHÂN
-                    // =========================================
-
-                    item.setBenhNhan(
-                            rs.getString(
-                                    "TenBenhNhan"
-                            )
-                    );
-
-
-                    // =========================================
-                    // BÁC SĨ
-                    // =========================================
-
-                    item.setBacSi(
-                            rs.getString(
-                                    "TenBacSi"
-                            )
-                    );
-
-
-                    // =========================================
-                    // NGÀY KÊ
-                    // =========================================
-
-                    Timestamp timestamp =
-                            rs.getTimestamp(
-                                    "NgayKeThuoc"
-                            );
-
+                    Timestamp timestamp = rs.getTimestamp("NgayKeThuoc");
 
                     if (timestamp != null) {
-
-                        LocalDateTime ngay =
-                                timestamp.toLocalDateTime();
-
+                        LocalDateTime ngay = timestamp.toLocalDateTime();
 
                         item.setNgayKe(
                                 ngay.format(
-                                        DateTimeFormatter.ofPattern(
-                                                "dd/MM/yyyy"
-                                        )
+                                        DateTimeFormatter.ofPattern("dd/MM/yyyy")
                                 )
                         );
-
                     } else {
-
                         item.setNgayKe("-");
-
                     }
 
-
-                    // =========================================
-                    // SỐ LOẠI THUỐC
-                    // =========================================
-
-                    item.setSoLoaiThuoc(
-                            rs.getInt(
-                                    "SoLoaiThuoc"
-                            )
-                    );
-
-
-                    // =========================================
-                    // TRẠNG THÁI
-                    // =========================================
-
-                    item.setTrangThai(
-                            "Chờ cấp thuốc"
-                    );
-
+                    item.setSoLoaiThuoc(rs.getInt("SoLoaiThuoc"));
+                    item.setTrangThai("Chờ cấp thuốc");
 
                     return item;
                 }
         );
     }
+
 
 
     // =====================================================

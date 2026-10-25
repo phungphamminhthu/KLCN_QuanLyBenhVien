@@ -637,99 +637,168 @@ document.addEventListener(
         // STATUS ĐƠN THUỐC
         // =====================================================
 
-        function normalizeStatus(
-            status
-        ) {
-
+        //        function normalizeStatus(
+        //            status
+        //        ) {
+        //
+        //            switch (status) {
+        //
+        //                // ---------------------------------------------
+        //                // Chờ cấp thuốc
+        //                // ---------------------------------------------
+        //
+        //                case "ChoCapThuoc":
+        //
+        //                    return {
+        //                        text: "Chờ cấp thuốc",
+        //                        className: "waiting"
+        //                    };
+        //
+        //
+        //                // ---------------------------------------------
+        //                // Đang cấp thuốc
+        //                // ---------------------------------------------
+        //
+        //                case "DangCapThuoc":
+        //
+        //                    return {
+        //                        text: "Đang cấp thuốc",
+        //                        className: "processing"
+        //                    };
+        //
+        //
+        //                // ---------------------------------------------
+        //                // Đã cấp thuốc
+        //                // ---------------------------------------------
+        //
+        //                case "DaCapThuoc":
+        //
+        //                    return {
+        //                        text: "Đã cấp thuốc",
+        //                        className: "completed"
+        //                    };
+        //
+        //
+        //                // ---------------------------------------------
+        //                // Đã hủy
+        //                // ---------------------------------------------
+        //
+        //                case "DaHuy":
+        //
+        //                    return {
+        //                        text: "Đã hủy",
+        //                        className: "cancelled"
+        //                    };
+        //
+        //
+        //                // ---------------------------------------------
+        //                // Không xác định
+        //                // ---------------------------------------------
+        //
+        //                default:
+        //
+        //                    return {
+        //                        text:
+        //                            status ||
+        //                            "Không xác định",
+        //
+        //                        className:
+        //                            "processing"
+        //                    };
+        //            }
+        //        }
+        function normalizeStatus(status) {
             switch (status) {
-
-                // ---------------------------------------------
-                // Chờ cấp thuốc
-                // ---------------------------------------------
-
-                case "ChoCapThuoc":
-
+                case "ChoLayThuoc":
                     return {
-                        text: "Chờ cấp thuốc",
+                        text: "Chờ lấy thuốc",
                         className: "waiting"
                     };
 
-
-                // ---------------------------------------------
-                // Đang cấp thuốc
-                // ---------------------------------------------
-
-                case "DangCapThuoc":
-
+                case "DangLayThuoc":
                     return {
-                        text: "Đang cấp thuốc",
+                        text: "Đang lấy thuốc",
                         className: "processing"
                     };
 
-
-                // ---------------------------------------------
-                // Đã cấp thuốc
-                // ---------------------------------------------
-
-                case "DaCapThuoc":
-
+                case "HoanTat":
                     return {
-                        text: "Đã cấp thuốc",
+                        text: "Hoàn tất",
                         className: "completed"
                     };
 
-
-                // ---------------------------------------------
-                // Đã hủy
-                // ---------------------------------------------
-
                 case "DaHuy":
-
                     return {
                         text: "Đã hủy",
                         className: "cancelled"
                     };
 
-
-                // ---------------------------------------------
-                // Không xác định
-                // ---------------------------------------------
-
                 default:
-
                     return {
-                        text:
-                            status ||
-                            "Không xác định",
-
-                        className:
-                            "processing"
+                        text: status || "Không xác định",
+                        className: "processing"
                     };
             }
         }
-
 
         // =====================================================
         // XEM / CẤP THUỐC
         // =====================================================
 
-        window.viewPrescription =
-            function (id) {
 
-                if (!id) {
+        window.viewPrescription = async function (id) {
+            if (!id) {
+                console.error("Không có mã đơn thuốc.");
+                return;
+            }
+
+            const token =
+                sessionStorage.getItem("Token") ||
+                localStorage.getItem("Token") ||
+                "";
+
+            if (!token) {
+                alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `/api/duocsi/cho-cap-thuoc/${id}/bat-dau`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Authorization": "Bearer " + token,
+                            "Content-Type": "application/json"
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    const message = await response.text();
 
                     console.error(
-                        "Không có mã đơn thuốc."
+                        "Lỗi bắt đầu lấy thuốc:",
+                        response.status,
+                        message
                     );
 
+                    alert(
+                        message ||
+                        "Không thể chuyển trạng thái đơn thuốc. Vui lòng thử lại."
+                    );
                     return;
                 }
 
-
                 window.location.href =
-                    "/DuocSi/cho-cap-thuoc/" +
-                    id;
-            };
+                    "/DuocSi/cho-cap-thuoc/" + id;
+
+            } catch (error) {
+                console.error("Lỗi kết nối API:", error);
+                alert("Không thể kết nối máy chủ. Vui lòng thử lại.");
+            }
+        };
+
 
 
         // =====================================================

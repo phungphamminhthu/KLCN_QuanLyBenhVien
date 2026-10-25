@@ -538,41 +538,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 notificationSocket.subscribe(
                     "/user/queue/thong-bao",
-                    message => {
-
+                    async (message) => {
                         try {
+                            const data = JSON.parse(message.body);
 
-                            const data =
-                                JSON.parse(message.body);
+                            console.log("Nhận thông báo realtime:", data);
 
-                            console.log(
-                                "Nhận thông báo realtime:",
-                                data
-                            );
+                            // Cập nhật số thông báo chưa đọc
+                            if (data.count !== undefined && data.count !== null) {
+                                updateBadge(data.count);
+                            } else {
+                                const result = await apiRequest(
+                                    `${API_BASE}/chua-doc`
+                                );
 
-                            // Chỉ cập nhật số badge
-                            updateBadge(
-                                data.count ?? 0
-                            );
-
-                            // Nếu panel đang mở
-                            // thì tải lại danh sách
-                            if (isPanelOpen) {
-                                loadNotifications();
+                                updateBadge(result?.count ?? 0);
                             }
 
+                            // Nếu bảng thông báo đang mở thì tải lại danh sách
+                            if (isPanelOpen) {
+                                await loadNotifications();
+                            }
                         } catch (error) {
-
                             console.error(
-                                "Không đọc được thông báo WebSocket:",
+                                "Lỗi xử lý thông báo realtime:",
                                 error
                             );
-
                         }
-
                     }
                 );
-
                 // Lấy số thông báo chưa đọc ban đầu
                 apiRequest(
                     `${API_BASE}/chua-doc`

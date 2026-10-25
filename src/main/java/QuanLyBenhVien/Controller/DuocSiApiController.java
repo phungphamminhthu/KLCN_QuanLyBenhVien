@@ -1,9 +1,6 @@
 package QuanLyBenhVien.Controller;
 
-import QuanLyBenhVien.DTO.DuocSiCapThuocRequest;
-import QuanLyBenhVien.DTO.DuocSiChiTietDonThuocResponse;
-import QuanLyBenhVien.DTO.DuocSiChoCapThuocResponse;
-import QuanLyBenhVien.DTO.DuocSiHistoryResponse;
+import QuanLyBenhVien.DTO.*;
 
 import QuanLyBenhVien.Entity.NguoiDung;
 
@@ -52,6 +49,11 @@ public class DuocSiApiController {
 
     private final NguoiDungRepository nguoiDungRepository;
 
+    private final DuocSiDieuChinhDonThuocService
+            duocSiDieuChinhDonThuocService;
+
+    private final HoaDonThuocService hoaDonThuocService;
+
 
     // =====================================================
     // CONSTRUCTOR
@@ -71,8 +73,11 @@ public class DuocSiApiController {
 
             ThongBaoWebSocketService thongBaoWebSocketService,
 
-            NguoiDungRepository nguoiDungRepository
+            NguoiDungRepository nguoiDungRepository,
 
+            DuocSiDieuChinhDonThuocService duocSiDieuChinhDonThuocService,
+
+            HoaDonThuocService hoaDonThuocService
     ) {
 
         this.duocSiHistoryService =
@@ -95,6 +100,11 @@ public class DuocSiApiController {
 
         this.nguoiDungRepository =
                 nguoiDungRepository;
+
+        this.duocSiDieuChinhDonThuocService =
+                duocSiDieuChinhDonThuocService;
+
+        this.hoaDonThuocService = hoaDonThuocService;
     }
 
 
@@ -662,6 +672,74 @@ public class DuocSiApiController {
                     )
 
                     .build();
+        }
+    }
+
+    // ===================================
+    // chờ cấp thuốc
+    // ===================================
+
+    @PostMapping("/cho-cap-thuoc/{id}/bat-dau")
+    public ResponseEntity<String> batDauCapThuoc(
+            @PathVariable Integer id
+    ) {
+        duocSiCapThuocService.batDauCapThuoc(id);
+
+        return ResponseEntity.ok(
+                "Đã chuyển đơn thuốc sang trạng thái đang lấy thuốc."
+        );
+    }
+
+    // ============================================
+    // dieu chinh don thuoc
+    // ============================================
+    @PutMapping("/cho-cap-thuoc/{id}/dieu-chinh")
+    public String dieuChinhDonThuoc(
+            @PathVariable("id") Integer id,
+            @RequestBody DuocSiDieuChinhDonThuocRequest request
+    ) {
+        duocSiDieuChinhDonThuocService.dieuChinh(id, request);
+        return "Lưu điều chỉnh đơn thuốc thành công.";
+    }
+
+
+    // =====================================================
+    // LẬP HÓA ĐƠN THUỐC
+    // POST /api/duocsi/cho-cap-thuoc/{id}/hoa-don
+    // =====================================================
+
+    @PostMapping("/cho-cap-thuoc/{id}/hoa-don")
+    public ResponseEntity<?> taoHoaDonThuoc(
+            @PathVariable("id") Integer id
+    ) {
+        try {
+            Integer maHoaDon =
+                    hoaDonThuocService.taoHoaDonThuoc(id);
+
+            return ResponseEntity.ok(
+                    java.util.Map.of(
+                            "success", true,
+                            "message", "Lập hóa đơn thuốc thành công.",
+                            "maDonThuoc", id,
+                            "maHoaDon", maHoaDon
+                    )
+            );
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(java.util.Map.of(
+                            "success", false,
+                            "message", e.getMessage()
+                    ));
+
+        } catch (IllegalStateException e) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body(java.util.Map.of(
+                            "success", false,
+                            "message", e.getMessage()
+                    ));
         }
     }
 }

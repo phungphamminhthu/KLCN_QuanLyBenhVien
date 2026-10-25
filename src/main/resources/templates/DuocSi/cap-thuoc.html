@@ -324,32 +324,81 @@
     </section>
 
 
+    <div class="total-amount">
+        <span>Tổng tiền đơn thuốc</span>
+        <strong id="totalAmount">Đang tải...</strong>
+    </div>
     <!-- =====================================================
          ACTION
     ====================================================== -->
 
     <div class="page-actions">
-
-        <button
-                type="button"
+        <button type="button"
                 id="cancelButton"
                 class="cancel-button">
-
             Hủy
-
         </button>
 
-
-        <button
-                type="button"
-                id="confirmButton"
+        <button type="button"
+                id="paymentButton"
                 class="confirm-button">
-
-            Xác nhận cấp thuốc
-
+            Thanh toán
         </button>
 
+        <button type="button"
+                id="confirmButton"
+                class="confirm-button"
+                disabled>
+            Xác nhận cấp thuốc
+        </button>
     </div>
+
+    <!-- MODAL QR THANH TOÁN -->
+    <div id="paymentModal"
+         class="payment-modal-overlay"
+         hidden
+         aria-hidden="true">
+
+        <div class="payment-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="paymentModalTitle">
+
+            <button type="button"
+                    id="closePaymentButton"
+                    class="payment-modal-close"
+                    aria-label="Đóng">
+                ×
+            </button>
+
+            <h2 id="paymentModalTitle">Thanh toán hóa đơn thuốc</h2>
+
+            <p>Mã hóa đơn:
+                <strong id="paymentInvoiceCode">-</strong>
+            </p>
+
+            <p>Tổng tiền:
+                <strong id="paymentAmount">0 ₫</strong>
+            </p>
+
+            <img id="paymentQrImage"
+                 class="payment-qr-image"
+                 alt="Mã QR thanh toán hóa đơn thuốc">
+
+            <p id="paymentStatus" role="status">
+                Đang chờ thanh toán...
+            </p>
+
+            <p id="paymentError" role="alert" hidden></p>
+
+            <button type="button"
+                    id="finishPaymentButton"
+                    class="cancel-button">
+                Đóng cửa sổ QR
+            </button>
+        </div>
+    </div>
+
 
 </div>
 

@@ -36,6 +36,8 @@ public class DuocSiChiTietDonThuocResponse {
 
     private String ngayKe;
 
+    private String ngayTaiKham;
+
     private String ghiChu;
 
     private String ngayCap;
@@ -43,7 +45,6 @@ public class DuocSiChiTietDonThuocResponse {
     private String nguoiCap;
 
     private String trangThaiCapThuoc;
-
 
     // =====================================================
     // DANH SÁCH THUỐC
@@ -244,6 +245,18 @@ public class DuocSiChiTietDonThuocResponse {
         this.ngayKe = ngayKe;
     }
 
+    //=================================================
+    // NGÀY TÁI KHÁM
+    //=================================================
+
+    public String getNgayTaiKham() {
+        return ngayTaiKham;
+    }
+
+    public void setNgayTaiKham(String ngayTaiKham) {
+        this.ngayTaiKham = ngayTaiKham;
+    }
+
 
     // =====================================================
     // GHI CHÚ
@@ -375,6 +388,23 @@ public class DuocSiChiTietDonThuocResponse {
         private Integer tonKhoToiThieu;
 
         private String tinhTrang;
+
+        private Integer maCTDonThuoc;
+
+        private Integer maThuocThucCap;
+
+        private List<ThuocThayTheItem> danhSachThuocThayThe =
+                new ArrayList<>();
+
+        private String tenThuocGoc;
+
+        public String getTenThuocGoc() {
+            return tenThuocGoc;
+        }
+
+        public void setTenThuocGoc(String tenThuocGoc) {
+            this.tenThuocGoc = tenThuocGoc;
+        }
 
 
         public Integer getMaThuoc() {
@@ -520,6 +550,81 @@ public class DuocSiChiTietDonThuocResponse {
                 String tinhTrang
         ) {
             this.tinhTrang = tinhTrang;
+        }
+
+        public Integer getMaCTDonThuoc() {
+            return maCTDonThuoc;
+        }
+
+        public void setMaCTDonThuoc(Integer maCTDonThuoc) {
+            this.maCTDonThuoc = maCTDonThuoc;
+        }
+
+        public Integer getMaThuocThucCap() {
+            return maThuocThucCap;
+        }
+
+        public void setMaThuocThucCap(Integer maThuocThucCap) {
+            this.maThuocThucCap = maThuocThucCap;
+        }
+
+        public List<ThuocThayTheItem> getDanhSachThuocThayThe() {
+            return danhSachThuocThayThe;
+        }
+
+        public void setDanhSachThuocThayThe(
+                List<ThuocThayTheItem> danhSachThuocThayThe
+        ) {
+            this.danhSachThuocThayThe = danhSachThuocThayThe;
+        }
+    }
+
+    public static class ThuocThayTheItem {
+
+        private Integer maThuoc;
+        private String tenThuoc;
+        private String donViTinh;
+        private BigDecimal gia;
+        private Integer tonKho;
+
+        public Integer getMaThuoc() {
+            return maThuoc;
+        }
+
+        public void setMaThuoc(Integer maThuoc) {
+            this.maThuoc = maThuoc;
+        }
+
+        public String getTenThuoc() {
+            return tenThuoc;
+        }
+
+        public void setTenThuoc(String tenThuoc) {
+            this.tenThuoc = tenThuoc;
+        }
+
+        public String getDonViTinh() {
+            return donViTinh;
+        }
+
+        public void setDonViTinh(String donViTinh) {
+            this.donViTinh = donViTinh;
+        }
+
+        public BigDecimal getGia() {
+            return gia;
+        }
+
+        public void setGia(BigDecimal gia) {
+            this.gia = gia;
+        }
+
+        public Integer getTonKho() {
+            return tonKho;
+        }
+
+        public void setTonKho(Integer tonKho) {
+            this.tonKho = tonKho;
         }
     }
 }
