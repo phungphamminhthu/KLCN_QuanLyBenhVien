@@ -122,7 +122,35 @@
 
 
     function hasBookings(item) {
-        return Number(item.soBenhNhanDaDat || 0) > 0;
+        return Number(item?.soBenhNhanDaDat || 0) > 0;
+    }
+
+    function getBookingStatus(item, isPast = false) {
+        if (isPast) {
+            return {
+                className: "is-past",
+                text: "Lịch đã qua"
+            };
+        }
+
+        if (item?.hetCho === true || item?.hetCho === "true") {
+            return {
+                className: "is-full",
+                text: "Đã hết chỗ"
+            };
+        }
+
+        if (hasBookings(item)) {
+            return {
+                className: "is-booked",
+                text: "Có bệnh nhân đặt"
+            };
+        }
+
+        return {
+            className: "is-available",
+            text: "Còn chỗ"
+        };
     }
 
     // =====================================================
@@ -180,6 +208,7 @@
         return null;
     }
 
+
     async function request(url, options = {}) {
         const token = findJwtToken();
 
@@ -196,41 +225,84 @@
             headers["Content-Type"] = "application/json";
         }
 
+        console.log("[LichLamViec] Bắt đầu request:", url);
         console.log("[LichLamViec] Có JWT:", Boolean(token));
 
-        const response = await fetch(url, {
-            ...options,
-            credentials: "same-origin",
-            headers
-        });
-
-        const text = await response.text();
-        let data = null;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.error("[LichLamViec] Request timeout:", url);
+            controller.abort();
+        }, 15000);
 
         try {
-            data = text ? JSON.parse(text) : null;
-        } catch {
-            data = text;
-        }
+            console.log("[LichLamViec] Đang chờ fetch:", url);
 
-        if (!response.ok) {
-            console.error(
-                "[LichLamViec] API lỗi:",
-                response.status,
+            const response = await fetch(url, {
+                ...options,
+                credentials: "same-origin",
+                headers,
+                signal: controller.signal
+            });
+
+            console.log(
+                "[LichLamViec] Nhận response:",
                 url,
-                data
+                response.status
             );
 
-            throw new Error(
-                data?.message ||
-                data?.error ||
-                (typeof data === "string" && data) ||
-                `Yêu cầu thất bại (${response.status})`
+            const text = await response.text();
+
+            console.log(
+                "[LichLamViec] Đã đọc response body:",
+                url,
+                text.length,
+                "ký tự"
             );
+
+            let data = null;
+
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch {
+                data = text;
+            }
+
+            if (!response.ok) {
+                console.error(
+                    "[LichLamViec] API lỗi:",
+                    response.status,
+                    url,
+                    data
+                );
+
+                throw new Error(
+                    data?.message ||
+                    data?.error ||
+                    (typeof data === "string" && data) ||
+                    `Yêu cầu thất bại (${response.status})`
+                );
+            }
+
+            return data;
+        } catch (error) {
+            if (error.name === "AbortError") {
+                throw new Error(
+                    `API không phản hồi sau 15 giây: ${url}`
+                );
+            }
+
+            console.error(
+                "[LichLamViec] Lỗi request:",
+                url,
+                error
+            );
+
+            throw error;
+        } finally {
+            clearTimeout(timeoutId);
         }
-
-        return data;
     }
+
 
     // =====================================================
     // MODAL
@@ -310,10 +382,20 @@
 
             const events = dayItems.map(item => {
                 const isPast = dateKey < today();
+                const bookingStatus = getBookingStatus(item, isPast);
+                const totalBooked = Number(item.soBenhNhanDaDat || 0);
 
-                const eventClass = isPast
-                    ? "calendar-event is-past"
-                    : "calendar-event";
+                const maxBookings = 10;
+
+                const countBadge = `
+                    <span class="calendar-event-count"
+                          title="${totalBooked}/${maxBookings} lượt đặt">
+                        ${totalBooked}/${maxBookings}
+                    </span>
+                `;
+
+                const eventClass =
+                    `calendar-event ${bookingStatus.className}`;
 
                 return `
                     <button
@@ -323,18 +405,30 @@
                         title="${escapeHtml(
                             `${formatTime(item.gioBatDau)} - ` +
                             `${formatTime(item.gioKetThuc)} · ` +
-                            `${roomName(getRoomId(item))}`
+                            `${roomName(getRoomId(item))} · ` +
+                            `${bookingStatus.text} · ` +
+                            `${totalBooked} lượt đặt`
                         )}"
                     >
-                        <span class="calendar-event-time">
-                            ${escapeHtml(formatTime(item.gioBatDau))} –
-                            ${escapeHtml(formatTime(item.gioKetThuc))}
+                        <span class="calendar-event-top">
+                            <span class="calendar-event-time">
+                                ${escapeHtml(formatTime(item.gioBatDau))}
+                                – ${escapeHtml(formatTime(item.gioKetThuc))}
+                            </span>
+
+                            ${countBadge}
                         </span>
 
                         <span class="calendar-event-room">
                             <i class="fa-solid fa-door-open"></i>
                             ${escapeHtml(roomName(getRoomId(item)))}
                         </span>
+
+                        ${
+                            bookingStatus.className === "is-full"
+                                ? `<span class="calendar-event-status">Hết chỗ</span>`
+                                : ""
+                        }
                     </button>
                 `;
             }).join("");
@@ -411,172 +505,178 @@
     // DANH SÁCH LỊCH CỦA NGÀY ĐƯỢC CHỌN
     // =====================================================
 
-function renderScheduleList(filtered) {
-    if (!scheduleListContent) return;
+    function renderScheduleList(filtered) {
+        if (!scheduleListContent) return;
 
-    const grouped = new Map();
+        const grouped = new Map();
 
-    [...filtered]
-        .sort((a, b) =>
-            `${a.ngayLamViec} ${a.gioBatDau}`.localeCompare(
-                `${b.ngayLamViec} ${b.gioBatDau}`
+        [...filtered]
+            .sort((a, b) =>
+                `${a.ngayLamViec} ${a.gioBatDau}`.localeCompare(
+                    `${b.ngayLamViec} ${b.gioBatDau}`
+                )
             )
-        )
-        .forEach(item => {
-            const date = String(item.ngayLamViec || "").slice(0, 10);
+            .forEach(item => {
+                const date = String(item.ngayLamViec || "").slice(0, 10);
 
-            if (!date) return;
+                if (!date) return;
 
-            if (!grouped.has(date)) {
-                grouped.set(date, []);
-            }
-
-            grouped.get(date).push(item);
-        });
-
-    if ($("scheduleListSubtitle")) {
-        $("scheduleListSubtitle").textContent =
-            $("filterFrom")?.value || $("filterTo")?.value
-                ? "Lịch theo khoảng ngày đã lọc"
-                : "Các ngày có lịch làm việc";
-    }
-
-    if ($("resultCount")) {
-        $("resultCount").textContent = `${filtered.length} lịch`;
-    }
-
-    if (grouped.size === 0) {
-        scheduleListContent.innerHTML = `
-            <div class="schedule-list-empty">
-                <i class="fa-regular fa-calendar-xmark"></i>
-                <p>Chưa có lịch làm việc trong khoảng thời gian này.</p>
-                <button
-                    type="button"
-                    class="btn-primary"
-                    data-action="add"
-                >
-                    <i class="fa-solid fa-plus"></i>
-                    Thêm lịch
-                </button>
-            </div>
-        `;
-        return;
-    }
-
-    scheduleListContent.innerHTML = [...grouped.entries()]
-        .map(([date, items]) => {
-            const dayItems = items.map(item => {
-                const id = Number(item.maLichLamViec);
-                const booked = hasBookings(item);
-                const totalBooked = Number(item.soBenhNhanDaDat || 0);
-
-                const status = String(item.trangThai || "");
-                const isPast = date < today();
-
-                let statusClass = "status-active";
-                let statusText = "Đang làm việc";
-
-                if (isPast) {
-                    statusClass = "status-past";
-                    statusText = "Lịch đã qua";
-                } else if (
-                    status.toLowerCase().includes("hetcho")
-                    || status.toLowerCase().includes("hết chỗ")
-                ) {
-                    statusClass = "status-full";
-                    statusText = "Đã hết chỗ";
-                } else if (booked) {
-                    statusClass = "status-booked";
-                    statusText = "Có bệnh nhân đặt";
+                if (!grouped.has(date)) {
+                    grouped.set(date, []);
                 }
 
-                const bookingInfo = booked
-                    ? `<span class="schedule-booking-count">
-                           <i class="fa-solid fa-users"></i>
-                           ${totalBooked} bệnh nhân đã đặt
-                       </span>`
-                    : `<span class="schedule-booking-count">
-                           Chưa có bệnh nhân đặt
-                       </span>`;
+                grouped.get(date).push(item);
+            });
+
+        if ($("scheduleListSubtitle")) {
+            $("scheduleListSubtitle").textContent =
+                $("filterFrom")?.value || $("filterTo")?.value
+                    ? "Lịch theo khoảng ngày đã lọc"
+                    : "Các ngày có lịch làm việc";
+        }
+
+        if ($("resultCount")) {
+            $("resultCount").textContent = `${filtered.length} lịch`;
+        }
+
+        if (grouped.size === 0) {
+            scheduleListContent.innerHTML = `
+                <div class="schedule-list-empty">
+                    <i class="fa-regular fa-calendar-xmark"></i>
+                    <p>Chưa có lịch làm việc trong khoảng thời gian này.</p>
+                    <button
+                        type="button"
+                        class="btn-primary"
+                        data-action="add"
+                    >
+                        <i class="fa-solid fa-plus"></i>
+                        Thêm lịch
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        scheduleListContent.innerHTML = [...grouped.entries()]
+            .map(([date, items]) => {
+                const dayItems = items.map(item => {
+                    const id = Number(item.maLichLamViec);
+                    const booked = hasBookings(item);
+                    const totalBooked = Number(item.soBenhNhanDaDat || 0);
+
+                    const maxBookings = 10;
+
+                    const bookingInfo = `
+                        <span class="schedule-booking-count">
+                            ${totalBooked}/${maxBookings}
+                        </span>
+                    `;
+
+                    const isPast = date < today();
+                    const bookingStatus = getBookingStatus(item, isPast);
+
+                    let statusClass = "status-active";
+                    let statusText = "Đang làm việc";
+
+                    if (bookingStatus.className === "is-past") {
+                        statusClass = "status-past";
+                        statusText = "Lịch đã qua";
+                    } else if (bookingStatus.className === "is-full") {
+                        statusClass = "status-full";
+                        statusText = "Đã hết chỗ";
+                    } else if (bookingStatus.className === "is-booked") {
+                        statusClass = "status-booked";
+                        statusText = "Có bệnh nhân đặt";
+                    }
+
+                    if (isPast) {
+                        statusClass = "status-past";
+                        statusText = "Lịch đã qua";
+                    }else if (booked) {
+                        statusClass = "status-booked";
+                        statusText = "Có bệnh nhân đặt";
+                    }
+
+
+
+                    return `
+                        <article
+                            class="schedule-list-item"
+                            data-id="${id}"
+                        >
+                            <span class="schedule-list-dot ${statusClass}"></span>
+
+                            <div class="schedule-list-main">
+                                <div class="schedule-list-time">
+                                    ${escapeHtml(formatTime(item.gioBatDau))}
+                                    – ${escapeHtml(formatTime(item.gioKetThuc))}
+                                </div>
+
+                                <div class="schedule-list-room">
+                                    <i class="fa-solid fa-door-open"></i>
+                                    ${escapeHtml(roomName(getRoomId(item)))}
+                                </div>
+
+                                <span class="schedule-status ${statusClass}">
+                                    ${escapeHtml(statusText)}
+                                </span>
+
+                                ${bookingInfo}
+                            </div>
+
+                            <div class="schedule-list-actions">
+                                <button
+                                    type="button"
+                                    class="icon-button"
+                                    data-action="edit"
+                                    data-id="${id}"
+                                    title="Sửa lịch"
+                                    aria-label="Sửa lịch"
+                                >
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="icon-button danger"
+                                    data-action="delete"
+                                    data-id="${id}"
+                                    title="${booked ? "Lịch đã có bệnh nhân đặt" : "Xóa lịch"}"
+                                    aria-label="Xóa lịch"
+                                    ${booked ? "disabled" : ""}
+                                >
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </article>
+                    `;
+                }).join("");
 
                 return `
-                    <article
-                        class="schedule-list-item"
-                        data-id="${id}"
-                    >
-                        <span class="schedule-list-dot ${statusClass}"></span>
+                    <section class="schedule-date-group">
+                        <div class="schedule-date-heading">
+                            <strong>${escapeHtml(
+                                new Date(`${date}T00:00:00`).toLocaleDateString(
+                                    "vi-VN",
+                                    {
+                                        weekday: "long",
+                                        day: "2-digit",
+                                        month: "2-digit",
+                                        year: "numeric"
+                                    }
+                                )
+                            )}</strong>
 
-                        <div class="schedule-list-main">
-                            <div class="schedule-list-time">
-                                ${escapeHtml(formatTime(item.gioBatDau))}
-                                – ${escapeHtml(formatTime(item.gioKetThuc))}
-                            </div>
-
-                            <div class="schedule-list-room">
-                                <i class="fa-solid fa-door-open"></i>
-                                ${escapeHtml(roomName(getRoomId(item)))}
-                            </div>
-
-                            <span class="schedule-status ${statusClass}">
-                                ${escapeHtml(statusText)}
-                            </span>
-
-                            ${bookingInfo}
+                            <span>${items.length} ca làm việc</span>
                         </div>
 
-                        <div class="schedule-list-actions">
-                            <button
-                                type="button"
-                                class="icon-button"
-                                data-action="edit"
-                                data-id="${id}"
-                                title="Sửa lịch"
-                                aria-label="Sửa lịch"
-                            >
-                                <i class="fa-solid fa-pen"></i>
-                            </button>
-
-                            <button
-                                type="button"
-                                class="icon-button danger"
-                                data-action="delete"
-                                data-id="${id}"
-                                title="${booked ? "Lịch đã có bệnh nhân đặt" : "Xóa lịch"}"
-                                aria-label="Xóa lịch"
-                                ${booked ? "disabled" : ""}
-                            >
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
+                        <div class="schedule-date-items">
+                            ${dayItems}
                         </div>
-                    </article>
+                    </section>
                 `;
             }).join("");
-
-            return `
-                <section class="schedule-date-group">
-                    <div class="schedule-date-heading">
-                        <strong>${escapeHtml(
-                            new Date(`${date}T00:00:00`).toLocaleDateString(
-                                "vi-VN",
-                                {
-                                    weekday: "long",
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric"
-                                }
-                            )
-                        )}</strong>
-
-                        <span>${items.length} ca làm việc</span>
-                    </div>
-
-                    <div class="schedule-date-items">
-                        ${dayItems}
-                    </div>
-                </section>
-            `;
-        }).join("");
-}
+    }
 
 
     // =====================================================
@@ -636,13 +736,28 @@ function renderScheduleList(filtered) {
                 '<p class="loading-cell">Đang tải lịch làm việc...</p>';
         }
 
+        console.log("[LichLamViec] Bắt đầu tải lịch");
+        console.log("[LichLamViec] API:", API);
+
         try {
             const data = await request(API);
 
-            schedules = Array.isArray(data) ? data : [];
+            console.log("[LichLamViec] Dữ liệu API:", data);
+            console.log("[LichLamViec] Có phải mảng:", Array.isArray(data));
+
+            if (!Array.isArray(data)) {
+                throw new Error(
+                    "API không trả về danh sách lịch dạng mảng."
+                );
+            }
+
+            schedules = data;
+            console.log("[LichLamViec] Số lịch nhận được:", schedules.length);
 
             renderSchedules();
         } catch (error) {
+            console.error("[LichLamViec] Không tải được lịch:", error);
+
             schedules = [];
             renderSchedules();
 
@@ -1074,31 +1189,32 @@ function renderScheduleList(filtered) {
      // =====================================================
     function populateTimeOptions() {
         ["startTime", "endTime"].forEach(id => {
-            const select = document.getElementById(id);
+            const select = $(id);
 
-            if (!select) {
-                console.warn(`Không tìm thấy phần tử #${id} trong HTML`);
+            if (!select || select.tagName !== "SELECT") {
+                console.warn(`#${id} chưa phải SELECT.`);
                 return;
             }
 
-            // Nếu HTML vẫn đang dùng input type="time",
-            // không tạo option cho input.
-            if (select.tagName !== "SELECT") {
-                console.warn(
-                    `#${id} hiện là ${select.tagName}, cần dùng <select> để tạo danh sách giờ.`
-                );
-                return;
-            }
+            const oldValue = select.value;
 
-            select.innerHTML = "";
+            select.replaceChildren();
 
             const placeholder = document.createElement("option");
             placeholder.value = "";
-            placeholder.textContent = "-- Chọn giờ --";
+            placeholder.textContent = id === "startTime"
+                ? "-- Chọn giờ bắt đầu --"
+                : "-- Chọn giờ kết thúc --";
+
             select.appendChild(placeholder);
 
-            for (let hour = 1; hour <= 23; hour++) {
-                const time = `${String(hour).padStart(2, "0")}:00`;
+            for (let minute = 0; minute < 24 * 60; minute++) {
+                const hour = Math.floor(minute / 60);
+                const min = minute % 60;
+
+                const time =
+                    `${String(hour).padStart(2, "0")}:` +
+                    `${String(min).padStart(2, "0")}`;
 
                 const option = document.createElement("option");
                 option.value = time;
@@ -1106,21 +1222,33 @@ function renderScheduleList(filtered) {
 
                 select.appendChild(option);
             }
+
+            if (
+                oldValue &&
+                [...select.options].some(option => option.value === oldValue)
+            ) {
+                select.value = oldValue;
+            }
         });
     }
 
     // =====================================================
     // KHỞI TẠO TRANG
     // =====================================================
+    // =====================================================
+    // KHỞI TẠO TRANG
+    // =====================================================
     async function init() {
+        console.log("[LichLamViec] Bắt đầu init()");
+
         populateTimeOptions();
+
         try {
+            console.log("[LichLamViec] Bắt đầu loadRooms()");
             await loadRooms();
+            console.log("[LichLamViec] loadRooms() hoàn tất");
         } catch (error) {
-            console.error(
-                "Không tải được phòng khám:",
-                error
-            );
+            console.error("[LichLamViec] Lỗi loadRooms():", error);
 
             showToast(
                 "Không tải được danh sách phòng khám: " +
@@ -1129,8 +1257,16 @@ function renderScheduleList(filtered) {
             );
         }
 
-        // Vẫn thử tải lịch nếu API phòng khám lỗi
-        await loadSchedules();
+        console.log("[LichLamViec] Bắt đầu loadSchedules()");
+
+        try {
+            await loadSchedules();
+            console.log("[LichLamViec] loadSchedules() hoàn tất");
+        } catch (error) {
+            console.error("[LichLamViec] Lỗi loadSchedules():", error);
+        }
+
+        console.log("[LichLamViec] Kết thúc init()");
     }
 
     init();

@@ -45,6 +45,7 @@ public class BacSiLichLamViecController {
     }
 
     // Lấy lịch làm việc của bác sĩ đang đăng nhập
+
     @GetMapping
     public ResponseEntity<?> layLichLamViec(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -55,7 +56,11 @@ public class BacSiLichLamViecController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate denNgay) {
 
+        long start = System.currentTimeMillis();
+        System.out.println("[LichLamViec API] Bắt đầu xử lý");
+
         if (userDetails == null) {
+            System.out.println("[LichLamViec API] Không có userDetails");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("message", "Vui lòng đăng nhập."));
         }
@@ -64,26 +69,73 @@ public class BacSiLichLamViecController {
             Integer maNguoiDung =
                     userDetails.getNguoiDung().getMaNguoiDung();
 
+            System.out.println(
+                    "[LichLamViec API] maNguoiDung = " + maNguoiDung
+            );
+
             BacSi bacSi = bacSiService
                     .timBacSiTheoMaNguoiDung(maNguoiDung)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Không tìm thấy hồ sơ bác sĩ."
-                            ));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Không tìm thấy hồ sơ bác sĩ."
+                    ));
 
-            return ResponseEntity.ok(
-                    lichLamViecService.layLichLamViec(
-                            bacSi.getMaBacSi(),
-                            tuNgay,
-                            denNgay
-                    )
+            System.out.println(
+                    "[LichLamViec API] Tìm thấy bác sĩ: "
+                            + bacSi.getMaBacSi()
             );
+
+            var danhSach = lichLamViecService.layLichLamViec(
+                    bacSi.getMaBacSi(),
+                    tuNgay,
+                    denNgay
+            );
+
+            System.out.println(
+                    "[LichLamViec API] Lấy lịch xong, số lượng = "
+                            + danhSach.size()
+            );
+
+            System.out.println(
+                    "[LichLamViec API] Tổng thời gian = "
+                            + (System.currentTimeMillis() - start)
+                            + " ms"
+            );
+
+            //return ResponseEntity.ok(danhSach);
+
+            List<Map<String, Object>> result = new ArrayList<>();
+
+            for (LichLamViec lich : danhSach) {
+                long soBenhNhanDaDat =
+                        lichDangKyKhamRepository.countLuotDatTrongKhungGio(
+                                bacSi.getMaBacSi(),
+                                lich.getNgayLamViec(),
+                                lich.getGioBatDau(),
+                                lich.getGioKetThuc()
+                        );
+
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("maLichLamViec", lich.getMaLichLamViec());
+                item.put("ngayLamViec", lich.getNgayLamViec());
+                item.put("gioBatDau", lich.getGioBatDau());
+                item.put("gioKetThuc", lich.getGioKetThuc());
+                item.put("maPhong", lich.getPhong() != null
+                        ? lich.getPhong().getMaPhong() : null);
+                item.put("soBenhNhanDaDat", soBenhNhanDaDat);
+                item.put("hetCho", soBenhNhanDaDat >= 10);
+                item.put("trangThai", lich.getTrangThai());
+
+                result.add(item);
+            }
+
+            return ResponseEntity.ok(result);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", e.getMessage()));
         }
     }
+
 
     // Lấy phòng khám thuộc khoa của bác sĩ đang đăng nhập
     @GetMapping("/phong-kham")

@@ -45,50 +45,6 @@ public class LichLamViecService {
                 && gioKetThucMoi.isAfter(gioBatDauCu);
     }
 
-    @Transactional(readOnly = true)
-    public List<LichLamViec> layLichLamViec(
-            Integer maBacSi,
-            LocalDate tuNgay,
-            LocalDate denNgay) {
-
-        if (maBacSi == null) {
-            throw new IllegalArgumentException(
-                    "Mã bác sĩ không được để trống.");
-        }
-
-        if (tuNgay != null && denNgay != null
-                && tuNgay.isAfter(denNgay)) {
-            throw new IllegalArgumentException(
-                    "Ngày bắt đầu không được sau ngày kết thúc.");
-        }
-
-        if (tuNgay != null && denNgay != null) {
-            return lichLamViecRepository
-                    .findByBacSi_MaBacSiAndNgayLamViecBetweenOrderByNgayLamViecAscGioBatDauAsc(
-                            maBacSi, tuNgay, denNgay);
-        }
-
-        // Nếu chỉ truyền một mốc ngày thì lọc phía service.
-        List<LichLamViec> danhSach =
-                lichLamViecRepository
-                        .findByBacSi_MaBacSiOrderByNgayLamViecAscGioBatDauAsc(
-                                maBacSi);
-
-        if (tuNgay != null) {
-            return danhSach.stream()
-                    .filter(l -> !l.getNgayLamViec().isBefore(tuNgay))
-                    .toList();
-        }
-
-        if (denNgay != null) {
-            return danhSach.stream()
-                    .filter(l -> !l.getNgayLamViec().isAfter(denNgay))
-                    .toList();
-        }
-
-        return danhSach;
-    }
-
     // =================================
     // THÊM LỊCH LÀM VIỆC
     // =================================
@@ -279,6 +235,80 @@ public class LichLamViecService {
         lichLamViecRepository.delete(lich);
     }
 
+
+    @Transactional(readOnly = true)
+    public List<LichLamViec> layLichLamViec(
+            Integer maBacSi,
+            LocalDate tuNgay,
+            LocalDate denNgay) {
+
+        long start = System.currentTimeMillis();
+
+        System.out.println("[LichLamViecService] Bắt đầu");
+        System.out.println("[LichLamViecService] maBacSi = " + maBacSi);
+        System.out.println("[LichLamViecService] tuNgay = " + tuNgay);
+        System.out.println("[LichLamViecService] denNgay = " + denNgay);
+
+        if (maBacSi == null) {
+            throw new IllegalArgumentException(
+                    "Mã bác sĩ không được để trống.");
+        }
+
+        if (tuNgay != null && denNgay != null
+                && tuNgay.isAfter(denNgay)) {
+            throw new IllegalArgumentException(
+                    "Ngày bắt đầu không được sau ngày kết thúc.");
+        }
+
+        List<LichLamViec> danhSach;
+
+        long queryStart = System.currentTimeMillis();
+
+        System.out.println("[LichLamViecService] Bắt đầu truy vấn repository");
+
+        if (tuNgay != null && denNgay != null) {
+            danhSach = lichLamViecRepository
+                    .findByBacSi_MaBacSiAndNgayLamViecBetweenOrderByNgayLamViecAscGioBatDauAsc(
+                            maBacSi, tuNgay, denNgay);
+        } else {
+            danhSach = lichLamViecRepository
+                    .findByBacSi_MaBacSiOrderByNgayLamViecAscGioBatDauAsc(
+                            maBacSi);
+
+            if (tuNgay != null) {
+                danhSach = danhSach.stream()
+                        .filter(l -> l.getNgayLamViec() != null
+                                && !l.getNgayLamViec().isBefore(tuNgay))
+                        .toList();
+            }
+
+            if (denNgay != null) {
+                danhSach = danhSach.stream()
+                        .filter(l -> l.getNgayLamViec() != null
+                                && !l.getNgayLamViec().isAfter(denNgay))
+                        .toList();
+            }
+        }
+
+        System.out.println(
+                "[LichLamViecService] Repository hoàn tất sau "
+                        + (System.currentTimeMillis() - queryStart)
+                        + " ms");
+
+        System.out.println(
+                "[LichLamViecService] Số lịch = " + danhSach.size());
+
+        System.out.println(
+                "[LichLamViecService] Tổng thời gian = "
+                        + (System.currentTimeMillis() - start) + " ms");
+
+        return danhSach;
+    }
+
+
+    // =========================================
+    // LẤY LỊCH BÁC SĨ PHỤC VỤ BỆNH NHÂN ĐẶT KHÁM
+    // =========================================
     @Transactional(readOnly = true)
     public List<LichLamViec> layLichBacSiDatKham(
             Integer maKhoa,
@@ -295,4 +325,6 @@ public class LichLamViecService {
                 ngayKham
         );
     }
+
+
 }
