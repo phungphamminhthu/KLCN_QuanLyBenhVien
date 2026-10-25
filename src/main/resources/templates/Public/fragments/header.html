@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org">
+
+<body>
+
+<header th:fragment="publicHeader" class="public-header">
+
+    <div class="public-header-container">
+
+        <a th:href="@{/home}" class="public-logo">
+            <span class="public-logo-icon">✚</span>
+
+            <span class="public-logo-text">
+                <strong>MedCare Hospital</strong>
+                <small>Hệ thống quản lý bệnh viện</small>
+            </span>
+        </a>
+
+        <nav class="public-nav">
+            <a th:href="@{/home}">Trang chủ</a>
+            <a th:href="@{/news}">Tin tức</a>
+            <a th:href="@{/services}">Dịch vụ</a>
+            <a th:href="@{/about}">Giới thiệu</a>
+        </nav>
+
+        <a th:href="@{/auth/login}" class="public-login">
+            Đăng nhập
+        </a>
+
+    </div>
+
+</header>
+
+</body>
+</html>

@@ -62,7 +62,14 @@ public class SecurityConfig {
                         // Tài nguyên công khai
                         .requestMatchers(
                                 "/",
+                                "/home",
+                                "/home/**",
                                 "/news",
+                                "/news/**",
+                                "/services",
+                                "/services/**",
+                                "/about",
+                                "/Css/Public/**",
                                 "/auth/**",
                                 "/favicon.ico",
                                 "/Css/**",

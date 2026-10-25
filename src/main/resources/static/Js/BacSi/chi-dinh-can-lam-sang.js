@@ -1020,27 +1020,6 @@ function clsGanSuKien() {
             }
         }
     );
-
-    clsEl("btnLogout").addEventListener(
-        "click",
-        () => {
-            [
-                "token",
-                "Token",
-                "HoTen",
-                "VaiTro",
-                "MaNguoiDung",
-                "TenDangNhap",
-                "Email",
-                "AnhDaiDien"
-            ].forEach(key => {
-                localStorage.removeItem(key);
-                sessionStorage.removeItem(key);
-            });
-
-            window.location.assign("/auth/login");
-        }
-    );
 }
 
 /* =========================================
@@ -1058,23 +1037,6 @@ async function clsKhoiTao() {
         return;
     }
 
-    const name =
-        localStorage.getItem("HoTen")
-        || sessionStorage.getItem("HoTen")
-        || "Bác sĩ";
-
-    clsEl("doctorName").textContent = name;
-
-    const words = name.trim().split(/\s+/);
-
-    clsEl("doctorAvatar").textContent =
-        words.length > 1
-            ? (
-                words[words.length - 2][0]
-                + words[words.length - 1][0]
-            ).toUpperCase()
-            : name.substring(0, 2).toUpperCase();
-
     clsGanSuKien();
 
     clsEl("pageLoading")
@@ -1082,9 +1044,7 @@ async function clsKhoiTao() {
 
     try {
         await clsTaiHoSo();
-
         await clsTaiDichVu();
-
         await clsTaiChiDinh();
 
     } catch (error) {

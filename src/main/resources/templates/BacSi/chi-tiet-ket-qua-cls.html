@@ -1,0 +1,301 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{BacSi/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Chi tiết kết quả cận lâm sàng</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/BacSi/chi-tiet-ket-qua-cls.css}">
+    </th:block>
+</head>
+
+<body>
+
+<section class="content cls-detail"
+         layout:fragment="content">
+
+    <!-- NÚT QUAY LẠI VÀ LÀM MỚI -->
+    <div class="cls-detail-top">
+
+        <button type="button"
+                id="clsBack"
+                class="cls-link-back">
+            <i class="fa-solid fa-arrow-left"></i>
+            Quay lại danh sách chỉ định
+        </button>
+
+        <button type="button"
+                id="clsReload"
+                class="cls-button cls-outline">
+            <i class="fa-solid fa-rotate-right"></i>
+            Làm mới kết quả
+        </button>
+
+    </div>
+
+    <!-- TIÊU ĐỀ -->
+    <div class="cls-detail-heading">
+
+        <div>
+            <h1>Chi tiết kết quả cận lâm sàng</h1>
+
+            <p>
+                Thông tin và kết quả của chỉ định
+                trong lượt khám hiện tại.
+            </p>
+        </div>
+
+        <span id="clsStatus"
+              class="cls-pill cls-pending">
+            Đang tải...
+        </span>
+
+    </div>
+
+    <!-- THÔNG BÁO LỖI -->
+    <div id="clsAlert"
+         class="cls-alert"
+         role="alert"
+         hidden>
+    </div>
+
+    <!-- LOADING -->
+    <div id="clsLoading"
+         class="cls-loading">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        Đang tải thông tin kết quả...
+    </div>
+
+    <!-- NỘI DUNG KẾT QUẢ -->
+    <div id="clsResultContent" hidden>
+
+        <!-- THÔNG TIN BỆNH NHÂN -->
+        <div class="cls-panel">
+
+            <div class="cls-panel-title">
+                <i class="fa-regular fa-user"></i>
+                <h2>Thông tin bệnh nhân</h2>
+            </div>
+
+            <div class="cls-fields">
+
+                <div>
+                    <small>Họ và tên</small>
+                    <strong id="clsPatientName">---</strong>
+                </div>
+
+                <div>
+                    <small>Mã bệnh nhân</small>
+                    <strong id="clsPatientCode">---</strong>
+                </div>
+
+                <div>
+                    <small>Ngày sinh</small>
+                    <strong id="clsPatientBirth">---</strong>
+                </div>
+
+                <div>
+                    <small>Giới tính</small>
+                    <strong id="clsPatientGender">---</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- THÔNG TIN CHỈ ĐỊNH -->
+        <div class="cls-panel">
+
+            <div class="cls-panel-title">
+                <i class="fa-solid fa-flask-vial"></i>
+                <h2>Thông tin chỉ định</h2>
+            </div>
+
+            <div class="cls-fields">
+
+                <div>
+                    <small>Dịch vụ</small>
+                    <strong id="clsService">---</strong>
+                </div>
+
+                <div>
+                    <small>Mã chỉ định</small>
+                    <strong id="clsOrderCode">---</strong>
+                </div>
+
+                <div>
+                    <small>Loại chỉ định</small>
+                    <strong id="clsOrderType">---</strong>
+                </div>
+
+                <div>
+                    <small>Phòng thực hiện</small>
+                    <strong id="clsRoom">---</strong>
+                </div>
+
+                <div>
+                    <small>Ngày chỉ định</small>
+                    <strong id="clsOrderDate">---</strong>
+                </div>
+
+                <div>
+                    <small>Ngày có kết quả</small>
+                    <strong id="clsResultDate">---</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- TRẠNG THÁI CHƯA CÓ KẾT QUẢ -->
+        <div id="clsNoResult"
+             class="cls-panel cls-empty"
+             hidden>
+
+            <i class="fa-regular fa-clock"></i>
+
+            <h2>Chưa có kết quả hoàn tất</h2>
+
+            <p>
+                Chỉ định đang chờ thực hiện,
+                đang xử lý hoặc chưa có kết quả hợp lệ.
+                Hãy làm mới sau khi kỹ thuật viên hoàn tất.
+            </p>
+
+        </div>
+
+        <!-- KẾT QUẢ ĐÃ HOÀN TẤT -->
+        <div id="clsFinished" hidden>
+
+            <!-- NỘI DUNG VÀ KẾT LUẬN -->
+            <div class="cls-panel">
+
+                <div class="cls-panel-title">
+                    <i class="fa-solid fa-file-medical"></i>
+                    <h2>Kết quả cận lâm sàng</h2>
+                </div>
+
+                <div class="cls-text-block">
+
+                    <h3>Nội dung kết quả</h3>
+
+                    <p id="clsResultText">---</p>
+
+                </div>
+
+                <div class="cls-text-block">
+
+                    <h3>Kết luận</h3>
+
+                    <p id="clsConclusion">---</p>
+
+                </div>
+
+            </div>
+
+            <!-- BẢNG CHỈ SỐ XÉT NGHIỆM -->
+            <div id="clsIndexesPanel"
+                 class="cls-panel"
+                 hidden>
+
+                <div class="cls-panel-title">
+                    <i class="fa-solid fa-chart-simple"></i>
+                    <h2>Chỉ số xét nghiệm</h2>
+                </div>
+
+                <div class="cls-table-wrap">
+
+                    <table class="cls-table">
+
+                        <thead>
+                        <tr>
+                            <th>Chỉ số</th>
+                            <th>Giá trị</th>
+                            <th>Đơn vị</th>
+                            <th>Tham chiếu</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="clsIndexesBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <!-- FILE KẾT QUẢ -->
+            <div id="clsFilePanel"
+                 class="cls-panel"
+                 hidden>
+
+                <div class="cls-panel-title">
+                    <i class="fa-solid fa-paperclip"></i>
+                    <h2>File kết quả đính kèm</h2>
+                </div>
+
+                <a id="clsFileLink"
+                   class="cls-button cls-outline"
+                   target="_blank"
+                   rel="noopener noreferrer">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    Mở file kết quả
+
+                </a>
+
+                <p class="cls-note">
+                    File PDF hoặc hình ảnh sẽ được mở
+                    trong tab mới.
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- NÚT THAO TÁC -->
+        <div class="cls-bottom">
+
+            <button type="button"
+                    id="clsBackBottom"
+                    class="cls-button cls-outline">
+
+                <i class="fa-solid fa-arrow-left"></i>
+                Về danh sách chỉ định
+
+            </button>
+
+            <button type="button"
+                    id="clsGoExam"
+                    class="cls-button cls-primary">
+
+                <i class="fa-solid fa-stethoscope"></i>
+                Quay lại khám bệnh / kê đơn
+
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- JAVASCRIPT RIÊNG -->
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/BacSi/chi-tiet-ket-qua-cls.js}">
+    </script>
+</th:block>
+
+</body>
+</html>
