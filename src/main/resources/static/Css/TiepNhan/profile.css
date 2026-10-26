@@ -1,112 +1,543 @@
-    border: 0;
-    border-radius: 16px;
+/* =====================================================
+   HỒ SƠ CÁ NHÂN NHÂN VIÊN TIẾP NHẬN
+   ===================================================== */
+
+.staff-profile-page {
+    --staff-primary: var(--primary, #7c3aed);
+    --staff-primary-dark: var(--primary-hover, #6d28d9);
+    --staff-primary-light: var(--primary-soft, #f3efff);
+
+    --staff-text: #303454;
+    --staff-muted: #8b90a5;
+    --staff-border: #eeedf5;
+    --staff-input-background: #f8f8fc;
+}
+
+/* =====================================================
+   VÙNG NỘI DUNG
+   ===================================================== */
+
+.staff-profile-page .staff-profile-content {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+}
+
+.staff-profile-page .staff-profile-content [hidden] {
+    display: none !important;
+}
+
+.staff-profile-page .staff-summary-card,
+.staff-profile-page .staff-info-card {
+    min-width: 0;
+    background: #fff;
+    border: 1px solid var(--staff-border);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgb(48 52 84 / 2%);
+}
+
+/* =====================================================
+   THẺ ĐẠI DIỆN
+   ===================================================== */
+
+.staff-profile-page .staff-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+
+    flex-shrink: 0;
+    min-height: 156px;
+    padding: 26px 28px;
+}
+
+.staff-profile-page .staff-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 92px;
+    width: 92px;
+    height: 92px;
+
+    border: 5px solid #f7f6ff;
+    border-radius: 50%;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(15, 23, 42, .18);
+
+    color: #999ac9;
+    background: #eeeefe;
 }
 
-#passwordModal .modal-header,
-#passwordModal .modal-footer {
-    padding: 18px 22px;
-    border-color: #e2e8f0;
+.staff-profile-page .staff-avatar > i {
+    font-size: 46px;
 }
 
-#passwordModal .modal-title {
-    color: #0f172a;
-    font-size: 18px;
+.staff-profile-page .staff-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.staff-profile-page .staff-summary-info {
+    min-width: 0;
+}
+
+.staff-profile-page .staff-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 4px 9px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+
+    color: var(--staff-primary);
+    background: var(--staff-primary-light);
+
+    font-size: 10px;
     font-weight: 700;
+    line-height: 1.5;
 }
 
-#passwordModal .modal-body {
+.staff-profile-page #staff-display-name {
+    margin: 0 0 7px;
+
+    color: var(--staff-text);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+}
+
+.staff-profile-page .staff-summary-code,
+.staff-profile-page .staff-summary-department {
+    margin: 0;
+
+    color: var(--staff-muted);
+    font-size: 12px;
+    line-height: 1.7;
+
+    overflow-wrap: anywhere;
+}
+
+.staff-profile-page .staff-summary-department {
+    margin-top: 3px;
+}
+
+.staff-profile-page .staff-summary-department i {
+    margin-right: 5px;
+    color: var(--staff-primary);
+}
+
+/* =====================================================
+   HAI BẢNG THÔNG TIN
+   ===================================================== */
+
+.staff-profile-page .staff-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 20px;
+
+    flex-shrink: 0;
+    padding-bottom: 2px;
+}
+
+.staff-profile-page .staff-info-card {
     padding: 22px;
 }
 
-#passwordModal .modal-footer {
+.staff-profile-page .staff-card-heading {
     display: flex;
-    gap: 10px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 26px;
 }
 
-#passwordModal .modal-footer > button {
-    margin: 0;
-}
+.staff-profile-page .staff-card-heading h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
 
-.profile-message {
-    margin: 0 0 18px;
-    padding: 12px 14px;
-    border: 1px solid transparent;
-    border-radius: 9px;
+    margin: 0 0 5px;
+
+    color: var(--staff-text);
     font-size: 14px;
+    font-weight: 700;
+    line-height: 1.6;
 }
 
-.profile-message.success {
-    color: #166534;
-    background: #f0fdf4;
-    border-color: #bbf7d0;
+.staff-profile-page .staff-card-heading h2 i {
+    color: var(--staff-primary);
+    font-size: 15px;
 }
 
-.profile-message.error {
-    color: #991b1b;
-    background: #fef2f2;
-    border-color: #fecaca;
+.staff-profile-page .staff-card-heading p {
+    margin: 0;
+
+    color: var(--staff-muted);
+    font-size: 11px;
+    line-height: 1.6;
 }
 
-@media (max-width: 768px) {
-    .profile-container {
-        padding: 16px;
+/* =====================================================
+   CÁC Ô THÔNG TIN
+   ===================================================== */
+
+.staff-profile-page .staff-fields {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.staff-profile-page .staff-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 18px;
+}
+
+.staff-profile-page .staff-field {
+    min-width: 0;
+}
+
+.staff-profile-page .staff-field label {
+    display: block;
+    margin-bottom: 8px;
+
+    color: var(--staff-text);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.staff-profile-page .staff-required {
+    color: #dc3545;
+}
+
+.staff-profile-page .staff-field .form-control {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+
+    padding: 9px 12px;
+    border: 1px solid #e8e7f0;
+    border-radius: 7px;
+
+    background: #fff;
+    color: var(--staff-text);
+
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.5;
+
+    box-shadow: none;
+
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.staff-profile-page .staff-field .form-control:read-only,
+.staff-profile-page .staff-field .form-control:disabled {
+    background: var(--staff-input-background);
+    color: #72778b;
+
+    opacity: 1;
+    -webkit-text-fill-color: #72778b;
+}
+
+.staff-profile-page .staff-field .form-control:focus {
+    border-color: var(--staff-primary);
+    box-shadow: 0 0 0 3px rgb(124 58 237 / 10%);
+}
+
+.staff-profile-page .staff-field .form-control:read-only:focus {
+    border-color: #d8d5e5;
+    box-shadow: none;
+}
+
+/* =====================================================
+   NÚT CHỈNH SỬA, HỦY VÀ LƯU
+   ===================================================== */
+
+.staff-profile-page .staff-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-height: 34px;
+    padding: 8px 13px;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 160ms ease,
+        border-color 160ms ease;
+}
+
+.staff-profile-page .staff-button-primary {
+    background: var(--staff-primary);
+    color: #fff;
+}
+
+.staff-profile-page .staff-button-primary:hover:not(:disabled) {
+    background: var(--staff-primary-dark);
+}
+
+.staff-profile-page .staff-button-secondary {
+    background: #fff;
+    color: #686d83;
+    border-color: #dedce9;
+}
+
+.staff-profile-page .staff-button-secondary:hover:not(:disabled) {
+    background: #f7f6fb;
+}
+
+.staff-profile-page .staff-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.staff-profile-page .staff-button:focus-visible {
+    outline: 3px solid #c4b5fd;
+    outline-offset: 3px;
+}
+
+.staff-profile-page .staff-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 24px;
+}
+
+/* =====================================================
+   THÔNG BÁO PHÂN CÔNG
+   ===================================================== */
+
+.staff-profile-page .staff-assignment-message {
+    margin: 18px 0 0;
+    padding: 10px 12px;
+    border-radius: 7px;
+
+    background: #fff8e8;
+    color: #946200;
+
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* =====================================================
+   THÔNG BÁO ĐẨY TỪ TRÊN XUỐNG
+   ===================================================== */
+
+.staff-profile-page .staff-profile-toast {
+    position: fixed;
+    top: 82px;
+    right: 24px;
+    z-index: 2000;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    width: max-content;
+    max-width: min(440px, calc(100vw - 32px));
+    padding: 14px 15px;
+
+    border: 1px solid #e6ddfb;
+    border-left: 4px solid var(--staff-primary);
+    border-radius: 10px;
+
+    background: #fff;
+    color: var(--staff-text);
+    box-shadow: 0 8px 30px rgb(48 52 84 / 14%);
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    animation: staff-toast-enter 220ms ease-out;
+}
+
+.staff-profile-page #staff-profile-message-icon {
+    margin-top: 4px;
+    color: var(--staff-primary);
+}
+
+.staff-profile-page #staff-profile-message-text {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.staff-profile-page #staff-profile-message-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 24px;
+    height: 24px;
+    padding: 0;
+
+    border: 0;
+    border-radius: 5px;
+
+    background: transparent;
+    color: #9295a8;
+    cursor: pointer;
+}
+
+.staff-profile-page #staff-profile-message-close:hover {
+    background: #f3f1fa;
+    color: var(--staff-primary);
+}
+
+.staff-profile-page #staff-profile-message-close:focus-visible {
+    outline: 2px solid var(--staff-primary);
+    outline-offset: 2px;
+}
+
+.staff-profile-page .staff-profile-toast[data-type="success"] {
+    border-left-color: #22a06b;
+}
+
+.staff-profile-page
+.staff-profile-toast[data-type="success"]
+#staff-profile-message-icon {
+    color: #22a06b;
+}
+
+.staff-profile-page .staff-profile-toast[data-type="danger"] {
+    border-left-color: #dc3545;
+}
+
+.staff-profile-page
+.staff-profile-toast[data-type="danger"]
+#staff-profile-message-icon {
+    color: #dc3545;
+}
+
+.staff-profile-page .staff-profile-toast[data-type="warning"] {
+    border-left-color: #d99210;
+}
+
+.staff-profile-page
+.staff-profile-toast[data-type="warning"]
+#staff-profile-message-icon {
+    color: #d99210;
+}
+
+@keyframes staff-toast-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-18px);
     }
 
-    .profile-summary,
-    .profile-card {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =====================================================
+   HIỂN THỊ TRÊN MÀN HÌNH NHỎ
+   ===================================================== */
+
+@media (max-width: 1199.98px) {
+    .staff-profile-page .staff-info-card {
         padding: 18px;
     }
 
-    .profile-summary {
-        gap: 16px;
-    }
-
-    .profile-avatar {
-        flex-basis: 78px;
-        width: 78px;
-        height: 78px;
-    }
-
-    .profile-summary-info h2 {
-        font-size: 18px;
-    }
-
-    .profile-grid {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-
-    .section-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .section-header > button {
-        width: 100%;
+    .staff-profile-page .staff-form-grid {
+        gap: 18px 12px;
     }
 }
 
-@media (max-width: 420px) {
-    .profile-summary {
-        align-items: flex-start;
-        flex-direction: column;
+@media (max-width: 991.98px) {
+    .staff-profile-page .staff-profile-grid {
+        grid-template-columns: minmax(0, 1fr);
     }
 
-    .form-actions {
-        flex-direction: column-reverse;
+    .staff-profile-page .staff-summary-card {
+        padding: 22px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .staff-profile-page .staff-profile-content {
+        gap: 14px;
     }
 
-    .form-actions button {
-        width: 100%;
+    .staff-profile-page .staff-summary-card {
+        gap: 14px;
+        padding: 18px 16px;
+        min-height: 130px;
     }
 
-    #passwordModal .modal-footer {
-        flex-direction: column-reverse;
+    .staff-profile-page .staff-avatar {
+        flex-basis: 68px;
+        width: 68px;
+        height: 68px;
+        border-width: 4px;
     }
 
-    #passwordModal .modal-footer button {
-        width: 100%;
+    .staff-profile-page .staff-avatar > i {
+        font-size: 34px;
+    }
+
+    .staff-profile-page #staff-display-name {
+        font-size: 18px;
+    }
+
+    .staff-profile-page .staff-info-card {
+        padding: 18px 16px;
+    }
+
+    .staff-profile-page .staff-card-heading {
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .staff-profile-page .staff-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .staff-profile-page .staff-profile-toast {
+        right: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .staff-profile-page .staff-profile-toast {
+        animation: none;
+    }
+
+    .staff-profile-page .staff-button,
+    .staff-profile-page .staff-field .form-control {
+        transition: none;
     }
 }
