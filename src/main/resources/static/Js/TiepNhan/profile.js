@@ -273,6 +273,7 @@
         };
     }
 
+
     function renderAvatar(source) {
         const image = $("staff-avatar-image");
         const placeholder = $("staff-avatar-placeholder");
@@ -281,40 +282,42 @@
         placeholder.hidden = false;
         image.removeAttribute("src");
 
-        if (!source) return;
+        if (!source || typeof source !== "string") return;
 
-        try {
-            const url = new URL(
-                source,
-                window.location.origin
-            );
-
-            const sameOriginHttp =
-                url.origin === window.location.origin
-                && url.protocol === "http:";
-
-            if (
-                url.protocol !== "https:"
-                && !sameOriginHttp
-            ) {
-                return;
-            }
-
-            image.onload = () => {
-                image.hidden = false;
-                placeholder.hidden = true;
-            };
-
-            image.onerror = () => {
-                image.hidden = true;
-                placeholder.hidden = false;
-            };
-
-            image.src = url.href;
-        } catch {
-            // Hiển thị biểu tượng đại diện mặc định.
+        const value = source.trim();
+        if (!value || ["null", "undefined"].includes(value.toLowerCase())) {
+            return;
         }
+
+        let imageUrl;
+
+        // Nếu đã là URL đầy đủ thì sử dụng trực tiếp.
+        if (/^https?:\/\//i.test(value)) {
+            imageUrl = value;
+        } else {
+            // CSDL lưu: images/ten-anh.jpg
+            const fileKey = value.replace(/^\/+/, "");
+
+            // Tải ảnh qua API Cloudflare R2.
+            imageUrl =
+                "/api/images/view?fileKey="
+                + encodeURIComponent(fileKey);
+        }
+
+        image.onload = () => {
+            image.hidden = false;
+            placeholder.hidden = true;
+        };
+
+        image.onerror = () => {
+            image.hidden = true;
+            placeholder.hidden = false;
+            console.error("Không tải được ảnh đại diện:", imageUrl);
+        };
+
+        image.src = imageUrl;
     }
+
 
     function renderProfile(data) {
         profile = data;
