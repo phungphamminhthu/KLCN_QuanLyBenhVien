@@ -1,6 +1,5 @@
 /* =========================================================
    POPUP VIỆN PHÍ
-   Chỉ áp dụng trong #vien-phi-modal.
    ========================================================= */
 
 #vien-phi-modal {
@@ -10,6 +9,7 @@
     --fee-muted: #8389a0;
     --fee-border: #e5e7f0;
     --fee-green: #16a34a;
+    --fee-red: #dc2626;
 
     color: var(--fee-text);
     font-family: "Plus Jakarta Sans", sans-serif;
@@ -20,7 +20,9 @@
     display: none !important;
 }
 
-/* Khung popup */
+/* =========================================================
+   KHUNG POPUP
+   ========================================================= */
 
 #vien-phi-modal .modal-dialog {
     width: calc(100% - 40px);
@@ -75,11 +77,13 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    gap: 18px;
+    gap: 14px;
     min-height: 0;
 }
 
-/* Thông tin bệnh nhân */
+/* =========================================================
+   THÔNG TIN BỆNH NHÂN
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-patient {
     display: flex;
@@ -98,21 +102,24 @@
     color: #626981;
 }
 
-/* Ba ô tổng hợp */
+/* =========================================================
+   BA Ô TỔNG QUAN THU GỌN
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-summary {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     flex-shrink: 0;
-    gap: 14px;
+    gap: 10px;
 }
 
 #vien-phi-modal .reception-fee-summary-card {
     display: flex;
     align-items: center;
-    gap: 13px;
+    gap: 10px;
     min-width: 0;
-    padding: 16px;
+    min-height: 68px;
+    padding: 10px 12px;
     border: 1px solid;
     border-radius: 10px;
 }
@@ -134,9 +141,9 @@
 }
 
 #vien-phi-modal .reception-fee-summary-card.is-due {
-    background: #fff8f0;
-    border-color: #ffe2c5;
-    color: #d65c08;
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: var(--fee-red);
 }
 
 #vien-phi-modal .reception-fee-summary-icon {
@@ -144,11 +151,11 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 46px;
-    height: 46px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: rgb(124 58 237 / 8%);
-    font-size: 20px;
+    font-size: 16px;
 }
 
 #vien-phi-modal .is-paid .reception-fee-summary-icon {
@@ -156,31 +163,32 @@
 }
 
 #vien-phi-modal .is-due .reception-fee-summary-icon {
-    background: #ffedda;
+    background: #ffe4e6;
 }
 
 #vien-phi-modal .reception-fee-summary-label {
     display: block;
     color: var(--fee-text);
-    font-size: 12px;
+    font-size: 11px;
 }
 
 #vien-phi-modal .reception-fee-summary-card strong {
     display: block;
-    margin-top: 5px;
-    font-size: clamp(18px, 1.8vw, 25px);
+    margin-top: 2px;
+    font-size: clamp(16px, 1.5vw, 20px);
     font-weight: 800;
+    line-height: 1.45;
     overflow-wrap: anywhere;
     font-variant-numeric: tabular-nums;
 }
 
-/* Hai cột */
+/* =========================================================
+   HAI CỘT DANH SÁCH VÀ CHI TIẾT
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-workspace {
     display: grid;
-    grid-template-columns:
-        minmax(280px, .9fr)
-        minmax(0, 1.25fr);
+    grid-template-columns: minmax(280px, .9fr) minmax(0, 1.25fr);
     flex: 1;
     gap: 22px;
     min-height: 0;
@@ -221,7 +229,9 @@
     font-size: 11px;
 }
 
-/* Danh sách hóa đơn */
+/* =========================================================
+   DANH SÁCH HÓA ĐƠN
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-invoice-list,
 #vien-phi-modal .reception-fee-history-list {
@@ -307,7 +317,9 @@
     font-size: 11px;
 }
 
-/* Trạng thái */
+/* =========================================================
+   TRẠNG THÁI HÓA ĐƠN
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-status {
     display: inline-flex;
@@ -338,32 +350,16 @@
     color: #c7384d;
 }
 
-/* Tab */
+/* =========================================================
+   CHI TIẾT HÓA ĐƠN
+   ========================================================= */
 
-#vien-phi-modal .reception-fee-tabs {
-    display: flex;
-    flex-shrink: 0;
-    gap: 4px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--fee-border);
-}
-
-#vien-phi-modal .reception-fee-tab {
-    flex: 1;
-    padding: 10px 8px;
-    border: 0;
-    border-bottom: 2px solid transparent;
-    background: transparent;
-    color: #727992;
-    font: inherit;
-    font-size: 12px;
+#vien-phi-modal .reception-fee-subheading {
+    margin: 0 0 10px;
+    color: var(--fee-text);
+    font-size: 13px;
+    font-weight: 750;
     line-height: 1.6;
-}
-
-#vien-phi-modal .reception-fee-tab.is-active {
-    border-bottom-color: var(--fee-purple);
-    color: var(--fee-purple);
-    font-weight: 700;
 }
 
 #vien-phi-modal .reception-fee-meta {
@@ -393,8 +389,6 @@
     overflow: auto;
     padding: 2px 4px 4px 2px;
 }
-
-/* Bảng chi tiết */
 
 #vien-phi-modal .reception-fee-table-wrapper {
     overflow: auto;
@@ -440,7 +434,9 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Tổng tiền hóa đơn đang chọn */
+/* =========================================================
+   TỔNG TIỀN HÓA ĐƠN ĐANG CHỌN
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-invoice-totals {
     display: flex;
@@ -473,11 +469,19 @@
 }
 
 #vien-phi-modal .reception-fee-remaining strong {
-    color: #d65c08;
+    color: var(--fee-red);
     font-size: 16px;
 }
 
-/* Lịch sử thanh toán */
+/* =========================================================
+   LỊCH SỬ THANH TOÁN DƯỚI CHI TIẾT
+   ========================================================= */
+
+#vien-phi-modal .reception-fee-history-section {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--fee-border);
+}
 
 #vien-phi-modal .reception-fee-history-list > li + li {
     margin-top: 12px;
@@ -505,21 +509,17 @@
     font-size: 16px;
 }
 
-#vien-phi-modal .fee-history-card.is-success
-.fee-history-amount {
+#vien-phi-modal .fee-history-card.is-success .fee-history-amount {
     color: #169451;
 }
 
-#vien-phi-modal .fee-history-card.is-failed
-.fee-history-amount {
+#vien-phi-modal .fee-history-card.is-failed .fee-history-amount {
     color: #c7384d;
 }
 
 #vien-phi-modal .fee-history-fields {
     display: grid;
-    grid-template-columns:
-        minmax(110px, .8fr)
-        minmax(0, 1fr);
+    grid-template-columns: minmax(110px, .8fr) minmax(0, 1fr);
     gap: 8px 12px;
     margin: 0;
     font-size: 11px;
@@ -537,7 +537,9 @@
     overflow-wrap: anywhere;
 }
 
-/* Khu vực thu tiền */
+/* =========================================================
+   KHU VỰC THU TIỀN
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-payment {
     margin-top: 18px;
@@ -596,7 +598,9 @@
     font: inherit;
 }
 
-/* Chân popup */
+/* =========================================================
+   CHÂN POPUP
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-footer {
     flex-shrink: 0;
@@ -631,7 +635,7 @@
 }
 
 #vien-phi-modal .reception-fee-footer-status.is-due {
-    color: #c87509;
+    color: var(--fee-red);
 }
 
 #vien-phi-modal .reception-fee-confirm {
@@ -659,7 +663,9 @@
     opacity: .55;
 }
 
-/* Đang tải và danh sách trống */
+/* =========================================================
+   ĐANG TẢI VÀ DANH SÁCH TRỐNG
+   ========================================================= */
 
 #vien-phi-modal .reception-fee-empty,
 #vien-phi-modal .reception-fee-loading {
@@ -693,7 +699,7 @@
 }
 
 #vien-phi-modal .reception-fee-empty.is-compact {
-    min-height: 150px;
+    min-height: 90px;
 }
 
 #vien-phi-modal .reception-fee-inline-empty {
@@ -709,7 +715,7 @@
 }
 
 #vien-phi-modal button:focus-visible,
-#vien-phi-modal [role="tabpanel"]:focus-visible {
+#vien-phi-modal input:focus-visible {
     outline: 2px solid var(--fee-purple);
     outline-offset: -2px;
 }
@@ -722,7 +728,93 @@
     overscroll-behavior-y: auto;
 }
 
-/* Màn hình nhỏ */
+/* =========================================================
+   THÔNG BÁO XÁC NHẬN TRƯỢT TỪ TRÊN XUỐNG
+   ========================================================= */
+
+#vien-phi-modal .fee-confirm-toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    z-index: 1090;
+
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+    padding: 18px 20px;
+
+    border: 1px solid #ddd6fe;
+    border-top: 4px solid var(--fee-purple);
+    border-radius: 14px;
+    background: #fff;
+    color: #334155;
+    box-shadow: 0 16px 48px rgba(30, 20, 60, .22);
+
+    opacity: 0;
+    transform: translate(-50%, -24px);
+    transition: transform .22s ease, opacity .22s ease;
+}
+
+#vien-phi-modal .fee-confirm-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+#vien-phi-modal .fee-confirm-title {
+    display: block;
+    color: #6d28d9;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+#vien-phi-modal .fee-confirm-text {
+    margin: 10px 0 16px;
+    white-space: pre-line;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+#vien-phi-modal .fee-confirm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+#vien-phi-modal .fee-confirm-actions button {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#vien-phi-modal .fee-confirm-cancel {
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+}
+
+#vien-phi-modal .fee-confirm-accept {
+    border: 1px solid var(--fee-purple);
+    background: var(--fee-purple);
+    color: #fff;
+}
+
+#vien-phi-modal .fee-confirm-accept:hover {
+    background: #6d28d9;
+}
+
+#vien-phi-modal .fee-confirm-actions button:focus-visible {
+    outline: 3px solid #c4b5fd;
+    outline-offset: 2px;
+}
+
+/* =========================================================
+   MÀN HÌNH NHỎ
+   ========================================================= */
 
 @media (max-width: 900px) {
     #vien-phi-modal .reception-fee-body {
@@ -757,7 +849,7 @@
     }
 
     #vien-phi-modal .reception-fee-summary-card {
-        padding: 12px;
+        padding: 10px 12px;
         gap: 9px;
     }
 
@@ -816,6 +908,8 @@
     }
 
     #vien-phi-modal .reception-fee-footer-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
         margin-left: auto;
     }
 
@@ -823,6 +917,16 @@
         grid-template-columns: 100px minmax(0, 1fr);
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    #vien-phi-modal .fee-confirm-toast {
+        transition: none;
+    }
+}
+
+/* =========================================================
+   CÁC NÚT THAO TÁC TRÊN DASHBOARD
+   ========================================================= */
 
 .dashboard-page .queue-actions.dashboard-fee-actions {
     display: grid;
@@ -846,4 +950,60 @@
     font-size: 11px;
     line-height: 18px;
     white-space: nowrap;
+}
+
+/* Thu gọn nút xuất hóa đơn cạnh trạng thái */
+#vien-phi-modal .reception-fee-detail-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+#vien-phi-export-wrapper {
+    display: inline-flex;
+}
+
+#vien-phi-modal #vien-phi-invoice-status,
+#vien-phi-modal #vien-phi-export-invoice {
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 26px;
+    min-height: 26px;
+    padding: 3px 9px;
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+#vien-phi-modal #vien-phi-export-invoice {
+    gap: 5px;
+    border: 1px solid #7c3aed;
+    background: #fff;
+    color: #7c3aed;
+    box-shadow: none;
+}
+
+#vien-phi-modal #vien-phi-export-invoice i {
+    font-size: 11px;
+}
+
+#vien-phi-modal #vien-phi-export-invoice:hover:not(:disabled) {
+    background: #7c3aed;
+    color: #fff;
+}
+
+#vien-phi-modal #vien-phi-export-invoice:disabled {
+    border-color: #e2e8f0;
+    background: #f8fafc;
+    color: #94a3b8;
+    opacity: 1;
+    cursor: not-allowed;
 }

@@ -2,7 +2,6 @@
     "use strict";
 
     const $ = id => document.getElementById(id);
-
     const page = $("patient-detail-page");
     const form = $("appointment-profile-form");
 
@@ -92,8 +91,8 @@
         return /^\d+$/.test(text)
             && Number.isSafeInteger(number)
             && number > 0
-                ? number
-                : null;
+            ? number
+            : null;
     }
 
     function nowVietnam() {
@@ -129,21 +128,21 @@
     }
 
     function setText(id, value) {
-        const element = $(id);
+        const node = $(id);
 
-        if (element) {
-            element.textContent =
+        if (node) {
+            node.textContent =
                 value == null || value === "" ? "—" : value;
         }
     }
 
     function createElement(tag, className, text) {
-        const element = document.createElement(tag);
+        const node = document.createElement(tag);
 
-        if (className) element.className = className;
-        if (text !== undefined) element.textContent = text;
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
 
-        return element;
+        return node;
     }
 
     function rawStatus(value) {
@@ -204,15 +203,14 @@
         return !!visit
             && !needsRefresh
             && shiftActive()
-            && String(visit.ngayKham).slice(0, 10)
-                === todayVietnam()
+            && String(visit.ngayKham).slice(0, 10) === todayVietnam()
             && positiveId(visit.maKhoa)
                 === positiveId(currentShift.maKhoa)
             && rawStatus(visit.trangThai) === "DaGoi";
     }
 
     // =====================================================
-    // THÔNG BÁO ĐẨY
+    // THÔNG BÁO KẾT QUẢ LƯU
     // =====================================================
 
     function hideSaveToast(immediate = false) {
@@ -226,7 +224,6 @@
         toastFrame = null;
 
         const toast = $("patient-detail-save-toast");
-
         toast.classList.remove("is-visible");
 
         if (immediate) {
@@ -308,7 +305,6 @@
         leaveFrame = null;
 
         const toast = $("patient-detail-leave-toast");
-
         toast.classList.remove("is-visible");
         toast.hidden = true;
 
@@ -343,9 +339,7 @@
         }
 
         pendingAction = action;
-
         $("patient-detail-leave-text").textContent = message;
-
         toast.hidden = false;
 
         updateOverlayPositions();
@@ -362,10 +356,7 @@
             if (toast.hidden) return;
 
             toast.classList.add("is-visible");
-
-            $("patient-detail-stay").focus({
-                preventScroll: true
-            });
+            $("patient-detail-stay").focus({ preventScroll: true });
         });
     }
 
@@ -393,7 +384,7 @@
     }
 
     // =====================================================
-    // VỊ TRÍ THÔNG BÁO VÀ NÚT QUAY LẠI THU GỌN
+    // VỊ TRÍ THÔNG BÁO VÀ NÚT QUAY LẠI
     // =====================================================
 
     function updateOverlayPositions() {
@@ -403,7 +394,6 @@
 
         const rect = content.getBoundingClientRect();
         const style = getComputedStyle(content);
-
         const header = page.querySelector("header");
 
         const headerBottom = header
@@ -411,7 +401,6 @@
             : 0;
 
         const width = document.documentElement.clientWidth;
-
         const top = Math.max(0, rect.top, headerBottom) + 10;
 
         const left = Math.min(
@@ -427,21 +416,11 @@
 
         page.style.setProperty(
             "--detail-back-top",
-            `${Math.min(
-                top,
-                Math.max(8, window.innerHeight - 48)
-            )}px`
+            `${Math.min(top, Math.max(8, window.innerHeight - 48))}px`
         );
 
-        page.style.setProperty(
-            "--detail-back-left",
-            `${left}px`
-        );
-
-        page.style.setProperty(
-            "--detail-toast-top",
-            `${top}px`
-        );
+        page.style.setProperty("--detail-back-left", `${left}px`);
+        page.style.setProperty("--detail-toast-top", `${top}px`);
 
         page.style.setProperty(
             "--detail-toast-left",
@@ -470,11 +449,9 @@
 
             slot.style.width = `${size.width}px`;
             slot.style.height = `${size.height}px`;
-
             back.classList.add("is-floating");
         } else if (!shouldFloat && floating) {
             back.classList.remove("is-floating");
-
             slot.style.removeProperty("width");
             slot.style.removeProperty("height");
         }
@@ -546,28 +523,21 @@
 
     function updateControls() {
         const busy = loading || saving;
-
         const editable = !!patient
             && !needsRefresh
             && shiftActive();
 
         $("appointment-profile-loading").hidden = !loading;
-
-        $("appointment-profile-fields").disabled =
-            busy || !editable;
-
-        $("profile-vitals-fields").disabled =
-            busy || !canEditVitals();
+        $("appointment-profile-fields").disabled = busy || !editable;
+        $("profile-vitals-fields").disabled = busy || !canEditVitals();
 
         const save = $("appointment-profile-save");
-
         save.disabled = busy || !editable;
 
         save.querySelector("span").textContent =
             saving && !receiving ? "Đang lưu..." : "Lưu hồ sơ";
 
         const checkin = $("appointment-profile-checkin");
-
         checkin.disabled = busy || !canEditVitals();
 
         checkin.querySelector("span").textContent =
@@ -590,8 +560,7 @@
                 : "";
 
         for (
-            const link of $("profile-visit-list")
-                .querySelectorAll("a")
+            const link of $("profile-visit-list").querySelectorAll("a")
         ) {
             link.setAttribute("aria-disabled", String(busy));
         }
@@ -617,7 +586,6 @@
         }
 
         const headers = new Headers(options.headers || {});
-
         headers.set("Accept", "application/json");
 
         headers.set(
@@ -630,11 +598,7 @@
         }
 
         const controller = new AbortController();
-
-        const timer = setTimeout(
-            () => controller.abort(),
-            20000
-        );
+        const timer = setTimeout(() => controller.abort(), 20000);
 
         try {
             const response = await fetch(url, {
@@ -645,11 +609,10 @@
             });
 
             const raw = await response.text();
-
-            let data;
+            let result;
 
             try {
-                data = raw ? JSON.parse(raw) : null;
+                result = raw ? JSON.parse(raw) : null;
             } catch {
                 const error = new Error(
                     "Máy chủ trả về dữ liệu không hợp lệ. "
@@ -668,20 +631,20 @@
                         : "Không thể thực hiện yêu cầu.";
 
                 const error = new Error(
-                    data?.message || data?.detail || fallback
+                    result?.message || result?.detail || fallback
                 );
 
                 error.status = response.status;
                 throw error;
             }
 
-            if (!data) {
+            if (!result) {
                 throw new Error(
                     "Máy chủ chưa trả về dữ liệu."
                 );
             }
 
-            return data;
+            return result;
         } catch (error) {
             if (error.name === "AbortError") {
                 throw new Error(
@@ -720,12 +683,11 @@
     }
 
     // =====================================================
-    // DANH SÁCH LỊCH SỬ KHÁM
+    // LỊCH SỬ KHÁM
     // =====================================================
 
     function badgeClass(status) {
         const label = statusLabel(status);
-
         let color = "text-secondary bg-secondary-subtle";
 
         if (["Đang khám", "Hoàn tất"].includes(label)) {
@@ -746,7 +708,6 @@
 
     function renderVisitList() {
         const list = $("profile-visit-list");
-
         list.replaceChildren();
 
         $("profile-no-visit").hidden = visits.length > 0;
@@ -778,9 +739,7 @@
 
             link.setAttribute(
                 "aria-label",
-                `Xem chi tiết lịch ${id}, ngày ${
-                    formatDate(item.ngayKham)
-                }`
+                `Xem chi tiết lịch ${id}, ngày ${formatDate(item.ngayKham)}`
             );
 
             const icon = createElement(
@@ -789,12 +748,8 @@
             );
 
             icon.setAttribute("aria-hidden", "true");
-
             icon.append(
-                createElement(
-                    "i",
-                    "fa-regular fa-calendar-check"
-                )
+                createElement("i", "fa-regular fa-calendar-check")
             );
 
             const main = createElement(
@@ -802,11 +757,8 @@
                 "patient-detail-visit-main"
             );
 
-            const time = String(item.gioKham || "")
-                .slice(0, 5);
-
-            const date = formatDate(item.ngayKham)
-                || "Chưa có ngày";
+            const time = String(item.gioKham || "").slice(0, 5);
+            const date = formatDate(item.ngayKham) || "Chưa có ngày";
 
             main.append(
                 createElement(
@@ -823,8 +775,7 @@
                 createElement(
                     "span",
                     "patient-detail-visit-meta",
-                    `Lịch #${id}`
-                    + ` · ${item.phong || "Chưa phân phòng"}`
+                    `Lịch #${id} · ${item.phong || "Chưa phân phòng"}`
                 )
             );
 
@@ -835,8 +786,7 @@
 
             const arrow = createElement(
                 "i",
-                "fa-solid fa-chevron-right "
-                + "patient-detail-visit-arrow"
+                "fa-solid fa-chevron-right patient-detail-visit-arrow"
             );
 
             arrow.setAttribute("aria-hidden", "true");
@@ -909,20 +859,20 @@
         return matches[0] || null;
     }
 
-    function validateShift(data) {
+    function validateShift(result) {
         if (
-            !positiveId(data?.maPhanCong)
-            || !positiveId(data?.maNhanVienTiepNhan)
-            || !positiveId(data?.maKhoa)
-            || !data.thoiGianBatDau
-            || !data.thoiGianKetThuc
+            !positiveId(result?.maPhanCong)
+            || !positiveId(result?.maNhanVienTiepNhan)
+            || !positiveId(result?.maKhoa)
+            || !result.thoiGianBatDau
+            || !result.thoiGianKetThuc
         ) {
             throw new Error(
                 "Dữ liệu ca tiếp nhận không hợp lệ."
             );
         }
 
-        return data;
+        return result;
     }
 
     function renderVisit() {
@@ -936,8 +886,17 @@
         vitalSnapshot = snapshot(vitalFields);
 
         const summary = $("profile-current-visit");
-
         summary.hidden = !visit;
+
+        setText(
+            "profile-current-doctor",
+            visit?.bacSi || "Chưa có bác sĩ"
+        );
+
+        setText(
+            "profile-current-room",
+            visit?.phong || "Chưa xác định được phòng khám"
+        );
 
         if (visit) {
             const stt = positiveId(visit.soThuTu);
@@ -956,7 +915,6 @@
             );
 
             const badge = $("profile-current-visit-status");
-
             badge.textContent = statusLabel(visit.trangThai);
             badge.className = badgeClass(visit.trangThai);
         }
@@ -969,8 +927,7 @@
         }
 
         for (
-            const link of $("profile-visit-list")
-                .querySelectorAll("a")
+            const link of $("profile-visit-list").querySelectorAll("a")
         ) {
             if (
                 positiveId(link.dataset.appointmentId)
@@ -1012,35 +969,28 @@
                 "Mã bệnh nhân không hợp lệ. "
                 + "Vui lòng quay lại danh sách."
             );
-
             updateControls();
             return;
         }
 
         loading = true;
-
         showMessage();
         updateControls();
 
         try {
-            const [data, shiftData, rows] = await Promise.all([
+            const [result, shiftData, rows] = await Promise.all([
                 requestApi(
                     `/api/tiepnhan/ho-so-benh-nhan/${patientId}`
                 ),
-                requestApi(
-                    "/api/tiepnhan/phan-cong/hien-tai"
-                ),
-                requestApi(
-                    "/api/tiepnhan/lich-hen-hom-nay"
-                )
+                requestApi("/api/tiepnhan/phan-cong/hien-tai"),
+                requestApi("/api/tiepnhan/lich-hen-hom-nay")
             ]);
 
             if (
-                positiveId(data.maBenhNhan) !== patientId
-                || !Array.isArray(data.danhSachLanKham)
-                || data.danhSachLanKham.some(
-                    item => !item
-                        || !positiveId(item.maLichKham)
+                positiveId(result.maBenhNhan) !== patientId
+                || !Array.isArray(result.danhSachLanKham)
+                || result.danhSachLanKham.some(
+                    item => !item || !positiveId(item.maLichKham)
                 )
             ) {
                 throw new Error(
@@ -1050,9 +1000,9 @@
 
             if (
                 requestedVisitId
-                && !data.danhSachLanKham.some(
-                    item => positiveId(item.maLichKham)
-                        === requestedVisitId
+                && !result.danhSachLanKham.some(
+                    item =>
+                        positiveId(item.maLichKham) === requestedVisitId
                 )
             ) {
                 throw new Error(
@@ -1062,11 +1012,7 @@
             }
 
             const nextShift = validateShift(shiftData);
-
-            const nextVisit = findTodayAppointment(
-                rows,
-                nextShift
-            );
+            const nextVisit = findTodayAppointment(rows, nextShift);
 
             if (nextVisit) {
                 const vitals = await requestApi(
@@ -1088,15 +1034,14 @@
                 }
             }
 
-            patient = data;
+            patient = result;
             currentShift = nextShift;
             visit = nextVisit;
             needsRefresh = false;
 
-            visits = data.danhSachLanKham.map(item =>
+            visits = result.danhSachLanKham.map(item =>
                 visit
-                && positiveId(item.maLichKham)
-                    === visit.maLichKham
+                && positiveId(item.maLichKham) === visit.maLichKham
                     ? { ...item, ...visit }
                     : { ...item }
             ).sort((a, b) =>
@@ -1106,15 +1051,14 @@
                 || String(b.gioKham || "").localeCompare(
                     String(a.gioKham || "")
                 )
-                || Number(b.maLichKham)
-                    - Number(a.maLichKham)
+                || Number(b.maLichKham) - Number(a.maLichKham)
             );
 
             if (
                 visit
                 && !visits.some(
-                    item => positiveId(item.maLichKham)
-                        === visit.maLichKham
+                    item =>
+                        positiveId(item.maLichKham) === visit.maLichKham
                 )
             ) {
                 visits.unshift(visit);
@@ -1151,8 +1095,7 @@
 
         if (!value) return null;
 
-        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/
-            .exec(value);
+        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
 
         if (!match) {
             throw new Error(
@@ -1164,9 +1107,7 @@
         const month = Number(match[2]);
         const year = Number(match[3]);
 
-        const date = new Date(
-            Date.UTC(year, month - 1, day)
-        );
+        const date = new Date(Date.UTC(year, month - 1, day));
 
         if (
             year < 1000
@@ -1198,9 +1139,7 @@
         }
 
         if (!payload.hoTen) {
-            throw new Error(
-                "Vui lòng nhập họ tên bệnh nhân."
-            );
+            throw new Error("Vui lòng nhập họ tên bệnh nhân.");
         }
 
         return payload;
@@ -1220,9 +1159,7 @@
             const value = input.value.trim();
 
             if (input.validity.badInput) {
-                throw new Error(
-                    "Số đo phải là số hợp lệ."
-                );
+                throw new Error("Số đo phải là số hợp lệ.");
             }
 
             payload[key] = value ? Number(value) : null;
@@ -1254,10 +1191,7 @@
         }
 
         for (
-            const key of [
-                "huyetApTamThu",
-                "huyetApTamTruong"
-            ]
+            const key of ["huyetApTamThu", "huyetApTamTruong"]
         ) {
             const value = payload[key];
 
@@ -1296,8 +1230,7 @@
 
         if (
             payload.huyetApTamThu !== null
-            && payload.huyetApTamThu
-                <= payload.huyetApTamTruong
+            && payload.huyetApTamThu <= payload.huyetApTamTruong
         ) {
             throw new Error(
                 "Huyết áp tâm thu phải lớn hơn huyết áp tâm trương."
@@ -1328,9 +1261,7 @@
         }
 
         Object.assign(patient, payload);
-
         personalSnapshot = snapshot(personalFields);
-
         setText("profile-patient-heading", patient.hoTen);
     }
 
@@ -1351,11 +1282,10 @@
         }
 
         Object.assign(visit, payload);
-
         vitalSnapshot = snapshot(vitalFields);
     }
 
-    // Kiểm tra lại ca và trạng thái trước khi tiếp nhận.
+    // Đọc lại ca và lịch khám trước khi tiếp nhận.
     async function verifyReceptionContext() {
         const [shiftData, rows] = await Promise.all([
             requestApi("/api/tiepnhan/phan-cong/hien-tai"),
@@ -1363,7 +1293,6 @@
         ]);
 
         const nextShift = validateShift(shiftData);
-
         const latest = findTodayAppointment(rows, nextShift);
 
         if (
@@ -1372,8 +1301,7 @@
             || positiveId(nextShift.maNhanVienTiepNhan)
                 !== positiveId(currentShift?.maNhanVienTiepNhan)
             || !latest
-            || latest.maLichKham
-                !== positiveId(visit?.maLichKham)
+            || latest.maLichKham !== positiveId(visit?.maLichKham)
             || rawStatus(latest.trangThai) !== "DaGoi"
         ) {
             needsRefresh = true;
@@ -1386,6 +1314,11 @@
 
         currentShift = nextShift;
 
+        // Lấy lại phòng và bác sĩ từ dữ liệu API mới nhất.
+        visit.phong = latest.phong;
+        visit.bacSi = latest.bacSi;
+        visit.soThuTu = latest.soThuTu;
+
         if (!canEditVitals()) {
             needsRefresh = true;
 
@@ -1396,10 +1329,145 @@
         }
     }
 
-    async function saveProfile(
-        event,
-        confirmReception = false
-    ) {
+    // =====================================================
+    // TIẾP NHẬN THÀNH CÔNG VÀ NHẮC PHÒNG KHÁM
+    // Không tự đóng hoặc tự chuyển trang.
+    // =====================================================
+
+    function showReceptionSuccessNotice() {
+        hideSaveToast(true);
+        $("patient-detail-reception-success")?.remove();
+
+        const notice = createElement(
+            "section",
+            "patient-detail-toast is-success"
+        );
+
+        notice.id = "patient-detail-reception-success";
+        notice.setAttribute("role", "status");
+        notice.setAttribute("aria-live", "polite");
+        notice.setAttribute("aria-atomic", "true");
+
+        const icon = createElement(
+            "span",
+            "patient-detail-toast-icon"
+        );
+
+        icon.setAttribute("aria-hidden", "true");
+        icon.append(
+            createElement("i", "fa-solid fa-circle-check")
+        );
+
+        const body = createElement(
+            "div",
+            "patient-detail-toast-body"
+        );
+
+        const title = createElement(
+            "strong",
+            "d-block mb-2",
+            "Tiếp nhận thành công"
+        );
+
+        const patientLine = createElement(
+            "p",
+            "patient-detail-toast-text mb-2",
+            "Bệnh nhân: "
+                + (
+                    patient?.hoTen
+                    || $("profile-name").value.trim()
+                    || "Chưa có tên"
+                )
+        );
+
+        const queue = positiveId(visit?.soThuTu);
+
+        const queueLine = createElement(
+            "p",
+            "patient-detail-toast-text mb-2",
+            queue
+                ? `Số thứ tự: ${String(queue).padStart(3, "0")}`
+                : "Số thứ tự: chưa xác định"
+        );
+
+        const room = String(visit?.phong || "").trim();
+
+        const roomLine = createElement(
+            "p",
+            "patient-detail-toast-text mb-3"
+        );
+
+        if (room) {
+            roomLine.append(
+                document.createTextNode(
+                    "Vui lòng hướng dẫn bệnh nhân đến "
+                ),
+                createElement(
+                    "strong",
+                    "fw-bold text-primary",
+                    room
+                ),
+                document.createTextNode(" để chờ khám.")
+            );
+        } else {
+            roomLine.append(
+                createElement(
+                    "strong",
+                    "fw-bold",
+                    "Chưa xác định được phòng khám."
+                ),
+                document.createTextNode(
+                    " Vui lòng kiểm tra phân phòng "
+                    + "trước khi hướng dẫn bệnh nhân."
+                )
+            );
+        }
+
+        const actions = createElement(
+            "div",
+            "patient-detail-toast-actions"
+        );
+
+        const backButton = createElement(
+            "button",
+            "btn btn-success btn-sm",
+            "Đã hiểu – Về Dashboard"
+        );
+
+        backButton.type = "button";
+
+        backButton.addEventListener("click", () => {
+            notice.remove();
+            navigateTo("/TiepNhan/dashboard");
+        });
+
+        actions.append(backButton);
+
+        body.append(
+            title,
+            patientLine,
+            queueLine,
+            roomLine,
+            actions
+        );
+
+        notice.append(icon, body);
+        page.append(notice);
+
+        updateOverlayPositions();
+
+        requestAnimationFrame(() => {
+            if (notice.isConnected) {
+                notice.classList.add("is-visible");
+            }
+        });
+    }
+
+    // =====================================================
+    // LƯU HỒ SƠ / XÁC NHẬN TIẾP NHẬN
+    // =====================================================
+
+    async function saveProfile(event, confirmReception = false) {
         event?.preventDefault();
 
         if (saving || loading || !patient) return;
@@ -1414,7 +1482,6 @@
                 + "ca tiếp nhận trước khi lưu.",
                 "warning"
             );
-
             return;
         }
 
@@ -1457,11 +1524,7 @@
                 && !personalPayload
                 && !vitalsPayload
             ) {
-                showSaveToast(
-                    "Chưa có thay đổi cần lưu.",
-                    "info"
-                );
-
+                showSaveToast("Chưa có thay đổi cần lưu.", "info");
                 return;
             }
         } catch (error) {
@@ -1471,7 +1534,6 @@
 
         saving = true;
         receiving = confirmReception;
-
         updateControls();
 
         const savedParts = [];
@@ -1495,7 +1557,7 @@
             if (confirmReception) {
                 confirmationSent = true;
 
-                // Backend tự lấy mã nhân viên từ tài khoản đăng nhập.
+                // Backend tự lấy nhân viên từ tài khoản đăng nhập.
                 const result = await requestApi(
                     "/api/tiepnhan/confirm-reception",
                     {
@@ -1518,13 +1580,8 @@
 
                 visit.trangThai = "DaTiepNhan";
 
-                showSaveToast(
-                    "Đã tiếp nhận bệnh nhân. "
-                    + "Đang quay về Dashboard...",
-                    "success"
-                );
-
-                navigateTo("/TiepNhan/dashboard");
+                renderVisit();
+                showReceptionSuccessNotice();
             } else {
                 showSaveToast(
                     `Đã lưu ${savedParts.join(" và ")}.`,
@@ -1532,8 +1589,7 @@
                 );
             }
         } catch (error) {
-            const uncertain = !error.status
-                || error.status >= 500;
+            const uncertain = !error.status || error.status >= 500;
 
             if (
                 confirmationSent
@@ -1565,14 +1621,12 @@
         } finally {
             saving = false;
             receiving = false;
-
             updateControls();
         }
     }
 
     // =====================================================
-    // NHẬP NGÀY SINH DD/MM/YYYY
-    // Giữ vị trí con trỏ khi nhập, xóa và dán.
+    // NGÀY SINH DD/MM/YYYY
     // =====================================================
 
     function initBirthDate() {
@@ -1594,41 +1648,25 @@
             let cursor = 0;
             let count = 0;
 
-            while (
-                cursor < value.length
-                && count < position
-            ) {
-                if (/[0-9]/.test(value[cursor])) {
-                    count++;
-                }
-
+            while (cursor < value.length && count < position) {
+                if (/[0-9]/.test(value[cursor])) count++;
                 cursor++;
             }
 
             if (value[cursor] === "/") cursor++;
 
             input.setSelectionRange(cursor, cursor);
-
             updateControls();
         }
 
         function edit(action, inserted = "") {
             const value = input.value;
-
-            const start = input.selectionStart
-                ?? value.length;
-
+            const start = input.selectionStart ?? value.length;
             const end = input.selectionEnd ?? start;
 
             let digits = digitsOnly(value);
-
-            let from = digitsOnly(
-                value.slice(0, start)
-            ).length;
-
-            let to = digitsOnly(
-                value.slice(0, end)
-            ).length;
+            let from = digitsOnly(value.slice(0, start)).length;
+            let to = digitsOnly(value.slice(0, end)).length;
 
             if (action === "insert") {
                 const available = Math.max(
@@ -1655,8 +1693,7 @@
                     }
                 }
 
-                digits = digits.slice(0, from)
-                    + digits.slice(to);
+                digits = digits.slice(0, from) + digits.slice(to);
             }
 
             render(digits.slice(0, 8), from);
@@ -1672,14 +1709,10 @@
             ) {
                 event.preventDefault();
                 edit("insert", event.data);
-            } else if (
-                event.inputType === "deleteContentBackward"
-            ) {
+            } else if (event.inputType === "deleteContentBackward") {
                 event.preventDefault();
                 edit("backward");
-            } else if (
-                event.inputType === "deleteContentForward"
-            ) {
+            } else if (event.inputType === "deleteContentForward") {
                 event.preventDefault();
                 edit("forward");
             }
@@ -1689,11 +1722,7 @@
             if (!event.clipboardData) return;
 
             event.preventDefault();
-
-            edit(
-                "insert",
-                event.clipboardData.getData("text")
-            );
+            edit("insert", event.clipboardData.getData("text"));
         });
 
         input.addEventListener("input", event => {
@@ -1746,7 +1775,6 @@
             if (loading || saving) return;
 
             input.value = formatDate(picker.value);
-
             updateControls();
         });
     }
@@ -1771,10 +1799,10 @@
             timeZone
         }).format(now);
 
-        const element = $("header-date-display");
+        const node = $("header-date-display");
 
-        if (element) {
-            element.textContent =
+        if (node) {
+            node.textContent =
                 weekday.charAt(0).toUpperCase()
                 + weekday.slice(1)
                 + `, ${date}`;
@@ -1796,11 +1824,7 @@
 
         function toggle(open) {
             panel.hidden = !open;
-
-            button.setAttribute(
-                "aria-expanded",
-                String(open)
-            );
+            button.setAttribute("aria-expanded", String(open));
         }
 
         button.addEventListener("click", () => {
@@ -1813,9 +1837,7 @@
         });
 
         document.addEventListener("click", event => {
-            if (!wrapper.contains(event.target)) {
-                toggle(false);
-            }
+            if (!wrapper.contains(event.target)) toggle(false);
         });
 
         document.addEventListener("keydown", event => {
@@ -1851,24 +1873,20 @@
             );
         });
 
-    $("patient-detail-stay")
-        .addEventListener("click", () => {
-            dismissLeaveNotice();
-        });
+    $("patient-detail-stay").addEventListener("click", () => {
+        dismissLeaveNotice();
+    });
 
-    $("patient-detail-leave-close")
-        .addEventListener("click", () => {
-            dismissLeaveNotice();
-        });
+    $("patient-detail-leave-close").addEventListener("click", () => {
+        dismissLeaveNotice();
+    });
 
-    $("patient-detail-discard")
-        .addEventListener("click", () => {
-            const action = pendingAction;
+    $("patient-detail-discard").addEventListener("click", () => {
+        const action = pendingAction;
+        dismissLeaveNotice(false);
 
-            dismissLeaveNotice(false);
-
-            if (!loading && !saving) action?.();
-        });
+        if (!loading && !saving) action?.();
+    });
 
     document.addEventListener("keydown", event => {
         if (
@@ -1900,10 +1918,7 @@
 
         if (
             !link
-            || (
-                link.target
-                && link.target.toLowerCase() !== "_self"
-            )
+            || (link.target && link.target.toLowerCase() !== "_self")
             || link.hasAttribute("download")
         ) {
             return;
@@ -1939,8 +1954,7 @@
         );
     });
 
-    // Đóng tab hoặc tải lại bằng trình duyệt:
-    // dùng cảnh báo mặc định do trình duyệt quy định.
+    // Cảnh báo khi đóng tab hoặc tải lại bằng trình duyệt.
     window.addEventListener("beforeunload", event => {
         if (
             !allowNavigation
@@ -1966,9 +1980,7 @@
     initPageOverlays();
 
     window.setInterval(() => {
-        if (!loading && !saving) {
-            updateControls();
-        }
+        if (!loading && !saving) updateControls();
     }, 30000);
 
     window.addEventListener("focus", updateControls);

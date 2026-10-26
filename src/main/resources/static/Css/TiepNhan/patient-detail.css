@@ -1119,3 +1119,449 @@
         transition: none;
     }
 }
+
+/* Ẩn dòng chú thích dưới thông tin lịch khám hiện tại */
+#patient-detail-page #profile-vitals-note {
+    display: none !important;
+}
+
+/* =========================================================
+   POPUP CHI TIẾT LỊCH KHÁM
+   ========================================================= */
+
+.patient-detail-page #appointment-detail-modal {
+    --bs-modal-width: 1180px;
+    --bs-modal-margin: 24px;
+    --bs-modal-border-color: var(--detail-border);
+    --bs-modal-border-radius: 16px;
+    --bs-modal-header-border-color: var(--detail-border);
+
+    color: var(--detail-text);
+    font-family: "Plus Jakarta Sans", sans-serif;
+    font-size: 13px;
+    line-height: 1.65;
+}
+
+/* KHUNG POPUP */
+
+.patient-detail-page #appointment-detail-modal .modal-dialog {
+    width: calc(100% - 48px);
+    max-width: 1180px;
+    min-height: calc(100% - 48px);
+    max-height: none;
+    margin: 24px auto;
+}
+
+.patient-detail-page #appointment-detail-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    min-height: 0;
+
+    height: min(860px, calc(100vh - 48px));
+    height: min(860px, calc(100dvh - 48px));
+
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+
+    overflow: hidden;
+
+    border: 1px solid var(--detail-border);
+    border-radius: 16px;
+
+    background: var(--detail-surface);
+    box-shadow: 0 20px 70px rgb(36 25 66 / 22%);
+}
+
+/* TIÊU ĐỀ VÀ NÚT ĐÓNG */
+
+.patient-detail-page #appointment-detail-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+
+    gap: 16px;
+    min-height: 86px;
+    padding: 18px 24px;
+
+    border-bottom: 1px solid var(--detail-border);
+    background: var(--detail-surface);
+}
+
+.patient-detail-page #appointment-detail-modal .modal-header > div {
+    min-width: 0;
+}
+
+.patient-detail-page #appointment-detail-title {
+    margin: 0;
+
+    color: var(--detail-text);
+
+    font-size: 18px !important;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+.patient-detail-page #appointment-detail-title > i {
+    color: var(--detail-primary);
+    font-size: 18px;
+}
+
+.patient-detail-page #appointment-detail-patient {
+    color: var(--detail-muted) !important;
+
+    font-size: 12px;
+    line-height: 1.7;
+
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page #appointment-detail-modal .btn-close {
+    flex: 0 0 auto;
+
+    margin: 0;
+    padding: 10px;
+
+    border-radius: 9px;
+    opacity: .65;
+}
+
+.patient-detail-page #appointment-detail-modal .btn-close:hover {
+    background-color: var(--detail-soft);
+    opacity: 1;
+}
+
+.patient-detail-page #appointment-detail-modal .btn-close:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: 2px;
+
+    box-shadow: none;
+    opacity: 1;
+}
+
+/* NỘI DUNG CUỘN BÊN TRONG */
+
+.patient-detail-page #appointment-detail-body {
+    flex: 1 1 auto;
+
+    min-width: 0;
+    min-height: 0;
+    padding: 22px 24px 28px;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #d5c8f1 transparent;
+
+    scroll-behavior: auto;
+}
+
+.patient-detail-page #appointment-detail-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.patient-detail-page #appointment-detail-body::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #d5c8f1;
+}
+
+/* ĐANG TẢI VÀ THÔNG BÁO LỖI */
+
+.patient-detail-page #appointment-detail-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+    min-height: 280px;
+
+    color: var(--detail-muted);
+}
+
+.patient-detail-page #appointment-detail-loading > i {
+    color: var(--detail-primary);
+}
+
+.patient-detail-page #appointment-detail-message {
+    margin: 0;
+    border-radius: 10px;
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    overflow-wrap: anywhere;
+}
+
+/* CÁC PHẦN THÔNG TIN */
+
+.patient-detail-page #appointment-detail-content {
+    min-width: 0;
+}
+
+.patient-detail-page #appointment-detail-content > hr {
+    margin: 22px 0;
+
+    border: 0;
+    border-top: 1px solid var(--detail-border);
+
+    opacity: 1;
+}
+
+.patient-detail-page #appointment-detail-modal .appointment-detail-section {
+    min-width: 0;
+}
+
+.patient-detail-page #appointment-detail-modal h3 {
+    color: var(--detail-text);
+
+    font-size: 15px !important;
+    font-weight: 700;
+    line-height: 1.6;
+}
+
+.patient-detail-page #appointment-detail-modal h3 > i {
+    color: var(--detail-primary);
+}
+
+.patient-detail-page #appointment-detail-summary-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page #appointment-detail-code {
+    color: var(--detail-primary);
+    white-space: nowrap;
+}
+
+.patient-detail-page #appointment-detail-status {
+    flex-shrink: 0;
+}
+
+/* NHÃN VÀ GIÁ TRỊ CHỈ ĐỌC */
+
+.patient-detail-page #appointment-detail-modal dl > div {
+    min-width: 0;
+}
+
+.patient-detail-page #appointment-detail-modal dt {
+    margin-bottom: 5px;
+
+    color: var(--detail-muted);
+
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.patient-detail-page #appointment-detail-modal dd {
+    margin: 0;
+
+    color: var(--detail-text);
+
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.8;
+
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page #appointment-detail-receptionist-code {
+    margin-top: 3px;
+
+    color: var(--detail-muted) !important;
+
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* BỐN Ô SỐ ĐO CŨ */
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-vitals-grid > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    min-height: 84px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+
+    border-right: 8px solid transparent;
+    border-left: 8px solid transparent;
+    border-radius: 10px;
+
+    background: var(--detail-soft);
+    background-clip: padding-box;
+}
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-vitals-grid dd {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* GIỮ XUỐNG DÒNG TRONG NỘI DUNG KHÁM */
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-clinical-grid dd {
+    font-weight: 500;
+    white-space: pre-line;
+}
+
+/* BẢNG CHỈ ĐỊNH VÀ VIỆN PHÍ */
+
+.patient-detail-page #appointment-detail-modal .table-responsive {
+    margin-bottom: 0;
+
+    border: 1px solid var(--detail-border);
+    border-radius: 10px;
+
+    scrollbar-width: thin;
+    scrollbar-color: #d5c8f1 transparent;
+}
+
+.patient-detail-page #appointment-detail-modal .appointment-detail-table {
+    --bs-table-color: var(--detail-text);
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--detail-border);
+
+    width: 100%;
+    min-width: 540px;
+    margin: 0;
+
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-table th {
+    padding: 10px 14px;
+
+    background: var(--detail-soft);
+    color: var(--detail-text);
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-table td {
+    padding: 12px 14px;
+
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.patient-detail-page #appointment-detail-modal
+.appointment-detail-table td.text-end {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.patient-detail-page #appointment-detail-services-empty,
+.patient-detail-page #appointment-detail-invoices-empty {
+    margin-top: 12px;
+
+    color: var(--detail-muted) !important;
+
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* NÚT XEM CHI TIẾT VIỆN PHÍ */
+
+.patient-detail-page #appointment-detail-open-fees {
+    --bs-btn-color: var(--detail-primary);
+    --bs-btn-border-color: var(--detail-primary);
+
+    --bs-btn-hover-color: var(--detail-primary);
+    --bs-btn-hover-bg: var(--detail-soft);
+    --bs-btn-hover-border-color: var(--detail-primary);
+
+    --bs-btn-active-color: #ffffff;
+    --bs-btn-active-bg: var(--detail-primary);
+    --bs-btn-active-border-color: var(--detail-primary);
+
+    --bs-btn-disabled-color: var(--detail-primary);
+    --bs-btn-disabled-border-color: var(--detail-primary);
+    --bs-btn-disabled-opacity: .5;
+
+    flex-shrink: 0;
+
+    min-height: 34px;
+    padding: 7px 11px;
+    border-radius: 8px;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+
+    white-space: nowrap;
+}
+
+.patient-detail-page #appointment-detail-open-fees:focus-visible {
+    outline: 2px solid var(--detail-primary);
+    outline-offset: 3px;
+
+    box-shadow: none;
+}
+
+/* MÀN HÌNH NHỎ */
+
+@media (max-width: 767.98px) {
+    .patient-detail-page #appointment-detail-modal .modal-dialog {
+        width: calc(100% - 24px);
+        min-height: calc(100% - 24px);
+
+        margin: 12px auto;
+    }
+
+    .patient-detail-page #appointment-detail-modal .modal-content {
+        height: calc(100vh - 24px);
+        height: calc(100dvh - 24px);
+
+        max-height: calc(100vh - 24px);
+        max-height: calc(100dvh - 24px);
+
+        border-radius: 12px;
+    }
+
+    .patient-detail-page #appointment-detail-modal .modal-header {
+        min-height: 78px;
+        padding: 14px 16px;
+    }
+
+    .patient-detail-page #appointment-detail-title {
+        font-size: 16px !important;
+    }
+
+    .patient-detail-page #appointment-detail-body {
+        padding: 18px 16px 22px;
+    }
+
+    .patient-detail-page #appointment-detail-content > hr {
+        margin: 18px 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .patient-detail-page #appointment-detail-modal.fade .modal-dialog {
+        transition: none;
+        transform: none;
+    }
+}

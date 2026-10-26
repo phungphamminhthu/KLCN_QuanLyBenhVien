@@ -56,7 +56,13 @@ public class TiepNhanApiController {
     }
 
     // =========================================================
-    // TRUY VẤN THÔNG TIN LỊCH KHÁM DÙNG CHUNG
+    // TRUY VẤN LỊCH KHÁM DÙNG CHUNG
+    //
+    // Chuẩn hóa ngày và giờ ngay trong SELECT.
+    // JavaScript nhận chuỗi cố định, không phụ thuộc
+    // cách Jackson chuyển đổi java.sql.Date / java.sql.Time.
+    //
+    // Điều kiện WHERE vẫn so sánh trực tiếp cột DATE trong DB.
     // =========================================================
 
     private static final String SQL_LICH_KHAM = """
@@ -66,15 +72,28 @@ public class TiepNhanApiController {
                 lk.MaBacSi,
                 lk.MaKhoa,
                 lk.MaSoThuTu,
-                lk.NgayKham,
-                lk.GioKham,
+
+                DATE_FORMAT(
+                    lk.NgayKham,
+                    '%Y-%m-%d'
+                ) AS NgayKham,
+
+                TIME_FORMAT(
+                    lk.GioKham,
+                    '%H:%i:%s'
+                ) AS GioKham,
+
                 lk.TrangThai,
                 lk.LyDoKham,
 
                 nd.HoTen,
                 nd.SoDienThoai,
 
-                bn.NgaySinh,
+                DATE_FORMAT(
+                    bn.NgaySinh,
+                    '%Y-%m-%d'
+                ) AS NgaySinh,
+
                 bn.GioiTinh,
                 bn.DiaChi,
 
@@ -122,7 +141,6 @@ public class TiepNhanApiController {
 
     // =========================================================
     // 1. DASHBOARD
-    // Service đã kiểm tra tài khoản, ca trực và khoa phụ trách.
     // =========================================================
 
     @GetMapping("/dashboard-data")
@@ -157,11 +175,10 @@ public class TiepNhanApiController {
 
         Integer maLichKham = request.maLichKham();
 
-        Map<String, Object> lichKham =
-                layLichKhamTrongKhoa(
-                        maLichKham,
-                        caTruc.maKhoa()
-                );
+        Map<String, Object> lichKham = layLichKhamTrongKhoa(
+                maLichKham,
+                caTruc.maKhoa()
+        );
 
         boolean daGoi =
                 tiepNhanDashboardService.updateTrangThaiHangDoi(
@@ -197,7 +214,6 @@ public class TiepNhanApiController {
 
     // =========================================================
     // 3. XEM SỐ ĐO ĐÃ LƯU
-    // Có thể xem lịch cũ nhưng phải thuộc khoa đang phụ trách.
     // =========================================================
 
     @GetMapping("/chi-so-truoc-kham/{maLichKham}")
@@ -236,8 +252,8 @@ public class TiepNhanApiController {
         }
 
         /*
-         * Giữ khóa lịch trong cùng transaction với thao tác lưu.
-         * Tránh sửa số đo đồng thời với việc xác nhận tiếp nhận.
+         * Giữ khóa lịch trong cùng transaction với thao tác lưu,
+         * tránh sửa số đo đồng thời với xác nhận tiếp nhận.
          */
         String sql = """
                 SELECT MaLichKham
@@ -289,7 +305,8 @@ public class TiepNhanApiController {
 
     // =========================================================
     // 5. XÁC NHẬN ĐÃ TIẾP NHẬN
-    // Service cập nhật trạng thái và lưu người tiếp nhận.
+    // Service kiểm tra số đo, cập nhật trạng thái
+    // và lưu nhân viên thực tế tiếp nhận.
     // =========================================================
 
     public record XacNhanTiepNhanRequest(Integer maLichKham) {
@@ -350,8 +367,6 @@ public class TiepNhanApiController {
 
     // =========================================================
     // 6. TRA CỨU BỆNH NHÂN ĐỂ ĐĂNG KÝ KHÁM
-    // Thông tin cơ bản được tra cứu trên toàn bệnh viện.
-    // Chi tiết lịch hẹn chỉ trả về trong khoa đang phụ trách.
     // =========================================================
 
     @GetMapping("/patient-search")
@@ -378,17 +393,26 @@ public class TiepNhanApiController {
         String sql = """
                 SELECT
                     bn.MaBenhNhan,
-                    bn.NgaySinh,
+
+                    DATE_FORMAT(
+                        bn.NgaySinh,
+                        '%Y-%m-%d'
+                    ) AS NgaySinh,
+
                     bn.GioiTinh,
                     bn.DiaChi,
                     nd.HoTen,
                     nd.SoDienThoai
+
                 FROM benhnhan bn
+
                 JOIN nguoidung nd
                   ON nd.MaNguoiDung = bn.MaNguoiDung
+
                 WHERE CAST(bn.MaBenhNhan AS CHAR) = ?
                    OR nd.SoDienThoai = ?
                    OR nd.HoTen LIKE ? ESCAPE '!'
+
                 ORDER BY bn.MaBenhNhan
                 LIMIT 2
                 """;
@@ -443,10 +467,6 @@ public class TiepNhanApiController {
                         caTruc.maKhoa()
                 );
 
-        /*
-         * Không hiểu nhầm là chưa có lịch
-         * khi bệnh nhân đã đăng ký ở khoa khác.
-         */
         Long soLichKhacKhoa = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*)
@@ -461,10 +481,11 @@ public class TiepNhanApiController {
                 caTruc.maKhoa()
         );
 
-        if (lichHen.isEmpty()
-                && soLichKhacKhoa != null
-                && soLichKhacKhoa > 0) {
-
+        if (
+                lichHen.isEmpty()
+                        && soLichKhacKhoa != null
+                        && soLichKhacKhoa > 0
+        ) {
             return phanHoiLoi(
                     HttpStatus.CONFLICT,
                     "Bệnh nhân đã có lịch khám hôm nay tại khoa khác. "
@@ -559,7 +580,6 @@ public class TiepNhanApiController {
 
     // =========================================================
     // 9. LỊCH SỬ THAO TÁC TIẾP NHẬN CỦA KHOA
-    // Kèm tài khoản đã thực tế tiếp nhận.
     // =========================================================
 
     @GetMapping("/lich-su-tiep-nhan")
@@ -635,9 +655,7 @@ public class TiepNhanApiController {
     private CaTrucHienTai layCaTruc(
             Authentication authentication
     ) {
-        return phanCongService.layCaTrucHienTai(
-                authentication
-        );
+        return phanCongService.layCaTrucHienTai(authentication);
     }
 
     private boolean maHopLe(Integer ma) {

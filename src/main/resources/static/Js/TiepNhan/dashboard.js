@@ -6,6 +6,7 @@ let dashboardLoading = false;
 let callingPatient = false;
 let confirmingReception = false;
 let vienPhiOpen = false;
+let dashboardMessageTimer = null;
 
 const STATUS_LABELS = {
     ChoGoi: "Chờ gọi",
@@ -55,9 +56,10 @@ function $(id) {
 }
 
 function setText(id, value) {
-    const element = $(id);
-    if (element) {
-        element.textContent = value ?? "";
+    const node = $(id);
+
+    if (node) {
+        node.textContent = value ?? "";
     }
 }
 
@@ -76,6 +78,7 @@ function escapeHtml(value) {
 
 function positiveId(value) {
     const number = Number(value);
+
     return Number.isSafeInteger(number) && number > 0
         ? number
         : null;
@@ -98,7 +101,8 @@ function getStatusCode(value) {
     }
 
     return Object.keys(STATUS_LABELS).find(
-        code => normalizeSearch(STATUS_LABELS[code])
+        code =>
+            normalizeSearch(STATUS_LABELS[code])
             === normalizeSearch(status)
     ) || status;
 }
@@ -137,6 +141,10 @@ function getToken() {
     ).trim();
 }
 
+// =========================================================
+// GỌI API
+// =========================================================
+
 async function requestApi(url, options = {}) {
     const token = getToken();
 
@@ -152,9 +160,11 @@ async function requestApi(url, options = {}) {
         "Authorization",
         /^Bearer\s/i.test(token) ? token : `Bearer ${token}`
     );
+
     headers.set("Accept", "application/json");
 
     const controller = new AbortController();
+
     const timeout = window.setTimeout(
         () => controller.abort(),
         20000
@@ -178,7 +188,19 @@ async function requestApi(url, options = {}) {
                     ? "Tài khoản không có quyền sử dụng chức năng này."
                     : `Không thể xử lý yêu cầu (HTTP ${response.status}).`;
 
-            throw new Error(data?.message || fallback);
+            const error = new Error(data?.message || fallback);
+
+            error.status = response.status;
+
+            error.lyDo = Array.isArray(data?.lyDo)
+                ? data.lyDo.filter(
+                    reason =>
+                        typeof reason === "string"
+                        && reason.trim()
+                )
+                : [];
+
+            throw error;
         }
 
         if (!data || typeof data !== "object") {
@@ -195,6 +217,7 @@ async function requestApi(url, options = {}) {
                 + "để kiểm tra kết quả trước khi thực hiện lại."
             );
         }
+
         throw error;
     } finally {
         window.clearTimeout(timeout);
@@ -211,21 +234,71 @@ function postJson(url, body) {
     });
 }
 
-function showDashboardMessage(message = "", isError = false) {
-    const element = $("dashboard-message");
+// =========================================================
+// THÔNG BÁO DASHBOARD
+// Cả thông báo xanh và đỏ tự ẩn sau 7 giây.
+// =========================================================
 
-    if (!element) {
+function showDashboardMessage(
+    message = "",
+    isError = false,
+    reasons = []
+) {
+    window.clearTimeout(dashboardMessageTimer);
+    dashboardMessageTimer = null;
+
+    const box = $("dashboard-message");
+
+    if (!box) {
         if (message) {
-            window.alert(message);
+            console.warn(message);
         }
         return;
     }
 
-    element.textContent = message;
-    element.className =
+    box.replaceChildren();
+
+    box.className =
         `alert ${isError ? "alert-danger" : "alert-info"} py-2`;
-    element.hidden = !message;
+
+    box.hidden = !message;
+
+    if (!message) return;
+
+    box.append(
+        document.createTextNode(message)
+    );
+
+    if (Array.isArray(reasons) && reasons.length) {
+        const list = document.createElement("ul");
+        list.className = "mb-0 mt-1";
+
+        for (const reason of reasons) {
+            if (typeof reason !== "string") continue;
+
+            const li = document.createElement("li");
+            const strong = document.createElement("strong");
+
+            strong.className = "fw-bold";
+            strong.textContent = reason;
+
+            li.append(strong);
+            list.append(li);
+        }
+
+        box.append(list);
+    }
+
+    dashboardMessageTimer = window.setTimeout(() => {
+        box.hidden = true;
+        box.replaceChildren();
+        dashboardMessageTimer = null;
+    }, 7000);
 }
+
+// =========================================================
+// NGÀY TRÊN HEADER
+// =========================================================
 
 function updateCurrentHeaderDate() {
     const now = new Date();
@@ -306,9 +379,7 @@ function compareQueueAppointments(a, b) {
         (STATUS_PRIORITIES[getStatusCode(a.trangThai)] ?? 99)
         - (STATUS_PRIORITIES[getStatusCode(b.trangThai)] ?? 99);
 
-    if (priority) {
-        return priority;
-    }
+    if (priority) return priority;
 
     const time = item =>
         /^\d{2}:\d{2}$/.test(item.gioHen || "")
@@ -333,6 +404,7 @@ function renderDashboardTables() {
 
 function updateBusyControls() {
     const button = $("refresh-dashboard-button");
+
     if (button) {
         button.disabled = isBusy();
     }
@@ -382,9 +454,11 @@ async function loadDashboardRealData(
         if (!silent) {
             showDashboardMessage(
                 `${error.message} Dữ liệu chưa được cập nhật.`,
-                true
+                true,
+                error.lyDo
             );
         }
+
         return false;
     } finally {
         dashboardLoading = false;
@@ -408,12 +482,13 @@ function refreshDashboardWhenIdle() {
 // =========================================================
 
 function populateSelect(select, values, allLabel) {
-    if (!select) {
-        return;
-    }
+    if (!select) return;
 
     const previous = select.value;
-    select.replaceChildren(new Option(allLabel, ""));
+
+    select.replaceChildren(
+        new Option(allLabel, "")
+    );
 
     [...new Set(values.filter(Boolean))]
         .sort((a, b) => a.localeCompare(b, "vi"))
@@ -494,7 +569,9 @@ function applyFiltersAndRender() {
             && (!search || text.includes(search));
     });
 
-    renderQueueTable(list.sort(compareQueueAppointments));
+    renderQueueTable(
+        list.sort(compareQueueAppointments)
+    );
 }
 
 // =========================================================
@@ -509,6 +586,7 @@ function iconButton(
     action
 ) {
     const button = document.createElement("button");
+
     button.type = "button";
     button.className = className;
     button.title = label;
@@ -518,12 +596,11 @@ function iconButton(
     const icon = document.createElement("i");
     icon.className = `fa-solid ${iconName}`;
     icon.setAttribute("aria-hidden", "true");
+
     button.append(icon);
 
     button.addEventListener("click", () => {
-        if (!button.disabled) {
-            action();
-        }
+        if (!button.disabled) action();
     });
 
     return button;
@@ -533,10 +610,13 @@ function createPatientCallButton(item, extraClass = "") {
     const allowed = canCallPatient(item);
 
     const label = allowed
-        ? `${getStatusCode(item.trangThai) === "DaGoi"
-            ? "Gọi lại"
-            : "Gọi"} bệnh nhân ${item.tenBenhNhan || ""}`
-        : "Chưa có phòng hợp lệ hoặc trạng thái không cho phép gọi tiếp nhận";
+        ? `${
+            getStatusCode(item.trangThai) === "DaGoi"
+                ? "Gọi lại"
+                : "Gọi"
+        } bệnh nhân ${item.tenBenhNhan || ""}`
+        : "Chưa có phòng hợp lệ hoặc trạng thái "
+            + "không cho phép gọi tiếp nhận";
 
     return iconButton(
         `btn-action-call-compact ${extraClass}`.trim(),
@@ -566,14 +646,18 @@ function openPatientProfile(item) {
 
 function createWorkflowButton(item) {
     const button = document.createElement("button");
+
     button.type = "button";
     button.className =
         "btn btn-sm text-nowrap btn-workflow btn-outline-success";
+
     button.textContent = "Đã tiếp nhận";
 
     button.title = canConfirmReception(item)
-        ? "Kiểm tra phí khám và xác nhận tiếp nhận sau khi đã lưu đủ số đo"
-        : "Cần gọi bệnh nhân và lưu số đo trước khi xác nhận tiếp nhận";
+        ? "Kiểm tra phí khám và xác nhận tiếp nhận "
+            + "sau khi đã lưu đủ số đo"
+        : "Cần gọi bệnh nhân và lưu số đo "
+            + "trước khi xác nhận tiếp nhận";
 
     button.setAttribute(
         "aria-label",
@@ -589,7 +673,8 @@ function createWorkflowButton(item) {
         flexShrink: "0"
     });
 
-    button.disabled = isBusy() || !canConfirmReception(item);
+    button.disabled =
+        isBusy() || !canConfirmReception(item);
 
     button.addEventListener("click", () => {
         if (!button.disabled) {
@@ -602,14 +687,18 @@ function createWorkflowButton(item) {
 
 function createVienPhiButton(item) {
     const button = document.createElement("button");
+
     button.type = "button";
     button.className =
         "btn btn-sm btn-outline-primary btn-vienphi";
+
     button.title =
         `Xem hóa đơn và lịch sử thanh toán của ${
             item.tenBenhNhan || "bệnh nhân"
         }`;
-    button.disabled = isBusy() || !positiveId(item.maLichKham);
+
+    button.disabled =
+        isBusy() || !positiveId(item.maLichKham);
 
     const icon = document.createElement("i");
     icon.className = "fa-solid fa-file-invoice-dollar";
@@ -632,9 +721,7 @@ function createVienPhiButton(item) {
 }
 
 async function openVienPhi(item) {
-    if (isBusy()) {
-        return;
-    }
+    if (isBusy()) return;
 
     const id = positiveId(item?.maLichKham);
 
@@ -655,20 +742,20 @@ async function openVienPhi(item) {
         return;
     }
 
-    await window.VienPhi.mo(id, document.activeElement);
+    await window.VienPhi.mo(
+        id,
+        document.activeElement
+    );
 }
 
 // =========================================================
 // DANH SÁCH LỊCH KHÁM
-// Bấm dòng để mở hồ sơ; nút thao tác không mở hồ sơ.
 // =========================================================
 
 function renderQueueTable(list) {
     const tbody = $("hang-doi-table-body");
 
-    if (!tbody) {
-        return;
-    }
+    if (!tbody) return;
 
     tbody.replaceChildren();
 
@@ -678,6 +765,7 @@ function renderQueueTable(list) {
 
         cell.colSpan = 8;
         cell.className = "text-center text-muted py-4";
+
         cell.textContent = dashboardLoading
             ? "Đang tải danh sách lịch khám..."
             : "Không có lịch khám phù hợp.";
@@ -688,7 +776,9 @@ function renderQueueTable(list) {
 
     for (const item of list) {
         const row = document.createElement("tr");
-        const name = String(item.tenBenhNhan || "Bệnh nhân");
+        const name = String(
+            item.tenBenhNhan || "Bệnh nhân"
+        );
 
         row.innerHTML = `
             <td>
@@ -711,6 +801,7 @@ function renderQueueTable(list) {
                         <div class="patient-name-container fw-bold">
                             ${escapeHtml(name)}
                         </div>
+
                         <div class="text-muted">
                             ${escapeHtml(item.thongTinPhu)}
                         </div>
@@ -722,6 +813,7 @@ function renderQueueTable(list) {
                 <div class="fw-semibold">
                     ${escapeHtml(item.khoa)}
                 </div>
+
                 <div class="text-muted">
                     ${escapeHtml(item.bacSi)}
                 </div>
@@ -731,7 +823,9 @@ function renderQueueTable(list) {
                 ${escapeHtml(item.phong)}
             </td>
 
-            <td>${escapeHtml(item.gioHen)}</td>
+            <td>
+                ${escapeHtml(item.gioHen)}
+            </td>
 
             <td class="text-center">
                 <span class="status-pill ${
@@ -763,8 +857,10 @@ function renderQueueTable(list) {
             row.classList.add("patient-row-clickable");
             row.style.cursor = "pointer";
             row.tabIndex = 0;
+
             row.title =
-                "Bấm vào dòng hoặc nhấn Enter để xem hồ sơ bệnh nhân";
+                "Bấm vào dòng hoặc nhấn Enter "
+                + "để xem hồ sơ bệnh nhân";
 
             row.setAttribute(
                 "aria-label",
@@ -802,7 +898,8 @@ function renderQueueTable(list) {
 
     setText(
         "table-record-count",
-        `Hiển thị ${list.length}/${globalQueueData.length} lịch khám hôm nay`
+        `Hiển thị ${list.length}/${globalQueueData.length} `
+        + "lịch khám hôm nay"
     );
 }
 
@@ -813,9 +910,7 @@ function renderQueueTable(list) {
 function renderUpcomingAppointments() {
     const container = $("lich-kham-sap-toi-container");
 
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
     const list = globalQueueData
         .filter(
@@ -834,10 +929,10 @@ function renderUpcomingAppointments() {
     }
 
     for (const item of list) {
-        const element = document.createElement("div");
-        element.className = "schedule-item";
+        const node = document.createElement("div");
+        node.className = "schedule-item";
 
-        element.innerHTML = `
+        node.innerHTML = `
             <div class="schedule-stt-box">
                 <div class="fw-bold">
                     ${escapeHtml(item.stt)}
@@ -861,14 +956,14 @@ function renderUpcomingAppointments() {
             </div>
         `;
 
-        element.append(
+        node.append(
             createPatientCallButton(
                 item,
                 "schedule-call-button"
             )
         );
 
-        container.append(element);
+        container.append(node);
     }
 }
 
@@ -877,11 +972,10 @@ function renderUpcomingAppointments() {
 // =========================================================
 
 async function handleCallPatient(maLichKham) {
-    if (isBusy()) {
-        return;
-    }
+    if (isBusy()) return;
 
     const id = positiveId(maLichKham);
+
     const item = globalQueueData.find(
         row => positiveId(row.maLichKham) === id
     );
@@ -893,6 +987,7 @@ async function handleCallPatient(maLichKham) {
     callingPatient = true;
     updateBusyControls();
     renderDashboardTables();
+
     showDashboardMessage("Đang gọi bệnh nhân...");
 
     try {
@@ -930,11 +1025,11 @@ async function handleCallPatient(maLichKham) {
         );
 
         try {
-            const element = $("modalGoiKham");
+            const modalElement = $("modalGoiKham");
 
-            if (element && window.bootstrap?.Modal) {
+            if (modalElement && window.bootstrap?.Modal) {
                 window.bootstrap.Modal
-                    .getOrCreateInstance(element)
+                    .getOrCreateInstance(modalElement)
                     .show();
             }
 
@@ -944,7 +1039,8 @@ async function handleCallPatient(maLichKham) {
 
             setText(
                 "voice-status",
-                "Đã ghi nhận gọi. Không phát được loa, vui lòng gọi trực tiếp."
+                "Đã ghi nhận gọi. Không phát được loa, "
+                + "vui lòng gọi trực tiếp."
             );
         }
 
@@ -956,12 +1052,18 @@ async function handleCallPatient(maLichKham) {
         showDashboardMessage(
             refreshed
                 ? "Đã gọi bệnh nhân. Mở hồ sơ để nhập và lưu số đo."
-                : "Đã ghi nhận gọi nhưng chưa tải lại được dữ liệu. Hãy làm mới dữ liệu.",
+                : "Đã ghi nhận gọi nhưng chưa tải lại được dữ liệu. "
+                    + "Hãy làm mới dữ liệu.",
             !refreshed
         );
     } catch (error) {
         await loadDashboardRealData(true, true);
-        showDashboardMessage(error.message, true);
+
+        showDashboardMessage(
+            error.message,
+            true,
+            error.lyDo
+        );
     } finally {
         callingPatient = false;
         updateBusyControls();
@@ -973,12 +1075,134 @@ async function handleCallPatient(maLichKham) {
 // XÁC NHẬN TIẾP NHẬN
 // =========================================================
 
+function requestReceptionConfirmation(patientName) {
+    return new Promise(resolve => {
+        const previousFocus = document.activeElement;
+
+        const notice = document.createElement("section");
+        notice.className = "dashboard-reception-toast";
+
+        notice.setAttribute("role", "alertdialog");
+
+        notice.setAttribute(
+            "aria-labelledby",
+            "reception-confirm-title"
+        );
+
+        notice.setAttribute(
+            "aria-describedby",
+            "reception-confirm-text"
+        );
+
+        const title = document.createElement("strong");
+        title.id = "reception-confirm-title";
+        title.textContent = "Xác nhận tiếp nhận bệnh nhân";
+
+        const text = document.createElement("p");
+        text.id = "reception-confirm-text";
+
+        text.textContent =
+            `Xác nhận đã tiếp nhận ${patientName || "bệnh nhân"}?\n`
+            + "Hãy bảo đảm đã kiểm tra thông tin và lưu đủ cân nặng, "
+            + "chiều cao, huyết áp tâm thu và tâm trương.";
+
+        const actions = document.createElement("div");
+        actions.className =
+            "dashboard-reception-toast-actions";
+
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "reception-toast-cancel";
+        cancel.textContent = "Hủy";
+
+        const accept = document.createElement("button");
+        accept.type = "button";
+        accept.className = "reception-toast-accept";
+        accept.textContent = "Xác nhận tiếp nhận";
+
+        actions.append(cancel, accept);
+        notice.append(title, text, actions);
+        document.body.append(notice);
+
+        let finished = false;
+
+        function finish(accepted) {
+            if (finished) return;
+            finished = true;
+
+            document.removeEventListener(
+                "keydown",
+                onKeyDown,
+                true
+            );
+
+            window.removeEventListener(
+                "pagehide",
+                onPageHide
+            );
+
+            notice.remove();
+
+            if (
+                previousFocus?.isConnected
+                && !previousFocus.disabled
+            ) {
+                previousFocus.focus({
+                    preventScroll: true
+                });
+            }
+
+            resolve(accepted);
+        }
+
+        function onKeyDown(event) {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                finish(false);
+            }
+        }
+
+        function onPageHide() {
+            finish(false);
+        }
+
+        cancel.addEventListener("click", () => {
+            finish(false);
+        });
+
+        accept.addEventListener("click", () => {
+            finish(true);
+        });
+
+        document.addEventListener(
+            "keydown",
+            onKeyDown,
+            true
+        );
+
+        window.addEventListener(
+            "pagehide",
+            onPageHide
+        );
+
+        requestAnimationFrame(() => {
+            if (finished) return;
+
+            notice.classList.add("is-visible");
+
+            cancel.focus({
+                preventScroll: true
+            });
+        });
+    });
+}
+
 async function handleConfirmReception(maLichKham) {
-    if (isBusy()) {
-        return;
-    }
+    if (isBusy()) return;
 
     const id = positiveId(maLichKham);
+
     const item = globalQueueData.find(
         row => positiveId(row.maLichKham) === id
     );
@@ -992,55 +1216,31 @@ async function handleConfirmReception(maLichKham) {
     renderDashboardTables();
 
     try {
-        const invoiceData = await requestApi(
-            `/api/tiepnhan/hoa-don/lich-kham/${id}`
+        const confirmed = await requestReceptionConfirmation(
+            item.tenBenhNhan
         );
 
-        if (
-            positiveId(invoiceData.maLichKham) !== id
-            || !Array.isArray(invoiceData.danhSachHoaDon)
-        ) {
-            throw new Error(
-                "Thông tin viện phí không khớp lịch khám."
-            );
-        }
+        if (!confirmed) return;
 
-        if (invoiceData.daThanhToanPhiKham !== true) {
-            confirmingReception = false;
-            updateBusyControls();
-            renderDashboardTables();
-
-            showDashboardMessage(
-                "Chưa xác nhận được phí khám đã thanh toán đủ. "
-                + "Hãy kiểm tra hóa đơn trước khi tiếp nhận.",
-                true
-            );
-
-            await openVienPhi(item);
-            return;
-        }
-
-        const confirmed = window.confirm(
-            `Xác nhận đã tiếp nhận bệnh nhân ${
-                item.tenBenhNhan || ""
-            }?\n\n`
-            + "Hãy bảo đảm đã kiểm tra thông tin và lưu đủ "
-            + "cân nặng, chiều cao, huyết áp tâm thu, huyết áp tâm trương."
-        );
-
-        if (!confirmed) {
-            return;
-        }
-
+        /*
+         * API sẽ kiểm tra phí khám, số đo, trạng thái
+         * và ca trực; trả danh sách lý do nếu còn thiếu.
+         */
         const result = await postJson(
             "/api/tiepnhan/confirm-reception",
             { maLichKham: id }
         );
 
         if (result.success !== true) {
-            throw new Error(
+            const error = new Error(
                 result.message || "Không thể xác nhận tiếp nhận."
             );
+
+            error.lyDo = Array.isArray(result.lyDo)
+                ? result.lyDo
+                : [];
+
+            throw error;
         }
 
         item.trangThai = STATUS_LABELS.DaTiepNhan;
@@ -1053,12 +1253,18 @@ async function handleConfirmReception(maLichKham) {
         showDashboardMessage(
             refreshed
                 ? "Đã tiếp nhận bệnh nhân. Chờ bác sĩ bắt đầu khám."
-                : "Đã tiếp nhận nhưng chưa tải lại được dữ liệu. Hãy làm mới dữ liệu.",
+                : "Đã tiếp nhận nhưng chưa tải lại được dữ liệu. "
+                    + "Hãy làm mới dữ liệu.",
             !refreshed
         );
     } catch (error) {
         await loadDashboardRealData(true, true);
-        showDashboardMessage(error.message, true);
+
+        showDashboardMessage(
+            error.message,
+            true,
+            error.lyDo
+        );
     } finally {
         confirmingReception = false;
         updateBusyControls();
@@ -1080,7 +1286,8 @@ function speakAnnouncement(item) {
     if (!("speechSynthesis" in window)) {
         setText(
             "voice-status",
-            "Trình duyệt không hỗ trợ đọc thông báo. Vui lòng gọi trực tiếp."
+            "Trình duyệt không hỗ trợ đọc thông báo. "
+            + "Vui lòng gọi trực tiếp."
         );
         return;
     }
@@ -1101,7 +1308,8 @@ function speakAnnouncement(item) {
         + `đến khu vực chờ trước ${item.phong}${
             department ? `, ${department}` : ""
         }, `
-        + "để nhân viên tiếp nhận kiểm tra thông tin và lấy số đo trước khám."
+        + "để nhân viên tiếp nhận kiểm tra thông tin "
+        + "và lấy số đo trước khám."
     );
 
     announcement.lang = "vi-VN";
@@ -1125,13 +1333,17 @@ function speakAnnouncement(item) {
     };
 
     announcement.onend = () => {
-        setText("voice-status", "Đã phát xong thông báo.");
+        setText(
+            "voice-status",
+            "Đã phát xong thông báo."
+        );
     };
 
     announcement.onerror = () => {
         setText(
             "voice-status",
-            "Không phát được thông báo. Kiểm tra âm thanh hoặc gọi trực tiếp."
+            "Không phát được thông báo. "
+            + "Kiểm tra âm thanh hoặc gọi trực tiếp."
         );
     };
 
@@ -1154,9 +1366,7 @@ function setupDashboardNotifications() {
     const button = $("notification-button");
     const panel = $("notification-panel");
 
-    if (!wrapper || !button || !panel) {
-        return;
-    }
+    if (!wrapper || !button || !panel) return;
 
     const close = () => {
         panel.hidden = true;

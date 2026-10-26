@@ -1,13 +1,15 @@
 /* =========================================================
    LỊCH SỬ LỊCH KHÁM
-   Màu sắc kế thừa từ layout.css
+   Bố cục theo trang Bệnh nhân.
+   Header và sidebar dùng layout.css.
    ========================================================= */
 
 .appointment-history-page {
-    --history-border: #e8eaf2;
-    --history-text: #343954;
-    --history-muted: #858aa0;
-    --history-surface: #ffffff;
+    --history-border: var(--border-color, #e8eaf2);
+    --history-text: var(--text-title, #343954);
+    --history-muted: var(--text-sub, #858aa0);
+    --history-primary: var(--primary, #7c3aed);
+    --history-soft: var(--primary-soft, #f3efff);
 }
 
 .appointment-history-page [hidden] {
@@ -15,16 +17,16 @@
 }
 
 /* =========================================================
-   KHUNG TRANG
+   KHUNG NỘI DUNG
    ========================================================= */
 
-.appointment-history-page .reception-main > .history-page-content {
+.appointment-history-page .history-page-content {
     display: flex;
-    flex-direction: column;
     flex: 1;
+    flex-direction: column;
+    gap: 12px;
     min-width: 0;
     min-height: 0;
-    gap: 14px;
     overflow: hidden;
 }
 
@@ -33,37 +35,45 @@
     max-height: 100px;
     margin: 0;
     padding: 10px 14px;
+    overflow: auto;
     border-radius: 10px;
     font-size: 12px;
     line-height: 1.6;
-    overflow-y: auto;
     overflow-wrap: anywhere;
 }
 
 .appointment-history-page .history-card {
     display: flex;
-    flex-direction: column;
     flex: 1;
+    flex-direction: column;
     min-width: 0;
     min-height: 0;
-    padding: 18px;
+
+    margin: 0;
+    padding: 16px 18px;
+
     border: 1px solid var(--history-border);
     border-radius: 14px;
-    background: var(--history-surface);
+    background: #ffffff;
+
+    overflow: hidden;
 }
 
 /* =========================================================
-   TIÊU ĐỀ VÀ LỌC NGÀY
+   TIÊU ĐỀ
    ========================================================= */
 
 .appointment-history-page .history-card-heading {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
     flex-shrink: 0;
     flex-wrap: wrap;
-    gap: 14px;
-    margin-bottom: 16px;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+    margin: 0 0 16px;
+    padding: 0;
+    border: 0;
 }
 
 .appointment-history-page .history-title-group {
@@ -71,19 +81,6 @@
     align-items: center;
     gap: 10px;
     min-width: 0;
-}
-
-.appointment-history-page .history-title-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 34px;
-    height: 34px;
-    border-radius: 9px;
-    background: var(--primary-soft, #f3efff);
-    color: var(--primary, #7c3aed);
-    font-size: 16px;
 }
 
 .appointment-history-page #history-title {
@@ -94,79 +91,193 @@
     line-height: 1.5;
 }
 
-.appointment-history-page .history-date-filters {
-    display: flex;
+.appointment-history-page .history-title-icon {
+    display: inline-flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-}
+    justify-content: center;
+    flex-shrink: 0;
 
-.appointment-history-page .history-date-field {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
 
-.appointment-history-page .history-date-field label {
-    margin: 0;
-    color: var(--history-muted);
-    font-size: 11px;
-    white-space: nowrap;
-}
-
-.appointment-history-page .history-date-input {
-    width: 145px;
-    min-width: 0;
-    height: 36px;
-    padding: 7px 9px;
-    border: 1px solid var(--history-border);
-    border-radius: 8px;
-    background: #ffffff;
-    color: var(--history-text);
-    font-family: inherit;
-    font-size: 12px;
-    line-height: 20px;
-}
-
-.appointment-history-page .history-date-input::-webkit-calendar-picker-indicator {
-    cursor: pointer;
+    background: var(--history-soft);
+    color: var(--history-primary);
+    font-size: 15px;
 }
 
 /* =========================================================
-   TÌM KIẾM VÀ LỌC BÁC SĨ, KHOA
+   CHỌN NGÀY
+   Kích thước giống trang Bệnh nhân.
+   ========================================================= */
+
+.appointment-history-page .history-date-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    margin: 0 0 0 auto;
+}
+
+.appointment-history-page .history-date-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+}
+
+.appointment-history-page .history-date-navigation {
+    display: inline-flex;
+    flex-shrink: 0;
+    height: 34px;
+}
+
+.appointment-history-page #history-previous-date,
+.appointment-history-page #history-next-date,
+.appointment-history-page #history-open-calendar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    height: 34px;
+    min-height: 34px;
+    padding: 0;
+
+    border: 1px solid var(--history-border);
+    background: #ffffff;
+    color: var(--history-primary);
+
+    font-size: 12px;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.appointment-history-page #history-previous-date,
+.appointment-history-page #history-next-date {
+    width: 30px;
+    min-width: 30px;
+}
+
+.appointment-history-page #history-date-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+
+    width: 108px;
+    min-width: 108px;
+    height: 34px;
+    padding: 0 8px;
+
+    border: 1px solid var(--history-border);
+    background: #ffffff;
+    color: var(--history-text);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+
+    white-space: nowrap;
+    cursor: default;
+    box-shadow: none;
+}
+
+.appointment-history-page .history-calendar-control {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+}
+
+.appointment-history-page #history-open-calendar {
+    width: 34px;
+    min-width: 34px;
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+/* Ô ngày thật được mở bằng nút biểu tượng lịch. */
+
+.appointment-history-page #history-filter-date {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 1px;
+    min-width: 0;
+    height: 1px;
+    min-height: 0;
+
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    opacity: 0;
+    pointer-events: none;
+}
+
+.appointment-history-page #history-previous-date:hover:not(:disabled),
+.appointment-history-page #history-next-date:hover:not(:disabled),
+.appointment-history-page #history-open-calendar:hover:not(:disabled) {
+    background: var(--history-soft);
+    color: var(--primary-hover, #6d28d9);
+}
+
+/* =========================================================
+   TÌM KIẾM → BÁC SĨ → TRẠNG THÁI
    ========================================================= */
 
 .appointment-history-page .history-filter-bar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 170px 170px;
+    display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+
     gap: 10px;
+    min-width: 0;
+
     margin: 0 0 16px;
+    padding: 0;
 }
 
 .appointment-history-page .history-search-group {
     display: flex;
+    flex: 1 1 280px;
     align-items: center;
+
     gap: 8px;
     min-width: 0;
+    margin: 0;
 }
 
 .appointment-history-page .history-search-input {
     flex: 1;
+
+    width: 0;
     min-width: 0;
-    height: 36px;
-    padding: 8px 12px;
+    height: 34px;
+    padding: 0 12px;
+
     border: 1px solid var(--history-border);
-    border-radius: 8px;
+    border-radius: 7px;
+
     background: #ffffff;
     color: var(--history-text);
+
     font-family: inherit;
     font-size: 12px;
-    line-height: 18px;
+    line-height: 1.5;
 }
 
 .appointment-history-page .history-search-input::placeholder {
-    color: #9ba0b3;
+    color: var(--history-muted);
+    opacity: 1;
 }
 
 .appointment-history-page .history-search-button {
@@ -174,59 +285,80 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
+
+    width: 34px;
+    height: 34px;
     padding: 0;
-    border: 1px solid var(--primary, #7c3aed);
-    border-radius: 8px;
-    background: var(--primary, #7c3aed);
+
+    border: 1px solid var(--history-primary);
+    border-radius: 7px;
+
+    background: var(--history-primary);
     color: #ffffff;
+
     font-size: 13px;
     cursor: pointer;
 }
 
-.appointment-history-page .history-search-button:hover {
-    background: var(--primary-hover, #6d28d9);
+.appointment-history-page .history-search-button:hover:not(:disabled) {
     border-color: var(--primary-hover, #6d28d9);
+    background: var(--primary-hover, #6d28d9);
 }
 
 .appointment-history-page .history-select-group {
-    min-width: 0;
+    flex: 0 1 170px;
+    width: 170px;
+    min-width: 140px;
 }
 
 .appointment-history-page .history-filter-select,
 .appointment-history-page .history-page-size {
+    box-sizing: border-box;
+
     width: 100%;
-    height: 36px;
-    padding: 7px 30px 7px 12px;
+    max-width: 100%;
+    height: 34px;
+    min-height: 34px;
+
+    margin: 0;
+    padding: 0 30px 0 10px;
+
     border: 1px solid var(--history-border);
-    border-radius: 8px;
+    border-radius: 7px;
+
     background-color: #ffffff;
+    color: var(--history-text);
+
+    font-family: "Plus Jakarta Sans", Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: normal;
+
+    cursor: pointer;
+}
+
+.appointment-history-page .history-page-size {
+    appearance: none;
+
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23777d94' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+
     background-repeat: no-repeat;
     background-position: right 11px center;
-    color: var(--history-text);
-    font-family: inherit;
-    font-size: 12px;
-    line-height: 20px;
-    appearance: none;
-    cursor: pointer;
 }
 
 .appointment-history-page .history-filter-select option,
 .appointment-history-page .history-page-size option {
     color: var(--history-text);
-    font-family: inherit;
+    font-family: "Plus Jakarta Sans", Arial, sans-serif;
+    font-size: 12px;
 }
 
 .appointment-history-page .history-search-input:focus,
-.appointment-history-page .history-date-input:focus,
 .appointment-history-page .history-filter-select:focus,
 .appointment-history-page .history-page-size:focus {
-    border-color: var(--primary, #7c3aed);
+    border-color: var(--history-primary);
     outline: none;
-    box-shadow: 0 0 0 3px
-        rgba(var(--bs-primary-rgb, 124, 58, 237), 0.1);
+    box-shadow: 0 0 0 3px rgb(124 58 237 / 12%);
 }
 
 /* =========================================================
@@ -235,18 +367,25 @@
 
 .appointment-history-page .history-table-area {
     position: relative;
+
     display: flex;
-    flex-direction: column;
     flex: 1;
+    flex-direction: column;
+
     min-width: 0;
     min-height: 0;
+
+    overflow: hidden;
 }
 
 .appointment-history-page .history-table-scroll {
     flex: 1;
+
     min-width: 0;
     min-height: 0;
+
     overflow: auto;
+    scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: #d5d8e5 transparent;
 }
@@ -263,13 +402,18 @@
 
 .appointment-history-page .history-table {
     width: 100%;
+    min-width: 1000px;
     margin: 0;
+
     border-collapse: separate;
     border-spacing: 0;
     table-layout: fixed;
+
     color: var(--history-text);
     font-size: 12px;
 }
+
+/* Tổng chiều rộng các cột là 100%. */
 
 .appointment-history-page .history-col-index {
     width: 5%;
@@ -284,19 +428,19 @@
 }
 
 .appointment-history-page .history-col-date {
-    width: 14%;
+    width: 13%;
 }
 
 .appointment-history-page .history-col-doctor {
-    width: 22%;
+    width: 18%;
 }
 
 .appointment-history-page .history-col-room {
-    width: 12%;
+    width: 13%;
 }
 
 .appointment-history-page .history-col-status {
-    width: 10%;
+    width: 14%;
 }
 
 .appointment-history-page .history-col-detail {
@@ -307,34 +451,46 @@
     position: sticky;
     top: 0;
     z-index: 2;
+
+    box-sizing: border-box;
     height: 42px;
-    padding: 12px 10px;
+    padding: 10px 12px;
+
     border-bottom: 1px solid var(--history-border);
-    background: #f8f7fc;
+
+    background: var(--bg-body, #f8f7fc);
     color: var(--history-muted);
+
     font-size: 10px;
     font-weight: 700;
     line-height: 1.5;
+
     text-align: left;
     vertical-align: middle;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
 }
 
 .appointment-history-page .history-table tbody td {
-    padding: 14px 10px;
+    padding: 12px;
     border-bottom: 1px solid var(--history-border);
+
     background: #ffffff;
-    line-height: 1.65;
+    color: var(--history-text);
+
+    font-size: 12px;
+    line-height: 1.6;
+
     vertical-align: middle;
     overflow-wrap: anywhere;
 }
 
 .appointment-history-page .history-table tbody tr:hover td {
-    background: #faf9ff;
+    background: var(--history-soft);
 }
 
 .appointment-history-page .history-table th:first-child,
-.appointment-history-page .history-table td:first-child {
+.appointment-history-page .history-table td:first-child,
+.appointment-history-page .history-code {
     white-space: nowrap;
 }
 
@@ -358,119 +514,157 @@
 }
 
 .appointment-history-page .history-code {
-    color: var(--primary, #7c3aed);
+    color: var(--history-primary);
     font-weight: 600;
-    white-space: nowrap;
 }
+
+/* Màu từng trạng thái do JavaScript gán. */
 
 .appointment-history-page .history-status {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    min-height: 28px;
     padding: 5px 9px;
     border-radius: 7px;
-    background: #eaf7ee;
-    color: #22884d;
+
+    background: #f1f5f9;
+    color: #475569;
+
     font-size: 10px;
     font-weight: 600;
-    line-height: 1.5;
+    line-height: 1.6;
+
+    white-space: nowrap;
 }
 
 .appointment-history-page .history-detail-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
+    height: 34px;
     min-height: 34px;
-    padding: 7px 10px;
-    border: 1px solid var(--primary, #7c3aed);
-    border-radius: 8px;
+    padding: 0 10px;
+
+    border: 1px solid var(--history-primary);
+    border-radius: 7px;
+
     background: #ffffff;
-    color: var(--primary, #7c3aed);
+    color: var(--history-primary);
+
     font-family: inherit;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    line-height: 18px;
+    line-height: 1.5;
+
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
 }
 
 .appointment-history-page .history-detail-button:hover {
-    background: var(--primary-soft, #f3efff);
+    background: var(--history-soft);
+    color: var(--history-primary);
 }
 
 /* =========================================================
-   TRẠNG THÁI TẢI VÀ KHÔNG CÓ DỮ LIỆU
+   ĐANG TẢI VÀ KHÔNG CÓ DỮ LIỆU
+   Luôn căn giữa phần thân bảng.
    ========================================================= */
 
 .appointment-history-page .history-state {
     position: absolute;
-    top: 42px;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    inset: 42px 0 0;
     z-index: 3;
+
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+
     gap: 12px;
-    padding: 20px;
+    padding: 24px;
+
     background: #ffffff;
     text-align: center;
+    pointer-events: none;
 }
 
 .appointment-history-page .history-state-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
-    background: var(--primary-soft, #f3efff);
-    color: var(--primary, #7c3aed);
+
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+
+    background: var(--history-soft);
+    color: var(--history-primary);
+
     font-size: 24px;
+    line-height: 1;
 }
 
 .appointment-history-page .history-state p {
-    max-width: 360px;
+    max-width: 520px;
     margin: 0;
+
     color: var(--history-muted);
-    font-size: 12px;
-    line-height: 1.7;
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 /* =========================================================
-   PHÂN TRANG Ở CUỐI KHUNG
+   CHÂN BẢNG VÀ PHÂN TRANG
+   Luôn nằm cuối khung, kể cả không có dữ liệu.
    ========================================================= */
 
 .appointment-history-page .history-pagination {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
-    gap: 14px;
-    min-height: 54px;
-    margin-top: 12px;
-    padding-top: 12px;
+
+    gap: 16px;
+    min-height: 47px;
+
+    margin: 12px 0 0;
+    padding: 12px 0 0;
+
     border-top: 1px solid var(--history-border);
+    background: #ffffff;
 }
 
 .appointment-history-page .history-record-count {
+    display: flex;
+    align-items: center;
+
+    min-height: 34px;
+    margin: 0;
+
     color: var(--history-muted);
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.5;
 }
 
 .appointment-history-page .history-pagination-controls {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     flex-shrink: 0;
+
     gap: 8px;
+    margin-left: auto;
 }
 
 .appointment-history-page .history-page-size {
-    width: 120px;
+    width: 124px;
+    min-width: 124px;
+    padding: 0 32px 0 12px;
+    color: var(--history-muted);
 }
 
 .appointment-history-page .history-page-button {
@@ -478,142 +672,144 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
+
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
     padding: 0;
+
     border: 1px solid var(--history-border);
-    border-radius: 8px;
+    border-radius: 7px;
+
     background: #ffffff;
-    color: var(--primary, #7c3aed);
-    font-size: 11px;
+    color: var(--history-primary);
+
+    font-size: 12px;
+    line-height: 1;
     cursor: pointer;
 }
 
 .appointment-history-page .history-page-button:hover:not(:disabled) {
-    border-color: var(--primary, #7c3aed);
-    background: var(--primary-soft, #f3efff);
+    background: var(--history-soft);
 }
 
 .appointment-history-page .history-page-label {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 82px;
-    min-height: 36px;
-    padding: 5px 8px;
+
+    min-width: 84px;
+    min-height: 34px;
+    padding: 4px;
+
     color: var(--history-text);
     font-size: 12px;
-    line-height: 20px;
+    line-height: 1.5;
     white-space: nowrap;
 }
+
+/* =========================================================
+   TRẠNG THÁI VÔ HIỆU HÓA VÀ FOCUS
+   ========================================================= */
 
 .appointment-history-page button:disabled,
 .appointment-history-page select:disabled,
 .appointment-history-page input:disabled {
-    opacity: 0.5;
+    opacity: .45;
     cursor: default;
 }
 
 .appointment-history-page .history-detail-button:focus-visible,
 .appointment-history-page .history-page-button:focus-visible,
-.appointment-history-page .history-search-button:focus-visible {
-    outline: 2px solid var(--primary, #7c3aed);
+.appointment-history-page .history-search-button:focus-visible,
+.appointment-history-page #history-previous-date:focus-visible,
+.appointment-history-page #history-next-date:focus-visible,
+.appointment-history-page #history-open-calendar:focus-visible {
+    outline: 2px solid var(--history-primary);
     outline-offset: 3px;
+    box-shadow: none;
 }
 
 /* =========================================================
    MÀN HÌNH NHỎ
    ========================================================= */
 
-@media (max-width: 1199.98px) {
-    .appointment-history-page .history-filter-bar {
-        grid-template-columns: minmax(0, 1fr) 150px 150px;
-    }
-
-    .appointment-history-page .history-table {
-        font-size: 11px;
-    }
-
-    .appointment-history-page .history-table thead th,
-    .appointment-history-page .history-table tbody td {
-        padding-right: 7px;
-        padding-left: 7px;
-    }
-
-    .appointment-history-page .history-detail-button {
-        padding-right: 7px;
-        padding-left: 7px;
-    }
-}
-
-@media (max-width: 991.98px) {
-    .appointment-history-page .history-card {
-        padding: 16px;
-    }
-
-    .appointment-history-page .history-table {
-        min-width: 850px;
-    }
-
-    .appointment-history-page .history-filter-bar {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 1199px) {
+    .appointment-history-page .history-select-group {
+        flex-basis: 150px;
+        width: 150px;
     }
 
     .appointment-history-page .history-search-group {
-        grid-column: 1 / -1;
+        flex-basis: 240px;
     }
 }
 
-@media (max-width: 767.98px) {
-    .appointment-history-page .history-card-heading {
-        align-items: flex-start;
+@media (max-width: 991px) {
+    .appointment-history-page .history-search-group {
+        flex-basis: 100%;
     }
 
-    .appointment-history-page .history-date-filters {
-        width: 100%;
+    .appointment-history-page .history-select-group {
+        flex: 1 1 140px;
+        width: auto;
+    }
+}
+
+@media (max-width: 767px) {
+    .appointment-history-page .history-card {
+        padding: 14px;
+    }
+
+    .appointment-history-page #history-title {
+        font-size: 14px;
     }
 
     .appointment-history-page .history-pagination {
         flex-wrap: wrap;
-    }
-
-    .appointment-history-page .history-pagination-controls {
-        margin-left: auto;
-    }
-}
-
-@media (max-width: 575.98px) {
-    .appointment-history-page .history-card {
-        padding: 12px;
-    }
-
-    .appointment-history-page .history-date-filters {
         gap: 8px;
     }
 
-    .appointment-history-page .history-date-field {
-        flex: 1;
-        flex-direction: column;
-        align-items: flex-start;
-        min-width: 0;
-        gap: 5px;
+    .appointment-history-page .history-pagination-controls {
+        gap: 6px;
+    }
+}
+
+@media (max-width: 575px) {
+    .appointment-history-page .history-page-content {
+        overflow-y: auto;
     }
 
-    .appointment-history-page .history-date-input {
+    .appointment-history-page .history-card {
+        flex: 1 0 auto;
+        min-height: 560px;
+    }
+
+    .appointment-history-page .history-table-area {
+        min-height: 260px;
+    }
+
+    .appointment-history-page .history-card-heading {
+        gap: 10px;
+    }
+
+    .appointment-history-page .history-select-group {
+        flex: 1 1 100%;
         width: 100%;
     }
 
-    .appointment-history-page .history-page-size {
-        width: 105px;
-    }
-
     .appointment-history-page .history-pagination-controls {
-        gap: 5px;
+        flex-wrap: wrap;
+        gap: 4px;
     }
 
     .appointment-history-page .history-page-label {
         min-width: 72px;
-        padding-right: 4px;
-        padding-left: 4px;
+        font-size: 11px;
+    }
+
+    .appointment-history-page .history-record-count {
+        font-size: 11px;
     }
 }

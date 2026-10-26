@@ -1,550 +1,543 @@
-/* =========================================================
-   TRANG HỒ SƠ CÁ NHÂN — NHÂN VIÊN TIẾP NHẬN
-   Dùng cùng dashboard.css
-   ========================================================= */
+/* =====================================================
+   HỒ SƠ CÁ NHÂN NHÂN VIÊN TIẾP NHẬN
+   ===================================================== */
 
-.profile-page {
-    --profile-primary: #7c3aed;
-    --profile-primary-hover: #6d28d9;
-    --profile-primary-light: #f3efff;
-    --profile-background: #f7f7ff;
-    --profile-border: #e9eaf5;
-    --profile-text: #30364f;
-    --profile-muted: #858ca8;
+.staff-profile-page {
+    --staff-primary: var(--primary, #7c3aed);
+    --staff-primary-dark: var(--primary-hover, #6d28d9);
+    --staff-primary-light: var(--primary-soft, #f3efff);
 
-    min-height: 100vh;
-    background: var(--profile-background);
-    color: var(--profile-text);
-    font-family: "Plus Jakarta Sans", sans-serif;
+    --staff-text: #303454;
+    --staff-muted: #8b90a5;
+    --staff-border: #eeedf5;
+    --staff-input-background: #f8f8fc;
 }
 
-.profile-page [hidden] {
+/* =====================================================
+   VÙNG NỘI DUNG
+   ===================================================== */
+
+.staff-profile-page .staff-profile-content {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-gutter: stable;
+}
+
+.staff-profile-page .staff-profile-content [hidden] {
     display: none !important;
 }
 
-.profile-page button,
-.profile-page input {
-    font-family: inherit;
-}
-
-/* =========================================================
-   KHUNG TRANG
-   Giữ kích thước menu và topbar từ Dashboard
-   ========================================================= */
-
-.profile-page .main-wrapper {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.profile-page .topbar {
-    flex-shrink: 0;
-}
-
-.profile-page .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.staff-profile-page .staff-summary-card,
+.staff-profile-page .staff-info-card {
     min-width: 0;
-}
-
-.profile-page .topbar-actions {
-    margin-left: auto;
-    flex-shrink: 0;
-}
-
-.profile-page-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.profile-page #profile-message {
-    margin-bottom: 16px;
-    font-size: 13px;
-    line-height: 1.6;
-}
-
-.profile-layout {
-    display: grid;
-    grid-template-columns: 240px minmax(0, 1fr) 240px;
-    align-items: start;
-    gap: 24px;
-}
-
-/* =========================================================
-   KHUNG CHUNG
-   ========================================================= */
-
-.profile-card {
-    min-width: 0;
-    background: #ffffff;
-    border: 1px solid var(--profile-border);
+    background: #fff;
+    border: 1px solid var(--staff-border);
     border-radius: 14px;
-    box-shadow: 0 2px 4px rgba(38, 45, 84, 0.025);
+    box-shadow: 0 2px 8px rgb(48 52 84 / 2%);
 }
 
-.profile-card-header {
+/* =====================================================
+   THẺ ĐẠI DIỆN
+   ===================================================== */
+
+.staff-profile-page .staff-summary-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-height: 40px;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f0f1f8;
+    gap: 22px;
+
+    flex-shrink: 0;
+    min-height: 156px;
+    padding: 26px 28px;
 }
 
-.profile-card-header h2 {
-    margin: 0;
-    color: var(--profile-text);
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.5;
-}
-
-.profile-section-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 28px;
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: var(--profile-primary-light);
-    color: var(--profile-primary);
-    font-size: 13px;
-}
-
-/* =========================================================
-   THẺ NHÂN VIÊN BÊN TRÁI
-   ========================================================= */
-
-.profile-summary {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 380px;
-    padding: 28px 22px;
-}
-
-.profile-avatar-wrapper {
-    position: relative;
-    width: 104px;
-    height: 104px;
-    margin-bottom: 18px;
-}
-
-.profile-avatar {
+.staff-profile-page .staff-avatar {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 104px;
-    height: 104px;
-    overflow: hidden;
-    border: 3px solid #e4e8ff;
+
+    flex: 0 0 92px;
+    width: 92px;
+    height: 92px;
+
+    border: 5px solid #f7f6ff;
     border-radius: 50%;
-    background: #f1f4ff;
-    color: #7760ff;
+    overflow: hidden;
+
+    color: #999ac9;
+    background: #eeeefe;
 }
 
-.profile-avatar > i {
-    font-size: 48px;
-    line-height: 1;
+.staff-profile-page .staff-avatar > i {
+    font-size: 46px;
 }
 
-.profile-avatar > img {
-    display: block;
+.staff-profile-page .staff-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.profile-avatar-button {
-    position: absolute;
-    right: 0;
-    bottom: 0;
+.staff-profile-page .staff-summary-info {
+    min-width: 0;
+}
+
+.staff-profile-page .staff-role-badge {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 3px solid #ffffff;
-    border-radius: 50%;
-    background: var(--profile-primary);
-    color: #ffffff;
-    font-size: 12px;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-}
+    gap: 6px;
 
-.profile-avatar-button:hover:not(:disabled) {
-    background: var(--profile-primary-hover);
-}
+    padding: 4px 9px;
+    margin-bottom: 8px;
+    border-radius: 6px;
 
-.profile-display-name {
-    width: 100%;
-    margin: 0 0 10px;
-    text-align: center;
-    color: var(--profile-text);
-    font-size: 17px;
+    color: var(--staff-primary);
+    background: var(--staff-primary-light);
+
+    font-size: 10px;
     font-weight: 700;
     line-height: 1.5;
+}
+
+.staff-profile-page #staff-display-name {
+    margin: 0 0 7px;
+
+    color: var(--staff-text);
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.4;
+
     overflow-wrap: anywhere;
 }
 
-.profile-employee-code {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 26px;
-    margin-bottom: 8px;
-    padding: 4px 12px;
-    border-radius: 6px;
-    background: #f3f5fa;
-    color: #66708c;
+.staff-profile-page .staff-summary-code,
+.staff-profile-page .staff-summary-department {
+    margin: 0;
+
+    color: var(--staff-muted);
     font-size: 12px;
-    font-weight: 600;
+    line-height: 1.7;
+
     overflow-wrap: anywhere;
 }
 
-.profile-role-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px 12px;
-    border-radius: 20px;
-    background: var(--profile-primary-light);
-    color: var(--profile-primary);
-    font-size: 11px;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.5;
+.staff-profile-page .staff-summary-department {
+    margin-top: 3px;
 }
 
-.profile-summary-divider {
-    width: 100%;
-    height: 1px;
-    margin: 24px 0 20px;
-    background: #f0f1f8;
+.staff-profile-page .staff-summary-department i {
+    margin-right: 5px;
+    color: var(--staff-primary);
 }
 
-.profile-contact-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
+/* =====================================================
+   HAI BẢNG THÔNG TIN
+   ===================================================== */
+
+.staff-profile-page .staff-profile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 20px;
+
+    flex-shrink: 0;
+    padding-bottom: 2px;
 }
 
-.profile-contact-item {
+.staff-profile-page .staff-info-card {
+    padding: 22px;
+}
+
+.staff-profile-page .staff-card-heading {
     display: flex;
     align-items: flex-start;
+    justify-content: space-between;
     gap: 12px;
-    min-width: 0;
-    color: #69728f;
-    font-size: 12px;
+
+    margin-bottom: 26px;
+}
+
+.staff-profile-page .staff-card-heading h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    margin: 0 0 5px;
+
+    color: var(--staff-text);
+    font-size: 14px;
+    font-weight: 700;
     line-height: 1.6;
 }
 
-.profile-contact-item > i {
-    flex: 0 0 16px;
-    width: 16px;
-    margin-top: 3px;
-    text-align: center;
-    color: var(--profile-primary);
-    font-size: 13px;
+.staff-profile-page .staff-card-heading h2 i {
+    color: var(--staff-primary);
+    font-size: 15px;
 }
 
-.profile-contact-item > span {
-    min-width: 0;
-    overflow-wrap: anywhere;
-}
-
-/* =========================================================
-   THÔNG TIN CÁ NHÂN Ở GIỮA
-   ========================================================= */
-
-.profile-information {
-    padding: 24px;
-}
-
-.profile-information-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.staff-profile-page .staff-card-heading p {
     margin: 0;
+
+    color: var(--staff-muted);
+    font-size: 11px;
+    line-height: 1.6;
 }
 
-.profile-information-row {
-    display: grid;
-    grid-template-columns: 135px minmax(0, 1fr);
-    align-items: start;
-    gap: 18px;
-    min-width: 0;
-}
+/* =====================================================
+   CÁC Ô THÔNG TIN
+   ===================================================== */
 
-.profile-information-row dt {
-    position: relative;
-    margin: 0;
-    padding-right: 12px;
-    color: var(--profile-muted);
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.7;
-}
-
-.profile-information-row dt::after {
-    position: absolute;
-    right: 0;
-    content: ":";
-}
-
-.profile-information-row dd {
-    min-width: 0;
-    margin: 0;
-    color: var(--profile-text);
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.7;
-    overflow-wrap: anywhere;
-}
-
-/* =========================================================
-   KHUNG HÀNH ĐỘNG BÊN PHẢI
-   ========================================================= */
-
-.profile-actions {
-    padding: 24px;
-}
-
-.profile-action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.profile-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 38px;
-    padding: 9px 14px;
-    border: 1px solid transparent;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 600;
-    line-height: 1.5;
-    text-decoration: none;
-    cursor: pointer;
-    transition:
-        background-color 0.15s ease,
-        border-color 0.15s ease,
-        color 0.15s ease;
-}
-
-.profile-button > i {
-    flex-shrink: 0;
-    font-size: 12px;
-}
-
-.profile-button-primary {
-    border-color: var(--profile-primary);
-    background: var(--profile-primary);
-    color: #ffffff;
-}
-
-.profile-button-primary:hover:not(:disabled) {
-    border-color: var(--profile-primary-hover);
-    background: var(--profile-primary-hover);
-    color: #ffffff;
-}
-
-.profile-button-outline {
-    border-color: var(--profile-primary);
-    background: #ffffff;
-    color: var(--profile-primary);
-}
-
-.profile-button-outline:hover:not(:disabled) {
-    background: var(--profile-primary-light);
-    color: var(--profile-primary-hover);
-}
-
-.profile-button:disabled,
-.profile-avatar-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.profile-button:focus-visible,
-.profile-avatar-button:focus-visible {
-    outline: 3px solid #d9cbff;
-    outline-offset: 3px;
-}
-
-/* =========================================================
-   FORM CHỈNH SỬA VÀ ĐỔI MẬT KHẨU
-   ========================================================= */
-
-.profile-page .modal-dialog {
-    max-width: 480px;
-}
-
-.profile-modal-content {
-    overflow: hidden;
-    border: 1px solid var(--profile-border);
-    border-radius: 14px;
-    box-shadow: 0 12px 40px rgba(38, 45, 84, 0.12);
-}
-
-.profile-modal-content .modal-header {
-    padding: 20px 24px;
-    border-bottom: 1px solid var(--profile-border);
-}
-
-.profile-modal-content .modal-title {
-    color: var(--profile-text);
-    font-weight: 700;
-}
-
-.profile-modal-content .modal-body {
-    padding: 24px;
-}
-
-.profile-modal-content .modal-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--profile-border);
-}
-
-.profile-modal-content fieldset {
+.staff-profile-page .staff-fields {
     min-width: 0;
     margin: 0;
     padding: 0;
     border: 0;
 }
 
-.profile-modal-content .form-label {
+.staff-profile-page .staff-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 18px;
+}
+
+.staff-profile-page .staff-field {
+    min-width: 0;
+}
+
+.staff-profile-page .staff-field label {
+    display: block;
     margin-bottom: 8px;
-    color: #68718c;
+
+    color: var(--staff-text);
     font-size: 12px;
     font-weight: 600;
+    line-height: 1.5;
 }
 
-.profile-modal-content .form-control {
-    min-height: 40px;
-    border-color: #e2e5f0;
+.staff-profile-page .staff-required {
+    color: #dc3545;
+}
+
+.staff-profile-page .staff-field .form-control {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+
+    padding: 9px 12px;
+    border: 1px solid #e8e7f0;
     border-radius: 7px;
-    color: var(--profile-text);
-    font-size: 13px;
-}
 
-.profile-modal-content .form-control:focus {
-    border-color: #b79aff;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
-}
+    background: #fff;
+    color: var(--staff-text);
 
-.profile-modal-content .alert {
+    font-family: inherit;
     font-size: 12px;
-    line-height: 1.6;
+    line-height: 1.5;
+
+    box-shadow: none;
+
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease;
 }
 
-.profile-modal-content .btn-close:focus {
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+.staff-profile-page .staff-field .form-control:read-only,
+.staff-profile-page .staff-field .form-control:disabled {
+    background: var(--staff-input-background);
+    color: #72778b;
+
+    opacity: 1;
+    -webkit-text-fill-color: #72778b;
 }
 
-/* =========================================================
-   MÀN HÌNH NHỎ
-   ========================================================= */
+.staff-profile-page .staff-field .form-control:focus {
+    border-color: var(--staff-primary);
+    box-shadow: 0 0 0 3px rgb(124 58 237 / 10%);
+}
+
+.staff-profile-page .staff-field .form-control:read-only:focus {
+    border-color: #d8d5e5;
+    box-shadow: none;
+}
+
+/* =====================================================
+   NÚT CHỈNH SỬA, HỦY VÀ LƯU
+   ===================================================== */
+
+.staff-profile-page .staff-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-height: 34px;
+    padding: 8px 13px;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        background 160ms ease,
+        border-color 160ms ease;
+}
+
+.staff-profile-page .staff-button-primary {
+    background: var(--staff-primary);
+    color: #fff;
+}
+
+.staff-profile-page .staff-button-primary:hover:not(:disabled) {
+    background: var(--staff-primary-dark);
+}
+
+.staff-profile-page .staff-button-secondary {
+    background: #fff;
+    color: #686d83;
+    border-color: #dedce9;
+}
+
+.staff-profile-page .staff-button-secondary:hover:not(:disabled) {
+    background: #f7f6fb;
+}
+
+.staff-profile-page .staff-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.staff-profile-page .staff-button:focus-visible {
+    outline: 3px solid #c4b5fd;
+    outline-offset: 3px;
+}
+
+.staff-profile-page .staff-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    margin-top: 24px;
+}
+
+/* =====================================================
+   THÔNG BÁO PHÂN CÔNG
+   ===================================================== */
+
+.staff-profile-page .staff-assignment-message {
+    margin: 18px 0 0;
+    padding: 10px 12px;
+    border-radius: 7px;
+
+    background: #fff8e8;
+    color: #946200;
+
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* =====================================================
+   THÔNG BÁO ĐẨY TỪ TRÊN XUỐNG
+   ===================================================== */
+
+.staff-profile-page .staff-profile-toast {
+    position: fixed;
+    top: 82px;
+    right: 24px;
+    z-index: 2000;
+
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+
+    width: max-content;
+    max-width: min(440px, calc(100vw - 32px));
+    padding: 14px 15px;
+
+    border: 1px solid #e6ddfb;
+    border-left: 4px solid var(--staff-primary);
+    border-radius: 10px;
+
+    background: #fff;
+    color: var(--staff-text);
+    box-shadow: 0 8px 30px rgb(48 52 84 / 14%);
+
+    font-size: 13px;
+    line-height: 1.7;
+
+    animation: staff-toast-enter 220ms ease-out;
+}
+
+.staff-profile-page #staff-profile-message-icon {
+    margin-top: 4px;
+    color: var(--staff-primary);
+}
+
+.staff-profile-page #staff-profile-message-text {
+    min-width: 0;
+    flex: 1;
+    overflow-wrap: anywhere;
+}
+
+.staff-profile-page #staff-profile-message-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 24px;
+    height: 24px;
+    padding: 0;
+
+    border: 0;
+    border-radius: 5px;
+
+    background: transparent;
+    color: #9295a8;
+    cursor: pointer;
+}
+
+.staff-profile-page #staff-profile-message-close:hover {
+    background: #f3f1fa;
+    color: var(--staff-primary);
+}
+
+.staff-profile-page #staff-profile-message-close:focus-visible {
+    outline: 2px solid var(--staff-primary);
+    outline-offset: 2px;
+}
+
+.staff-profile-page .staff-profile-toast[data-type="success"] {
+    border-left-color: #22a06b;
+}
+
+.staff-profile-page
+.staff-profile-toast[data-type="success"]
+#staff-profile-message-icon {
+    color: #22a06b;
+}
+
+.staff-profile-page .staff-profile-toast[data-type="danger"] {
+    border-left-color: #dc3545;
+}
+
+.staff-profile-page
+.staff-profile-toast[data-type="danger"]
+#staff-profile-message-icon {
+    color: #dc3545;
+}
+
+.staff-profile-page .staff-profile-toast[data-type="warning"] {
+    border-left-color: #d99210;
+}
+
+.staff-profile-page
+.staff-profile-toast[data-type="warning"]
+#staff-profile-message-icon {
+    color: #d99210;
+}
+
+@keyframes staff-toast-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =====================================================
+   HIỂN THỊ TRÊN MÀN HÌNH NHỎ
+   ===================================================== */
 
 @media (max-width: 1199.98px) {
-    .profile-layout {
-        grid-template-columns: 210px minmax(0, 1fr);
-        gap: 20px;
+    .staff-profile-page .staff-info-card {
+        padding: 18px;
     }
 
-    .profile-actions {
-        grid-column: 2;
-    }
-
-    .profile-summary {
-        grid-row: span 2;
-    }
-
-    .profile-action-buttons {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
-    .profile-action-buttons .profile-button {
-        flex: 1;
-    }
-
-    .profile-information-row {
-        grid-template-columns: 115px minmax(0, 1fr);
-        gap: 14px;
+    .staff-profile-page .staff-form-grid {
+        gap: 18px 12px;
     }
 }
 
-@media (max-width: 767.98px) {
-    .profile-layout {
+@media (max-width: 991.98px) {
+    .staff-profile-page .staff-profile-grid {
         grid-template-columns: minmax(0, 1fr);
-        gap: 16px;
     }
 
-    .profile-summary {
-        grid-row: auto;
-        min-height: auto;
-    }
-
-    .profile-actions {
-        grid-column: auto;
-    }
-
-    .profile-summary,
-    .profile-information,
-    .profile-actions {
-        padding: 20px;
-    }
-
-    .profile-contact-list {
-        max-width: 360px;
-    }
-
-    .profile-page .header-actions {
-        gap: 8px;
-    }
-
-    .profile-page #refresh-profile-button > span {
-        display: none;
-    }
-
-    .profile-information-row {
-        grid-template-columns: 120px minmax(0, 1fr);
+    .staff-profile-page .staff-summary-card {
+        padding: 22px;
     }
 }
 
 @media (max-width: 575.98px) {
-    .profile-page .header-actions {
-        flex-wrap: wrap !important;
+    .staff-profile-page .staff-profile-content {
+        gap: 14px;
     }
 
-    .profile-information-row {
-        grid-template-columns: 100px minmax(0, 1fr);
-        gap: 12px;
+    .staff-profile-page .staff-summary-card {
+        gap: 14px;
+        padding: 18px 16px;
+        min-height: 130px;
     }
 
-    .profile-action-buttons {
-        flex-direction: column;
+    .staff-profile-page .staff-avatar {
+        flex-basis: 68px;
+        width: 68px;
+        height: 68px;
+        border-width: 4px;
     }
 
-    .profile-page .modal-dialog {
-        margin: 12px;
+    .staff-profile-page .staff-avatar > i {
+        font-size: 34px;
     }
 
-    .profile-modal-content .modal-header,
-    .profile-modal-content .modal-body,
-    .profile-modal-content .modal-footer {
-        padding: 18px;
+    .staff-profile-page #staff-display-name {
+        font-size: 18px;
+    }
+
+    .staff-profile-page .staff-info-card {
+        padding: 18px 16px;
+    }
+
+    .staff-profile-page .staff-card-heading {
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .staff-profile-page .staff-form-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .staff-profile-page .staff-profile-toast {
+        right: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .staff-profile-page .staff-profile-toast {
+        animation: none;
+    }
+
+    .staff-profile-page .staff-button,
+    .staff-profile-page .staff-field .form-control {
+        transition: none;
     }
 }

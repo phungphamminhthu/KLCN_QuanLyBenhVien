@@ -108,7 +108,6 @@
         <!-- TIÊU ĐỀ -->
         <div class="patient-detail-heading">
             <div class="patient-detail-heading-left">
-
                 <div id="patient-detail-back-slot"
                      class="patient-detail-back-slot">
 
@@ -198,8 +197,7 @@
                         <div class="patient-detail-personal-fields">
 
                             <div class="patient-detail-field">
-                                <label for="profile-name"
-                                       class="form-label">
+                                <label for="profile-name" class="form-label">
                                     Họ tên
                                     <span class="text-danger">*</span>
                                 </label>
@@ -213,8 +211,7 @@
                             </div>
 
                             <div class="patient-detail-field">
-                                <label for="profile-birth-date"
-                                       class="form-label">
+                                <label for="profile-birth-date" class="form-label">
                                     Ngày sinh
                                 </label>
 
@@ -248,13 +245,11 @@
                             </div>
 
                             <div class="patient-detail-field">
-                                <label for="profile-gender"
-                                       class="form-label">
+                                <label for="profile-gender" class="form-label">
                                     Giới tính
                                 </label>
 
-                                <select id="profile-gender"
-                                        class="form-select">
+                                <select id="profile-gender" class="form-select">
                                     <option value="">Chưa cung cấp</option>
                                     <option value="Nam">Nam</option>
                                     <option value="Nữ">Nữ</option>
@@ -263,8 +258,7 @@
                             </div>
 
                             <div class="patient-detail-field">
-                                <label for="profile-phone"
-                                       class="form-label">
+                                <label for="profile-phone" class="form-label">
                                     Số điện thoại
                                 </label>
 
@@ -278,8 +272,7 @@
                             </div>
 
                             <div class="patient-detail-field">
-                                <label for="profile-email"
-                                       class="form-label">
+                                <label for="profile-email" class="form-label">
                                     Email
                                 </label>
 
@@ -305,8 +298,7 @@
                             </div>
 
                             <div class="patient-detail-field patient-detail-field-wide">
-                                <label for="profile-address"
-                                       class="form-label">
+                                <label for="profile-address" class="form-label">
                                     Địa chỉ
                                 </label>
 
@@ -358,6 +350,18 @@
 
                             <div id="profile-current-visit-summary"></div>
 
+                            <!-- PHÒNG KHÁM ĐƯỢC IN ĐẬM -->
+                            <div class="mt-2">
+                                <span>Bác sĩ: </span>
+                                <span id="profile-current-doctor">—</span>
+
+                                <span class="mx-2" aria-hidden="true">·</span>
+
+                                <span>Phòng khám: </span>
+                                <strong id="profile-current-room"
+                                        class="fw-bold text-primary">—</strong>
+                            </div>
+
                             <span id="profile-current-visit-status"
                                   class="patient-detail-status"></span>
                         </div>
@@ -378,8 +382,7 @@
                             <div class="patient-detail-vitals-grid">
 
                                 <div class="patient-detail-field">
-                                    <label for="profile-weight"
-                                           class="form-label">
+                                    <label for="profile-weight" class="form-label">
                                         Cân nặng
                                     </label>
 
@@ -393,15 +396,12 @@
                                                step="0.01"
                                                placeholder="Chưa đo">
 
-                                        <span class="input-group-text">
-                                            kg
-                                        </span>
+                                        <span class="input-group-text">kg</span>
                                     </div>
                                 </div>
 
                                 <div class="patient-detail-field">
-                                    <label for="profile-height"
-                                           class="form-label">
+                                    <label for="profile-height" class="form-label">
                                         Chiều cao
                                     </label>
 
@@ -415,9 +415,7 @@
                                                step="0.01"
                                                placeholder="Chưa đo">
 
-                                        <span class="input-group-text">
-                                            cm
-                                        </span>
+                                        <span class="input-group-text">cm</span>
                                     </div>
                                 </div>
 
@@ -437,9 +435,7 @@
                                                step="1"
                                                placeholder="Chưa đo">
 
-                                        <span class="input-group-text">
-                                            mmHg
-                                        </span>
+                                        <span class="input-group-text">mmHg</span>
                                     </div>
                                 </div>
 
@@ -459,9 +455,7 @@
                                                step="1"
                                                placeholder="Chưa đo">
 
-                                        <span class="input-group-text">
-                                            mmHg
-                                        </span>
+                                        <span class="input-group-text">mmHg</span>
                                     </div>
                                 </div>
 
@@ -469,7 +463,7 @@
                         </fieldset>
                     </section>
 
-                    <!-- 3. DANH SÁCH LỊCH SỬ KHÁM -->
+                    <!-- 3. LỊCH SỬ KHÁM -->
                     <section class="patient-detail-section patient-detail-history-card"
                              aria-labelledby="profile-visit-title">
 
@@ -488,6 +482,7 @@
                              class="patient-detail-empty"
                              role="status"
                              hidden>
+
                             <i class="fa-regular fa-calendar"
                                aria-hidden="true"></i>
 
@@ -497,13 +492,13 @@
                         <ul id="profile-visit-list"
                             class="patient-detail-visit-list"
                             aria-label="Danh sách lịch khám của bệnh nhân"></ul>
-
                     </section>
+
                 </div>
             </fieldset>
         </form>
 
-        <!-- NÚT THAO TÁC Ở CUỐI TRANG -->
+        <!-- NÚT THAO TÁC CUỐI TRANG -->
         <div class="patient-detail-footer">
             <span id="patient-detail-save-status"
                   class="patient-detail-save-status"
@@ -511,12 +506,12 @@
                   aria-live="polite"></span>
 
             <div class="patient-detail-footer-actions">
-
                 <button id="appointment-profile-save"
                         class="btn btn-outline-primary patient-detail-save-button"
                         type="submit"
                         form="appointment-profile-form"
                         disabled>
+
                     <i class="fa-regular fa-floppy-disk"
                        aria-hidden="true"></i>
 
@@ -527,20 +522,320 @@
                         class="btn btn-success patient-detail-checkin-button"
                         type="button"
                         disabled>
+
                     <i class="fa-solid fa-user-check"
                        aria-hidden="true"></i>
 
                     <span>Đã tiếp nhận</span>
                 </button>
-
             </div>
         </div>
+
     </div>
 </main>
+
+<!-- POPUP CHI TIẾT LỊCH KHÁM -->
+<div id="appointment-detail-modal"
+     class="modal fade appointment-detail-modal"
+     tabindex="-1"
+     aria-labelledby="appointment-detail-title"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div>
+                    <h2 id="appointment-detail-title"
+                        class="modal-title fs-5">
+
+                        <i class="fa-solid fa-calendar-check me-2"
+                           aria-hidden="true"></i>
+
+                        Chi tiết lịch khám
+                    </h2>
+
+                    <p id="appointment-detail-patient"
+                       class="mb-0 mt-1 text-secondary"></p>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Đóng chi tiết lịch khám"></button>
+            </div>
+
+            <div id="appointment-detail-body"
+                 class="modal-body"
+                 aria-busy="false">
+
+                <div id="appointment-detail-loading"
+                     class="text-center py-5"
+                     role="status"
+                     aria-live="polite"
+                     hidden>
+
+                    <i class="fa-solid fa-spinner fa-spin me-2"
+                       aria-hidden="true"></i>
+
+                    Đang tải chi tiết lịch khám...
+                </div>
+
+                <div id="appointment-detail-message"
+                     class="alert alert-danger"
+                     role="alert"
+                     hidden></div>
+
+                <div id="appointment-detail-content" hidden>
+
+                    <!-- THÔNG TIN LỊCH KHÁM -->
+                    <section class="appointment-detail-section"
+                             aria-labelledby="appointment-detail-summary-title">
+
+                        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                            <h3 id="appointment-detail-summary-title"
+                                class="fs-6 mb-0">
+                                Thông tin lịch khám
+                                <span id="appointment-detail-code"></span>
+                            </h3>
+
+                            <span id="appointment-detail-status"
+                                  class="patient-detail-status"></span>
+                        </div>
+
+                        <dl class="row g-3 mb-0 appointment-detail-info-grid">
+                            <div class="col-6 col-lg-3">
+                                <dt>Ngày khám</dt>
+                                <dd id="appointment-detail-date">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Giờ khám</dt>
+                                <dd id="appointment-detail-time">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Số thứ tự</dt>
+                                <dd id="appointment-detail-queue">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Khoa khám</dt>
+                                <dd id="appointment-detail-department">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Bác sĩ khám</dt>
+                                <dd id="appointment-detail-doctor">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Phòng khám</dt>
+                                <dd id="appointment-detail-room"
+                                    class="fw-bold">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Nhân viên tiếp nhận</dt>
+                                <dd id="appointment-detail-receptionist">—</dd>
+
+                                <dd id="appointment-detail-receptionist-code"
+                                    class="small text-secondary"></dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Thời gian tiếp nhận</dt>
+                                <dd id="appointment-detail-received-at">—</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <hr>
+
+                    <!-- SỐ ĐO -->
+                    <section class="appointment-detail-section"
+                             aria-labelledby="appointment-detail-vitals-title">
+
+                        <h3 id="appointment-detail-vitals-title"
+                            class="fs-6 mb-3">
+                            <i class="fa-solid fa-heart-pulse me-2"
+                               aria-hidden="true"></i>
+                            Số đo tại thời điểm tiếp nhận
+                        </h3>
+
+                        <dl class="row g-3 mb-0 appointment-detail-vitals-grid">
+                            <div class="col-6 col-lg-3">
+                                <dt>Cân nặng</dt>
+                                <dd id="appointment-detail-weight">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Chiều cao</dt>
+                                <dd id="appointment-detail-height">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Huyết áp tâm thu</dt>
+                                <dd id="appointment-detail-systolic">—</dd>
+                            </div>
+
+                            <div class="col-6 col-lg-3">
+                                <dt>Huyết áp tâm trương</dt>
+                                <dd id="appointment-detail-diastolic">—</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <hr>
+
+                    <!-- THÔNG TIN KHÁM BỆNH -->
+                    <section class="appointment-detail-section"
+                             aria-labelledby="appointment-detail-clinical-title">
+
+                        <h3 id="appointment-detail-clinical-title"
+                            class="fs-6 mb-3">
+                            <i class="fa-solid fa-file-medical me-2"
+                               aria-hidden="true"></i>
+                            Thông tin khám bệnh
+                        </h3>
+
+                        <dl class="row g-3 mb-0 appointment-detail-clinical-grid">
+                            <div class="col-12 col-md-6">
+                                <dt>Lý do khám</dt>
+                                <dd id="appointment-detail-reason">—</dd>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <dt>Triệu chứng</dt>
+                                <dd id="appointment-detail-symptoms">—</dd>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <dt>Chẩn đoán</dt>
+                                <dd id="appointment-detail-diagnosis">—</dd>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <dt>Kết luận</dt>
+                                <dd id="appointment-detail-conclusion">—</dd>
+                            </div>
+
+                            <div class="col-12">
+                                <dt>Hướng điều trị</dt>
+                                <dd id="appointment-detail-treatment">—</dd>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <dt>Ngày tái khám</dt>
+                                <dd id="appointment-detail-followup-date">—</dd>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <dt>Ghi chú tái khám</dt>
+                                <dd id="appointment-detail-followup-note">—</dd>
+                            </div>
+                        </dl>
+                    </section>
+
+                    <hr>
+
+                    <!-- CHỈ ĐỊNH CLS -->
+                    <section class="appointment-detail-section"
+                             aria-labelledby="appointment-detail-services-title">
+
+                        <h3 id="appointment-detail-services-title"
+                            class="fs-6 mb-3">
+                            <i class="fa-solid fa-flask me-2"
+                               aria-hidden="true"></i>
+                            Chỉ định cận lâm sàng
+                        </h3>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle appointment-detail-table">
+                                <caption class="visually-hidden">
+                                    Chỉ định cận lâm sàng của lịch khám đang xem
+                                </caption>
+
+                                <thead>
+                                <tr>
+                                    <th scope="col">Dịch vụ</th>
+                                    <th scope="col">Phòng thực hiện</th>
+                                    <th scope="col">Trạng thái</th>
+                                </tr>
+                                </thead>
+
+                                <tbody id="appointment-detail-services-list"></tbody>
+                            </table>
+                        </div>
+
+                        <p id="appointment-detail-services-empty"
+                           class="text-secondary mb-0"
+                           hidden>
+                            Chưa có chỉ định cận lâm sàng.
+                        </p>
+                    </section>
+
+                    <hr>
+
+                    <!-- VIỆN PHÍ -->
+                    <section class="appointment-detail-section"
+                             aria-labelledby="appointment-detail-fees-title">
+
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                            <h3 id="appointment-detail-fees-title"
+                                class="fs-6 mb-0">
+                                <i class="fa-solid fa-coins me-2"
+                                   aria-hidden="true"></i>
+                                Viện phí
+                            </h3>
+
+                            <button id="appointment-detail-open-fees"
+                                    type="button"
+                                    class="btn btn-outline-primary btn-sm"
+                                    disabled>
+                                <i class="fa-regular fa-eye me-1"
+                                   aria-hidden="true"></i>
+                                Xem chi tiết viện phí
+                            </button>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle appointment-detail-table">
+                                <caption class="visually-hidden">
+                                    Danh sách hóa đơn của lịch khám đang xem
+                                </caption>
+
+                                <thead>
+                                <tr>
+                                    <th scope="col">Mã hóa đơn</th>
+                                    <th scope="col">Loại phí</th>
+                                    <th scope="col" class="text-end">Số tiền</th>
+                                    <th scope="col">Thanh toán</th>
+                                </tr>
+                                </thead>
+
+                                <tbody id="appointment-detail-invoices-list"></tbody>
+                            </table>
+                        </div>
+
+                        <p id="appointment-detail-invoices-empty"
+                           class="text-secondary mb-0"
+                           hidden>
+                            Chưa có hóa đơn cho lịch khám này.
+                        </p>
+                    </section>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/Js/Auth/logout.js"></script>
 <script src="/Js/TiepNhan/patient-detail.js"></script>
+<script src="/Js/TiepNhan/chitietlichkham.js"></script>
 
 </body>
 </html>

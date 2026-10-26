@@ -1,0 +1,106 @@
+/* =====================================================
+   TRẠNG THÁI LỊCH KHÁM DÙNG CHUNG
+   Dashboard, lịch khám, lịch sử và hồ sơ bệnh nhân
+   ===================================================== */
+
+.reception-layout .tn-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 28px;
+    max-width: 100%;
+    padding: 5px 10px;
+
+    border: 0;
+    border-radius: 7px;
+
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.6;
+
+    white-space: nowrap;
+    vertical-align: middle;
+
+    color: #475569;
+    background-color: #e2e8f0;
+}
+
+/* Chờ gọi */
+.reception-layout .tn-status[data-status="ChoGoi"] {
+    color: #a16207;
+    background-color: #fef9c3;
+}
+
+/* Đã gọi */
+.reception-layout .tn-status[data-status="DaGoi"] {
+    color: #9333ea;
+    background-color: #f3e8ff;
+}
+
+/* Đã tiếp nhận */
+.reception-layout .tn-status[data-status="DaTiepNhan"] {
+    color: #2563eb;
+    background-color: #e0f2fe;
+}
+
+/* Chờ khám */
+.reception-layout .tn-status[data-status="ChoKham"] {
+    color: #7c3aed;
+    background-color: #e0e7ff;
+}
+
+/* Đang khám */
+.reception-layout .tn-status[data-status="DangKham"] {
+    color: #059669;
+    background-color: #d1fae5;
+}
+
+/* Chờ thanh toán CLS */
+.reception-layout .tn-status[data-status="ChoThanhToan"] {
+    color: #b45309;
+    background-color: #fef9c3;
+}
+
+/* Chờ CLS */
+.reception-layout .tn-status[data-status="ChoCLS"] {
+    color: #0891b2;
+    background-color: #cffafe;
+}
+
+/* Đang CLS */
+.reception-layout .tn-status[data-status="DangCLS"] {
+    color: #0d9488;
+    background-color: #ccfbf1;
+}
+
+/* Chờ lấy thuốc */
+.reception-layout .tn-status[data-status="ChoLayThuoc"] {
+    color: #7c3aed;
+    background-color: #e4e0ff;
+}
+
+/* Đang lấy thuốc */
+.reception-layout .tn-status[data-status="DangLayThuoc"] {
+    color: #9333ea;
+    background-color: #f0e5ff;
+}
+
+/* Hoàn tất */
+.reception-layout .tn-status[data-status="HoanTat"] {
+    color: #00a86b;
+    background-color: #d5ffe7;
+}
+
+/* Đã hủy */
+.reception-layout .tn-status[data-status="DaHuy"] {
+    color: #dc2626;
+    background-color: #fee2e2;
+}
+
+/* Không đến */
+.reception-layout .tn-status[data-status="KhongDen"] {
+    color: #64748b;
+    background-color: #e2e8f0;
+}

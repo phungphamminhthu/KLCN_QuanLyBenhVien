@@ -32,6 +32,7 @@
 
     <div class="page-content history-page-content">
 
+        <!-- THÔNG BÁO -->
         <div id="history-message"
              class="alert alert-danger"
              role="status"
@@ -43,11 +44,12 @@
                  aria-labelledby="history-title"
                  aria-busy="true">
 
-            <!-- TIÊU ĐỀ VÀ KHOẢNG NGÀY -->
+            <!-- TIÊU ĐỀ VÀ CHỌN NGÀY -->
             <div class="history-card-heading">
 
                 <div class="history-title-group">
-                    <span class="history-title-icon" aria-hidden="true">
+                    <span class="history-title-icon"
+                          aria-hidden="true">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </span>
 
@@ -56,30 +58,71 @@
                     </h1>
                 </div>
 
-                <div class="history-date-filters">
-                    <div class="history-date-field">
-                        <label for="history-from-date">Từ ngày</label>
+                <div class="history-date-field">
+                    <div class="history-date-controls">
 
-                        <input id="history-from-date"
-                               class="history-date-input"
-                               type="date"
-                               min="1000-01-01"
-                               aria-label="Lọc ngày khám từ ngày">
-                    </div>
+                        <!-- NGÀY TRƯỚC, NGÀY ĐANG CHỌN, NGÀY SAU -->
+                        <div class="history-date-navigation btn-group"
+                             role="group"
+                             aria-label="Chuyển ngày khám">
 
-                    <div class="history-date-field">
-                        <label for="history-to-date">Đến ngày</label>
+                            <button id="history-previous-date"
+                                    class="btn btn-outline-secondary"
+                                    type="button"
+                                    title="Ngày trước"
+                                    aria-label="Xem ngày trước"
+                                    disabled>
+                                <i class="fa-solid fa-chevron-left"
+                                   aria-hidden="true"></i>
+                            </button>
 
-                        <input id="history-to-date"
-                               class="history-date-input"
-                               type="date"
-                               min="1000-01-01"
-                               aria-label="Lọc ngày khám đến ngày">
+                            <span id="history-date-label"
+                                  class="btn btn-outline-secondary"
+                                  role="status"
+                                  aria-live="polite"
+                                  aria-atomic="true">
+                                —
+                            </span>
+
+                            <button id="history-next-date"
+                                    class="btn btn-outline-secondary"
+                                    type="button"
+                                    title="Ngày sau"
+                                    aria-label="Xem ngày sau"
+                                    disabled>
+                                <i class="fa-solid fa-chevron-right"
+                                   aria-hidden="true"></i>
+                            </button>
+
+                        </div>
+
+                        <!-- BIỂU TƯỢNG MỞ LỊCH -->
+                        <div class="history-calendar-control">
+                            <button id="history-open-calendar"
+                                    class="btn btn-outline-secondary"
+                                    type="button"
+                                    title="Chọn ngày khám"
+                                    aria-label="Mở lịch chọn ngày khám"
+                                    disabled>
+                                <i class="fa-regular fa-calendar-days"
+                                   aria-hidden="true"></i>
+                            </button>
+
+                            <input id="history-filter-date"
+                                   type="date"
+                                   min="1000-01-01"
+                                   max="9999-12-31"
+                                   tabindex="-1"
+                                   aria-label="Ngày khám cần xem"
+                                   disabled>
+                        </div>
+
                     </div>
                 </div>
+
             </div>
 
-            <!-- TÌM KIẾM VÀ BỘ LỌC -->
+            <!-- TÌM KIẾM → BÁC SĨ → TRẠNG THÁI -->
             <form id="history-filter-form"
                   class="history-filter-bar"
                   role="search">
@@ -87,7 +130,8 @@
                 <div class="history-search-group">
                     <label for="history-search-input"
                            class="visually-hidden">
-                        Tìm theo mã lịch, mã bệnh nhân, họ tên hoặc số điện thoại
+                        Tìm theo mã lịch, mã bệnh nhân,
+                        họ tên hoặc số điện thoại
                     </label>
 
                     <input id="history-search-input"
@@ -114,22 +158,36 @@
                     </label>
 
                     <select id="history-doctor-filter"
-                            class="history-filter-select">
+                            class="history-filter-select form-select">
                         <option value="">Tất cả bác sĩ</option>
                     </select>
                 </div>
 
                 <div class="history-select-group">
-                    <label for="history-department-filter"
+                    <label for="history-status-filter"
                            class="visually-hidden">
-                        Lọc theo khoa
+                        Lọc theo trạng thái lịch khám
                     </label>
 
-                    <select id="history-department-filter"
-                            class="history-filter-select">
-                        <option value="">Tất cả khoa</option>
+                    <select id="history-status-filter"
+                            class="history-filter-select form-select">
+                        <option value="">Tất cả trạng thái</option>
+                        <option value="ChoGoi">Chờ gọi</option>
+                        <option value="DaGoi">Đã gọi</option>
+                        <option value="DaTiepNhan">Đã tiếp nhận</option>
+                        <option value="ChoKham">Chờ khám</option>
+                        <option value="DangKham">Đang khám</option>
+                        <option value="ChoThanhToan">Chờ thanh toán</option>
+                        <option value="ChoCLS">Chờ CLS</option>
+                        <option value="DangCLS">Đang CLS</option>
+                        <option value="ChoLayThuoc">Chờ lấy thuốc</option>
+                        <option value="DangLayThuoc">Đang lấy thuốc</option>
+                        <option value="HoanTat">Hoàn tất</option>
+                        <option value="DaHuy">Đã hủy</option>
+                        <option value="KhongDen">Không đến</option>
                     </select>
                 </div>
+
             </form>
 
             <!-- BẢNG DANH SÁCH -->
@@ -137,8 +195,10 @@
 
                 <div class="history-table-scroll">
                     <table class="history-table">
+
                         <caption class="visually-hidden">
-                            Danh sách các lịch đã hoàn tất khám bệnh
+                            Danh sách lịch đăng ký khám theo ngày,
+                            gồm tất cả trạng thái
                         </caption>
 
                         <colgroup>
@@ -161,6 +221,7 @@
                             <th scope="col">KHOA &amp; BÁC SĨ</th>
                             <th scope="col">PHÒNG</th>
                             <th scope="col">TRẠNG THÁI</th>
+
                             <th scope="col">
                                 <span class="visually-hidden">
                                     Xem chi tiết lịch khám
@@ -170,17 +231,21 @@
                         </thead>
 
                         <tbody id="history-table-body"></tbody>
+
                     </table>
                 </div>
 
-                <!-- TRẠNG THÁI TẢI -->
+                <!-- ĐANG TẢI -->
                 <div id="history-loading"
                      class="history-state"
                      role="status"
                      aria-live="polite">
-                    <span class="history-state-icon" aria-hidden="true">
+
+                    <span class="history-state-icon"
+                          aria-hidden="true">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                     </span>
+
                     <p>Đang tải lịch sử lịch khám...</p>
                 </div>
 
@@ -190,16 +255,21 @@
                      role="status"
                      aria-live="polite"
                      hidden>
-                    <span class="history-state-icon" aria-hidden="true">
+
+                    <span class="history-state-icon"
+                          aria-hidden="true">
                         <i class="fa-solid fa-clock-rotate-left"></i>
                     </span>
+
                     <p id="history-empty-message">
-                        Chưa có lịch khám đã hoàn tất.
+                        Không có lịch khám phù hợp
+                        với ngày và bộ lọc đã chọn.
                     </p>
                 </div>
+
             </div>
 
-            <!-- PHÂN TRANG LUÔN Ở CUỐI KHUNG -->
+            <!-- PHÂN TRANG Ở CUỐI KHUNG -->
             <div class="history-pagination">
 
                 <span id="history-record-count"
