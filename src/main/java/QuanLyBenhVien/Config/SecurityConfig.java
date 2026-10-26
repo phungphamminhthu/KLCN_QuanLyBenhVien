@@ -87,8 +87,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/Admin/**",
                                 "/DuocSi/**",
-                                "/TiepNhan/**"
+                                "/TiepNhan/**",
+                                "/ChuyenTrach/**"
                         ).permitAll()
+
 
                         // Trang chủ bệnh nhân - tạm công khai để thử giao diện
                         .requestMatchers(

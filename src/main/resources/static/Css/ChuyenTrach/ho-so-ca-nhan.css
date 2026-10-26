@@ -1,0 +1,102 @@
+/* =======================================================
+   Hồ sơ cá nhân - Nhân viên chuyên trách (CSS riêng)
+   ======================================================= */
+.cths-page {
+    --cths-primary: var(--primary, #2563EB);
+    --cths-border: #E5EAF3;
+    --cths-text: #1E293B;
+    width: 100%; min-width: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: var(--cths-text);
+}
+.cths-page *, .cths-page *::before, .cths-page *::after { box-sizing: border-box; }
+.cths-page [hidden] { display: none !important; }
+.cths-grid {
+    display: grid;
+    grid-template-columns: minmax(290px, 34%) minmax(0, 1fr);
+    gap: 18px;
+    align-items: stretch;
+    width: 100%;
+    min-height: min(630px, calc(100dvh - 133px));
+}
+.cths-card {
+    min-width: 0;
+    background: #fff;
+    border: 1px solid var(--cths-border);
+    border-radius: 15px;
+    box-shadow: 0 3px 14px rgba(18, 38, 75, .035);
+    overflow: hidden;
+}
+/* Hồ sơ ngắn ở cột trái */
+.cths-identity { display: flex; flex-direction: column; }
+.cths-cover { min-height: 95px; background: linear-gradient(135deg, #DDEAFF, #F3F6FF 65%, #F8FAFF); }
+.cths-identity-body { padding: 0 22px 24px; display: flex; align-items: center; flex-direction: column; }
+.cths-avatar-wrap {
+    width: 104px; height: 104px;
+    margin-top: -53px; position: relative; z-index: 1;
+    border: 5px solid #fff; border-radius: 50%;
+    background: #E4EDFF; display: grid; place-items: center;
+    overflow: hidden;
+    box-shadow: 0 3px 9px rgba(26, 55, 95, .10);
+}
+.cths-avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.cths-avatar-wrap > span { font-size: 37px; color: var(--cths-primary); }
+.cths-identity h1 {
+    margin: 10px 0 5px; font-size: 20px; text-align: center;
+    font-weight: 800; line-height: 1.35; overflow-wrap: anywhere;
+}
+.cths-code { color: #64748B; background: #F1F5F9; border-radius: 5px; padding: 3px 9px; font-size: 12px; font-weight: 700; }
+.cths-role-tag {
+    display: inline-flex; align-items: center; gap: 7px;
+    margin-top: 12px; padding: 7px 12px; max-width: 100%;
+    background: #EEF4FF; border-radius: 999px; color: var(--cths-primary);
+    font-size: 12px; font-weight: 700; text-align: center;
+}
+.cths-contact-list { width: 100%; margin-top: 21px; padding: 14px; background: #F6F8FD; border-radius: 12px; }
+.cths-contact-item { display: flex; align-items: center; gap: 11px; padding: 7px 2px; }
+.cths-contact-icon {
+    display: grid; place-items: center; width: 33px; height: 33px;
+    flex-shrink: 0; background: #fff; border-radius: 8px;
+    color: var(--cths-primary); font-size: 14px;
+}
+.cths-contact-item > div { min-width: 0; }
+.cths-contact-item small { display: block; color: #7585A0; font-size: 11px; line-height: 1.35; }
+.cths-contact-item strong { display: block; margin-top: 2px; font-size: 12px; color: #263652; font-weight: 700; overflow-wrap: anywhere; line-height: 1.45; }
+/* Bảng thông tin bên phải */
+.cths-details { display: flex; flex-direction: column; padding: 22px; }
+.cths-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 15px; margin-bottom: 17px; border-bottom: 1px solid #E8EDF5; }
+.cths-heading-title { display: flex; align-items: center; gap: 10px; }
+.cths-heading-title > i { color: var(--cths-primary); font-size: 19px; }
+.cths-heading h2 { font-size: 17px; color: #203052; margin: 0; font-weight: 800; }
+.cths-source-tag { padding: 6px 9px; border-radius: 6px; background: #F5F7FC; font-size: 10px; color: #8290A9; white-space: nowrap; font-weight: 700; }
+.cths-info-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.cths-info-box { min-width: 0; min-height: 79px; padding: 14px 15px; background: #F7F9FD; border: 1px solid #F3F5FA; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; gap: 7px; }
+.cths-info-box > span { font-size: 10.5px; font-weight: 800; letter-spacing: .35px; color: #77839A; }
+.cths-info-box strong { font-size: 13px; color: #273750; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+.cths-account-status { color: #15803D !important; }
+.cths-account-status::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: currentColor; margin-right: 6px; vertical-align: middle; }
+.cths-account-status.locked { color: #DC2626 !important; }
+.cths-actions { display: flex; justify-content: flex-end; margin-top: auto; padding-top: 22px; }
+.cths-button { min-height: 39px; display: inline-flex; justify-content: center; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 9px; font: inherit; font-size: 12px; font-weight: 750; cursor: pointer; }
+.cths-button-primary { background: var(--cths-primary); border: 1px solid var(--cths-primary); color: #fff; }
+.cths-button-primary:hover { filter: brightness(.93); }
+.cths-button-secondary { background: #fff; border: 1px solid #CBD5E1; color: #475569; }
+.cths-button:disabled { opacity: .5; cursor: not-allowed; }
+.cths-message { border-radius: 9px; padding: 11px 13px; margin-bottom: 15px; background: #EFF6FF; color: #1D4ED8; font-size: 12px; }
+.cths-message.error { background: #FEF2F2; color: #B91C1C; }
+/* Popup chỉnh sửa, nằm chính giữa cửa sổ */
+.cths-dialog { position: fixed; inset: 0; margin: auto; border: none; width: min(480px, calc(100vw - 30px)); padding: 24px; border-radius: 15px; box-shadow: 0 25px 60px rgba(15,23,42,.26); background: #fff; color: #1E293B; font-family: "Segoe UI", Arial, sans-serif; }
+.cths-dialog::backdrop { background: rgba(15,23,42,.52); }
+.cths-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.cths-dialog h2 { margin: 0; color: #1E293B; font-size: 18px; }
+.cths-icon-btn { border: none; border-radius: 8px; background: #F1F5F9; width: 33px; height: 33px; cursor: pointer; }
+.cths-dialog-hint { font-size: 12px; color: #64748B; line-height: 1.6; margin: 12px 0 20px; }
+.cths-dialog label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 7px; }
+.cths-dialog input { width: 100%; height: 41px; padding: 0 12px; margin-bottom: 15px; border: 1px solid #CBD5E1; border-radius: 8px; outline: none; }
+.cths-dialog input:focus { border-color: var(--cths-primary); box-shadow: 0 0 0 3px #DBEAFE; }
+.cths-dialog input:disabled { background: #F1F5F9; color: #94A3B8; }
+.cths-edit-hint { font-size: 12px; color: #9A6700; margin: 0 0 12px; }
+.cths-dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+@media (max-width: 1050px) { .cths-grid { grid-template-columns: minmax(270px, 37%) minmax(0,1fr); } }
+@media (max-width: 850px) { .cths-grid { grid-template-columns: 1fr; min-height: 0; } .cths-info-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 540px) { .cths-details { padding: 16px; } .cths-info-grid { grid-template-columns: 1fr; gap: 10px; } .cths-heading { flex-wrap: wrap; } }

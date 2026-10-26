@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Bệnh nhân đang chờ - Chuyên trách</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/benh-nhan-cho.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="ctq-page">
+
+    <!-- BẢNG HÀNG ĐỢI -->
+    <section class="ctq-panel">
+
+        <!-- HEADER BẢNG -->
+        <div class="ctq-panel-header">
+
+            <div class="ctq-heading">
+                <h2>
+                    Hàng đợi bệnh nhân chuyên trách hôm nay
+                </h2>
+
+                <span id="ctqCount" class="ctq-count">
+                    0 bệnh nhân
+                </span>
+            </div>
+
+            <!-- LỌC THEO PHÒNG -->
+            <div class="ctq-filter">
+
+                <label for="ctqRoomFilter">
+                    Lọc theo phòng:
+                </label>
+
+                <select id="ctqRoomFilter">
+                    <option value="">
+                        Tất cả phòng chuyên trách
+                    </option>
+                </select>
+
+            </div>
+        </div>
+
+        <!-- BẢNG DANH SÁCH -->
+        <div class="ctq-table-scroll">
+
+            <table class="ctq-table">
+
+                <!-- CỐ ĐỊNH CHIỀU RỘNG 7 CỘT -->
+                <colgroup>
+                    <col class="ctq-col-stt">
+                    <col class="ctq-col-patient">
+                    <col class="ctq-col-service">
+                    <col class="ctq-col-room">
+                    <col class="ctq-col-time">
+                    <col class="ctq-col-status">
+                    <col class="ctq-col-action">
+                </colgroup>
+
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>BỆNH NHÂN</th>
+                    <th>DỊCH VỤ</th>
+                    <th>PHÒNG THỰC HIỆN</th>
+                    <th>THỜI GIAN KHÁM</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+                </thead>
+
+                <tbody id="ctqTableBody">
+                <tr>
+                    <td colspan="7" class="ctq-empty">
+                        Đang tải danh sách bệnh nhân...
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="ctq-footer">
+
+            <span id="ctqPageInfo">
+                Đang tải dữ liệu...
+            </span>
+
+            <div class="ctq-pagination">
+
+                <button type="button"
+                        id="ctqPrev"
+                        class="ctq-page-btn"
+                        disabled>
+                    <i class="fa-solid fa-chevron-left"></i>
+                    <span>Trước</span>
+                </button>
+
+                <span id="ctqCurrentPage"
+                      class="ctq-page-number">
+                    1
+                </span>
+
+                <button type="button"
+                        id="ctqNext"
+                        class="ctq-page-btn"
+                        disabled>
+                    <span>Sau</span>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- POPUP XEM BỆNH NHÂN -->
+    <div id="ctqPatientModal"
+         class="ctq-overlay"
+         hidden>
+
+        <div class="ctq-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctqModalTitle">
+
+            <div class="ctq-modal-header">
+
+                <div>
+                    <h3 id="ctqModalTitle">
+                        Thông tin bệnh nhân chờ CLS
+                    </h3>
+                    <p>
+                        Thông tin lượt khám và chỉ định
+                        cận lâm sàng
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="ctqCloseModal"
+                        class="ctq-icon-button"
+                        aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+            <div class="ctq-modal-body">
+
+                <div class="ctq-patient-summary">
+                    <div class="ctq-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+
+                    <div>
+                        <strong id="ctqDetailName">—</strong>
+                        <span id="ctqDetailCode">—</span>
+                    </div>
+                </div>
+
+                <div class="ctq-detail-grid">
+
+                    <div class="ctq-detail">
+                        <label>Mã lịch khám</label>
+                        <strong id="ctqDetailAppointment">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Ngày khám</label>
+                        <strong id="ctqDetailDate">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Ngày sinh</label>
+                        <strong id="ctqDetailBirthday">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Giới tính</label>
+                        <strong id="ctqDetailGender">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Khoa</label>
+                        <strong id="ctqDetailDepartment">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Bác sĩ phụ trách</label>
+                        <strong id="ctqDetailDoctor">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Phòng chuyên trách</label>
+                        <strong id="ctqDetailRoom">—</strong>
+                    </div>
+
+                    <div class="ctq-detail">
+                        <label>Trạng thái</label>
+                        <strong id="ctqDetailStatus">—</strong>
+                    </div>
+
+                </div>
+
+                <div class="ctq-detail-section">
+                    <h4>Dịch vụ được chỉ định</h4>
+                    <p id="ctqDetailService">—</p>
+                </div>
+
+                <div id="ctqModalNotice"
+                     class="ctq-notice"
+                     hidden></div>
+
+            </div>
+
+            <div class="ctq-modal-footer">
+
+                <button type="button"
+                        id="ctqCloseBottom"
+                        class="ctq-btn-secondary">
+                    Đóng
+                </button>
+
+                <button type="button"
+                        id="ctqStartBtn"
+                        class="ctq-btn-primary"
+                        disabled>
+                    <i class="fa-solid fa-stethoscope"></i>
+                    Bắt đầu CLS
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP XÁC NHẬN BẮT ĐẦU CLS -->
+    <div id="ctqConfirmModal"
+         class="ctq-overlay"
+         hidden>
+
+        <div class="ctq-confirm"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctqConfirmTitle">
+
+            <div class="ctq-confirm-icon">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+
+            <h3 id="ctqConfirmTitle">
+                Xác nhận bắt đầu CLS
+            </h3>
+
+            <p id="ctqConfirmMessage">
+                Bạn có chắc chắn muốn bắt đầu
+                thực hiện cận lâm sàng?
+            </p>
+
+            <div class="ctq-confirm-actions">
+
+                <button type="button"
+                        id="ctqCancelStart"
+                        class="ctq-btn-secondary">
+                    Hủy
+                </button>
+
+                <button type="button"
+                        id="ctqConfirmStart"
+                        class="ctq-btn-primary">
+                    Xác nhận
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/benh-nhan-cho.js}">
+    </script>
+</th:block>
+
+</body>
+</html>

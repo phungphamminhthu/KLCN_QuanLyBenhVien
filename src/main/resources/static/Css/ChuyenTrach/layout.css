@@ -1,0 +1,916 @@
+
+/* =====================================================
+   CHUYEN TRACH - DUNG CHUNG GIAO DIEN TIEP NHAN
+   ===================================================== */
+
+/* Giữ đúng màu sắc của Tiếp nhận */
+body.reception-layout {
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --primary-soft: #EFF6FF;
+    --bg-body: #F8FAFC;
+    --text-title: #1E293B;
+    --text-sub: #64748B;
+    --border-color: #E2E8F0;
+}
+
+/* Sidebar: giữ menu riêng, đồng bộ kích thước */
+.reception-sidebar .sidebar-menu-group {
+    margin: 8px 0 12px;
+}
+
+.reception-sidebar .sidebar-menu-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 9px 12px;
+    color: #475569;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.reception-sidebar .sidebar-menu-title i {
+    width: 24px;
+    text-align: center;
+    color: #64748B;
+}
+
+.reception-sidebar .submenu-link {
+    padding-left: 28px;
+    font-size: 14px;
+}
+
+/* Giống Tiếp nhận: không tô nền menu đang chọn */
+.reception-sidebar .menu-link.active,
+.reception-sidebar .menu-link.active .menu-icon {
+    background: transparent !important;
+    color: #475569 !important;
+    font-weight: 400 !important;
+}
+
+.reception-sidebar .menu-link:hover,
+.reception-sidebar .menu-link.active:hover {
+    background: var(--primary-soft) !important;
+    color: var(--primary) !important;
+}
+
+.reception-sidebar .menu-link:hover .menu-icon,
+.reception-sidebar .menu-link.active:hover .menu-icon {
+    color: var(--primary) !important;
+}
+
+/* Header: hỗ trợ tên class của Chuyên trách */
+.reception-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.reception-header .header-date,
+.reception-header .header-refresh-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #475569;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.reception-header .header-date i,
+.reception-header .header-refresh-button i {
+    color: var(--primary);
+}
+
+.reception-header .header-refresh-button:hover {
+    background: var(--primary-soft);
+}
+
+.reception-header .header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.reception-header .header-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    text-align: right;
+}
+
+.reception-header .header-user-info strong {
+    color: var(--text-title);
+    font-size: 14px;
+}
+
+.reception-header .header-user-info span,
+.reception-header .header-user-info small {
+    color: var(--text-sub);
+    font-size: 12px;
+}
+
+.reception-header .header-avatar {
+    width: 46px;
+    height: 46px;
+    border: 1px solid #DBE3EF;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Chuông thông báo */
+.reception-header .notification-button {
+    color: #FACC15 !important;
+    font-size: 25px;
+}
+
+.reception-header .notification-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    z-index: 2000;
+    width: 350px;
+    max-width: calc(100vw - 24px);
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    box-shadow: 0 12px 36px rgba(30, 41, 59, .15);
+}
+
+/* =====================================================
+   DASHBOARD - NHAN VIEN CHUYEN TRACH
+   ===================================================== */
+
+.chuyentrach-dashboard {
+    width: 100%;
+    color: var(--text-title);
+    font-size: 14px;
+}
+
+/* 5 thẻ thống kê */
+.chuyentrach-dashboard .cards.five,
+.chuyentrach-dashboard #statCards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.chuyentrach-dashboard .statcard {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px;
+    min-width: 0;
+    min-height: 125px;
+    padding: 18px 16px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.chuyentrach-dashboard .statcard label {
+    color: #52648A;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.chuyentrach-dashboard .statcard strong {
+    color: #1E293B;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.chuyentrach-dashboard .statcard small {
+    color: var(--text-sub);
+    font-size: 12px;
+}
+
+/* Bộ lọc */
+.chuyentrach-dashboard #dashboardFilters {
+    margin-bottom: 16px;
+}
+
+.chuyentrach-dashboard input,
+.chuyentrach-dashboard select,
+.chuyentrach-dashboard button {
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.chuyentrach-dashboard input,
+.chuyentrach-dashboard select {
+    min-height: 38px;
+    padding: 8px 12px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-title);
+}
+
+/* Bảng danh sách */
+.chuyentrach-dashboard .panel.tablepanel {
+    min-height: 400px;
+    padding: 16px;
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+}
+
+.chuyentrach-dashboard .paneltitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.chuyentrach-dashboard .paneltitle h2 {
+    margin: 0;
+    color: var(--text-title);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.chuyentrach-dashboard .paneltitle h2 i {
+    margin-right: 8px;
+    color: var(--primary);
+}
+
+.chuyentrach-dashboard .tablewrap {
+    width: 100%;
+    min-height: 260px;
+    overflow-x: auto;
+}
+
+.chuyentrach-dashboard table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.chuyentrach-dashboard thead {
+    background: #F8FAFC;
+}
+
+.chuyentrach-dashboard th {
+    padding: 13px 12px;
+    color: #64748B;
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.chuyentrach-dashboard td {
+    padding: 13px 12px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.chuyentrach-dashboard .loading {
+    padding: 60px 20px;
+    color: var(--text-sub);
+    text-align: center;
+}
+
+.chuyentrach-dashboard .pager {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Responsive */
+@media (max-width: 1300px) {
+    .chuyentrach-dashboard .cards.five {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .chuyentrach-dashboard .cards.five {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .chuyentrach-dashboard .cards.five {
+        grid-template-columns: 1fr;
+    }
+
+    .reception-header .header-user-info {
+        display: none;
+    }
+}
+
+.dashboard-date-filter {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.dashboard-date-filter label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.dashboard-date-filter input {
+    width: 180px;
+}
+
+.dashboard-date-filter button {
+    min-height: 38px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.dashboard-date-filter button:hover {
+    background: #1d4ed8;
+}
+
+
+/* Nút thao tác khám chuyên trách */
+.chuyentrach-dashboard .cls-action-button {
+    min-height: 36px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.chuyentrach-dashboard .cls-action-button:hover {
+    background: #1d4ed8;
+}
+
+.chuyentrach-dashboard .cls-action-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================
+   DASHBOARD CHUYÊN TRÁCH
+========================= */
+
+.chuyentrach-dashboard {
+    width: 100%;
+}
+
+.ct-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.ct-stat-card {
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 16px;
+    padding: 22px 16px;
+    min-height: 128px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+}
+
+.ct-stat-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #566089;
+    margin-bottom: 16px;
+}
+
+.ct-stat-value {
+    font-size: 40px;
+    line-height: 1;
+    font-weight: 700;
+    color: #1f2a5a;
+    margin-bottom: 12px;
+}
+
+.ct-stat-sub {
+    font-size: 14px;
+    color: #8a94b3;
+}
+
+.ct-dashboard-panel {
+    background: #ffffff;
+    border: 1px solid #e7ebf3;
+    border-radius: 16px;
+    padding: 18px 18px 12px 18px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.03);
+}
+
+.ct-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ct-panel-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ct-panel-icon {
+    color: #7c5cff;
+    font-size: 16px;
+}
+
+.ct-panel-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #27315f;
+}
+
+.ct-new-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 24px;
+    padding: 0 10px;
+    background: #eef2ff;
+    color: #5b5bd6;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ct-view-all {
+    font-size: 14px;
+    font-weight: 600;
+    color: #6c63ff;
+    text-decoration: none;
+}
+
+.ct-view-all:hover {
+    text-decoration: underline;
+}
+
+.ct-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ct-order-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 1100px;
+}
+
+.ct-order-table thead th {
+    background: #f7f8fc;
+    color: #7a829f;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 14px 12px;
+    border-bottom: 1px solid #eceff6;
+    text-align: left;
+}
+
+.ct-order-table tbody td {
+    padding: 16px 12px;
+    border-bottom: 1px solid #f0f2f7;
+    font-size: 14px;
+    color: #2d3557;
+    vertical-align: middle;
+    background: #ffffff;
+}
+
+.ct-order-table tbody tr:hover td {
+    background: #fcfcff;
+}
+
+.ct-code-cell {
+    color: #5c6cff;
+    font-weight: 700;
+}
+
+.ct-name-cell {
+    font-weight: 600;
+    color: #1f2a5a;
+}
+
+.ct-service-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: #eef1f8;
+    color: #596481;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.ct-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ct-status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.ct-status-waiting {
+    background: #fff6d8;
+    color: #d39b00;
+}
+
+.ct-status-processing {
+    background: #ece8ff;
+    color: #6c63ff;
+}
+
+.ct-status-done {
+    background: #e5faef;
+    color: #1ea86d;
+}
+
+.ct-action-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.ct-detail-link {
+    color: #2d3557;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ct-detail-link:hover {
+    text-decoration: underline;
+}
+
+.ct-action-btn {
+    border: none;
+    outline: none;
+    background: linear-gradient(135deg, #7c5cff, #6f42ff);
+    color: #ffffff;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(111, 66, 255, 0.18);
+}
+
+.ct-action-btn:hover {
+    opacity: 0.95;
+}
+
+.ct-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 8px 4px 8px;
+    font-size: 13px;
+    color: #6f7896;
+}
+
+.ct-footer-left,
+.ct-footer-right {
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 1400px) {
+    .ct-dashboard-cards {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 992px) {
+    .ct-dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ct-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .ct-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .ct-stat-value {
+        font-size: 30px;
+    }
+
+    .ct-panel-title {
+        font-size: 18px;
+    }
+}
+
+/* Dashboard: 4 thẻ thống kê */
+.chuyentrach-dashboard .ct-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+@media (max-width: 1100px) {
+    .chuyentrach-dashboard .ct-dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .chuyentrach-dashboard .ct-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ============================================
+   DASHBOARD CHUYEN TRACH - COMPACT LAYOUT
+   ============================================ */
+
+/* Nội dung gọn hơn, giống Tiếp nhận */
+body.reception-layout
+.reception-main > .page-content:has(.chuyentrach-dashboard) {
+    padding: 16px 24px;
+}
+
+/* 4 ô thống kê chia đều chiều ngang */
+.chuyentrach-dashboard .ct-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.chuyentrach-dashboard .ct-stat-card {
+    min-width: 0;
+    min-height: 112px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.chuyentrach-dashboard .ct-stat-title {
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.chuyentrach-dashboard .ct-stat-value {
+    font-size: 30px;
+    margin-bottom: 8px;
+}
+
+.chuyentrach-dashboard .ct-stat-sub {
+    font-size: 12px;
+}
+
+/* Khung bảng */
+.chuyentrach-dashboard .ct-dashboard-panel {
+    padding: 14px 16px 10px;
+    border-radius: 12px;
+}
+
+.chuyentrach-dashboard .ct-panel-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.chuyentrach-dashboard .ct-panel-title {
+    font-size: 17px;
+}
+
+.chuyentrach-dashboard .ct-new-badge {
+    height: 22px;
+    font-size: 11px;
+}
+
+/* Bảng co theo chiều ngang màn hình */
+.chuyentrach-dashboard .ct-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.chuyentrach-dashboard .ct-order-table {
+    width: 100%;
+    min-width: 0;
+    table-layout: auto;
+    border-collapse: collapse;
+}
+
+.chuyentrach-dashboard .ct-order-table thead th {
+    padding: 11px 7px;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.chuyentrach-dashboard .ct-order-table tbody td {
+    padding: 10px 7px;
+    font-size: 12px;
+    line-height: 1.35;
+    height: 52px;
+}
+
+/* Không chiếm chiều cao quá lớn */
+.chuyentrach-dashboard .ct-service-tag {
+    padding: 5px 7px;
+    font-size: 11px;
+    border-radius: 7px;
+    white-space: normal;
+}
+
+.chuyentrach-dashboard .ct-status {
+    padding: 5px 8px;
+    font-size: 11px;
+}
+
+.chuyentrach-dashboard .ct-action-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+    border-radius: 8px;
+}
+
+.chuyentrach-dashboard .ct-table-footer {
+    padding: 10px 4px 2px;
+    font-size: 12px;
+}
+
+/* Co giãn khi cửa sổ hẹp */
+@media (max-width: 1000px) {
+    .chuyentrach-dashboard .ct-dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chuyentrach-dashboard .ct-order-table {
+        min-width: 950px;
+    }
+}
+
+@media (max-width: 650px) {
+    .chuyentrach-dashboard .ct-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==============================================
+   CHUYEN TRACH - MAU XANH VA FULL WIDTH
+   ============================================== */
+
+/* Màu chủ đạo riêng phân hệ Chuyên trách */
+body.reception-layout {
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --primary-soft: #EFF6FF;
+    --primary-border: #DBEAFE;
+}
+
+/* Nội dung dashboard rộng hết vùng còn lại */
+.chuyentrach-dashboard {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+
+/* 4 ô thống kê trải đều */
+.chuyentrach-dashboard .ct-dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+    width: 100%;
+    max-width: none;
+    margin-bottom: 16px;
+}
+
+.chuyentrach-dashboard .ct-stat-card {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--border-color);
+}
+
+/* Khu vực bảng rộng hết trang */
+.chuyentrach-dashboard .ct-dashboard-panel {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    border: 1px solid var(--border-color);
+}
+
+.chuyentrach-dashboard .ct-table-wrap {
+    width: 100%;
+}
+
+.chuyentrach-dashboard .ct-order-table {
+    width: 100%;
+    min-width: 0;
+}
+
+/* Đổi tiêu đề và các chi tiết tím thành xanh */
+.chuyentrach-dashboard .ct-panel-icon,
+.chuyentrach-dashboard .ct-view-all,
+.chuyentrach-dashboard .ct-code-cell {
+    color: var(--primary);
+}
+
+.chuyentrach-dashboard .ct-panel-title,
+.chuyentrach-dashboard .ct-stat-value {
+    color: var(--text-title);
+}
+
+/* Badge số bệnh nhân */
+.chuyentrach-dashboard .ct-new-badge {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+
+/* Nút Thực hiện */
+.chuyentrach-dashboard .ct-action-btn,
+.chuyentrach-dashboard .cls-action-button {
+    background: var(--primary);
+    border: 1px solid var(--primary);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.16);
+}
+
+.chuyentrach-dashboard .ct-action-btn:hover,
+.chuyentrach-dashboard .cls-action-button:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* Trạng thái Đang khám */
+.chuyentrach-dashboard .ct-status-processing {
+    background: #EFF6FF;
+    color: #2563EB;
+}
+
+/* Thẻ dịch vụ */
+.chuyentrach-dashboard .ct-service-tag {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+    .chuyentrach-dashboard .ct-dashboard-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .chuyentrach-dashboard .ct-order-table {
+        min-width: 950px;
+    }
+
+    .chuyentrach-dashboard .ct-table-wrap {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 650px) {
+    .chuyentrach-dashboard .ct-dashboard-cards {
+        grid-template-columns: 1fr;
+    }
+}
+

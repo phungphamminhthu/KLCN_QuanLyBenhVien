@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Danh sách bệnh nhân</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/benh-nhan.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="ct-patients-page">
+
+    <!-- THANH TÌM KIẾM VÀ BỘ LỌC -->
+    <section class="ct-patients-filter">
+
+        <div class="ct-patients-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input type="search"
+                   id="patientSearch"
+                   placeholder="Nhập mã bệnh nhân, họ tên, mã lịch khám..."
+                   autocomplete="off">
+        </div>
+
+        <div class="ct-patients-filter-grid">
+
+            <div class="ct-patients-filter-group">
+                <label>
+                    <i class="fa-regular fa-calendar"></i>
+                    Khoảng ngày
+                </label>
+
+                <div class="ct-patients-date-range">
+                    <input type="date"
+                           id="fromDate"
+                           title="Từ ngày">
+
+                    <span>—</span>
+
+                    <input type="date"
+                           id="toDate"
+                           title="Đến ngày">
+                </div>
+            </div>
+
+            <div class="ct-patients-filter-group">
+                <label for="departmentFilter">
+                    <i class="fa-solid fa-hospital"></i>
+                    Khoa chỉ định
+                </label>
+
+                <select id="departmentFilter">
+                    <option value="">Tất cả</option>
+                </select>
+            </div>
+
+            <div class="ct-patients-filter-group">
+                <label for="roomFilter">
+                    <i class="fa-solid fa-door-open"></i>
+                    Phòng chuyên trách
+                </label>
+
+                <select id="roomFilter">
+                    <option value="">Tất cả</option>
+                </select>
+            </div>
+
+            <div class="ct-patients-filter-group">
+                <label for="statusFilter">
+                    <i class="fa-solid fa-list-check"></i>
+                    Trạng thái
+                </label>
+
+                <select id="statusFilter">
+                    <option value="">Tất cả</option>
+                    <option value="ChoCLS">Chờ thực hiện</option>
+                    <option value="DangCLS">Đang thực hiện</option>
+                    <option value="HoanThanhCLS">Hoàn thành</option>
+                </select>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- BẢNG DANH SÁCH BỆNH NHÂN -->
+    <section class="ct-patients-table-panel">
+
+        <div class="ct-patients-table-scroll">
+
+            <table class="ct-patients-table">
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>MÃ BỆNH NHÂN</th>
+                    <th>HỌ TÊN</th>
+                    <th>NGÀY SINH</th>
+                    <th>GIỚI TÍNH</th>
+                    <th>KHOA</th>
+                    <th>BÁC SĨ CHỈ ĐỊNH</th>
+                    <th>DỊCH VỤ</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+                </thead>
+
+                <tbody id="patientTableBody">
+                <tr>
+                    <td colspan="10" class="ct-table-loading">
+                        Đang tải dữ liệu bệnh nhân...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="ct-patients-pagination">
+
+            <span id="patientTotal" class="ct-patients-total">
+                Đang tải dữ liệu...
+            </span>
+
+            <div class="ct-patients-page-buttons">
+
+                <button type="button"
+                        id="previousPage"
+                        class="ct-page-button"
+                        title="Trang trước">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <span id="currentPage"
+                      class="ct-current-page">1</span>
+
+                <button type="button"
+                        id="nextPage"
+                        class="ct-page-button"
+                        title="Trang sau">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- POPUP XEM HỒ SƠ BỆNH NHÂN -->
+    <div id="ctPatientModal"
+         class="ct-patient-modal-overlay"
+         hidden>
+
+        <div class="ct-patient-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctPatientModalTitle">
+
+            <div class="ct-patient-modal-header">
+
+                <div>
+                    <h2 id="ctPatientModalTitle">
+                        Hồ sơ bệnh nhân
+                    </h2>
+                    <p>Thông tin bệnh nhân và lượt khám cận lâm sàng</p>
+                </div>
+
+                <button type="button"
+                        id="closePatientModal"
+                        class="ct-patient-modal-close"
+                        aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="ct-patient-modal-body">
+
+                <div class="ct-patient-profile">
+                    <div class="ct-patient-profile-avatar">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+
+                    <div>
+                        <strong id="detailName">—</strong>
+                        <span id="detailCode">—</span>
+                    </div>
+                </div>
+
+                <div class="ct-patient-detail-grid">
+
+                    <div class="ct-detail-field">
+                        <span>Ngày sinh</span>
+                        <strong id="detailBirth">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Giới tính</span>
+                        <strong id="detailGender">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Mã lịch khám</span>
+                        <strong id="detailAppointment">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Ngày khám</span>
+                        <strong id="detailDate">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Khoa</span>
+                        <strong id="detailDepartment">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Bác sĩ phụ trách</span>
+                        <strong id="detailDoctor">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Phòng chuyên trách</span>
+                        <strong id="detailRoom">—</strong>
+                    </div>
+
+                    <div class="ct-detail-field">
+                        <span>Trạng thái CLS</span>
+                        <strong id="detailStatus">—</strong>
+                    </div>
+                </div>
+
+                <div class="ct-detail-section">
+                    <h3>Dịch vụ được chỉ định</h3>
+                    <p id="detailService">—</p>
+                </div>
+
+                <div class="ct-detail-section">
+                    <h3>Địa chỉ</h3>
+                    <p id="detailAddress">—</p>
+                </div>
+
+                <div class="ct-detail-section">
+                    <h3>Tiền sử bệnh</h3>
+                    <p id="detailHistory">—</p>
+                </div>
+
+                <div class="ct-detail-section">
+                    <h3>Triệu chứng / Chẩn đoán</h3>
+                    <p id="detailDiagnosis">—</p>
+                </div>
+
+            </div>
+
+            <div class="ct-patient-modal-footer">
+
+                <button type="button"
+                        id="modalCloseButton"
+                        class="ct-modal-secondary">
+                    Đóng
+                </button>
+
+                <a id="continueClsLink"
+                   class="ct-modal-primary"
+                   href="#"
+                   hidden>
+                    <i class="fa-solid fa-file-medical"></i>
+                    Tiếp tục nhập kết quả
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/benh-nhan.js}"></script>
+</th:block>
+
+</body>
+</html>

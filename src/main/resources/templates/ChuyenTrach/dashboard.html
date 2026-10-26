@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Tổng quan - Nhân viên chuyên trách</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet" th:href="@{/Css/ChuyenTrach/dashboard.css}">
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="chuyentrach-dashboard">
+
+    <!-- THẺ THỐNG KÊ -->
+    <section id="statCards" class="ct-dashboard-cards"></section>
+
+    <!-- BẢNG CHỈ ĐỊNH -->
+    <section class="ct-dashboard-panel">
+        <div class="ct-panel-header">
+            <div class="ct-panel-header-left">
+                <div class="ct-panel-title-wrap">
+                    <i class="fa-solid fa-notes-medical ct-panel-icon"></i>
+                    <h2 class="ct-panel-title">Chỉ định cần thực hiện</h2>
+                </div>
+            </div>
+
+            <div class="ct-panel-header-right">
+                <a id="viewAllPatients"
+                   href="/ChuyenTrach/benh-nhan-cho"
+                   class="ct-view-all">
+                    Xem tất cả
+                    <i class="fa-solid fa-angle-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div id="tableArea"></div>
+    </section>
+
+    <!-- POPUP XÁC NHẬN KHÁM CHUYÊN TRÁCH -->
+    <div id="ctConfirmModal" class="ct-modal-overlay" hidden>
+        <div class="ct-modal-box"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctModalTitle"
+             aria-describedby="ctModalMessage">
+
+            <div class="ct-modal-icon">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+
+            <h3 id="ctModalTitle">Xác nhận bắt đầu khám</h3>
+
+            <p id="ctModalMessage">
+                Bạn có chắc chắn muốn bắt đầu khám chuyên trách?
+            </p>
+
+            <div class="ct-modal-actions">
+                <button type="button"
+                        id="ctModalCancel"
+                        class="ct-modal-cancel">
+                    Hủy
+                </button>
+
+                <button type="button"
+                        id="ctModalConfirm"
+                        class="ct-modal-confirm">
+                    Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/dashboard.js}"></script>
+</th:block>
+</html>

@@ -1,0 +1,328 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Chi tiết chỉ định</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/chi-tiet-chi-dinh.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="ctci-page">
+
+    <!-- NÚT QUAY LẠI -->
+    <div class="ctci-toolbar">
+        <a th:href="@{/ChuyenTrach/chi-dinh}"
+           class="ctci-back">
+            <i class="fa-solid fa-arrow-left"></i>
+            Quay lại danh sách chỉ định
+        </a>
+    </div>
+
+    <!-- HAI CỘT THÔNG TIN -->
+    <div class="ctci-columns">
+
+        <!-- ================================= -->
+        <!-- CỘT TRÁI: THÔNG TIN BỆNH NHÂN -->
+        <!-- ================================= -->
+
+        <section class="ctci-card ctci-patient-card">
+
+            <div class="ctci-patient-header">
+                <div class="ctci-avatar">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+
+                <div class="ctci-patient-summary">
+                    <h2 id="ctciPatientName">
+                        Đang tải thông tin...
+                    </h2>
+
+                    <span id="ctciPatientCode"
+                          class="ctci-code-badge">
+                        —
+                    </span>
+                </div>
+            </div>
+
+            <!-- THÔNG TIN CÁ NHÂN -->
+            <div class="ctci-section-title">
+                <i class="fa-solid fa-user"></i>
+                <h3>THÔNG TIN CÁ NHÂN</h3>
+            </div>
+
+            <div class="ctci-info-list">
+
+                <div class="ctci-info-row">
+                    <span>Mã bệnh nhân</span>
+                    <strong id="ctciPatientCodeDetail">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Họ và tên</span>
+                    <strong id="ctciPatientNameDetail">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Giới tính</span>
+                    <strong id="ctciGender">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Ngày sinh</span>
+                    <strong id="ctciBirthDate">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Tuổi</span>
+                    <strong id="ctciAge">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Số điện thoại</span>
+                    <strong id="ctciPhone">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Địa chỉ</span>
+                    <strong id="ctciAddress"
+                            class="ctci-address">—</strong>
+                </div>
+
+            </div>
+
+            <!-- THÔNG TIN KHÁM BỆNH -->
+            <div class="ctci-section-title ctci-section-gap">
+                <i class="fa-regular fa-file-lines"></i>
+                <h3>THÔNG TIN KHÁM BỆNH</h3>
+            </div>
+
+            <div class="ctci-info-list">
+
+                <div class="ctci-info-row">
+                    <span>Mã hồ sơ bệnh án</span>
+                    <strong id="ctciRecordCode">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Ngày khám</span>
+                    <strong id="ctciAppointmentDate">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Giờ khám</span>
+                    <strong id="ctciAppointmentTime">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Khoa khám</span>
+                    <strong id="ctciDepartment">—</strong>
+                </div>
+
+                <div class="ctci-info-row">
+                    <span>Bác sĩ phụ trách</span>
+                    <strong id="ctciVisitDoctor">—</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ================================= -->
+        <!-- CỘT PHẢI: THÔNG TIN CHỈ ĐỊNH Y TẾ -->
+        <!-- ================================= -->
+
+        <section class="ctci-card ctci-order-card">
+
+            <!-- TIÊU ĐỀ -->
+            <div class="ctci-order-heading">
+                <div class="ctci-heading-icon">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                </div>
+
+                <h2>THÔNG TIN CHỈ ĐỊNH Y TẾ</h2>
+            </div>
+
+            <!-- THÔNG BÁO LỖI -->
+            <div id="ctciError"
+                 class="ctci-error"
+                 hidden></div>
+
+            <!-- MÃ PHIẾU VÀ BÁC SĨ -->
+            <div class="ctci-order-fields">
+
+                <div class="ctci-field">
+                    <label>Mã phiếu chỉ định</label>
+                    <strong id="ctciOrderCode">—</strong>
+                </div>
+
+                <div class="ctci-field">
+                    <label>Bác sĩ phụ trách</label>
+                    <strong id="ctciDoctor">—</strong>
+                </div>
+
+            </div>
+
+            <!-- DỊCH VỤ THỰC HIỆN -->
+            <div class="ctci-service-card">
+
+                <div class="ctci-service-icon">
+                    <i class="fa-solid fa-flask"></i>
+                </div>
+
+                <div class="ctci-service-content">
+                    <span>DỊCH VỤ THỰC HIỆN</span>
+
+                    <strong id="ctciServiceName">
+                        Đang tải dịch vụ...
+                    </strong>
+
+                    <small>
+                        Mã dịch vụ:
+                        <b id="ctciServiceCode">—</b>
+                    </small>
+                </div>
+
+            </div>
+
+            <!-- PHÒNG VÀ NGÀY CHỈ ĐỊNH -->
+            <div class="ctci-order-fields ctci-more-fields">
+
+                <div class="ctci-field">
+                    <label>Phòng thực hiện</label>
+
+                    <div class="ctci-field-value">
+                        <i class="fa-solid fa-door-open"></i>
+                        <strong id="ctciRoom">—</strong>
+                    </div>
+                </div>
+
+                <div class="ctci-field">
+                    <label>Thời gian chỉ định</label>
+
+                    <div class="ctci-field-value">
+                        <i class="fa-regular fa-clock"></i>
+                        <strong id="ctciOrderDate">—</strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TRẠNG THÁI THỰC HIỆN CLS -->
+            <div class="ctci-cls-status-row">
+
+                <div class="ctci-cls-status-title">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Trạng thái thực hiện CLS</span>
+                </div>
+
+                <span id="ctciClsStatus"
+                      class="ctci-cls-status"
+                      aria-live="polite">
+                    Đang tải...
+                </span>
+
+            </div>
+
+            <!-- GHI CHÚ CỦA BÁC SĨ -->
+            <div class="ctci-note-section">
+
+                <div class="ctci-note-title">
+                    <i class="fa-regular fa-note-sticky"></i>
+                    <h3>GHI CHÚ CỦA BÁC SĨ</h3>
+                </div>
+
+                <div class="ctci-note-box">
+                    <i class="fa-solid fa-circle-info"></i>
+
+                    <p id="ctciDoctorNote">
+                        Đang tải ghi chú...
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- NÚT THAO TÁC THEO TRẠNG THÁI -->
+            <div class="ctci-actions">
+
+                <!-- Hiện khi ChoCLS -->
+                <button type="button"
+                        id="ctciStartCls"
+                        class="ctci-btn ctci-btn-primary"
+                        hidden>
+                    <i class="fa-solid fa-stethoscope"></i>
+                    Thực hiện CLS
+                </button>
+
+                <!-- Hiện khi DangCLS -->
+                <a id="ctciResultLink"
+                   class="ctci-btn ctci-btn-primary"
+                   href="#"
+                   hidden>
+                    <i class="fa-solid fa-file-medical"></i>
+                    Tiếp tục nhập kết quả
+                </a>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <!-- ================================= -->
+    <!-- POPUP XÁC NHẬN BẮT ĐẦU CLS -->
+    <!-- ĐẶT TRONG FRAGMENT CONTENT -->
+    <!-- ================================= -->
+
+    <dialog id="ctciConfirmDialog"
+            class="ctci-confirm-dialog"
+            aria-labelledby="ctciConfirmTitle">
+
+        <div class="ctci-confirm-icon">
+            <i class="fa-solid fa-stethoscope"></i>
+        </div>
+
+        <h3 id="ctciConfirmTitle">
+            Xác nhận thực hiện CLS
+        </h3>
+
+        <p id="ctciConfirmMessage">
+            Bạn có chắc chắn muốn bắt đầu
+            thực hiện cận lâm sàng?
+        </p>
+
+        <div class="ctci-confirm-actions">
+
+            <button type="button"
+                    id="ctciCancelStart"
+                    class="ctci-btn ctci-btn-secondary">
+                Hủy
+            </button>
+
+            <button type="button"
+                    id="ctciAcceptStart"
+                    class="ctci-btn ctci-btn-primary">
+                Xác nhận
+            </button>
+
+        </div>
+
+    </dialog>
+
+</div>
+
+<!-- JAVASCRIPT -->
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/chi-tiet-chi-dinh.js}"></script>
+</th:block>
+
+</body>
+</html>

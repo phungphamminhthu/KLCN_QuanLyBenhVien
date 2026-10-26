@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<aside class="sidebar reception-sidebar"
+       th:fragment="sidebar">
+
+    <!-- LOGO MEDCARE -->
+    <div class="sidebar-logo">
+        <div class="logo-icon">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        </div>
+
+        <div class="logo-text">
+            <strong>MedCare Hospital</strong>
+            <span>Hệ thống quản lý bệnh viện</span>
+        </div>
+    </div>
+
+    <!-- MENU NHÂN VIÊN CHUYÊN TRÁCH -->
+    <nav class="sidebar-menu"
+         aria-label="Menu nhân viên chuyên trách">
+
+        <!-- TỔNG QUAN -->
+        <a th:href="@{/ChuyenTrach/dashboard}"
+           class="menu-link">
+            <span>
+                <span class="menu-icon">
+                    <i class="fa-solid fa-house"></i>
+                </span>
+                Tổng quan
+            </span>
+        </a>
+
+        <!-- BỆNH NHÂN -->
+        <div class="sidebar-menu-group">
+            <div class="sidebar-menu-title">
+                <i class="fa-solid fa-users"></i>
+                <span>Bệnh nhân</span>
+            </div>
+
+            <a th:href="@{/ChuyenTrach/benh-nhan}"
+               class="menu-link submenu-link">
+                <span>
+                    <span class="menu-icon">
+                        <i class="fa-solid fa-list"></i>
+                    </span>
+                    Danh sách bệnh nhân
+                </span>
+            </a>
+
+            <a th:href="@{/ChuyenTrach/benh-nhan-cho}"
+               class="menu-link submenu-link">
+                <span>
+                    <span class="menu-icon">
+                        <i class="fa-solid fa-hourglass-half"></i>
+                    </span>
+                    Bệnh nhân đang chờ
+                </span>
+            </a>
+        </div>
+
+        <!-- KHÁM CHUYÊN TRÁCH -->
+        <div class="sidebar-menu-group">
+            <div class="sidebar-menu-title">
+                <i class="fa-solid fa-stethoscope"></i>
+                <span>Khám chuyên trách</span>
+            </div>
+
+            <a th:href="@{/ChuyenTrach/chi-dinh}"
+               class="menu-link submenu-link">
+                <span>
+                    <span class="menu-icon">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                    </span>
+                    Danh sách chỉ định
+                </span>
+            </a>
+        </div>
+
+        <!-- KẾT QUẢ -->
+        <div class="sidebar-menu-group">
+            <div class="sidebar-menu-title">
+                <i class="fa-solid fa-file-medical"></i>
+                <span>Kết quả</span>
+            </div>
+
+            <a th:href="@{/ChuyenTrach/ket-qua-da-thuc-hien}"
+               class="menu-link submenu-link">
+                <span>
+                    <span class="menu-icon">
+                        <i class="fa-solid fa-square-check"></i>
+                    </span>
+                    Kết quả đã thực hiện
+                </span>
+            </a>
+        </div>
+
+        <!-- LỊCH SỬ TIẾP NHẬN -->
+        <a th:href="@{/ChuyenTrach/history}"
+           class="menu-link">
+            <span>
+                <span class="menu-icon">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </span>
+                Lịch sử tiếp nhận
+            </span>
+        </a>
+
+        <!-- HỒ SƠ CÁ NHÂN -->
+        <a th:href="@{/ChuyenTrach/ho-so-ca-nhan}"
+           class="menu-link">
+            <span>
+                <span class="menu-icon">
+                    <i class="fa-regular fa-user"></i>
+                </span>
+                Hồ sơ cá nhân
+            </span>
+        </a>
+
+    </nav>
+
+    <!-- ĐĂNG XUẤT -->
+    <div class="sidebar-logout">
+        <button type="button"
+                id="logoutButton"
+                class="logout-button">
+
+            <i class="fa-solid fa-arrow-right-from-bracket"
+               aria-hidden="true"></i>
+
+            <span>Đăng xuất</span>
+        </button>
+    </div>
+
+</aside>
+
+</body>
+</html>
