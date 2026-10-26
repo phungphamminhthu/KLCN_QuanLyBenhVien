@@ -156,6 +156,9 @@ document.addEventListener("DOMContentLoaded", function () {
             sessionStorage.removeItem("Email");
             sessionStorage.removeItem("VaiTro");
             sessionStorage.removeItem("AnhDaiDien");
+            sessionStorage.removeItem(
+                "thongBaoChoKhamSauDangNhap"
+            );
 
 
             // ==============================

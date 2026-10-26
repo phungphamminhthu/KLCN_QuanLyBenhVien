@@ -1,3 +1,4 @@
+
 package QuanLyBenhVien.Repository;
 
 import QuanLyBenhVien.Entity.LichDangKyKham;
@@ -52,14 +53,14 @@ public interface LichDangKyKhamRepository
 
 
     // =========================================================
-    // 4. DANH SÁCH BỆNH NHÂN ĐÃ TIẾP NHẬN VÀ ĐANG CHỜ KHÁM
+    // 4. DANH SÁCH BỆNH NHÂN ĐÃ TIẾP NHẬN, CHỜ KHÁM
+    // Chỉ kiểm tra trạng thái từ bảng TiepNhanBenhNhan
     // =========================================================
     @Query("""
             SELECT l
             FROM LichDangKyKham l
             WHERE l.bacSi.maBacSi = :maBacSi
               AND l.ngayKham = :ngayKham
-              AND l.trangThai = 'ChoKham'
               AND EXISTS (
                     SELECT t.maTiepNhan
                     FROM TiepNhanBenhNhan t
@@ -75,14 +76,14 @@ public interface LichDangKyKhamRepository
 
 
     // =========================================================
-    // 5. ĐẾM BỆNH NHÂN ĐÃ TIẾP NHẬN VÀ ĐANG CHỜ KHÁM
+    // 5. ĐẾM BỆNH NHÂN ĐÃ TIẾP NHẬN, CHỜ KHÁM
+    // Chỉ kiểm tra trạng thái từ bảng TiepNhanBenhNhan
     // =========================================================
     @Query("""
             SELECT COUNT(l)
             FROM LichDangKyKham l
             WHERE l.bacSi.maBacSi = :maBacSi
               AND l.ngayKham = :ngayKham
-              AND l.trangThai = 'ChoKham'
               AND EXISTS (
                     SELECT t.maTiepNhan
                     FROM TiepNhanBenhNhan t
@@ -98,7 +99,7 @@ public interface LichDangKyKhamRepository
 
     // =========================================================
     // 6. ĐẾM LỊCH THEO BÁC SĨ + NGÀY + TRẠNG THÁI
-    // Dùng cho: DangKham và DaKham
+    // Dùng cho DangKham và DaKham
     // =========================================================
     long countByBacSi_MaBacSiAndNgayKhamAndTrangThai(
             Integer maBacSi,
@@ -109,13 +110,7 @@ public interface LichDangKyKhamRepository
 
     // =========================================================
     // 7. LỊCH SỬ KHÁM CỦA BÁC SĨ
-    //
-    // Chỉ lấy những lịch đã khám xong:
-    // LichDangKyKham.TrangThai = 'DaKham'
-    //
-    // Sắp xếp:
-    // - Ngày khám mới nhất trước
-    // - Trong cùng ngày: giờ khám mới nhất trước
+    // Lấy các lịch đã khám xong
     // =========================================================
     List<LichDangKyKham>
     findByBacSi_MaBacSiAndTrangThaiOrderByNgayKhamDescGioKhamDesc(
@@ -126,9 +121,6 @@ public interface LichDangKyKhamRepository
 
     // =========================================================
     // 8. LỊCH SỬ KHÁM THEO KHOẢNG NGÀY
-    //
-    // Dùng sau này cho bộ lọc:
-    // Từ ngày -> Đến ngày
     // =========================================================
     List<LichDangKyKham>
     findByBacSi_MaBacSiAndTrangThaiAndNgayKhamBetweenOrderByNgayKhamDescGioKhamDesc(
@@ -139,7 +131,7 @@ public interface LichDangKyKhamRepository
     );
 
     // =============================================
-    // KIEM TRA LICH KHAM
+    // KIEM TRA LICH KHAM TRONG KHUNG GIỜ
     // =============================================
     @Query("""
     SELECT COUNT(l)
@@ -156,4 +148,24 @@ public interface LichDangKyKhamRepository
             @Param("gioBatDau") java.time.LocalTime gioBatDau,
             @Param("gioKetThuc") java.time.LocalTime gioKetThuc
     );
+    // =========================================================
+    // 9. LẤY LỊCH THEO BÁC SĨ + NGÀY + NHIỀU TRẠNG THÁI
+    // =========================================================
+    List<LichDangKyKham>
+    findByBacSi_MaBacSiAndNgayKhamAndTrangThaiInOrderByGioKhamAsc(
+            Integer maBacSi,
+            LocalDate ngayKham,
+            List<String> trangThai
+    );
+
+    // =========================================================
+    // 9. ĐẾM BỆNH NHÂN ĐANG KHÁM VÀ CHỜ CẬN LÂM SÀNG
+    // =========================================================
+    long countByBacSi_MaBacSiAndNgayKhamAndTrangThaiIn(
+            Integer maBacSi,
+            LocalDate ngayKham,
+            List<String> trangThai
+    );
+
+
 }

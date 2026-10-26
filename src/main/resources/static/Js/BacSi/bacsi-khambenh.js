@@ -555,29 +555,28 @@ function renderDanhSach(list) {
         const row =
             document.createElement("tr");
 
-        const dangKham =
-            benhNhan.trangThai === "DangKham";
+        const dangKham = benhNhan.trangThai === "DangKham";
+        const choCLS = benhNhan.trangThai === "ChoCLS";
 
         const badgeClass =
-            dangKham
-                ? "badge badge-blue"
-                : "badge badge-orange";
+            dangKham ? "badge badge-blue" :
+            choCLS ? "badge badge-orange" :
+            "badge badge-orange";
 
         const tenTrangThai =
-            dangKham
-                ? "Đang khám"
-                : "Chờ khám";
+            dangKham ? "Đang khám" :
+            choCLS ? "Chờ CLS" :
+            "Chờ khám";
 
         const tenNut =
-            dangKham
-                ? "Tiếp tục khám"
-                : "Bắt đầu khám";
+            dangKham ? "Tiếp tục khám" :
+            choCLS ? "Xem hồ sơ" :
+            "Bắt đầu khám";
 
         const hamXuLy =
-            dangKham
+            (dangKham || choCLS)
                 ? `tiepTucKham(${benhNhan.maLichKham})`
                 : `batDauKham(${benhNhan.maLichKham})`;
-
         row.innerHTML = `
 
             <td>
@@ -684,48 +683,37 @@ function timBenhNhanTheoLich(maLichKham) {
 
 async function batDauKham(maLichKham) {
 
-    const patient =
-        timBenhNhanTheoLich(maLichKham);
+    const patient = timBenhNhanTheoLich(maLichKham);
 
     if (!patient) {
-
         showToast(
             "Không tìm thấy",
             "Không tìm thấy thông tin bệnh nhân.",
             true
         );
-
         return;
     }
 
-
-    // Nếu bệnh nhân đã bắt đầu khám rồi
-    // thì chuyển thẳng sang trang khám riêng.
-
-    if (patient.trangThai === "DangKham") {
-
+    // Đang khám hoặc chờ CLS thì mở lại trang khám
+    // Không được gọi API bắt đầu khám lần nữa
+    if (
+        patient.trangThai === "DangKham" ||
+        patient.trangThai === "ChoCLS"
+    ) {
         tiepTucKham(maLichKham);
-
         return;
     }
 
-
-    const dongY =
-        confirm(
-            `Bắt đầu khám cho bệnh nhân ${patient.hoTen}?`
-        );
-
+    const dongY = confirm(
+        `Bắt đầu khám cho bệnh nhân ${patient.hoTen}?`
+    );
 
     if (!dongY) {
         return;
     }
 
-
     try {
-
-        // Chuyển trạng thái ChoKham -> DangKham
-        // và tạo hồ sơ bệnh án nếu backend đang xử lý như hiện tại.
-
+        // Bắt đầu khám và tạo hồ sơ bệnh án
         await apiFetch(
             `${API_BASE}/${maLichKham}/bat-dau`,
             {
@@ -733,16 +721,11 @@ async function batDauKham(maLichKham) {
             }
         );
 
-
-        // Không mở modal nữa.
-        // Chuyển sang trang khám bệnh riêng.
-
+        // Chuyển đến trang khám bệnh riêng
         window.location.href =
             `/auth/bac-si/kham-benh/${maLichKham}`;
 
-
     } catch (error) {
-
         showToast(
             "Không thể bắt đầu khám",
             error.message,
@@ -1399,24 +1382,20 @@ function capNhatThongTinDichVuDangChon() {
 async function taoChiDinh() {
 
     if (!lichKhamDangChon) {
-
         showToast(
             "Lỗi",
             "Chưa chọn lịch khám.",
             true
         );
-
         return;
     }
 
     if (hoSoDangKhoa) {
-
         showToast(
             "Không thể tạo chỉ định",
             "Hồ sơ đã hoàn tất.",
             true
         );
-
         return;
     }
 
@@ -1424,22 +1403,14 @@ async function taoChiDinh() {
         return;
     }
 
-    const maDichVu =
-        Number(
-            dichVuSelect.value
-        );
+    const maDichVu = Number(dichVuSelect.value);
 
-    if (
-        !maDichVu ||
-        Number.isNaN(maDichVu)
-    ) {
-
+    if (!maDichVu || Number.isNaN(maDichVu)) {
         showToast(
             "Thiếu thông tin",
             "Vui lòng chọn dịch vụ cận lâm sàng.",
             true
         );
-
         return;
     }
 
@@ -1449,24 +1420,17 @@ async function taoChiDinh() {
         maPhongChiDinh &&
         maPhongChiDinh.value.trim() !== ""
     ) {
-
-        maPhong =
-            Number(
-                maPhongChiDinh.value
-            );
+        maPhong = Number(maPhongChiDinh.value);
 
         if (
-            Number.isNaN(maPhong) ||
-            maPhong <= 0 ||
-            !Number.isInteger(maPhong)
+            !Number.isInteger(maPhong) ||
+            maPhong <= 0
         ) {
-
             showToast(
                 "Mã phòng không hợp lệ",
                 "Mã phòng phải là số nguyên lớn hơn 0.",
                 true
             );
-
             return;
         }
     }
@@ -1482,6 +1446,8 @@ async function taoChiDinh() {
             maPhong: maPhong
         };
 
+        // Gọi API tạo chỉ định
+        // Backend sẽ chuyển trạng thái DangKham -> ChoCLS
         await apiFetch(
             `${API_BASE}/${lichKhamDangChon}/chi-dinh`,
             {
@@ -1495,6 +1461,7 @@ async function taoChiDinh() {
             "Tạo chỉ định cận lâm sàng thành công."
         );
 
+        // Xóa lựa chọn cũ
         dichVuSelect.value = "";
 
         if (maPhongChiDinh) {
@@ -1503,9 +1470,11 @@ async function taoChiDinh() {
 
         capNhatThongTinDichVuDangChon();
 
-        await loadDanhSachChiDinh(
-            lichKhamDangChon
-        );
+        // Tải lại danh sách chỉ định
+        await loadDanhSachChiDinh(lichKhamDangChon);
+
+        // Cập nhật danh sách khám và thống kê
+        await lamMoiDuLieu();
 
     } catch (error) {
 
@@ -1517,16 +1486,11 @@ async function taoChiDinh() {
 
     } finally {
 
-        if (
-            btnCreateOrder &&
-            !hoSoDangKhoa
-        ) {
-
+        if (btnCreateOrder && !hoSoDangKhoa) {
             btnCreateOrder.disabled = false;
         }
     }
 }
-
 
 /* =====================================================
    LOAD DANH SÁCH CHỈ ĐỊNH
@@ -2354,50 +2318,35 @@ function khoiTaoMenuKhamBenh() {
    KHỞI TẠO TRANG
 ===================================================== */
 
+/* =====================================================
+   KHỞI TẠO TRANG
+===================================================== */
+
 document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        /* NGÀY HIỆN TẠI */
-
+        // Ngày hiện tại
         hienThiNgayHienTai();
 
+        // Tab mặc định
+        chuyenTab("medical");
 
-        /* THÔNG TIN BÁC SĨ */
-
-        hienThiThongTinBacSi();
-
-
-        /* TAB MẶC ĐỊNH */
-
-        chuyenTab(
-            "medical"
-        );
-
-
-        /* SIDEBAR */
-
+        // Sidebar
         khoiTaoMenuKhamBenh();
 
-
-        /* NÚT ĐĂNG XUẤT */
-
+        // Nút đăng xuất
         const btnLogout =
-            document.getElementById(
-                "btnLogout"
-            );
+            document.getElementById("btnLogout");
 
         if (btnLogout) {
-
             btnLogout.addEventListener(
                 "click",
                 dangXuat
             );
         }
 
-
-        /* LOAD DỮ LIỆU */
-
+        // Tải danh sách bệnh nhân và thống kê
         lamMoiDuLieu();
     }
 );

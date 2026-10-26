@@ -112,10 +112,10 @@ public class BacSiKhamBenhController {
 
             List<LichDangKyKham> danhSach =
                     lichDangKyKhamRepository
-                            .findByBacSi_MaBacSiAndNgayKhamAndTrangThaiOrderByGioKhamAsc(
+                            .findByBacSi_MaBacSiAndNgayKhamAndTrangThaiInOrderByGioKhamAsc(
                                     bacSi.getMaBacSi(),
                                     LocalDate.now(),
-                                    "DangKham"
+                                    List.of("DangKham", "ChoCLS")
                             );
 
             List<Map<String, Object>> ketQua =
@@ -152,13 +152,15 @@ public class BacSiKhamBenhController {
                                     homNay
                             );
 
+
             long dangKham =
                     lichDangKyKhamRepository
-                            .countByBacSi_MaBacSiAndNgayKhamAndTrangThai(
+                            .countByBacSi_MaBacSiAndNgayKhamAndTrangThaiIn(
                                     maBacSi,
                                     homNay,
-                                    "DangKham"
+                                    List.of("DangKham", "ChoCLS")
                             );
+
 
             long daHoanThanh =
                     lichDangKyKhamRepository
@@ -1211,6 +1213,7 @@ public class BacSiKhamBenhController {
                 lich.getTrangThai()
         );
 
+
         if (lich.getSoThuTu() != null) {
 
             map.put(
@@ -1309,6 +1312,14 @@ public class BacSiKhamBenhController {
                 "trangThai",
                 hoSo.getTrangThai()
         );
+
+        if (hoSo.getLichDangKyKham() != null) {
+            map.put(
+                    "trangThaiLichKham",
+                    hoSo.getLichDangKyKham().getTrangThai()
+            );
+        }
+
 
         if (hoSo.getLichDangKyKham() != null) {
 
