@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Trang chủ bệnh nhân - MedCare Hospital</title>
+
+    <link rel="stylesheet"
+          th:href="@{/Css/BenhNhan/home.css}">
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<header class="topbar">
+    <a class="brand" th:href="@{/benh-nhan/trang-chu}">
+        <span class="logo">✚</span>
+
+        <div>
+            <strong>MedCare Hospital</strong>
+            <small>Cổng thông tin bệnh nhân</small>
+        </div>
+    </a>
+
+    <div class="header-actions">
+        <span class="patient-label">
+            <span class="online-dot"></span>
+            Cổng bệnh nhân
+        </span>
+
+        <button type="button"
+                id="logoutButton"
+                class="logout-button">
+            <span>→</span>
+            Đăng xuất
+        </button>
+    </div>
+</header>
+
+
+<!-- ================= MAIN ================= -->
+<main class="container">
+
+    <!-- Welcome -->
+    <section class="welcome">
+        <div class="welcome-content">
+            <div class="welcome-tag">
+                <span>✚</span>
+                CHĂM SÓC SỨC KHỎE CỦA BẠN
+            </div>
+
+            <h1>
+                Xin chào,
+                <span id="patientName">bệnh nhân</span>!
+            </h1>
+
+            <p>
+                Chào mừng bạn đến với MedCare Hospital.
+                Hãy chủ động đặt lịch và theo dõi lịch khám của mình
+                ngay tại đây.
+            </p>
+
+            <a class="welcome-button"
+               th:href="@{/benh-nhan/dat-lich}">
+                Đặt lịch khám ngay
+                <span>→</span>
+            </a>
+        </div>
+
+        <div class="welcome-illustration" aria-hidden="true">
+            <div class="illustration-circle">
+                <div class="medical-cross">✚</div>
+                <div class="illustration-heart">♡</div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Section title -->
+    <section class="section-heading">
+        <div>
+            <h2>Chức năng dành cho bạn</h2>
+            <p>Quản lý lịch khám của bạn một cách dễ dàng.</p>
+        </div>
+    </section>
+
+
+    <!-- Feature cards -->
+    <section class="features">
+
+        <!-- Booking -->
+        <a th:href="@{/benh-nhan/dat-lich}"
+           class="feature-card">
+
+            <div class="feature-top">
+                <div class="feature-icon blue">
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         aria-hidden="true">
+                        <rect x="3" y="5" width="18" height="16"
+                              rx="3" stroke="currentColor"
+                              stroke-width="1.8"/>
+                        <path d="M16 3V7M8 3V7M3 10H21"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"/>
+                        <path d="M12 13V18M9.5 15.5H14.5"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+<!--                <span class="card-arrow">↗</span>-->
+            </div>
+
+            <h3>Đặt lịch khám</h3>
+
+            <p>
+                Lựa chọn chuyên khoa, bác sĩ và thời gian khám
+                phù hợp với nhu cầu của bạn.
+            </p>
+
+            <span class="action">
+                Đặt lịch ngay
+                <span>→</span>
+            </span>
+        </a>
+
+
+        <!-- History -->
+        <a th:href="@{/benh-nhan/lich-su}"
+           class="feature-card">
+
+            <div class="feature-top">
+                <div class="feature-icon green">
+                    <svg viewBox="0 0 24 24"
+                         fill="none"
+                         aria-hidden="true">
+                        <rect x="5" y="3" width="14" height="18"
+                              rx="2.5" stroke="currentColor"
+                              stroke-width="1.8"/>
+                        <path d="M9 8H15M9 12H15M9 16H13"
+                              stroke="currentColor"
+                              stroke-width="1.8"
+                              stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+<!--                <span class="card-arrow">↗</span>-->
+            </div>
+
+            <h3>Lịch sử đặt khám</h3>
+
+            <p>
+                Theo dõi lịch khám đã đặt, ngày khám và trạng thái
+                xác nhận lịch hẹn.
+            </p>
+
+            <span class="action">
+                Xem lịch sử
+                <span>→</span>
+            </span>
+        </a>
+
+    </section>
+
+
+    <!-- Information note -->
+    <section class="notice">
+        <div class="notice-icon">i</div>
+
+        <div>
+            <h3>Lưu ý khi đặt lịch khám</h3>
+            <p>
+                Vui lòng kiểm tra chính xác thông tin và thời gian
+                trước khi xác nhận lịch hẹn.
+            </p>
+        </div>
+    </section>
+
+</main>
+
+
+<!-- ================= MOBILE NAVIGATION ================= -->
+<nav class="bottom-nav" aria-label="Điều hướng bệnh nhân">
+
+    <a class="nav-item active"
+       th:href="@{/benh-nhan/trang-chu}">
+        <span class="nav-icon">⌂</span>
+        <span>Trang chủ</span>
+    </a>
+
+    <a class="nav-item"
+       th:href="@{/benh-nhan/dat-lich}">
+        <span class="nav-icon">＋</span>
+        <span>Đặt lịch</span>
+    </a>
+
+    <a class="nav-item"
+       th:href="@{/benh-nhan/lich-su}">
+        <span class="nav-icon">▤</span>
+        <span>Lịch sử</span>
+    </a>
+
+</nav>
+
+<!-- Hộp thoại xác nhận đăng xuất -->
+<div id="logoutModal" class="modal-overlay" aria-hidden="true">
+    <div class="logout-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="logoutTitle">
+
+        <div class="modal-icon">→</div>
+
+        <h2 id="logoutTitle">Đăng xuất tài khoản?</h2>
+
+        <p>
+            Bạn có chắc chắn muốn đăng xuất khỏi cổng thông tin
+            bệnh nhân MedCare không?
+        </p>
+
+        <div class="modal-actions">
+            <button type="button" id="cancelLogout" class="btn-cancel">
+                Hủy
+            </button>
+
+            <button type="button" id="confirmLogout" class="btn-confirm">
+                Đăng xuất
+            </button>
+        </div>
+    </div>
+</div>
+<script th:src="@{/Js/BenhNhan/home.js}"></script>
+
+</body>
+</html>

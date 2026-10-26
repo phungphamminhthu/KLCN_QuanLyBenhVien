@@ -552,3 +552,16 @@ body {
         font-size: 13px;
     }
 }
+
+
+.login-description {
+    margin: 12px 0 24px;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.7;
+    text-align: center;
+}
+
+.login-header h2 {
+    margin-bottom: 8px;
+}

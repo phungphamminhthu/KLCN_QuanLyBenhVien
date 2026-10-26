@@ -534,25 +534,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
                             case "DUOCSI":
-
-                                window.location.href =
-                                    "/DuocSi/dashboard";
-
+                                window.location.href = "/DuocSi/dashboard";
                                 break;
 
+                            case "BENHNHAN":
+                                window.location.href = "/benh-nhan/trang-chu";
+                                break;
 
                             default:
+                                console.error("Vai trò nhận được từ API:", data.VaiTro);
 
                                 showMessage(
-                                    "Vai trò tài khoản không hợp lệ.",
+                                    "Vai trò tài khoản không hợp lệ: " +
+                                    (data.VaiTro || "không xác định"),
                                     "error"
                                 );
 
-                                LoginButton.disabled =
-                                    false;
-
-                                LoginButton.textContent =
-                                    "Đăng nhập";
+                                LoginButton.disabled = false;
+                                LoginButton.textContent = "Đăng nhập";
+                                break;
                         }
 
                     },

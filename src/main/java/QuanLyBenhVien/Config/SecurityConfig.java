@@ -79,7 +79,8 @@ public class SecurityConfig {
                                 "/ws/**",
                                 "/api/auth/**",
                                 "/api/test-email",
-                                "/api/images/**"
+                                "/api/images/**",
+                                "/home"
                         ).permitAll()
 
                         // Giao diện hiện tại
@@ -87,6 +88,11 @@ public class SecurityConfig {
                                 "/Admin/**",
                                 "/DuocSi/**",
                                 "/TiepNhan/**"
+                        ).permitAll()
+
+                        // Trang chủ bệnh nhân - tạm công khai để thử giao diện
+                        .requestMatchers(
+                                "/benh-nhan/trang-chu"
                         ).permitAll()
 
                         // API cấp thuốc và thanh toán dành riêng cho Dược sĩ
