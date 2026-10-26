@@ -1,705 +1,779 @@
-
-/* =========================================================
-   HỒ SƠ CÁ NHÂN - NHÂN VIÊN TIẾP NHẬN
-   File: Js/TiepNhan/ho-so-ca-nhan.js
-   ========================================================= */
-
 (() => {
     "use strict";
 
-    // TODO: Đối chiếu các endpoint này với Controller thực tế.
-    const API = {
-        profile: "/api/tiep-nhan/ho-so-ca-nhan",
-        changePassword: "/api/tiep-nhan/doi-mat-khau",
-        avatar: null
+    const $ = id => document.getElementById(id);
+    const page = $("staff-profile-page");
+
+    if (!page) return;
+
+    const PROFILE_API = "/api/tiepnhan/ho-so-ca-nhan";
+    const SHIFT_API = "/api/tiepnhan/phan-cong/hien-tai";
+
+    const form = $("staff-profile-form");
+
+    const fields = {
+        hoTen: $("staff-full-name"),
+        email: $("staff-email"),
+        soDienThoai: $("staff-phone")
     };
 
-    const $ = (id) => document.getElementById(id);
+    let profile = null;
+    let loading = false;
+    let saving = false;
+    let editing = false;
+    let uncertain = false;
 
-    const form = $("profileForm");
-    const editBtn = $("editBtn");
-    const cancelBtn = $("cancelBtn");
-    const editActions = $("editActions");
-    const saveBtn = $("saveBtn");
-    const avatar = $("avatar");
-    const avatarInput = $("avatarInput");
-    const changeAvatarBtn = $("changeAvatarBtn");
-    const passwordModalElement = $("passwordModal");
-    const passwordForm = $("passwordForm");
+    let snapshot = "";
+    let toastTimer;
 
-    let originalProfile = null;
-    let isEditing = false;
-    let selectedAvatarFile = null;
-    let originalAvatarSrc = avatar?.src || "";
-    let passwordModal = null;
+    // =====================================================
+    // THÔNG BÁO ĐẨY
+    // =====================================================
 
-    const editableFieldIds = [
-        "hoTen",
-        "email",
-        "soDienThoai"
-    ];
+    function notify(content, type = "info", duration = 6000) {
+        clearTimeout(toastTimer);
 
-    const readOnlyFieldIds = [
-        "tenDangNhap",
-        "tenKhoa",
-        "viTriCongViec"
-    ];
+        const box = $("staff-profile-message");
+        box.hidden = true;
 
-    document.addEventListener("DOMContentLoaded", init);
+        $("staff-profile-message-text").textContent = content;
 
-    function init() {
-        if (window.bootstrap && passwordModalElement) {
-            passwordModal = new bootstrap.Modal(passwordModalElement);
+        const icons = {
+            success: "fa-circle-check",
+            danger: "fa-circle-xmark",
+            warning: "fa-triangle-exclamation",
+            info: "fa-circle-info"
+        };
+
+        $("staff-profile-message-icon").className =
+            `fa-solid ${icons[type] || icons.info}`;
+
+        box.dataset.type = type;
+
+        // Khởi động lại hiệu ứng thông báo.
+        void box.offsetWidth;
+        box.hidden = false;
+
+        if (duration > 0) {
+            toastTimer = setTimeout(() => {
+                box.hidden = true;
+            }, duration);
         }
-
-        bindEvents();
-        loadProfile();
     }
 
-    // =========================
-    // GẮN SỰ KIỆN
-    // =========================
+    // =====================================================
+    // NGÀY TRÊN HEADER VÀ THỜI GIAN CA TRỰC
+    // =====================================================
 
-    function bindEvents() {
-        editBtn?.addEventListener("click", enterEditMode);
-        cancelBtn?.addEventListener("click", cancelEdit);
-        form?.addEventListener("submit", saveProfile);
+    function updateHeaderDate() {
+        const element = $("header-date-display");
+        if (!element) return;
 
-        changeAvatarBtn?.addEventListener("click", () => {
-            avatarInput?.click();
-        });
+        const date = new Intl.DateTimeFormat("vi-VN", {
+            timeZone: "Asia/Ho_Chi_Minh",
+            weekday: "long",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+        }).format(new Date());
 
-        avatarInput?.addEventListener("change", previewAvatar);
-
-        $("openPasswordBtn")?.addEventListener(
-            "click",
-            openPasswordModal
-        );
-
-        $("closePasswordBtn")?.addEventListener(
-            "click",
-            closePasswordModal
-        );
-
-        $("cancelPasswordBtn")?.addEventListener(
-            "click",
-            closePasswordModal
-        );
-
-        passwordForm?.addEventListener(
-            "submit",
-            changePassword
-        );
-
-        passwordModalElement?.addEventListener(
-            "hidden.bs.modal",
-            () => passwordForm?.reset()
-        );
+        element.textContent =
+            date.charAt(0).toUpperCase() + date.slice(1);
     }
 
-    // =========================
+    function formatShiftTime(value) {
+        const match =
+            /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/
+                .exec(String(value || ""));
+
+        return match
+            ? `${match[4]}:${match[5]} · ${match[3]}/${match[2]}/${match[1]}`
+            : "Chưa có thông tin";
+    }
+
+    // =====================================================
     // GỌI API
-    // =========================
+    // =====================================================
 
     async function request(url, options = {}) {
-        const headers = {
-            ...(options.headers || {})
-        };
+        const token = sessionStorage.getItem("Token")
+            || localStorage.getItem("Token")
+            || sessionStorage.getItem("token")
+            || localStorage.getItem("token");
 
-        if (!(options.body instanceof FormData)) {
-            headers["Content-Type"] = "application/json";
-        }
-
-        const response = await fetch(url, {
-            credentials: "same-origin",
-            ...options,
-            headers
-        });
-
-        const contentType =
-            response.headers.get("content-type") || "";
-
-        let result = null;
-
-        if (contentType.includes("application/json")) {
-            result = await response.json();
-        } else {
-            result = await response.text();
-        }
-
-        if (!response.ok) {
-            const message =
-                result && typeof result === "object"
-                    ? (
-                        result.message ||
-                        result.error ||
-                        result.detail
-                    )
-                    : result;
-
-            throw new Error(
-                message || `Yêu cầu thất bại (${response.status}).`
+        if (!token) {
+            const error = new Error(
+                "Vui lòng đăng nhập lại để tiếp tục."
             );
+
+            error.status = 401;
+            throw error;
         }
 
-        return result;
-    }
+        const controller = new AbortController();
 
-    // =========================
-    // TẢI HỒ SƠ
-    // =========================
-
-    async function loadProfile() {
-        if (!form) return;
+        const timer = setTimeout(() => {
+            controller.abort();
+        }, 20000);
 
         try {
-            const response = await request(API.profile, {
-                method: "GET"
+            const headers = new Headers({
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`
             });
 
-            const profile = normalizeProfile(response);
+            if (options.body) {
+                headers.set("Content-Type", "application/json");
+            }
 
-            originalProfile = { ...profile };
+            const response = await fetch(url, {
+                ...options,
+                headers,
+                signal: controller.signal,
+                cache: "no-store",
+                credentials: "same-origin"
+            });
 
-            fillProfile(profile);
-            setEditing(false);
-            clearMessage();
+            let data = null;
 
+            try {
+                data = await response.json();
+            } catch {
+                // Kiểm tra phản hồi bên dưới.
+            }
+
+            if (!response.ok) {
+                const fallback = response.status === 401
+                    ? "Phiên đăng nhập đã hết hạn."
+                    : response.status === 403
+                        ? "Bạn không có quyền truy cập thông tin này."
+                        : response.status === 404
+                            ? "Chưa tìm thấy API hoặc thông tin được yêu cầu."
+                            : "Không thể xử lý yêu cầu. Vui lòng thử lại.";
+
+                const error = new Error(
+                    data?.message || data?.detail || fallback
+                );
+
+                error.status = response.status;
+                throw error;
+            }
+
+            if (
+                !data
+                || typeof data !== "object"
+                || Array.isArray(data)
+                || data.success === false
+            ) {
+                const error = new Error(
+                    data?.message || "Phản hồi máy chủ không hợp lệ."
+                );
+
+                error.status = response.status;
+                throw error;
+            }
+
+            return data;
         } catch (error) {
-            console.error(
-                "Không tải được hồ sơ nhân viên tiếp nhận:",
-                error
-            );
+            if (error.name === "AbortError") {
+                throw new Error(
+                    "Yêu cầu quá thời gian chờ. Hãy làm mới để kiểm tra."
+                );
+            }
 
-            showMessage(
-                `Không tải được hồ sơ. Hãy kiểm tra API ${API.profile}. ${error.message}`,
-                "error"
-            );
+            throw error;
+        } finally {
+            clearTimeout(timer);
         }
     }
 
-    /*
-     * Chỉnh tên thuộc tính tại đây nếu DTO backend sử dụng
-     * tên khác.
-     */
-    function normalizeProfile(response) {
-        const data = response?.data ?? response ?? {};
+    // =====================================================
+    // TRẠNG THÁI CHỈNH SỬA
+    // =====================================================
 
-        const anhDaiDien =
-            data.anhDaiDien ??
-            data.avatarUrl ??
-            data.avatar ??
-            null;
+    function currentValues() {
+        return JSON.stringify(
+            Object.values(fields).map(input => input.value)
+        );
+    }
+
+    function dirty() {
+        return !!profile && currentValues() !== snapshot;
+    }
+
+    function setControls() {
+        const busy = loading || saving;
+
+        $("staff-personal-fields").disabled =
+            busy || !profile || !editing || uncertain;
+
+        Object.values(fields).forEach(input => {
+            input.readOnly = !editing || busy || uncertain;
+        });
+
+        $("staff-edit-button").hidden = editing;
+
+        $("staff-edit-button").disabled =
+            busy || !profile || uncertain;
+
+        $("staff-edit-actions").hidden = !editing;
+
+        $("staff-cancel-button").disabled =
+            busy || uncertain;
+
+        $("staff-save-button").disabled =
+            busy || !profile || uncertain || !dirty();
+
+        $("staff-save-button").lastChild.textContent =
+            saving ? " Đang lưu…" : " Lưu thay đổi";
+
+        $("refresh-profile-button").disabled = busy;
+
+        page.setAttribute("aria-busy", String(busy));
+    }
+
+    // =====================================================
+    // KIỂM TRA VÀ HIỂN THỊ HỒ SƠ
+    // =====================================================
+
+    function normalizeProfile(data) {
+        const id = Number(data.maNguoiDung);
+
+        if (
+            !Number.isSafeInteger(id)
+            || id <= 0
+            || typeof data.hoTen !== "string"
+            || !data.hoTen.trim()
+            || typeof data.tenDangNhap !== "string"
+            || !data.tenDangNhap.trim()
+        ) {
+            throw new Error(
+                "Dữ liệu hồ sơ cá nhân không hợp lệ."
+            );
+        }
+
+        for (const key of [
+            "email",
+            "soDienThoai",
+            "anhDaiDien"
+        ]) {
+            if (
+                data[key] != null
+                && typeof data[key] !== "string"
+            ) {
+                throw new Error(
+                    "Dữ liệu hồ sơ cá nhân không hợp lệ."
+                );
+            }
+        }
 
         return {
-            hoTen: data.hoTen ?? data.hoTenNhanVien ?? data.fullName ?? "",
-            tenDangNhap: data.tenDangNhap ?? data.username ?? "",
-            email: data.email ?? "",
-            soDienThoai: data.soDienThoai ?? data.sdt ?? data.phone ?? "",
-            tenKhoa: data.tenKhoa ?? data.tenBoPhan ?? data.departmentName ?? "",
-            viTriCongViec: data.viTriCongViec ?? "Nhân viên tiếp nhận",
-            avatarUrl: taoUrlAnh(anhDaiDien)
+            ...data,
+            maNguoiDung: id
         };
     }
 
-    function taoUrlAnh(duongDanAnh) {
-        if (
-            duongDanAnh == null ||
-            String(duongDanAnh).trim() === ""
-        ) {
-            return "/Images/default-avatar.jpg";
-        }
+    function renderAvatar(source) {
+        const image = $("staff-avatar-image");
+        const placeholder = $("staff-avatar-placeholder");
 
-        const anh = String(duongDanAnh).trim();
+        image.hidden = true;
+        placeholder.hidden = false;
+        image.removeAttribute("src");
 
-        // Nếu backend trả về URL đầy đủ hoặc đường dẫn API ảnh.
-        if (/^https?:\/\//i.test(anh) || anh.startsWith("/")) {
-            return anh;
-        }
-
-        // Nếu CSDL lưu fileKey, ví dụ: images/ten-file.jpg.
-        return "/api/images/view?fileKey=" + encodeURIComponent(anh);
-    }
-    function fillProfile(profile) {
-        setValue("hoTen", profile.hoTen);
-        setValue("tenDangNhap", profile.tenDangNhap);
-        setValue("email", profile.email);
-        setValue("soDienThoai", profile.soDienThoai);
-        setValue("tenKhoa", profile.tenKhoa);
-        setValue("viTriCongViec", profile.viTriCongViec);
-
-        if ($("displayName")) {
-            $("displayName").textContent =
-                profile.hoTen || "Nhân viên tiếp nhận";
-        }
-
-        if ($("displayUsername")) {
-            $("displayUsername").textContent =
-                profile.tenDangNhap
-                    ? `@${profile.tenDangNhap}`
-                    : "Tên đăng nhập";
-        }
-
-        if ($("displayDepartment")) {
-            $("displayDepartment").textContent =
-                profile.tenKhoa || "Nhân viên tiếp nhận";
-        }
-
-       if (avatar) {
-           avatar.onerror = function () {
-               this.onerror = null;
-               this.src = "/Images/default-avatar.jpg";
-           };
-
-           avatar.src = profile.avatarUrl || "/Images/default-avatar.jpg";
-           originalAvatarSrc = avatar.src;
-       }
-    }
-
-    function setValue(id, value) {
-        const element = $(id);
-
-        if (element) {
-            element.value = value ?? "";
-        }
-    }
-
-    // =========================
-    // CHỈNH SỬA HỒ SƠ
-    // =========================
-
-    function enterEditMode() {
-        if (!originalProfile) {
-            showMessage(
-                "Chưa tải được hồ sơ để chỉnh sửa.",
-                "error"
-            );
-            return;
-        }
-
-        setEditing(true);
-        clearMessage();
-    }
-
-    function setEditing(enabled) {
-        isEditing = enabled;
-
-        editableFieldIds.forEach((id) => {
-            const element = $(id);
-
-            if (element) {
-                element.disabled = !enabled;
-            }
-        });
-
-        // Các trường này chỉ xem, không cho chỉnh sửa.
-        readOnlyFieldIds.forEach((id) => {
-            const element = $(id);
-
-            if (element) {
-                element.disabled = true;
-            }
-        });
-
-        if (editBtn) {
-            editBtn.style.display = enabled ? "none" : "";
-        }
-
-        if (editActions) {
-            editActions.style.display =
-                enabled ? "flex" : "none";
-        }
-
-        if (saveBtn) {
-            saveBtn.disabled = !enabled;
-        }
-    }
-
-    function cancelEdit() {
-        if (originalProfile) {
-            fillProfile(originalProfile);
-        }
-
-        selectedAvatarFile = null;
-
-        if (avatarInput) {
-            avatarInput.value = "";
-        }
-
-        if (avatar && originalAvatarSrc) {
-            avatar.src = originalAvatarSrc;
-        }
-
-        setEditing(false);
-        clearMessage();
-    }
-
-    async function saveProfile(event) {
-        event.preventDefault();
-
-        if (!isEditing) return;
-
-        const payload = {
-            hoTen: $("hoTen")?.value.trim() || "",
-            email: $("email")?.value.trim() || "",
-            soDienThoai:
-                $("soDienThoai")?.value.trim() || ""
-        };
-
-        if (!payload.hoTen) {
-            showMessage(
-                "Vui lòng nhập họ và tên.",
-                "error"
-            );
-            $("hoTen")?.focus();
-            return;
-        }
-
-        if (
-            payload.email &&
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)
-        ) {
-            showMessage(
-                "Địa chỉ email không hợp lệ.",
-                "error"
-            );
-            $("email")?.focus();
-            return;
-        }
-
-        if (
-            payload.soDienThoai &&
-            !/^[0-9+\s().-]{8,20}$/.test(
-                payload.soDienThoai
-            )
-        ) {
-            showMessage(
-                "Số điện thoại không hợp lệ.",
-                "error"
-            );
-            $("soDienThoai")?.focus();
-            return;
-        }
-
-        setButtonLoading(saveBtn, true, "Đang lưu...");
+        if (!source) return;
 
         try {
-            const response = await request(API.profile, {
-                method: "PUT",
-                body: JSON.stringify(payload)
-            });
+            const url = new URL(
+                source,
+                window.location.origin
+            );
 
-            const returnedProfile =
-                normalizeProfile(response);
+            const sameOriginHttp =
+                url.origin === window.location.origin
+                && url.protocol === "http:";
 
-            originalProfile = {
-                ...originalProfile,
-                ...returnedProfile,
-                ...payload
+            if (
+                url.protocol !== "https:"
+                && !sameOriginHttp
+            ) {
+                return;
+            }
+
+            image.onload = () => {
+                image.hidden = false;
+                placeholder.hidden = true;
             };
 
-            fillProfile(originalProfile);
-            setEditing(false);
+            image.onerror = () => {
+                image.hidden = true;
+                placeholder.hidden = false;
+            };
 
-            showMessage(
-                "Cập nhật hồ sơ thành công.",
-                "success"
-            );
-
-            if (selectedAvatarFile) {
-                await uploadAvatar(selectedAvatarFile);
-            }
-
-        } catch (error) {
-            console.error(
-                "Không lưu được hồ sơ:",
-                error
-            );
-
-            showMessage(
-                `Không thể lưu hồ sơ. Hãy kiểm tra API backend. ${error.message}`,
-                "error"
-            );
-
-        } finally {
-            setButtonLoading(
-                saveBtn,
-                false,
-                "Lưu thay đổi"
-            );
+            image.src = url.href;
+        } catch {
+            // Hiển thị biểu tượng đại diện mặc định.
         }
     }
 
-    // =========================
-    // ẢNH ĐẠI DIỆN
-    // =========================
+    function renderProfile(data) {
+        profile = data;
 
-    function previewAvatar(event) {
-        const file = event.target.files?.[0];
+        Object.entries(fields).forEach(([key, input]) => {
+            input.value = data[key] || "";
+        });
 
-        if (!file) return;
+        $("staff-username").value = data.tenDangNhap;
 
-        if (!file.type.startsWith("image/")) {
-            showMessage(
-                "Vui lòng chọn tệp hình ảnh.",
-                "error"
-            );
+        $("staff-display-name").textContent = data.hoTen;
 
-            event.target.value = "";
-            return;
+        $("staff-summary-id").textContent =
+            String(data.maNguoiDung);
+
+        $("staff-work-id").value =
+            String(data.maNguoiDung);
+
+        if ($("current-user-name")) {
+            $("current-user-name").textContent = data.hoTen;
         }
 
-        if (file.size > 5 * 1024 * 1024) {
-            showMessage(
-                "Ảnh đại diện không được vượt quá 5 MB.",
-                "error"
-            );
+        renderAvatar(data.anhDaiDien);
 
-            event.target.value = "";
-            return;
-        }
-
-        selectedAvatarFile = file;
-
-        const reader = new FileReader();
-
-        reader.onload = () => {
-            if (avatar) {
-                avatar.src = reader.result;
-            }
-        };
-
-        reader.onerror = () => {
-            showMessage(
-                "Không thể đọc ảnh đã chọn.",
-                "error"
-            );
-        };
-
-        reader.readAsDataURL(file);
-
-        if (API.avatar) {
-            showMessage(
-                "Đã chọn ảnh. Nhấn Lưu thay đổi để tải ảnh lên.",
-                "success"
-            );
-        } else {
-            showMessage(
-                "Ảnh mới chỉ đang được xem trước. Cần cấu hình API upload để lưu ảnh lên máy chủ.",
-                "error"
-            );
-        }
+        snapshot = currentValues();
     }
 
-    async function uploadAvatar(file) {
-        if (!API.avatar) return;
+    // =====================================================
+    // THÔNG TIN PHÂN CÔNG
+    // =====================================================
 
-        const formData = new FormData();
-        formData.append("file", file);
+    function renderShift(shift, reason = "") {
+        const note = $("staff-assignment-message");
+
+        if (!shift) {
+            $("staff-summary-department").textContent =
+                "Chưa xác định khoa phụ trách";
+
+            $("staff-department").value = "Chưa xác định";
+            $("staff-assignment-id").value = "—";
+            $("staff-shift-start").value = "—";
+            $("staff-shift-end").value = "—";
+
+            note.textContent =
+                reason || "Chưa tải được thông tin ca trực.";
+
+            note.hidden = false;
+            return;
+        }
+
+        $("staff-summary-department").textContent =
+            shift.tenKhoa;
+
+        $("staff-department").value = shift.tenKhoa;
+
+        $("staff-assignment-id").value =
+            String(shift.maPhanCong);
+
+        $("staff-shift-start").value =
+            formatShiftTime(shift.thoiGianBatDau);
+
+        $("staff-shift-end").value =
+            formatShiftTime(shift.thoiGianKetThuc);
+
+        note.hidden = true;
+        note.textContent = "";
+    }
+
+    // =====================================================
+    // TẢI HỒ SƠ VÀ CA TRỰC
+    // =====================================================
+
+    async function loadProfile() {
+        if (loading || saving) return;
+
+        if (dirty() && !uncertain) {
+            notify(
+                "Bạn có thay đổi chưa lưu. Hãy lưu hoặc bấm Hủy trước khi làm mới.",
+                "warning"
+            );
+
+            return;
+        }
+
+        loading = true;
+        updateHeaderDate();
+        setControls();
 
         try {
-            const result = await request(API.avatar, {
-                method: "POST",
-                body: formData
-            });
+            const [personal, shift] = await Promise.allSettled([
+                request(PROFILE_API),
+                request(SHIFT_API)
+            ]);
 
-            const imageUrl =
-                result?.avatarUrl ??
-                result?.data?.avatarUrl ??
-                result?.url ??
-                result?.data?.url;
+            let personalData = null;
+            let errorMessage = "";
 
-            if (imageUrl && avatar) {
-                avatar.src = imageUrl;
-                originalAvatarSrc = imageUrl;
+            if (personal.status === "fulfilled") {
+                try {
+                    personalData =
+                        normalizeProfile(personal.value);
+                } catch (error) {
+                    errorMessage = error.message;
+                }
+            } else {
+                errorMessage = personal.reason.status === 404
+                    ? "API hồ sơ cá nhân chưa sẵn sàng. Cần bổ sung API để tải và lưu thông tin."
+                    : personal.reason.message;
             }
 
-            selectedAvatarFile = null;
+            if (personalData) {
+                if (
+                    profile
+                    && profile.maNguoiDung
+                        !== personalData.maNguoiDung
+                ) {
+                    throw new Error(
+                        "Tài khoản đăng nhập đã thay đổi. Hãy tải lại trang trước khi tiếp tục."
+                    );
+                }
 
-            if (avatarInput) {
-                avatarInput.value = "";
+                renderProfile(personalData);
+                editing = false;
+
+                const wasUncertain = uncertain;
+                uncertain = false;
+
+                if (wasUncertain) {
+                    notify(
+                        "Đã tải lại hồ sơ từ hệ thống. Bạn có thể kiểm tra thông tin vừa lưu.",
+                        "info"
+                    );
+                }
             }
 
-            showMessage(
-                "Cập nhật ảnh đại diện thành công.",
-                "success"
-            );
+            if (shift.status === "fulfilled") {
+                const data = shift.value;
 
+                const validAssignment =
+                    Number.isSafeInteger(
+                        Number(data.maPhanCong)
+                    )
+                    && Number(data.maPhanCong) > 0;
+
+                const validDepartment =
+                    typeof data.tenKhoa === "string"
+                    && !!data.tenKhoa.trim();
+
+                const matchingAccount = !personalData
+                    || Number(data.maNhanVienTiepNhan)
+                        === personalData.maNguoiDung;
+
+                if (
+                    !validAssignment
+                    || !validDepartment
+                    || !matchingAccount
+                ) {
+                    renderShift(
+                        null,
+                        "Thông tin phân công không hợp lệ hoặc không thuộc tài khoản hiện tại."
+                    );
+                } else {
+                    renderShift(data);
+                }
+            } else {
+                renderShift(null, shift.reason.message);
+            }
+
+            if (errorMessage) {
+                notify(errorMessage, "danger", 0);
+            }
         } catch (error) {
-            console.error(
-                "Không tải được ảnh đại diện:",
-                error
-            );
-
-            showMessage(
-                `Không thể lưu ảnh đại diện: ${error.message}`,
-                "error"
-            );
+            notify(error.message, "danger", 0);
+        } finally {
+            loading = false;
+            setControls();
         }
     }
 
-    // =========================
-    // ĐỔI MẬT KHẨU
-    // =========================
+    // =====================================================
+    // DỮ LIỆU CẬP NHẬT
+    // =====================================================
 
-    function openPasswordModal() {
-        if (!passwordModal) {
-            showMessage(
-                "Không mở được cửa sổ đổi mật khẩu. Hãy kiểm tra Bootstrap JS trong layout.",
-                "error"
+    function payload() {
+        const hoTen = fields.hoTen.value.trim();
+        const email = fields.email.value.trim();
+        const phone = fields.soDienThoai.value.trim();
+
+        if (!hoTen || hoTen.length > 255) {
+            throw new Error(
+                "Họ tên phải có từ 1 đến 255 ký tự."
             );
-            return;
         }
-
-        passwordForm?.reset();
-        passwordModal.show();
-    }
-
-    function closePasswordModal() {
-        if (passwordModal) {
-            passwordModal.hide();
-        }
-    }
-
-    async function changePassword(event) {
-        event.preventDefault();
-
-        const matKhauCu =
-            $("matKhauCu")?.value || "";
-
-        const matKhauMoi =
-            $("matKhauMoi")?.value || "";
-
-        const xacNhanMatKhau =
-            $("xacNhanMatKhau")?.value || "";
 
         if (
-            !matKhauCu ||
-            !matKhauMoi ||
-            !xacNhanMatKhau
+            email.length > 255
+            || (email && !fields.email.checkValidity())
         ) {
-            showMessage(
-                "Vui lòng nhập đầy đủ thông tin đổi mật khẩu.",
-                "error"
+            throw new Error("Email không hợp lệ.");
+        }
+
+        if (
+            phone
+            && !/^\+?[0-9]{9,14}$/.test(phone)
+        ) {
+            throw new Error(
+                "Số điện thoại cần có 9–14 chữ số, có thể bắt đầu bằng dấu +."
             );
+        }
+
+        // Không gửi mã tài khoản, vai trò hoặc khoa.
+        // Backend phải xác định tài khoản từ phiên đăng nhập.
+        return {
+            hoTen,
+            email: email || null,
+            soDienThoai: phone || null
+        };
+    }
+
+    // =====================================================
+    // LƯU THÔNG TIN
+    // =====================================================
+
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        if (
+            !profile
+            || !editing
+            || loading
+            || saving
+            || uncertain
+        ) {
             return;
         }
 
-        if (matKhauMoi.length < 8) {
-            showMessage(
-                "Mật khẩu mới phải có ít nhất 8 ký tự.",
-                "error"
-            );
-            return;
-        }
-
-        if (matKhauCu === matKhauMoi) {
-            showMessage(
-                "Mật khẩu mới phải khác mật khẩu hiện tại.",
-                "error"
-            );
-            return;
-        }
-
-        if (matKhauMoi !== xacNhanMatKhau) {
-            showMessage(
-                "Mật khẩu xác nhận không khớp.",
-                "error"
-            );
-            $("xacNhanMatKhau")?.focus();
-            return;
-        }
-
-        const submitBtn = $("submitPasswordBtn");
-
-        setButtonLoading(
-            submitBtn,
-            true,
-            "Đang cập nhật..."
-        );
+        let data;
 
         try {
-            await request(API.changePassword, {
+            data = payload();
+
+            if (!form.reportValidity()) return;
+
+            const unchanged =
+                data.hoTen === profile.hoTen.trim()
+                && data.email === (profile.email?.trim() || null)
+                && data.soDienThoai
+                    === (profile.soDienThoai?.trim() || null);
+
+            if (unchanged) {
+                notify("Chưa có thông tin thay đổi cần lưu.");
+                return;
+            }
+        } catch (error) {
+            notify(error.message, "warning");
+            return;
+        }
+
+        saving = true;
+        setControls();
+
+        try {
+            const response = await request(PROFILE_API, {
                 method: "PUT",
-                body: JSON.stringify({
-                    matKhauCu,
-                    matKhauMoi,
-                    xacNhanMatKhau
-                })
+                body: JSON.stringify(data)
             });
 
-            closePasswordModal();
-            passwordForm?.reset();
+            const result = normalizeProfile(response);
 
-            showMessage(
-                "Đổi mật khẩu thành công.",
+            if (
+                result.maNguoiDung
+                !== profile.maNguoiDung
+            ) {
+                throw new Error(
+                    "Phản hồi lưu hồ sơ không đúng tài khoản."
+                );
+            }
+
+            renderProfile(result);
+            editing = false;
+
+            notify(
+                "Đã cập nhật hồ sơ cá nhân thành công.",
                 "success"
             );
-
         } catch (error) {
-            console.error(
-                "Không đổi được mật khẩu:",
-                error
-            );
+            uncertain =
+                !error.status
+                || error.status >= 500
+                || (
+                    error.status >= 200
+                    && error.status < 300
+                );
 
-            showMessage(
-                `Không thể đổi mật khẩu. Hãy kiểm tra API backend. ${error.message}`,
-                "error"
+            notify(
+                uncertain
+                    ? "Chưa xác định được kết quả lưu. Hãy bấm Làm mới dữ liệu để kiểm tra trước khi lưu lại."
+                    : error.message,
+                "danger",
+                0
             );
-
         } finally {
-            setButtonLoading(
-                submitBtn,
-                false,
-                "Cập nhật mật khẩu"
+            saving = false;
+            setControls();
+        }
+    });
+
+    // =====================================================
+    // CHỈNH SỬA VÀ HỦY
+    // =====================================================
+
+    $("staff-edit-button").addEventListener("click", () => {
+        if (
+            !profile
+            || loading
+            || saving
+            || uncertain
+        ) {
+            return;
+        }
+
+        editing = true;
+        setControls();
+        fields.hoTen.focus();
+    });
+
+    $("staff-cancel-button").addEventListener("click", () => {
+        if (
+            !profile
+            || loading
+            || saving
+            || uncertain
+        ) {
+            return;
+        }
+
+        renderProfile(profile);
+        editing = false;
+        setControls();
+    });
+
+    Object.values(fields).forEach(input => {
+        input.addEventListener("input", setControls);
+    });
+
+    $("refresh-profile-button").addEventListener("click", () => {
+        void loadProfile();
+    });
+
+    $("staff-profile-message-close").addEventListener(
+        "click",
+        () => {
+            clearTimeout(toastTimer);
+            $("staff-profile-message").hidden = true;
+        }
+    );
+
+    // =====================================================
+    // NHẮC KHI CÒN THAY ĐỔI CHƯA LƯU
+    // =====================================================
+
+    document.addEventListener("click", event => {
+        if (
+            event.defaultPrevented
+            || event.button !== 0
+            || event.ctrlKey
+            || event.metaKey
+            || event.shiftKey
+            || event.altKey
+        ) {
+            return;
+        }
+
+        const link = event.target.closest(".sidebar a");
+
+        if (
+            !link
+            || link.id === "logoutButton"
+            || !dirty()
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+
+        notify(
+            "Bạn có thay đổi chưa lưu. Hãy lưu hoặc bấm Hủy trước khi chuyển trang.",
+            "warning"
+        );
+    });
+
+    window.addEventListener("beforeunload", event => {
+        if (!dirty() && !saving && !uncertain) return;
+
+        event.preventDefault();
+        event.returnValue = "";
+    });
+
+    window.addEventListener("focus", updateHeaderDate);
+
+    // =====================================================
+    // THÔNG BÁO TRÊN HEADER
+    // =====================================================
+
+    function initNotifications() {
+        const wrapper = $("notification-wrapper");
+        const button = $("notification-button");
+        const panel = $("notification-panel");
+        const close = $("notification-close");
+
+        if (!wrapper || !button || !panel || !close) return;
+
+        function toggle(open) {
+            panel.hidden = !open;
+
+            button.setAttribute(
+                "aria-expanded",
+                String(open)
+            );
+
+            button.setAttribute(
+                "aria-label",
+                open ? "Đóng thông báo" : "Mở thông báo"
             );
         }
-    }
 
-    // =========================
-    // THÔNG BÁO VÀ TRẠNG THÁI NÚT
-    // =========================
+        button.addEventListener("click", () => {
+            toggle(panel.hidden);
+        });
 
-    function setButtonLoading(button, loading, text) {
-        if (!button) return;
+        close.addEventListener("click", () => {
+            toggle(false);
+            button.focus();
+        });
 
-        if (loading) {
-            button.dataset.originalHtml = button.innerHTML;
-            button.disabled = true;
-            button.textContent = text;
-        } else {
-            button.disabled = false;
-            button.innerHTML =
-                button.dataset.originalHtml || text;
-
-            delete button.dataset.originalHtml;
-        }
-    }
-
-    function showMessage(message, type = "success") {
-        let element = $("profileMessage");
-
-        if (!element) {
-            element = document.createElement("div");
-            element.id = "profileMessage";
-            element.className = "profile-message";
-
-            const container =
-                document.querySelector(".profile-container");
-
-            if (container) {
-                container.prepend(element);
-            } else {
-                document.body.prepend(element);
+        document.addEventListener("click", event => {
+            if (!wrapper.contains(event.target)) {
+                toggle(false);
             }
-        }
+        });
 
-        element.textContent = message;
-        element.className = `profile-message ${type}`;
-        element.setAttribute("role", "status");
+        document.addEventListener("keydown", event => {
+            if (
+                event.key === "Escape"
+                && !panel.hidden
+            ) {
+                toggle(false);
+                button.focus();
+            }
+        });
     }
 
-    function clearMessage() {
-        $("profileMessage")?.remove();
-    }
+    // =====================================================
+    // KHỞI TẠO
+    // =====================================================
+
+    initNotifications();
+    updateHeaderDate();
+    setControls();
+
+    void loadProfile();
 })();
