@@ -274,6 +274,7 @@
     }
 
 
+
     function renderAvatar(source) {
         const image = $("staff-avatar-image");
         const placeholder = $("staff-avatar-placeholder");
@@ -317,6 +318,7 @@
 
         image.src = imageUrl;
     }
+
 
 
     function renderProfile(data) {
