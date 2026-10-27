@@ -8,6 +8,18 @@ import java.time.LocalDateTime;
 @Table(name = "ChiDinhYTe")
 public class ChiDinhYTe {
 
+    @Column(name = "MaPhieuChiDinh", length = 36)
+    private String maPhieuChiDinh;
+
+    public String getMaPhieuChiDinh() {
+        return maPhieuChiDinh;
+    }
+
+    public void setMaPhieuChiDinh(String maPhieuChiDinh) {
+        this.maPhieuChiDinh = maPhieuChiDinh;
+    }
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaChiDinh")

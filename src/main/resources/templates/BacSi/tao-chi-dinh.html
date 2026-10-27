@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{BacSi/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        Tạo phiếu chỉ định - MedCare
+    </title>
+
+    <th:block layout:fragment="css">
+
+        <link rel="stylesheet"
+              th:href="@{/Css/BacSi/tao-chi-dinh.css}">
+
+    </th:block>
+</head>
+
+<body>
+
+<section class="content"
+         layout:fragment="content">
+
+    <div class="order-page">
+
+        <!-- ======================================
+             1. TIÊU ĐỀ
+        ======================================= -->
+
+        <div class="order-heading">
+
+            <a id="backToExam"
+               href="/auth/bac-si/kham-benh">
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+                Quay lại cận lâm sàng
+            </a>
+
+            <h1>
+                <i class="fa-solid fa-file-medical"></i>
+                TẠO PHIẾU CHỈ ĐỊNH CẬN LÂM SÀNG
+            </h1>
+
+            <p>
+                Lựa chọn các xét nghiệm hoặc chỉ số
+                cần thực hiện cho bệnh nhân.
+            </p>
+
+        </div>
+
+
+        <!-- ======================================
+             2. THÔNG TIN BỆNH NHÂN
+        ======================================= -->
+
+        <div class="order-patient">
+
+            <div>
+                <span>Họ và tên bệnh nhân</span>
+
+                <strong id="patientName">
+                    Đang tải...
+                </strong>
+            </div>
+
+            <div>
+                <span>Mã bệnh nhân</span>
+
+                <strong id="patientId">
+                    ---
+                </strong>
+            </div>
+
+            <div>
+                <span>Năm sinh</span>
+
+                <strong id="patientBirthYear">
+                    ---
+                </strong>
+            </div>
+
+            <div>
+                <span>Giới tính</span>
+
+                <strong id="patientGender">
+                    ---
+                </strong>
+            </div>
+
+            <div>
+                <span>Mã lượt khám</span>
+
+                <strong id="visitId">
+                    ---
+                </strong>
+            </div>
+
+            <div>
+                <span>Bác sĩ chỉ định</span>
+
+                <strong id="doctorNameInOrder">
+                    ---
+                </strong>
+            </div>
+
+        </div>
+
+
+        <!-- ======================================
+             3. CHẨN ĐOÁN
+        ======================================= -->
+
+        <div class="order-diagnosis">
+
+            <strong>
+                <i class="fa-solid fa-stethoscope"></i>
+                Chẩn đoán:
+            </strong>
+
+            <span id="diagnosisText">
+                ---
+            </span>
+
+        </div>
+
+
+        <!-- ======================================
+             4. THÔNG BÁO LỖI
+        ======================================= -->
+
+        <div class="order-alert"
+             id="orderAlert"
+             role="alert"
+             hidden>
+        </div>
+
+
+        <!-- ======================================
+             5. TAB LOẠI CẬN LÂM SÀNG
+        ======================================= -->
+
+        <div class="service-tabs"
+             id="serviceTabs"
+             aria-label="Phân loại cận lâm sàng">
+
+            <!--
+                JavaScript tạo các tab:
+
+                Xét nghiệm
+                Siêu âm
+                X-quang
+                CT
+                Nội soi
+                Thăm dò chức năng
+            -->
+
+        </div>
+
+
+        <!-- ======================================
+             6. BỐ CỤC HAI CỘT
+        ======================================= -->
+
+        <div class="order-layout">
+
+
+            <!-- ==================================
+                 CỘT TRÁI - PHIẾU CHỈ ĐỊNH
+            =================================== -->
+
+            <div class="order-card">
+
+                <div class="order-card-header">
+
+                    <h2 id="catalogTitle">
+                        PHIẾU CHỈ ĐỊNH XÉT NGHIỆM
+                    </h2>
+
+                    <p>
+                        Tick vào ô vuông để chọn
+                        xét nghiệm hoặc chỉ số cần thực hiện.
+                        Có thể chọn nhiều mục ở các nhóm khác nhau.
+                    </p>
+
+                </div>
+
+
+                <!-- TÌM KIẾM -->
+
+                <div class="order-search">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input
+                            type="text"
+                            id="serviceSearch"
+                            placeholder="Tìm tên xét nghiệm hoặc chỉ số..."
+                            autocomplete="off"
+                            aria-label="Tìm kiếm xét nghiệm">
+
+                </div>
+
+
+                <!-- HƯỚNG DẪN -->
+
+                <div class="order-selection-guide">
+
+                    <i class="fa-solid fa-circle-info"></i>
+
+                    <span>
+                        Danh sách được lấy từ hệ thống.
+                        Chọn từng mục để thêm vào phiếu chỉ định.
+                    </span>
+
+                </div>
+
+
+                <!-- ==================================
+                     DANH SÁCH NHÓM CHECKBOX
+                =================================== -->
+
+                <div class="service-groups"
+                     id="serviceGroups">
+
+                    <!--
+                        JavaScript sẽ hiển thị nhóm
+                        và checkbox từ dữ liệu MySQL.
+
+                        Ví dụ cấu trúc:
+
+                        HUYẾT HỌC
+                          [ ] Công thức máu
+                          [ ] Nhóm máu ABO, Rh
+
+                        ĐÁI THÁO ĐƯỜNG
+                          [ ] Glucose
+                          [ ] HbA1c
+
+                        CHỨC NĂNG GAN
+                          [ ] AST
+                          [ ] ALT
+
+                        CHỨC NĂNG THẬN
+                          [ ] Urê
+                          [ ] Creatinin
+
+                        Các mục này chỉ là ví dụ.
+                        Không hardcode danh mục tại HTML.
+                    -->
+
+                    <p>
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        Đang tải danh mục xét nghiệm...
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ==================================
+                 CỘT PHẢI - TỔNG KẾT CHỈ ĐỊNH
+            =================================== -->
+
+            <div class="order-card order-summary">
+
+                <div class="order-card-header">
+
+                    <h2>
+
+                        <i class="fa-solid fa-clipboard-list"></i>
+
+                        TỔNG KẾT CHỈ ĐỊNH
+
+                        <span id="selectedBadge">
+                            0
+                        </span>
+
+                    </h2>
+
+                    <p>
+                        Những mục đã tick sẽ được tự động
+                        gom theo từng nhóm xét nghiệm.
+                    </p>
+
+                </div>
+
+
+                <!-- ==================================
+                     DANH SÁCH ĐÃ CHỌN THEO NHÓM
+                =================================== -->
+
+                <div class="selected-services"
+                     id="selectedServices">
+
+                    <!--
+                        JavaScript sẽ tạo phần tổng kết.
+
+                        Ví dụ:
+
+                        XÉT NGHIỆM HUYẾT HỌC
+                          Công thức máu
+
+                        XÉT NGHIỆM ĐÁI THÁO ĐƯỜNG
+                          Glucose
+                          HbA1c
+
+                        Có nút X để bỏ từng mục.
+                    -->
+
+                    <div class="selected-empty">
+
+                        <i class="fa-solid fa-clipboard-check"></i>
+
+                        <p>
+                            Chưa chọn xét nghiệm nào.
+                        </p>
+
+                        <small>
+                            Tick vào các mục bên trái
+                            để thêm vào phiếu.
+                        </small>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ==================================
+                     THỐNG KÊ PHIẾU
+                =================================== -->
+
+                <div class="order-total">
+
+                    <div>
+
+                        <span>
+                            Tổng số mục đã chọn
+                        </span>
+
+                        <strong id="serviceCount">
+                            0
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+
+                <!-- ==================================
+                     NÚT TẠO PHIẾU
+                =================================== -->
+
+                <button
+                        type="button"
+                        class="btn-create-order"
+                        id="btnSubmitOrders"
+                        disabled>
+
+                    <i class="fa-solid fa-file-circle-check"></i>
+
+                    Tạo phiếu chỉ định
+
+                </button>
+
+
+                <p class="order-note">
+                    Chỉ lưu các mục đã chọn.
+                    Chi phí dự kiến được tính theo
+                    danh mục dịch vụ có giá được cấu hình.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- ======================================
+             7. FOOTER
+        ======================================= -->
+
+        <div class="order-page-footer">
+
+            <span>
+                Phiếu chỉ định cận lâm sàng - MedCare
+            </span>
+
+            <span id="orderCurrentDate">
+                ---
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- ======================================
+         8. POPUP XÁC NHẬN TẠO PHIẾU
+    ======================================= -->
+
+    <div class="order-dialog"
+         id="confirmOrderDialog"
+         hidden>
+
+        <div class="order-dialog-content"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="confirmTitle">
+
+            <div class="order-confirm-icon">
+
+                <i class="fa-solid fa-clipboard-check"></i>
+
+            </div>
+
+
+            <h2 id="confirmTitle">
+                Xác nhận tạo phiếu chỉ định
+            </h2>
+
+
+            <p id="confirmOrderMessage">
+                Bạn có chắc chắn muốn tạo phiếu
+                với những xét nghiệm đã chọn?
+            </p>
+
+
+            <!-- THÔNG TIN XÁC NHẬN -->
+
+            <div class="order-confirm-summary"
+                 id="confirmOrderSummary">
+
+                <!-- JavaScript hiển thị tóm tắt
+                     các nhóm và mục đã tick -->
+
+            </div>
+
+
+            <div class="order-dialog-actions">
+
+                <button
+                        type="button"
+                        class="btn-cancel-order"
+                        id="btnCancelConfirm">
+
+                    Quay lại
+
+                </button>
+
+
+                <button
+                        type="button"
+                        class="btn-create-order"
+                        id="btnConfirmSubmit">
+
+                    <i class="fa-solid fa-check"></i>
+
+                    Xác nhận tạo phiếu
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ======================================
+     9. JAVASCRIPT
+======================================= -->
+
+<th:block layout:fragment="js">
+
+    <script th:src="@{/Js/BacSi/tao-chi-dinh.js}"></script>
+
+</th:block>
+
+</body>
+</html>

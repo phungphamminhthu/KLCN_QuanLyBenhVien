@@ -1838,3 +1838,153 @@ tbody tr:hover {
 .sidebar .submenu.open {
     display: block !important;
 }
+
+
+/* =========================================
+   CHỈ SỐ SỨC KHỎE - HỒ SƠ BỆNH NHÂN
+========================================= */
+
+.patient-vitals {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.patient-vitals-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.patient-vitals-heading h3 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.patient-vitals-heading h3 i {
+    color: #2563eb;
+}
+
+.patient-vitals-heading > span {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.patient-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.patient-vital-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.patient-vital-item span {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.patient-vital-item strong {
+    font-size: 21px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.patient-vital-item small {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+@media (max-width: 900px) {
+    .patient-vitals-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .patient-vitals-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* FIX: CHỈ SỐ SỨC KHỎE KHÔNG TRÀN KHUNG */
+
+.patient-profile-card {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.patient-vitals {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 20px 22px 22px;
+    margin-top: 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.patient-vitals-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.patient-vitals-heading > span {
+    white-space: normal;
+    text-align: right;
+}
+
+.patient-vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.patient-vital-item {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    padding: 14px;
+}
+
+@media (max-width: 1100px) {
+    .patient-vitals-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .patient-vitals {
+        padding: 18px 14px;
+    }
+
+    .patient-vitals-grid {
+        grid-template-columns: 1fr;
+    }
+}

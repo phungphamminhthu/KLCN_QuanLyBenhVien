@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{BacSi/fragments/layout}">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Thông báo</title>
+</head>
+
+<body>
+
+<section class="content"
+         layout:fragment="content">
+
+  <div class="notification-page">
+
+    <div class="notification-page-heading">
+      <div>
+        <h1>
+          <i class="fa-regular fa-bell"></i>
+          Thông báo
+        </h1>
+
+        <p>
+          Xem lịch sử thông báo dành cho bác sĩ
+        </p>
+      </div>
+
+      <div class="notification-page-actions">
+
+        <button type="button"
+                id="reloadAllNotifications">
+          <i class="fa-solid fa-rotate-right"></i>
+          Làm mới
+        </button>
+
+        <button type="button"
+                id="markAllNotificationsRead">
+          Đánh dấu tất cả đã đọc
+        </button>
+
+      </div>
+    </div>
+
+    <div class="notification-page-card">
+
+      <div class="notification-page-summary">
+        <strong>Danh sách thông báo</strong>
+
+        <span id="allNotificationCount">
+                    Đang tải...
+                </span>
+      </div>
+
+      <div id="allNotificationsList">
+        <div class="notification-empty">
+          Đang tải thông báo...
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+<th:block layout:fragment="js">
+  <script th:src="@{/Js/BacSi/thong-bao-trang.js}"></script>
+</th:block>
+
+</body>
+</html>

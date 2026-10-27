@@ -759,6 +759,49 @@ function hienThiThongTinBenhNhan(benhNhan) {
             benhNhan.tienSuBenh ||
             "---";
     }
+    hienThiChiSoSucKhoe(benhNhan);
+}
+
+/* =====================================================
+   HIỂN THỊ CHỈ SỐ SỨC KHỎE
+===================================================== */
+
+function hienThiSoDo(id, giaTri) {
+    const element = document.getElementById(id);
+
+    if (!element) return;
+
+    element.textContent =
+        giaTri === null ||
+        giaTri === undefined ||
+        giaTri === ""
+            ? "—"
+            : String(giaTri);
+}
+
+function hienThiChiSoSucKhoe(benhNhan) {
+    const lichKham = benhNhan?.lanKhamGanNhat;
+
+    hienThiSoDo("detailCanNang", lichKham?.canNang);
+    hienThiSoDo("detailChieuCao", lichKham?.chieuCao);
+    hienThiSoDo("detailHuyetApTamThu", lichKham?.huyetApTamThu);
+    hienThiSoDo("detailHuyetApTamTruong", lichKham?.huyetApTamTruong);
+
+    const vitalsDate = document.getElementById("vitalsDate");
+
+    if (vitalsDate) {
+        const coSoDo = [
+            lichKham?.canNang,
+            lichKham?.chieuCao,
+            lichKham?.huyetApTamThu,
+            lichKham?.huyetApTamTruong
+        ].some(value => value !== null && value !== undefined);
+
+        vitalsDate.textContent =
+            coSoDo && lichKham?.ngayKham
+                ? "Ngày khám: " + formatDate(lichKham.ngayKham)
+                : "Chưa có số đo";
+    }
 }
 
 
@@ -2758,7 +2801,7 @@ document.addEventListener(
 
         /* THÔNG TIN BÁC SĨ */
 
-        hienThiThongTinBacSi();
+//        hienThiThongTinBacSi();
 
 
         /* SIDEBAR */

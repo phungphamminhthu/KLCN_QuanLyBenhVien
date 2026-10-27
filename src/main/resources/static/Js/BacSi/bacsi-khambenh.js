@@ -704,13 +704,23 @@ async function batDauKham(maLichKham) {
         return;
     }
 
-    const dongY = confirm(
-        `Bắt đầu khám cho bệnh nhân ${patient.hoTen}?`
-    );
 
-    if (!dongY) {
-        return;
-    }
+    const result = await Swal.fire({
+        title: "Xác nhận bắt đầu khám",
+        text: `Bạn có muốn bắt đầu khám cho bệnh nhân ${patient.hoTen} không?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Bắt đầu khám",
+        cancelButtonText: "Hủy",
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#64748b",
+        reverseButtons: true,
+        allowOutsideClick: false
+    });
+
+if (!result.isConfirmed) {
+    return;
+}
 
     try {
         // Bắt đầu khám và tạo hồ sơ bệnh án
@@ -2005,13 +2015,37 @@ if (dichVuSelect) {
 }
 
 
-if (btnCreateOrder) {
 
-    btnCreateOrder.addEventListener(
-        "click",
-        taoChiDinh
-    );
+if (btnCreateOrder) {
+    btnCreateOrder.addEventListener("click", async function () {
+
+        if (!lichKhamDangChon) {
+            showToast("Lỗi", "Chưa chọn lượt khám.", true);
+            return;
+        }
+
+        if (hoSoDangKhoa) {
+            showToast(
+                "Không thể tạo chỉ định",
+                "Hồ sơ đã hoàn tất.",
+                true
+            );
+            return;
+        }
+
+        try {
+            // Lưu thông tin khám đang nhập trước khi rời trang
+            await guiYeuCauLuuHoSo();
+
+            window.location.href =
+                `/auth/bac-si/tao-chi-dinh?maLichKham=${lichKhamDangChon}`;
+
+        } catch (error) {
+            showToast("Lỗi", error.message, true);
+        }
+    });
 }
+
 
 
 if (btnRefreshOrders) {
@@ -2322,31 +2356,17 @@ function khoiTaoMenuKhamBenh() {
    KHỞI TẠO TRANG
 ===================================================== */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
 
-        // Ngày hiện tại
-        hienThiNgayHienTai();
+/* =====================================================
+   KHỞI TẠO TRANG DANH SÁCH KHÁM BỆNH
+===================================================== */
 
-        // Tab mặc định
-        chuyenTab("medical");
+document.addEventListener("DOMContentLoaded", async function () {
 
-        // Sidebar
-        khoiTaoMenuKhamBenh();
+    hienThiNgayHienTai();
 
-        // Nút đăng xuất
-        const btnLogout =
-            document.getElementById("btnLogout");
+    chuyenTab("medical");
 
-        if (btnLogout) {
-            btnLogout.addEventListener(
-                "click",
-                dangXuat
-            );
-        }
+    await lamMoiDuLieu();
 
-        // Tải danh sách bệnh nhân và thống kê
-        lamMoiDuLieu();
-    }
-);
+});
