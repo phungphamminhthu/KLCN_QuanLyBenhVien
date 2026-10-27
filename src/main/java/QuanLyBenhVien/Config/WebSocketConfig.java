@@ -125,19 +125,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         );
                     }
 
-                    boolean laBacSi = userDetails.getAuthorities()
-                            .stream()
-                            .anyMatch(role ->
-                                    "ROLE_BACSI".equals(role.getAuthority())
-                            );
-
-                    if (!laBacSi) {
-                        throw new IllegalArgumentException(
-                                "Chỉ tài khoản bác sĩ được kết nối WebSocket."
-                        );
-                    }
-
-
                     Authentication authentication =
                             new UsernamePasswordAuthenticationToken(
                                     userDetails,
@@ -160,14 +147,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         );
                     }
 
+//                    if (!(accessor.getUser() instanceof Authentication auth)
+//                            || !auth.isAuthenticated()
+//                            || auth.getAuthorities().stream().noneMatch(
+//                            role -> "ROLE_BACSI".equals(role.getAuthority())
+//                    )) {
+//
+//                        throw new IllegalArgumentException(
+//                                "Chỉ bác sĩ đã đăng nhập mới được nhận thông báo."
+//                        );
+//                    }
                     if (!(accessor.getUser() instanceof Authentication auth)
-                            || !auth.isAuthenticated()
-                            || auth.getAuthorities().stream().noneMatch(
-                            role -> "ROLE_BACSI".equals(role.getAuthority())
-                    )) {
+                            || !auth.isAuthenticated()) {
 
                         throw new IllegalArgumentException(
-                                "Chỉ bác sĩ đã đăng nhập mới được nhận thông báo."
+                                "Chỉ người dùng đã đăng nhập mới được nhận thông báo."
                         );
                     }
                 }

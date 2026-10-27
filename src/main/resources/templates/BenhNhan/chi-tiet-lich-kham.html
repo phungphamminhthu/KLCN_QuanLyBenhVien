@@ -1,0 +1,353 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết lịch khám - MedCare Hospital</title>
+
+    <link rel="stylesheet"
+          th:href="@{/Css/BenhNhan/chi-tiet-lich-kham.css}">
+</head>
+
+<body>
+
+<!-- HEADER CỔNG THÔNG TIN BỆNH NHÂN -->
+<header class="topbar">
+    <a class="brand" th:href="@{/benh-nhan/trang-chu}">
+        <span class="brand-icon">+</span>
+        <span>
+            <strong>MedCare Hospital</strong>
+            <small>Cổng thông tin bệnh nhân</small>
+        </span>
+    </a>
+
+    <a class="back-link" th:href="@{/benh-nhan/trang-chu}">
+        ← Trang chủ
+    </a>
+</header>
+
+
+<!-- NỘI DUNG CHI TIẾT LỊCH KHÁM -->
+<div class="page-container">
+
+    <header class="page-header">
+
+        <a th:href="@{/benh-nhan/lich-su}"
+           class="back-button">
+            <span aria-hidden="true">←</span>
+            <span>Quay lại lịch sử</span>
+        </a>
+
+        <div class="header-title">
+            <h1>Chi tiết lịch khám</h1>
+            <p>Xem thông tin lịch hẹn và tình trạng thanh toán.</p>
+        </div>
+
+    </header>
+
+    <main id="detailContent" hidden>
+
+        <!-- Tóm tắt lịch khám -->
+        <section class="hero-card">
+
+            <div class="hero-icon">✚</div>
+
+            <div class="hero-content">
+                <span class="eyebrow">CHUYÊN KHOA</span>
+
+                <h2 id="tenKhoa">Đang tải...</h2>
+
+                <p id="tenBacSi">Bác sĩ phụ trách</p>
+
+                <div class="status-list">
+                    <span id="trangThaiLich" class="status-badge">
+                        Đang tải
+                    </span>
+
+                    <span id="trangThaiThanhToan" class="status-badge">
+                        Đang tải
+                    </span>
+                </div>
+            </div>
+
+            <div class="appointment-code">
+                <span>MÃ LỊCH KHÁM</span>
+                <strong id="maLichKham">—</strong>
+            </div>
+
+        </section>
+
+        <div class="content-grid">
+
+            <div class="main-column">
+
+                <!-- Số thứ tự -->
+                <section class="panel queue-panel">
+
+                    <div class="section-heading">
+                        <div>
+                            <span class="section-kicker">
+                                THÔNG TIN TIẾP ĐÓN
+                            </span>
+                            <h2>Số thứ tự khám</h2>
+                        </div>
+
+                        <span class="heading-icon">▦</span>
+                    </div>
+
+                    <div class="queue-number" id="soThuTu">—</div>
+
+                    <p class="queue-note">
+                        Vui lòng theo dõi số thứ tự khi đến bệnh viện.
+                    </p>
+
+                    <div class="room-box">
+                        <div class="room-icon">⌖</div>
+
+                        <div>
+                            <span>Phòng khám</span>
+                            <strong id="tenPhong">Chưa cập nhật</strong>
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Thông tin lịch khám -->
+                <section class="panel">
+
+                    <div class="section-heading">
+                        <div>
+                            <span class="section-kicker">LỊCH HẸN</span>
+                            <h2>Thông tin lịch khám</h2>
+                        </div>
+
+                        <span class="heading-icon">▤</span>
+                    </div>
+
+                    <div class="info-list">
+
+                        <div class="info-row">
+                            <span class="info-label">Mã lịch khám</span>
+                            <strong id="maLichKhamInfo">—</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Khoa khám</span>
+                            <strong id="khoaInfo">—</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Bác sĩ</span>
+                            <strong id="bacSiInfo">—</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Ngày khám</span>
+                            <strong id="ngayKham">—</strong>
+                        </div>
+
+                        <div class="info-row">
+                            <span class="info-label">Giờ khám</span>
+                            <strong id="gioKham">—</strong>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- Lý do khám -->
+                <section class="panel">
+
+                    <div class="section-heading">
+                        <div>
+                            <span class="section-kicker">
+                                THÔNG TIN ĐĂNG KÝ
+                            </span>
+                            <h2>Lý do khám</h2>
+                        </div>
+
+                        <span class="heading-icon">☰</span>
+                    </div>
+
+                    <p class="reason-content" id="lyDoKham">
+                        Chưa có thông tin.
+                    </p>
+
+                </section>
+
+            </div>
+
+            <!-- Thanh toán -->
+            <aside class="side-column">
+
+                <section class="panel payment-panel">
+
+                    <div class="section-heading">
+                        <div>
+                            <span class="section-kicker">CHI PHÍ</span>
+                            <h2>Thanh toán</h2>
+                        </div>
+
+                        <span class="heading-icon">₫</span>
+                    </div>
+
+                    <div class="total-box">
+                        <span>Tổng chi phí</span>
+                        <strong id="tongChiPhi">0 đ</strong>
+                    </div>
+
+                    <div class="payment-row">
+                        <span>Đã thanh toán</span>
+                        <strong id="tongDaThanhToan">0 đ</strong>
+                    </div>
+
+                    <div class="payment-row remaining-row">
+                        <span>Còn phải thanh toán</span>
+                        <strong id="soTienConLai">0 đ</strong>
+                    </div>
+
+                    <div class="payment-note" id="paymentNote">
+                        Thông tin thanh toán được cập nhật từ hệ thống.
+                    </div>
+
+                    <button id="paymentButton"
+                            class="primary-button"
+                            type="button"
+                            hidden>
+                        Xem hướng dẫn thanh toán
+                    </button>
+
+                </section>
+
+                <!-- Lưu ý -->
+                <section class="help-card">
+
+                    <div class="help-icon">ⓘ</div>
+
+                    <div>
+                        <h3>Lưu ý khi đến khám</h3>
+                        <p>
+                            Vui lòng đến đúng ngày hẹn và kiểm tra số thứ tự,
+                            phòng khám trước khi vào khám.
+                        </p>
+                    </div>
+
+                </section>
+
+            </aside>
+
+        </div>
+    </main>
+
+    <!-- Trạng thái tải dữ liệu -->
+    <section id="loadingState" class="state-card">
+        <div class="loading-spinner"></div>
+        <h2>Đang tải chi tiết lịch khám</h2>
+        <p>Vui lòng chờ trong giây lát.</p>
+    </section>
+
+    <!-- Trạng thái lỗi -->
+    <section id="errorState" class="state-card" hidden>
+
+        <div class="error-icon">!</div>
+
+        <h2 id="errorTitle">Không thể tải lịch khám</h2>
+
+        <p id="errorMessage">
+            Vui lòng thử lại sau.
+        </p>
+
+        <button id="retryButton"
+                class="primary-button"
+                type="button">
+            Thử tải lại
+        </button>
+
+    </section>
+
+</div>
+
+<!------------------------------------------------------>
+<!-- =============Modal thanh toán SePay============= -->
+<!------------------------------------------------------>
+<div id="paymentModal" class="payment-modal" hidden>
+    <section class="payment-modal-card"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="paymentModalTitle">
+
+        <button type="button"
+                id="closePaymentModal"
+                class="payment-close"
+                aria-label="Đóng">
+            ×
+        </button>
+
+        <div id="paymentLoading" class="payment-loading">
+            <div class="loading-spinner"></div>
+            <p>Đang tạo mã QR thanh toán...</p>
+        </div>
+
+        <div id="paymentContent" hidden>
+            <div id="paymentStatusIcon" class="payment-status-icon">₫</div>
+
+            <h2 id="paymentModalTitle">Thanh toán hóa đơn</h2>
+            <p id="paymentStatusText" class="payment-status-text">
+                Quét mã QR để thanh toán
+            </p>
+
+            <div class="payment-amount" id="paymentAmount">0 đ</div>
+
+            <p class="payment-label">Mã hóa đơn</p>
+            <strong id="paymentInvoiceId">—</strong>
+
+            <div class="payment-qr-box" id="paymentQrBox">
+                <img id="paymentQrImage"
+                     src=""
+                     alt="Mã QR thanh toán SePay">
+            </div>
+
+            <p class="payment-label">Nội dung chuyển khoản</p>
+            <div class="payment-transfer-content">
+                <strong id="paymentTransferContent">—</strong>
+                <button type="button" id="copyTransferContent">
+                    Sao chép
+                </button>
+            </div>
+
+            <p class="payment-instruction">
+                Vui lòng chuyển đúng số tiền và giữ nguyên nội dung
+                chuyển khoản để hệ thống đối soát giao dịch.
+            </p>
+
+            <div id="paymentChecking" class="payment-checking">
+                <span class="payment-dot"></span>
+                Đang chờ ngân hàng xác nhận...
+            </div>
+
+            <p id="paymentError" class="payment-error" hidden></p>
+
+            <button type="button"
+                    id="checkPaymentNow"
+                    class="payment-check-button">
+                Kiểm tra trạng thái
+            </button>
+        </div>
+
+        <div id="paymentLoadError" hidden>
+            <h2>Không thể tạo mã QR</h2>
+            <p id="paymentLoadErrorText"></p>
+            <button type="button"
+                    id="retryPayment"
+                    class="payment-check-button">
+                Thử lại
+            </button>
+        </div>
+    </section>
+</div>
+
+<script th:src="@{/Js/BenhNhan/chi-tiet-lich-kham.js}"
+        defer></script>
+
+</body>
+</html>

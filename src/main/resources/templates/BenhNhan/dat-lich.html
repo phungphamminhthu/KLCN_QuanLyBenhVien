@@ -1,0 +1,542 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Đặt lịch khám - MedCare Hospital</title>
+
+    <link rel="stylesheet" th:href="@{/Css/BenhNhan/dat-lich.css}">
+</head>
+<body>
+
+<header class="topbar">
+    <a class="brand" th:href="@{/benh-nhan/trang-chu}">
+        <span class="logo">+</span>
+        <span class="brand-text">
+            <strong>MedCare Hospital</strong>
+            <small>Cổng thông tin bệnh nhân</small>
+        </span>
+    </a>
+
+    <a class="back-link" th:href="@{/benh-nhan/trang-chu}">
+        ← Trang chủ
+    </a>
+</header>
+
+<main class="booking-container">
+
+    <!-- Tiến trình 4 bước -->
+    <section class="stepper" aria-label="Các bước đặt lịch">
+        <div class="step active" data-step-indicator="1">
+            <span class="step-number">1</span>
+            <span class="step-label">Chọn khoa</span>
+        </div>
+
+        <div class="step" data-step-indicator="2">
+            <span class="step-number">2</span>
+            <span class="step-label">Chọn ngày</span>
+        </div>
+
+        <div class="step" data-step-indicator="3">
+            <span class="step-number">3</span>
+            <span class="step-label">Chọn bác sĩ</span>
+        </div>
+
+        <div class="step" data-step-indicator="4">
+            <span class="step-number">4</span>
+            <span class="step-label">Xác nhận</span>
+        </div>
+    </section>
+
+
+    <div class="booking-layout">
+
+        <section class="booking-card">
+
+            <!-- BƯỚC 1 -->
+            <div class="booking-step active" data-step="1">
+                <div class="step-heading">
+                    <span class="section-icon">01</span>
+                    <div>
+                        <h2>Chọn chuyên khoa</h2>
+                        <p>Chọn khoa phù hợp với nhu cầu khám của bạn.</p>
+                    </div>
+                </div>
+
+                <label class="field-label" for="departmentSearch">
+                    Tìm kiếm chuyên khoa
+                </label>
+                <input id="departmentSearch"
+                       class="form-control"
+                       type="search"
+                       placeholder="Nhập tên chuyên khoa..."
+                       autocomplete="off">
+
+                <div id="departmentList" class="department-list">
+                    <div class="loading-state">Đang tải danh sách chuyên khoa...</div>
+                </div>
+
+                <p id="departmentError" class="error-message" role="alert"></p>
+
+                <div class="step-actions">
+                    <a class="button button-secondary"
+                       th:href="@{/benh-nhan/trang-chu}">
+                        Quay lại
+                    </a>
+                    <button type="button" class="button button-primary"
+                            data-next="2" disabled id="nextDepartment">
+                        Tiếp tục <span>→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BƯỚC 2 -->
+            <div class="booking-step" data-step="2" hidden>
+                <div class="step-heading">
+                    <span class="section-icon">02</span>
+                    <div>
+                        <h2>Chọn ngày khám</h2>
+                        <p>Chọn ngày phù hợp với lịch làm việc của bệnh viện.</p>
+                    </div>
+                </div>
+
+                <div class="selected-info">
+                    <span class="info-icon">✚</span>
+                    <div>
+                        <small>Chuyên khoa đã chọn</small>
+                        <strong id="selectedDepartmentLabel">Chưa chọn</strong>
+                    </div>
+                    <button type="button" class="text-button" data-back="1">
+                        Thay đổi
+                    </button>
+                </div>
+
+
+                <section class="calendar-legend">
+                    <h3>Chú thích ngày khám</h3>
+
+                    <div class="legend-item">
+                        <span class="legend-icon past-icon">×</span>
+                        <div class="legend-content">
+                            <strong>Ngày đã qua</strong>
+                            <p>Màu xám - không thể chọn</p>
+                        </div>
+                    </div>
+
+                    <div class="legend-item">
+                        <span class="legend-icon available-icon">✓</span>
+                        <div class="legend-content">
+                            <strong>Hôm nay và các ngày tương lai</strong>
+                            <p>Màu xanh biển - có thể chọn ngày</p>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <button type="button" id="previousMonth"
+                                class="calendar-arrow" aria-label="Tháng trước">
+                            ‹
+                        </button>
+                        <h3 id="calendarMonth">Tháng ...</h3>
+                        <button type="button" id="nextMonth"
+                                class="calendar-arrow" aria-label="Tháng sau">
+                            ›
+                        </button>
+                    </div>
+
+                    <div class="calendar-grid calendar-weekdays">
+                        <span>S</span>
+                        <span>M</span>
+                        <span>T</span>
+                        <span>W</span>
+                        <span>T</span>
+                        <span>F</span>
+                        <span>S</span>
+                    </div>
+
+                    <div id="calendarDays" class="calendar-grid">
+                    </div>
+                </div>
+
+                <p class="calendar-hint">
+                    Ngày có thể chọn sẽ phụ thuộc vào lịch làm việc thực tế.
+                </p>
+                <p id="dateError" class="error-message" role="alert"></p>
+
+                <div class="step-actions">
+                    <button type="button" class="button button-secondary"
+                            data-back="1">Quay lại</button>
+                    <button type="button" class="button button-primary"
+                            data-next="3" id="nextDate" disabled>
+                        Tiếp tục <span>→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BƯỚC 3 -->
+            <div class="booking-step" data-step="3" hidden>
+                <div class="step-heading">
+                    <span class="section-icon">03</span>
+                    <div>
+                        <h2>Chọn bác sĩ</h2>
+                        <p>Chọn bác sĩ có lịch làm việc trong ngày khám đã chọn.</p>
+                    </div>
+                </div>
+
+                <div class="selected-info">
+                    <span class="info-icon">▦</span>
+
+                    <div>
+                        <small>Ngày khám đã chọn</small>
+                        <strong id="selectedDateLabel">Chưa chọn</strong>
+                    </div>
+
+                    <button type="button" class="text-button" data-back="2">
+                        Thay đổi
+                    </button>
+                </div>
+
+                <label class="field-label" for="doctorSearch">
+                    Tìm kiếm bác sĩ
+                </label>
+
+                <input
+                        id="doctorSearch"
+                        class="form-control"
+                        type="search"
+                        placeholder="Nhập tên, chuyên môn hoặc trình độ bác sĩ..."
+                        autocomplete="off"
+                        aria-label="Tìm kiếm bác sĩ"
+                >
+
+                <div id="doctorList" class="doctor-list" aria-live="polite">
+                    <div class="empty-state">
+                        Chọn khoa và ngày khám để tải danh sách bác sĩ.
+                    </div>
+                </div>
+
+                <!-- Khung giờ khám đã chọn -->
+                <div class="selected-time-box" id="selectedTimeBox" hidden>
+                    <span class="info-icon">◷</span>
+
+                    <div>
+                        <small>Khung giờ đã chọn</small>
+                        <strong id="selectedTimeLabel">Chưa chọn</strong>
+                    </div>
+
+                    <button type="button"
+                            class="text-button"
+                            id="changeTimeButton">
+                        Thay đổi
+                    </button>
+                </div>
+
+                <p id="doctorError"
+                   class="error-message"
+                   role="alert"
+                   aria-live="assertive"></p>
+
+                <div class="step-actions">
+                    <button type="button"
+                            class="button button-secondary"
+                            data-back="2">
+                        Quay lại
+                    </button>
+
+                    <button type="button"
+                            class="button button-primary"
+                            data-next="4"
+                            id="nextDoctor"
+                            disabled>
+                        Xem xác nhận <span>→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BƯỚC 4 -->
+            <div class="booking-step" data-step="4" hidden>
+                <div class="step-heading">
+                    <span class="section-icon">04</span>
+                    <div>
+                        <h2>Xác nhận lịch khám</h2>
+                        <p>Kiểm tra kỹ thông tin trước khi gửi yêu cầu.</p>
+                    </div>
+                </div>
+
+                <div class="confirmation-box">
+                    <div class="confirmation-title">
+                        <span class="confirmation-check">✓</span>
+                        <div>
+                            <strong>Thông tin lịch hẹn</strong>
+                            <p>Vui lòng xác nhận thông tin bên dưới.</p>
+                        </div>
+                    </div>
+
+                        <!--                    <div class="confirmation-row">-->
+                        <!--                        <span>Ngày khám</span>-->
+                        <!--                        <strong id="confirmDate">—</strong>-->
+                        <!--                    </div>-->
+                        <!--                    <div class="confirmation-row">-->
+                        <!--                        <span>Chuyên khoa</span>-->
+                        <!--                        <strong id="confirmDepartment">—</strong>-->
+                        <!--                    </div>-->
+                        <!--                    <div class="confirmation-row">-->
+                        <!--                        <span>Giờ khám</span>-->
+                        <!--                        <strong id="confirmTime">—</strong>-->
+                        <!--                    </div>-->
+                        <!--                    <div class="confirmation-row">-->
+                        <!--                        <span>Bác sĩ</span>-->
+                        <!--                        <strong id="confirmDoctor">—</strong>-->
+                        <!--                    </div>-->
+                    <!-- Ngày khám -->
+                    <div class="confirmation-row">
+                        <span class="confirm-icon">▦</span>
+                        <div class="confirm-content">
+                            <small>Ngày khám</small>
+                            <strong id="confirmDate">—</strong>
+                        </div>
+                        <span class="confirm-status">✓</span>
+                    </div>
+
+                    <!-- Chuyên khoa -->
+                    <div class="confirmation-row">
+                        <span class="confirm-icon">✚</span>
+                        <div class="confirm-content">
+                            <small>Chuyên khoa</small>
+                            <strong id="confirmDepartment">—</strong>
+                        </div>
+                        <span class="confirm-status">✓</span>
+                    </div>
+
+                    <!-- Giờ khám và phòng -->
+                    <div class="confirmation-row">
+                        <span class="confirm-icon">◷</span>
+                        <div class="confirm-content">
+                            <small>Giờ khám và phòng</small>
+                            <strong id="confirmTimeRoom">—</strong>
+                        </div>
+                        <span class="confirm-status">✓</span>
+                    </div>
+
+                    <!-- Bác sĩ -->
+                    <div class="confirmation-row">
+                        <span class="confirm-icon">♙</span>
+                        <div class="confirm-content">
+                            <small>Bác sĩ</small>
+                            <strong id="confirmDoctor">—</strong>
+                        </div>
+                        <span class="confirm-status">✓</span>
+                    </div>
+                </div>
+
+                <label class="field-label" for="reason">
+                    Lý do khám <span class="optional" aria-required="true" >*</span>
+                </label>
+                <textarea id="reason" class="form-control"
+                          rows="4" maxlength="255"
+                          placeholder="Mô tả ngắn gọn triệu chứng hoặc lý do khám..."></textarea>
+                <div class="character-count"><span id="reasonCount">0</span>/255</div>
+
+                <div class="important-note">
+                    <strong>ⓘ Lưu ý</strong>
+                    <p>Lịch hẹn chỉ được ghi nhận khi hệ thống xác nhận lưu thành công.</p>
+                </div>
+
+                <!-- Tiền khám -->
+                <div class="booking-price">
+                    <span>Tiền khám</span>
+                    <strong id="confirmPrice">Chưa có giá</strong>
+                </div>
+
+                <p id="submitError" class="error-message" role="alert"></p>
+
+                <div class="step-actions">
+                    <button type="button" class="button button-secondary"
+                            data-back="3">Quay lại</button>
+                    <button type="button" class="button button-primary"
+                            id="submitBooking">
+                        Xác nhận đặt lịch <span>→</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- BƯỚC 5: ĐẶT LỊCH THÀNH CÔNG -->
+            <div class="booking-step booking-success-step"
+                 data-step="5"
+                 hidden>
+
+                <div class="booking-success-content">
+
+                    <div class="booking-success-icon">
+                        <span>✓</span>
+                    </div>
+
+                    <h2>Đặt lịch khám thành công!</h2>
+                    <p class="booking-success-message">
+                        Lịch khám của bạn đã được ghi nhận.
+                    </p>
+
+                    <div class="success-booking-card">
+
+                        <div class="success-queue-label">
+                            SỐ THỨ TỰ KHÁM
+                        </div>
+
+                        <div class="success-queue-number" id="successQueueNumber">
+                            —
+                        </div>
+
+                        <div class="success-divider"></div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">▦</span>
+                            <div class="success-info-content">
+                                <small>Ngày khám</small>
+                                <strong id="successDate">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">✚</span>
+                            <div class="success-info-content">
+                                <small>Khoa</small>
+                                <strong id="successDepartment">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">♙</span>
+                            <div class="success-info-content">
+                                <small>Bác sĩ</small>
+                                <strong id="successDoctor">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">◷</span>
+                            <div class="success-info-content">
+                                <small>Khung giờ</small>
+                                <strong id="successTime">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">⌂</span>
+                            <div class="success-info-content">
+                                <small>Phòng khám</small>
+                                <strong id="successRoom">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">▤</span>
+                            <div class="success-info-content">
+                                <small>Lý do khám</small>
+                                <strong id="successReason">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">₫</span>
+                            <div class="success-info-content">
+                                <small>Tiền khám</small>
+                                <strong id="successPrice">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">✓</span>
+                            <div class="success-info-content">
+                                <small>Trạng thái lịch</small>
+                                <strong id="successStatus">—</strong>
+                            </div>
+                        </div>
+
+                        <div class="success-info-row">
+                            <span class="success-info-icon">◉</span>
+                            <div class="success-info-content">
+                                <small>Thanh toán</small>
+                                <strong id="successPayment">—</strong>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="booking-success-actions">
+                        <a class="button button-secondary"
+                           th:href="@{/benh-nhan/lich-su}">
+                            <span>◷</span> Lịch sử đăng ký
+                        </a>
+
+                        <a class="button button-primary"
+                           th:href="@{/benh-nhan/trang-chu}">
+                            <span>⌂</span> Hoàn tất
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TÓM TẮT -->
+        <aside class="summary-card">
+            <div class="summary-header">
+                <span class="summary-icon">▤</span>
+                <div>
+                    <h2>Tóm tắt lịch khám</h2>
+                    <p>Thông tin bạn đã lựa chọn</p>
+                </div>
+            </div>
+
+            <div class="summary-item">
+                <span class="summary-symbol">▦</span>
+                <div>
+                    <small>Ngày khám</small>
+                    <strong id="summaryDate">Chưa chọn</strong>
+                </div>
+            </div>
+
+            <div class="summary-item">
+                <span class="summary-symbol">✚</span>
+                <div>
+                    <small>Chuyên khoa</small>
+                    <strong id="summaryDepartment">Chưa chọn</strong>
+                </div>
+            </div>
+
+
+            <div class="summary-item">
+                <span class="summary-symbol">♙</span>
+                <div>
+                    <small>Bác sĩ</small>
+                    <strong id="summaryDoctor">Chưa chọn</strong>
+                </div>
+            </div>
+
+            <div class="summary-item">
+                <span class="summary-symbol">◷</span>
+
+                <div>
+                    <small>Giờ khám</small>
+                    <strong id="summaryTime">Chưa chọn</strong>
+                </div>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-security">
+                <span>✓</span>
+                <p>Thông tin đặt khám được xử lý theo tài khoản bệnh nhân của bạn.</p>
+            </div>
+        </aside>
+
+    </div>
+</main>
+
+<script th:src="@{/Js/BenhNhan/dat-lich.js}" defer></script>
+</body>
+</html>

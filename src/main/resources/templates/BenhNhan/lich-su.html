@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Lịch sử đặt khám - MedCare Hospital</title>
+
+  <link rel="stylesheet"
+        th:href="@{/Css/BenhNhan/lich-su.css}">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" th:href="@{/benh-nhan/trang-chu}">
+    <span class="brand-icon">+</span>
+    <span>
+            <strong>MedCare Hospital</strong>
+            <small>Cổng thông tin bệnh nhân</small>
+        </span>
+  </a>
+
+  <a class="back-link" th:href="@{/benh-nhan/trang-chu}">
+    ← Trang chủ
+  </a>
+</header>
+
+<main class="history-container">
+  <section class="page-heading">
+    <div>
+      <h1>Lịch sử đặt khám</h1>
+      <p>Theo dõi lịch khám và tình trạng thanh toán của bạn.</p>
+    </div>
+
+    <button id="refreshButton" class="refresh-button" type="button">
+      ↻ Tải lại
+    </button>
+  </section>
+
+  <nav class="filter-list" aria-label="Lọc lịch khám">
+    <button class="filter-chip active" data-filter="all">Tất cả</button>
+    <button class="filter-chip" data-filter="unpaid">Chưa thanh toán</button>
+    <button class="filter-chip" data-filter="paid">Đã thanh toán</button>
+  </nav>
+
+  <div id="loadingState" class="state-panel">
+    Đang tải lịch khám...
+  </div>
+
+  <div id="errorState" class="state-panel error" hidden>
+    <p id="errorMessage">Không thể tải lịch khám.</p>
+    <button id="retryButton" type="button">Thử lại</button>
+  </div>
+
+  <div id="emptyState" class="state-panel" hidden>
+    <div class="empty-icon">▦</div>
+    <h2>Chưa có lịch khám</h2>
+    <p>Các lịch khám của bạn sẽ xuất hiện tại đây.</p>
+    <a th:href="@{/benh-nhan/dat-lich}" class="primary-button">
+      Đặt lịch khám
+    </a>
+  </div>
+
+  <section id="appointmentList" class="appointment-list"></section>
+</main>
+
+<!-- Modal xem chi tiết -->
+<div id="detailModal" class="modal-backdrop" hidden>
+  <section class="modal-card" role="dialog"
+           aria-modal="true" aria-labelledby="detailTitle">
+    <button id="closeDetail" class="modal-close"
+            type="button" aria-label="Đóng">×</button>
+
+    <h2 id="detailTitle">Chi tiết lịch khám</h2>
+    <div id="detailContent"></div>
+  </section>
+</div>
+
+<script th:src="@{/Js/BenhNhan/lich-su.js}" defer></script>
+</body>
+</html>

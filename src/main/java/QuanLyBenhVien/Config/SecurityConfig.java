@@ -90,9 +90,21 @@ public class SecurityConfig {
                                 "/TiepNhan/**"
                         ).permitAll()
 
+                        // API xem tin tức công khai cho ứng dụng Flutter
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/tin-tuc",
+                                "/api/tin-tuc/**"
+                        ).permitAll()
+
                         // Trang chủ bệnh nhân - tạm công khai để thử giao diện
                         .requestMatchers(
-                                "/benh-nhan/trang-chu"
+                                "/benh-nhan/trang-chu",
+                                "/benh-nhan/dat-lich",
+                                "/benh-nhan/lich-su",
+                                "/benh-nhan/lich-su/chi-tiet",
+                                "/api/lich-kham/cua-toi",
+                                "/api/thanh-toan/lich-kham/*/hoa-don"
                         ).permitAll()
 
                         // API cấp thuốc và thanh toán dành riêng cho Dược sĩ
