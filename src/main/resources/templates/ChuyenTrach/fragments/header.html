@@ -8,7 +8,6 @@
 
     <!-- NGÀY HIỆN TẠI VÀ LÀM MỚI -->
     <div class="header-left">
-
         <div class="header-date">
             <i class="fa-regular fa-calendar"></i>
             <span id="header-current-date">Đang tải ngày...</span>
@@ -20,20 +19,20 @@
             <i class="fa-solid fa-rotate"></i>
             <span>Làm mới dữ liệu</span>
         </button>
-
     </div>
 
     <!-- THÔNG BÁO VÀ THÔNG TIN NHÂN VIÊN -->
     <div class="header-right">
 
-        <!-- CHUÔNG THÔNG BÁO -->
+        <!-- THÔNG BÁO -->
         <div class="header-notification">
             <button type="button"
                     id="notificationButton"
                     class="notification-button"
                     aria-label="Thông báo"
                     aria-expanded="false">
-                <i class="fa-solid fa-bell"></i>
+                <i class="fa-solid fa-bell" aria-hidden="true"></i>
+
                 <span id="notificationBadge"
                       class="notification-badge"
                       hidden>0</span>
@@ -45,6 +44,7 @@
                 <div class="notification-dropdown-title">
                     Thông báo
                 </div>
+
                 <div id="notificationList"
                      class="notification-list">
                     Chưa có thông báo.
@@ -52,33 +52,24 @@
             </div>
         </div>
 
-        <!-- THÔNG TIN NHÂN VIÊN -->
+        <!-- THÔNG TIN TÀI KHOẢN ĐANG ĐĂNG NHẬP -->
         <div class="header-user">
-
-            <div class="header-user-info">
-                <strong id="header-user-name"
-                        th:text="${currentUserName ?: 'Nhân viên chuyên trách'}">
-                    Nhân viên chuyên trách
-                </strong>
-
-                <span id="header-user-email"
-                      th:text="${currentUserEmail ?: ''}">
-                </span>
-
-                <small id="header-user-role"
-                       th:text="${roleName}">
-                    Nhân viên chuyên trách
-                </small>
-            </div>
 
             <img id="header-user-avatar"
                  class="header-avatar"
-                 th:src="@{/Images/default-avatar.jpg}"
-                 alt="Ảnh đại diện nhân viên">
+                 src="/Images/default-avatar.jpg"
+                 alt="Ảnh đại diện nhân viên"
+                 onerror="this.onerror=null; this.src='/Images/default-avatar.jpg';">
+
+            <div class="header-user-info">
+                <strong id="header-user-name">Đang tải...</strong>
+                <span id="header-user-email"></span>
+                <small id="header-user-role"></small>
+            </div>
+
         </div>
 
     </div>
-
 </header>
 
 </body>

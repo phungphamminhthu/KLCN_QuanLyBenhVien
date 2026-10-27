@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -27,7 +26,7 @@
            class="menu-link">
             <span>
                 <span class="menu-icon">
-                    <i class="fa-solid fa-house"></i>
+                    <i class="fa-solid fa-house" aria-hidden="true"></i>
                 </span>
                 Tổng quan
             </span>
@@ -35,66 +34,108 @@
 
         <!-- BỆNH NHÂN -->
         <div class="sidebar-menu-group">
-            <div class="sidebar-menu-title">
-                <i class="fa-solid fa-users"></i>
-                <span>Bệnh nhân</span>
+
+            <button type="button"
+                    class="sidebar-menu-title"
+                    aria-expanded="false"
+                    aria-controls="submenu-benh-nhan">
+                <span class="sidebar-title-content">
+                    <i class="fa-solid fa-users" aria-hidden="true"></i>
+                    <span>Bệnh nhân</span>
+                </span>
+
+                <span class="sidebar-group-arrow" aria-hidden="true"></span>
+            </button>
+
+            <div class="sidebar-submenu" id="submenu-benh-nhan">
+
+                <a th:href="@{/ChuyenTrach/benh-nhan}"
+                   class="menu-link submenu-link">
+                    <span>
+                        <span class="menu-icon">
+                            <i class="fa-solid fa-list" aria-hidden="true"></i>
+                        </span>
+                        Danh sách bệnh nhân
+                    </span>
+                </a>
+
+                <a th:href="@{/ChuyenTrach/benh-nhan-cho}"
+                   class="menu-link submenu-link">
+                    <span>
+                        <span class="menu-icon">
+                            <i class="fa-solid fa-hourglass-half"
+                               aria-hidden="true"></i>
+                        </span>
+                        Bệnh nhân đang chờ
+                    </span>
+                </a>
+
             </div>
-
-            <a th:href="@{/ChuyenTrach/benh-nhan}"
-               class="menu-link submenu-link">
-                <span>
-                    <span class="menu-icon">
-                        <i class="fa-solid fa-list"></i>
-                    </span>
-                    Danh sách bệnh nhân
-                </span>
-            </a>
-
-            <a th:href="@{/ChuyenTrach/benh-nhan-cho}"
-               class="menu-link submenu-link">
-                <span>
-                    <span class="menu-icon">
-                        <i class="fa-solid fa-hourglass-half"></i>
-                    </span>
-                    Bệnh nhân đang chờ
-                </span>
-            </a>
         </div>
 
         <!-- KHÁM CHUYÊN TRÁCH -->
         <div class="sidebar-menu-group">
-            <div class="sidebar-menu-title">
-                <i class="fa-solid fa-stethoscope"></i>
-                <span>Khám chuyên trách</span>
-            </div>
 
-            <a th:href="@{/ChuyenTrach/chi-dinh}"
-               class="menu-link submenu-link">
-                <span>
-                    <span class="menu-icon">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                    </span>
-                    Danh sách chỉ định
+            <button type="button"
+                    class="sidebar-menu-title"
+                    aria-expanded="false"
+                    aria-controls="submenu-kham-chuyen-trach">
+                <span class="sidebar-title-content">
+                    <i class="fa-solid fa-stethoscope"
+                       aria-hidden="true"></i>
+                    <span>Khám chuyên trách</span>
                 </span>
-            </a>
+
+                <span class="sidebar-group-arrow" aria-hidden="true"></span>
+            </button>
+
+            <div class="sidebar-submenu"
+                 id="submenu-kham-chuyen-trach">
+
+                <a th:href="@{/ChuyenTrach/chi-dinh}"
+                   class="menu-link submenu-link">
+                    <span>
+                        <span class="menu-icon">
+                            <i class="fa-solid fa-clipboard-list"
+                               aria-hidden="true"></i>
+                        </span>
+                        Danh sách chỉ định
+                    </span>
+                </a>
+
+            </div>
         </div>
 
         <!-- KẾT QUẢ -->
         <div class="sidebar-menu-group">
-            <div class="sidebar-menu-title">
-                <i class="fa-solid fa-file-medical"></i>
-                <span>Kết quả</span>
-            </div>
 
-            <a th:href="@{/ChuyenTrach/ket-qua-da-thuc-hien}"
-               class="menu-link submenu-link">
-                <span>
-                    <span class="menu-icon">
-                        <i class="fa-solid fa-square-check"></i>
-                    </span>
-                    Kết quả đã thực hiện
+            <button type="button"
+                    class="sidebar-menu-title"
+                    aria-expanded="false"
+                    aria-controls="submenu-ket-qua">
+                <span class="sidebar-title-content">
+                    <i class="fa-solid fa-file-medical"
+                       aria-hidden="true"></i>
+                    <span>Kết quả</span>
                 </span>
-            </a>
+
+                <span class="sidebar-group-arrow" aria-hidden="true"></span>
+            </button>
+
+            <div class="sidebar-submenu" id="submenu-ket-qua">
+
+                <a th:href="@{/ChuyenTrach/ket-qua-da-thuc-hien}"
+                   class="menu-link submenu-link">
+                    <span>
+                        <span class="menu-icon">
+                            <i class="fa-solid fa-square-check"
+                               aria-hidden="true"></i>
+                        </span>
+                        Kết quả đã thực hiện
+                    </span>
+                </a>
+
+            </div>
         </div>
 
         <!-- LỊCH SỬ TIẾP NHẬN -->
@@ -102,7 +143,8 @@
            class="menu-link">
             <span>
                 <span class="menu-icon">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <i class="fa-solid fa-clock-rotate-left"
+                       aria-hidden="true"></i>
                 </span>
                 Lịch sử tiếp nhận
             </span>
@@ -113,7 +155,8 @@
            class="menu-link">
             <span>
                 <span class="menu-icon">
-                    <i class="fa-regular fa-user"></i>
+                    <i class="fa-regular fa-user"
+                       aria-hidden="true"></i>
                 </span>
                 Hồ sơ cá nhân
             </span>

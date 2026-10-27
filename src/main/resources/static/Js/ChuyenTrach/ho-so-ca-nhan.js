@@ -50,20 +50,97 @@ document.addEventListener("DOMContentLoaded", () => {
         if (el) el.textContent = value == null || String(value).trim() === "" ? "Chưa cập nhật" : String(value);
     }
 
-    function showAvatar(url) {
+
+    function showAvatar(source) {
         const img = $("cthsAvatar");
         const fallback = $("cthsAvatarFallback");
+
+        if (!img || !fallback) return;
+
+        // Mặc định hiển thị icon khi chưa tải được ảnh
         img.hidden = true;
+        img.removeAttribute("src");
         fallback.hidden = false;
-        if (typeof url !== "string" || !url.trim()) return;
-        try {
-            const value = new URL(url, window.location.origin);
-            if (value.protocol !== "https:" && value.origin !== window.location.origin) return;
-            img.onload = () => { img.hidden = false; fallback.hidden = true; };
-            img.onerror = () => { img.hidden = true; fallback.hidden = false; };
-            img.src = value.href;
-        } catch (_) { /* Hiện icon mặc định */ }
+
+        if (typeof source !== "string") return;
+
+        const value = source.trim();
+
+        if (
+            !value ||
+            ["null", "undefined"].includes(value.toLowerCase())
+        ) {
+            return;
+        }
+
+        let imageUrl;
+
+        // Nếu CSDL lưu URL đầy đủ thì sử dụng trực tiếp
+        if (/^https?:\/\//i.test(value)) {
+            imageUrl = value;
+        } else if (value.startsWith("/")) {
+            // Nếu CSDL lưu đường dẫn nội bộ
+            imageUrl = value;
+        } else {
+            // Nếu CSDL lưu fileKey của ảnh trên Cloudflare R2
+            imageUrl =
+                "/api/images/view?fileKey=" +
+                encodeURIComponent(value.replace(/^\/+/, ""));
+        }
+
+        img.onload = function () {
+            img.hidden = false;
+            fallback.hidden = true;
+        };
+
+        img.onerror = function () {
+            img.hidden = true;
+            fallback.hidden = false;
+            console.error("Không tải được ảnh đại diện:", imageUrl);
+        };
+
+        // Gửi JWT để tải ảnh nếu API cần xác thực
+        const jwt = token();
+
+        if (!jwt || /^https?:\/\//i.test(value)) {
+            img.src = imageUrl;
+            return;
+        }
+
+        // Dùng fetch để gửi Authorization header
+        fetch(imageUrl, {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+                Authorization: `Bearer ${jwt}`
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(
+                        `Không tải được ảnh (HTTP ${response.status})`
+                    );
+                }
+
+                return response.blob();
+            })
+            .then(blob => {
+                // Giải phóng URL ảnh cũ nếu có
+                if (img.dataset.objectUrl) {
+                    URL.revokeObjectURL(img.dataset.objectUrl);
+                }
+
+                const objectUrl = URL.createObjectURL(blob);
+                img.dataset.objectUrl = objectUrl;
+                img.src = objectUrl;
+            })
+            .catch(error => {
+                img.hidden = true;
+                fallback.hidden = false;
+                console.error("Lỗi tải ảnh đại diện:", error);
+            });
     }
+
 
     function render(data) {
         profile = data;
