@@ -90,6 +90,16 @@ public class BacSiPageController {
         return "BacSi/chi-dinh";
     }
 
+    // =========================================================
+    // TRANG CHI TIẾT CHỈ ĐỊNH CẬN LÂM SÀNG
+    // =========================================================
+
+    @GetMapping("/auth/bac-si/chi-dinh/chi-tiet")
+    public String chiTietChiDinh() {
+        return "BacSi/chi-tiet-chi-dinh";
+    }
+
+
 
     // =========================================================
     // KẾT QUẢ CẬN LÂM SÀNG

@@ -1,16 +1,61 @@
 const API_BASE = "/api/bac-si/kham-benh";
 
+
 let danhSachChiDinh = [];
+let danhSachPhieu = [];
 let trangThaiDangChon = "ALL";
+
+function gomChiDinhTheoPhieu(danhSach) {
+    const nhom = new Map();
+
+    danhSach.forEach(item => {
+        // Chỉ gom những chỉ định có mã phiếu chung
+        const key = item.maPhieuChiDinh
+            ? `PHIEU_${item.maPhieuChiDinh}`
+            : `CU_${item.maChiDinh}`;
+
+        if (!nhom.has(key)) {
+            nhom.set(key, {
+                ...item,
+                danhSachDichVu: [],
+                danhSachChiDinh: []
+            });
+        }
+
+        const phieu = nhom.get(key);
+
+        phieu.danhSachDichVu.push(item.tenDichVu);
+        phieu.danhSachChiDinh.push(item);
+    });
+
+    return Array.from(nhom.values()).map(phieu => {
+        const trangThai = phieu.danhSachChiDinh.map(
+            item => item.trangThai
+        );
+
+        if (trangThai.every(t => t === "DaHoanThanh")) {
+            phieu.trangThai = "DaHoanThanh";
+        } else if (trangThai.some(t =>
+            t === "DangThucHien" || t === "DaHoanThanh"
+        )) {
+            phieu.trangThai = "DangThucHien";
+        } else {
+            phieu.trangThai = "ChoThucHien";
+        }
+
+        phieu.soDichVu = phieu.danhSachChiDinh.length;
+        return phieu;
+    });
+}
 
 /* =========================================================
    KHỞI TẠO TRANG
 ========================================================= */
 
+
 document.addEventListener("DOMContentLoaded", function () {
     ganSuKienTimKiem();
     ganSuKienBoLoc();
-    ganSuKienModal();
     taiDanhSachChiDinh();
 });
 
@@ -108,9 +153,10 @@ async function taiDanhSachChiDinh() {
 
         danhSachChiDinh = Array.isArray(data) ? data : [];
 
+        danhSachPhieu = gomChiDinhTheoPhieu(danhSachChiDinh);
+
         capNhatThongKe();
         locVaHienThi();
-
     } catch (error) {
         console.error("Lỗi tải danh sách chỉ định:", error);
 
@@ -135,17 +181,17 @@ async function taiDanhSachChiDinh() {
 ========================================================= */
 
 function capNhatThongKe() {
-    const tong = danhSachChiDinh.length;
+    const tong = danhSachPhieu.length;
 
-    const choThucHien = danhSachChiDinh.filter(
+    const choThucHien = danhSachPhieu.filter(
         item => item.trangThai === "ChoThucHien"
     ).length;
 
-    const dangThucHien = danhSachChiDinh.filter(
+    const dangThucHien = danhSachPhieu.filter(
         item => item.trangThai === "DangThucHien"
     ).length;
 
-    const daHoanThanh = danhSachChiDinh.filter(
+    const daHoanThanh = danhSachPhieu.filter(
         item => item.trangThai === "DaHoanThanh"
     ).length;
 
@@ -154,6 +200,7 @@ function capNhatThongKe() {
     ganText("tongDangThucHien", dangThucHien);
     ganText("tongDaHoanThanh", daHoanThanh);
 }
+
 
 /* =========================================================
    TÌM KIẾM
@@ -216,26 +263,30 @@ function locVaHienThi() {
         searchInput ? searchInput.value : ""
     );
 
-    const ketQua = danhSachChiDinh.filter(item => {
+    const ketQua = danhSachPhieu.filter(item => {
         const dungTrangThai =
             trangThaiDangChon === "ALL" ||
             item.trangThai === trangThaiDangChon;
 
         const hoTen = chuanHoaChuoi(item.hoTen || "");
-        const tenDichVu = chuanHoaChuoi(item.tenDichVu || "");
         const maBenhNhan = chuanHoaChuoi(item.maBenhNhan || "");
+
+        const tenDichVu = chuanHoaChuoi(
+            item.danhSachDichVu.join(" ")
+        );
 
         const dungTuKhoa =
             !keyword ||
             hoTen.includes(keyword) ||
-            tenDichVu.includes(keyword) ||
-            maBenhNhan.includes(keyword);
+            maBenhNhan.includes(keyword) ||
+            tenDichVu.includes(keyword);
 
         return dungTrangThai && dungTuKhoa;
     });
 
     hienThiDanhSach(ketQua);
 }
+
 
 /* =========================================================
    HIỂN THỊ BẢNG
@@ -278,10 +329,13 @@ function taoDongChiDinh(item, index) {
         ? `BN${item.maBenhNhan}`
         : "--";
 
-    const tenDichVu = item.tenDichVu || "Chưa xác định";
+   const tenDichVu = item.maPhieuChiDinh
+       ? `${item.soDichVu} xét nghiệm`
+       : (item.tenDichVu || "Chưa xác định");
 
-    const loaiDichVu =
-        item.loaiDichVu || item.loaiChiDinh || "";
+   const loaiDichVu = item.maPhieuChiDinh
+       ? item.danhSachDichVu.join(", ")
+       : (item.loaiDichVu || item.loaiChiDinh || "");
 
     const ngayChiDinh = dinhDangNgayGio(item.ngayChiDinh);
 
@@ -384,71 +438,54 @@ function ganSuKienNutXem() {
         button.addEventListener("click", function () {
             const id = button.dataset.id;
 
-            const chiDinh = danhSachChiDinh.find(
+            const phieu = danhSachPhieu.find(
                 item => String(item.maChiDinh) === String(id)
             );
 
-            if (chiDinh) {
-                moChiTietChiDinh(chiDinh);
+            if (phieu) {
+                moChiTietChiDinh(phieu);
             }
         });
     });
 }
 
+
 /* =========================================================
    MỞ MODAL CHI TIẾT
 ========================================================= */
 
+
+/* =========================================================
+   MỞ TRANG CHI TIẾT CHỈ ĐỊNH
+========================================================= */
+
 function moChiTietChiDinh(item) {
-    ganText(
-        "detailMaChiDinh",
-        item.maChiDinh != null ? `CD${item.maChiDinh}` : "--"
-    );
+    const maLichKham = item.maLichKham;
+    const maPhieuChiDinh = item.maPhieuChiDinh;
+    const maChiDinh = item.maChiDinh;
 
-    ganText(
-        "detailBenhNhan",
-        item.hoTen || "Chưa có thông tin"
-    );
-
-    ganText(
-        "detailDichVu",
-        item.tenDichVu || "Chưa xác định"
-    );
-
-    ganText(
-        "detailLoaiDichVu",
-        item.loaiDichVu || item.loaiChiDinh || "--"
-    );
-
-    ganText(
-        "detailNgayChiDinh",
-        dinhDangNgayGio(item.ngayChiDinh)
-    );
-
-    ganText(
-        "detailPhong",
-        item.maPhong != null
-            ? `Phòng ${item.maPhong}`
-            : "Chưa phân phòng"
-    );
-
-    ganText(
-        "detailNgayKham",
-        dinhDangNgay(item.ngayKham)
-    );
-
-    const trangThaiElement = document.getElementById("detailTrangThai");
-
-    if (trangThaiElement) {
-        trangThaiElement.innerHTML = taoTrangThaiHtml(item.trangThai);
+    if (!maLichKham) {
+        alert("Không tìm thấy lịch khám.");
+        return;
     }
 
-    const modal = document.getElementById("detailModal");
+    let url = `/auth/bac-si/chi-dinh/chi-tiet`
+        + `?maLichKham=${encodeURIComponent(maLichKham)}`;
 
-    if (modal) {
-        modal.classList.add("show");
+    if (maPhieuChiDinh) {
+        // Phiếu mới có mã nhóm
+        url += `&maPhieuChiDinh=${encodeURIComponent(maPhieuChiDinh)}`;
+    } else if (maChiDinh) {
+        // Chỉ định cũ chưa có mã phiếu
+        url += `&maChiDinh=${encodeURIComponent(maChiDinh)}`;
+    } else {
+        alert("Không tìm thấy thông tin chỉ định.");
+        return;
     }
+
+    window.location.href = url;
 }
+
 
 /* =========================================================
    ĐÓNG MODAL
@@ -498,7 +535,7 @@ function capNhatSoLuongBang(soLuong) {
     const element = document.getElementById("tableCount");
 
     if (element) {
-        element.textContent = `Hiển thị ${soLuong} chỉ định`;
+        element.textContent = `Hiển thị ${soLuong} phiếu chỉ định`;
     }
 }
 

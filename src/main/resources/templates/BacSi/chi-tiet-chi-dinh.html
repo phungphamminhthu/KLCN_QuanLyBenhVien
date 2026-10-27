@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{BacSi/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết chỉ định - MedCare</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/BacSi/chi-tiet-chi-dinh.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="order-detail-page">
+
+    <a href="/auth/bac-si/chi-dinh" class="detail-back">
+        <i class="fa-solid fa-arrow-left"></i>
+        Quay lại danh sách chỉ định
+    </a>
+
+    <div class="detail-heading">
+        <div>
+            <h1>Chi tiết chỉ định cận lâm sàng</h1>
+            <p>Thông tin dịch vụ, chỉ số cần xét nghiệm và tiến độ thực hiện</p>
+        </div>
+
+        <span id="detailCode" class="detail-code">---</span>
+    </div>
+
+    <div id="detailAlert" class="detail-alert" hidden></div>
+
+    <div class="detail-info-grid">
+
+        <section class="detail-card">
+            <h2>
+                <i class="fa-regular fa-user"></i>
+                Thông tin bệnh nhân
+            </h2>
+
+            <div class="detail-field">
+                <span>Họ tên bệnh nhân</span>
+                <strong id="patientName">---</strong>
+            </div>
+
+            <div class="detail-field">
+                <span>Ngày khám</span>
+                <strong id="examDate">---</strong>
+            </div>
+
+            <div class="detail-field">
+                <span>Ngày chỉ định</span>
+                <strong id="orderDate">---</strong>
+            </div>
+        </section>
+
+        <section class="detail-card">
+            <h2>
+                <i class="fa-solid fa-file-medical"></i>
+                Thông tin chỉ định
+            </h2>
+
+            <div class="detail-field">
+                <span>Dịch vụ</span>
+                <strong id="serviceName">---</strong>
+            </div>
+
+            <div class="detail-field">
+                <span>Loại dịch vụ</span>
+                <strong id="serviceType">---</strong>
+            </div>
+
+            <div class="detail-field">
+                <span>Phòng thực hiện</span>
+                <strong id="roomName">---</strong>
+            </div>
+        </section>
+    </div>
+
+    <section class="detail-card">
+        <div class="detail-section-heading">
+            <h2>
+                <i class="fa-solid fa-flask-vial"></i>
+                Danh sách chỉ số cần xét nghiệm
+            </h2>
+            <span id="indexCount">0 chỉ số</span>
+        </div>
+
+        <div class="detail-table-wrap">
+            <table class="detail-table">
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Tên chỉ số xét nghiệm</th>
+                </tr>
+                </thead>
+                <tbody id="indexTableBody">
+                <tr>
+                    <td colspan="4">Đang tải dữ liệu...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+
+    <section class="detail-card">
+        <h2>
+            <i class="fa-solid fa-clipboard-check"></i>
+            Trạng thái chỉ định
+        </h2>
+
+        <div class="detail-field">
+            <span>Trạng thái hiện tại</span>
+            <strong id="currentStatus">---</strong>
+        </div>
+    </section>
+
+
+</div>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/BacSi/chi-tiet-chi-dinh.js}"></script>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,310 @@
+
+/* =========================================
+   THÔNG BÁO BÁC SĨ - MEDCARE
+========================================= */
+
+.notification-wrapper {
+    position: relative;
+}
+
+/* Số thông báo chưa đọc */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ef4444;
+    color: white;
+
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+}
+
+.notification-badge[hidden] {
+    display: none !important;
+}
+
+/* Khung xổ xuống */
+.notification-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+
+    width: 370px;
+    max-width: calc(100vw - 24px);
+
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
+
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.notification-panel[hidden] {
+    display: none !important;
+}
+
+/* Header thông báo */
+.notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 17px 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.notification-header h3 {
+    margin: 0;
+    font-size: 17px;
+    color: #1e293b;
+}
+
+#notificationCountText {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #64748b;
+}
+
+#markAllReadButton {
+    border: none;
+    background: none;
+    cursor: pointer;
+
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+#markAllReadButton:hover {
+    text-decoration: underline;
+}
+
+/* Danh sách */
+.notification-list {
+    max-height: 365px;
+    overflow-y: auto;
+}
+
+/* Một thông báo */
+.notification-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    padding: 15px 16px;
+    border-bottom: 1px solid #f1f5f9;
+
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.notification-item:hover {
+    background: #f8fafc;
+}
+
+/* Thông báo chưa đọc */
+.notification-item.unread {
+    background: #eff6ff;
+}
+
+/* Icon */
+.notification-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+
+    background: #eaf2ff;
+    color: #2563eb;
+    border-radius: 50%;
+}
+
+.notification-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-item-title {
+    margin: 0 0 5px;
+
+    font-size: 13px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.notification-item-message {
+    margin: 0;
+
+    font-size: 12px;
+    line-height: 1.5;
+    color: #64748b;
+}
+
+.notification-item-time {
+    display: block;
+    margin-top: 6px;
+
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+/* Dấu chấm xanh */
+.notification-unread-dot {
+    width: 7px;
+    height: 7px;
+
+    flex-shrink: 0;
+    margin-top: 6px;
+
+    background: #2563eb;
+    border-radius: 50%;
+}
+
+/* Chưa có thông báo */
+.notification-empty {
+    padding: 35px 16px;
+    text-align: center;
+
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+/* Footer */
+.notification-footer {
+    padding: 13px;
+    text-align: center;
+    border-top: 1px solid #e5e7eb;
+}
+
+.notification-footer a {
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.notification-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .notification-panel {
+        width: min(340px, calc(100vw - 24px));
+        right: -65px;
+    }
+}
+
+/* ==========================================
+   TRANG LICH SU THONG BAO
+========================================== */
+
+.notification-page {
+    padding: 24px;
+}
+
+.notification-page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.notification-page-heading h1 {
+    font-size: 24px;
+    color: #1e293b;
+    margin: 0 0 8px;
+}
+
+.notification-page-heading p {
+    color: #64748b;
+    margin: 0;
+}
+
+.notification-page-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.notification-page-actions button {
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: white;
+    border: 1px solid #dbe3ef;
+    color: #2563eb;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.notification-page-actions button:hover {
+    background: #eff6ff;
+}
+
+.notification-page-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.notification-page-summary {
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.notification-page-summary span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.notification-page .notification-item {
+    display: flex;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    border-bottom: 1px solid #eef2f7;
+    background: white;
+    font: inherit;
+}
+
+.notification-page .notification-item.unread {
+    background: #eff6ff;
+}
+
+.notification-page .notification-item:hover {
+    background: #f8fafc;
+}
+
+@media (max-width: 768px) {
+    .notification-page {
+        padding: 16px;
+    }
+
+    .notification-page-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+

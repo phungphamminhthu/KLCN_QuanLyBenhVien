@@ -11,33 +11,43 @@
   <div class="header-right">
 
     <!-- THÔNG BÁO -->
-    <div class="notification-wrapper">
 
+    <!-- THÔNG BÁO -->
+    <div class="notification-wrapper" id="notificationWrapper">
 
+      <!-- NÚT CHUÔNG -->
       <button type="button"
               class="notification-button"
               id="notification-button"
               aria-label="Mở thông báo"
               aria-expanded="false"
-              aria-controls="notification-panel">
+              aria-controls="notificationPanel">
 
-        <span class="notification-icon" aria-hidden="true">🔔</span>
+    <span class="notification-icon" aria-hidden="true">
+      🔔
+    </span>
 
+        <!-- SỐ THÔNG BÁO CHƯA ĐỌC -->
         <span id="notificationBadge"
               class="notification-badge"
               hidden>0</span>
       </button>
 
-
+      <!-- KHUNG THÔNG BÁO -->
       <div class="notification-panel"
-           id="notificationPanel" hidden>
+           id="notificationPanel"
+           role="region"
+           aria-labelledby="notificationTitle"
+           hidden>
 
+        <!-- HEADER -->
         <div class="notification-header">
           <div>
-            <h3>Thông báo</h3>
+            <h3 id="notificationTitle">Thông báo</h3>
+
             <span id="notificationCountText">
-                            0 thông báo mới
-                        </span>
+          0 thông báo mới
+        </span>
           </div>
 
           <button type="button" id="markAllReadButton">
@@ -45,12 +55,19 @@
           </button>
         </div>
 
+        <!-- DANH SÁCH -->
         <div class="notification-list" id="notificationList">
-          <!-- JS thông báo render tại đây -->
+
+          <div class="notification-empty">
+            <i class="fa-regular fa-bell"></i>
+            <p>Chưa có thông báo nào.</p>
+          </div>
+
         </div>
 
+        <!-- FOOTER -->
         <div class="notification-footer">
-          <a href="/BacSi/thong-bao">
+          <a th:href="@{/auth/bac-si/thong-bao}">
             Xem tất cả thông báo
           </a>
         </div>

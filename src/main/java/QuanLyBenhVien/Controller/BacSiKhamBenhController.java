@@ -27,7 +27,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import QuanLyBenhVien.Repository.ChiDinhYTeRepository;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import java.util.Set;
 @RestController
 @RequestMapping("/api/bac-si/kham-benh")
 public class BacSiKhamBenhController {
@@ -35,16 +38,24 @@ public class BacSiKhamBenhController {
     private final BacSiService bacSiService;
     private final KhamBenhService khamBenhService;
     private final LichDangKyKhamRepository lichDangKyKhamRepository;
+    private final ChiDinhYTeRepository chiDinhYTeRepository;
+    private final JdbcTemplate jdbcTemplate;
+
 
     public BacSiKhamBenhController(
             BacSiService bacSiService,
             KhamBenhService khamBenhService,
-            LichDangKyKhamRepository lichDangKyKhamRepository
+            LichDangKyKhamRepository lichDangKyKhamRepository,
+            ChiDinhYTeRepository chiDinhYTeRepository,
+            JdbcTemplate jdbcTemplate
     ) {
         this.bacSiService = bacSiService;
         this.khamBenhService = khamBenhService;
         this.lichDangKyKhamRepository = lichDangKyKhamRepository;
+        this.chiDinhYTeRepository = chiDinhYTeRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
+
 
 
     // =========================================================
@@ -556,8 +567,295 @@ public class BacSiKhamBenhController {
 
         } catch (Exception e) {
             return loi(e);
+
+        }
+
+    }
+
+    @GetMapping("/{maLichKham}/chi-dinh/{maChiDinh}/chi-tiet-day-du")
+    public ResponseEntity<?> chiTietChiDinhDayDu(
+            @PathVariable Integer maLichKham,
+            @PathVariable Integer maChiDinh,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        try {
+            BacSi bacSi = layBacSiDangNhap(userDetails);
+
+            ChiDinhYTe chiDinh = khamBenhService.xemChiDinh(
+                    bacSi.getMaBacSi(),
+                    maLichKham,
+                    maChiDinh
+            );
+
+            Map<String, Object> map =
+                    chuyenChiDinhThanhMap(chiDinh);
+
+            HoSoBenhAn hoSo = chiDinh.getHoSoBenhAn();
+
+            if (hoSo != null && hoSo.getLichDangKyKham() != null) {
+                LichDangKyKham lich = hoSo.getLichDangKyKham();
+
+                map.put("maLichKham", lich.getMaLichKham());
+                map.put("ngayKham", lich.getNgayKham());
+
+                if (lich.getBenhNhan() != null &&
+                        lich.getBenhNhan().getNguoiDung() != null) {
+
+                    map.put(
+                            "hoTen",
+                            lich.getBenhNhan()
+                                    .getNguoiDung()
+                                    .getHoTen()
+                    );
+                }
+            }
+
+            if (chiDinh.getDichVuYTe() != null) {
+                Integer maDichVu =
+                        chiDinh.getDichVuYTe().getMaDichVu();
+
+                List<Map<String, Object>> chiSo =
+                        jdbcTemplate.queryForList(
+                                """
+                                SELECT
+                                    MaChiSoDichVu AS maChiSoDichVu,
+                                    TenChiSo AS tenChiSo,
+                                    DonVi AS donVi,
+                                    GiaTriThamChieu AS giaTriThamChieu
+                                FROM ChiSoDichVu
+                                WHERE MaDichVu = ?
+                                ORDER BY ThuTuHienThi, MaChiSoDichVu
+                                """,
+                                maDichVu
+                        );
+
+                map.put("chiSo", chiSo);
+            } else {
+                map.put("chiSo", List.of());
+            }
+
+            return ResponseEntity.ok(map);
+
+        } catch (Exception e) {
+            return loi(e);
         }
     }
+
+    @GetMapping("/{maLichKham}/phieu-chi-dinh/{maPhieuChiDinh}")
+    public ResponseEntity<?> xemChiTietPhieuChiDinh(
+            @PathVariable Integer maLichKham,
+            @PathVariable String maPhieuChiDinh,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        try {
+            BacSi bacSi = layBacSiDangNhap(userDetails);
+
+            if (maPhieuChiDinh == null ||
+                    !maPhieuChiDinh.matches(
+                            "[0-9a-fA-F-]{36}"
+                    )) {
+                throw new IllegalArgumentException(
+                        "Mã phiếu chỉ định không hợp lệ."
+                );
+            }
+
+            List<Integer> danhSachMaChiDinh =
+                    jdbcTemplate.queryForList(
+                            """
+                            SELECT MaChiDinh
+                            FROM ChiDinhYTe
+                            WHERE MaPhieuChiDinh = ?
+                            ORDER BY MaChiDinh ASC
+                            """,
+                            Integer.class,
+                            maPhieuChiDinh
+                    );
+
+            if (danhSachMaChiDinh.isEmpty()) {
+                throw new IllegalArgumentException(
+                        "Không tìm thấy phiếu chỉ định."
+                );
+            }
+
+            List<Map<String, Object>> dichVuTrongPhieu =
+                    new java.util.ArrayList<>();
+
+            Map<String, Object> ketQua = new LinkedHashMap<>();
+            java.util.List<String> trangThaiDichVu =
+                    new java.util.ArrayList<>();
+
+            Integer maHoSoChung = null;
+
+            for (Integer maChiDinh : danhSachMaChiDinh) {
+
+                // Kiểm tra chỉ định thuộc lịch khám và bác sĩ
+                ChiDinhYTe chiDinh =
+                        khamBenhService.xemChiDinh(
+                                bacSi.getMaBacSi(),
+                                maLichKham,
+                                maChiDinh
+                        );
+
+                HoSoBenhAn hoSo = chiDinh.getHoSoBenhAn();
+
+                if (maHoSoChung == null) {
+                    maHoSoChung = hoSo.getMaHoSoBenhAn();
+                } else if (!maHoSoChung.equals(
+                        hoSo.getMaHoSoBenhAn())) {
+                    throw new IllegalStateException(
+                            "Phiếu có chỉ định thuộc nhiều hồ sơ."
+                    );
+                }
+
+                if (dichVuTrongPhieu.isEmpty()) {
+                    ketQua.putAll(
+                            chuyenChiDinhTongQuatThanhMap(chiDinh)
+                    );
+                }
+
+                Map<String, Object> dichVu =
+                        chuyenChiDinhThanhMap(chiDinh);
+
+                Integer maDichVu =
+                        chiDinh.getDichVuYTe().getMaDichVu();
+
+                List<Map<String, Object>> chiSo =
+                        jdbcTemplate.queryForList(
+                                """
+                                SELECT
+                                    MaChiSoDichVu AS maChiSoDichVu,
+                                    TenChiSo AS tenChiSo,
+                                    DonVi AS donVi,
+                                    GiaTriThamChieu AS giaTriThamChieu
+                                FROM ChiSoDichVu
+                                WHERE MaDichVu = ?
+                                ORDER BY ThuTuHienThi, MaChiSoDichVu
+                                """,
+                                maDichVu
+                        );
+
+                List<Map<String, Object>> thongTinDanhMuc =
+                        jdbcTemplate.queryForList(
+                                """
+                                SELECT Nhom AS nhom,
+                                       TenHienThi AS tenHienThi,
+                                       ThuTu AS thuTu
+                                FROM PhieuXetNghiemDanhMuc
+                                WHERE MaDichVu = ?
+                                ORDER BY ThuTu, MaMuc
+                                LIMIT 1
+                                """,
+                                maDichVu
+                        );
+
+                if (!thongTinDanhMuc.isEmpty()) {
+                    Map<String, Object> danhMuc = thongTinDanhMuc.get(0);
+
+                    dichVu.put("nhom", danhMuc.get("nhom"));
+                    dichVu.put("tenHienThi", danhMuc.get("tenHienThi"));
+                    dichVu.put("thuTu", danhMuc.get("thuTu"));
+                } else {
+                    dichVu.put("nhom", "Dịch vụ khác");
+                    dichVu.put("tenHienThi", dichVu.get("tenDichVu"));
+                    dichVu.put("thuTu", 9999);
+                }
+
+
+                dichVu.put("chiSo", chiSo);
+                dichVu.remove("gia");
+
+                dichVuTrongPhieu.add(dichVu);
+                trangThaiDichVu.add(chiDinh.getTrangThai());
+            }
+
+            String trangThaiPhieu;
+
+            if (trangThaiDichVu.stream()
+                    .allMatch("DaHoanThanh"::equals)) {
+                trangThaiPhieu = "DaHoanThanh";
+            } else if (trangThaiDichVu.stream()
+                    .anyMatch(t -> "DangThucHien".equals(t)
+                            || "DaHoanThanh".equals(t))) {
+                trangThaiPhieu = "DangThucHien";
+            } else {
+                trangThaiPhieu = "ChoThucHien";
+            }
+
+            ketQua.put("maPhieuChiDinh", maPhieuChiDinh);
+            ketQua.put("soDichVu", dichVuTrongPhieu.size());
+            ketQua.put("danhSachDichVu", dichVuTrongPhieu);
+            ketQua.put("trangThai", trangThaiPhieu);
+            ketQua.remove("gia");
+
+            return ResponseEntity.ok(ketQua);
+
+        } catch (Exception e) {
+            return loi(e);
+        }
+    }
+
+
+    @PatchMapping("/{maLichKham}/chi-dinh/{maChiDinh}/trang-thai")
+    public ResponseEntity<?> capNhatTrangThaiChiDinh(
+            @PathVariable Integer maLichKham,
+            @PathVariable Integer maChiDinh,
+            @RequestBody Map<String, Object> request,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        try {
+            BacSi bacSi = layBacSiDangNhap(userDetails);
+
+            ChiDinhYTe chiDinh = khamBenhService.xemChiDinh(
+                    bacSi.getMaBacSi(),
+                    maLichKham,
+                    maChiDinh
+            );
+
+            String trangThai = String.valueOf(
+                    request.getOrDefault("trangThai", "")
+            );
+
+            Set<String> hopLe = Set.of(
+                    "ChoThucHien",
+                    "DangThucHien",
+                    "DaHoanThanh"
+            );
+
+            if (!hopLe.contains(trangThai)) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("message", "Trạng thái không hợp lệ.")
+                );
+            }
+
+            String hienTai = chiDinh.getTrangThai();
+
+            boolean chuyenHopLe =
+                    trangThai.equals(hienTai)
+                            || ("ChoThucHien".equals(hienTai)
+                            && "DangThucHien".equals(trangThai))
+                            || ("DangThucHien".equals(hienTai)
+                            && "DaHoanThanh".equals(trangThai));
+
+            if (!chuyenHopLe) {
+                return ResponseEntity.badRequest().body(
+                        Map.of("message", "Không thể chuyển sang trạng thái này.")
+                );
+            }
+
+            chiDinh.setTrangThai(trangThai);
+            chiDinhYTeRepository.save(chiDinh);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Cập nhật trạng thái thành công.",
+                    "maChiDinh", maChiDinh,
+                    "trangThai", trangThai
+            ));
+
+        } catch (Exception e) {
+            return loi(e);
+        }
+    }
+
 
 
     // =========================================================
@@ -1257,10 +1555,36 @@ public class BacSiKhamBenhController {
     // =========================================================
     // CHUYỂN LỊCH SỬ THÀNH JSON
     // =========================================================
+
     private Map<String, Object> chuyenLichSuThanhMap(
             LichDangKyKham lich
     ) {
-        return chuyenLichKhamThanhMap(lich);
+        Map<String, Object> map =
+                chuyenLichKhamThanhMap(lich);
+
+        // 4 chỉ số sức khỏe
+        map.put("canNang", lich.getCanNang());
+        map.put("chieuCao", lich.getChieuCao());
+
+        map.put(
+                "huyetApTamThu",
+                lich.getHuyetApTamThu()
+        );
+
+        map.put(
+                "huyetApTamTruong",
+                lich.getHuyetApTamTruong()
+        );
+
+        // Tiền sử bệnh của bệnh nhân
+        if (lich.getBenhNhan() != null) {
+            map.put(
+                    "tienSuBenh",
+                    lich.getBenhNhan().getTienSuBenh()
+            );
+        }
+
+        return map;
     }
 
 
@@ -1344,6 +1668,10 @@ public class BacSiKhamBenhController {
             map.put(
                     "lyDoKham",
                     lich.getLyDoKham()
+            );
+            map.put(
+                    "trangThaiLichKham",
+                    lich.getTrangThai()
             );
             // Khoa của lần khám
             if (lich.getKhoa() != null) {
@@ -1450,6 +1778,10 @@ public class BacSiKhamBenhController {
         map.put(
                 "maChiDinh",
                 chiDinh.getMaChiDinh()
+        );
+        map.put(
+                "maPhieuChiDinh",
+                chiDinh.getMaPhieuChiDinh()
         );
 
         map.put(

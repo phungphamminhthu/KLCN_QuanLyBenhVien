@@ -1623,3 +1623,9 @@ tbody tr:hover {
     display: block !important;
 }
 
+
+/* Ẩn form chọn một dịch vụ cũ */
+#clinicalTabContent .clinical-order-box .clinical-field,
+#clinicalTabContent #selectedServiceInfo {
+    display: none !important;
+}

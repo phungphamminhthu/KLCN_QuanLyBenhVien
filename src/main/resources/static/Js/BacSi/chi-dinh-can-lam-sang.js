@@ -1071,13 +1071,35 @@ function clsGanSuKien() {
         clsTaiChiDinh
     );
 
+
+
     clsEl("btnOpenOrderForm").addEventListener(
         "click",
         () => {
-            clsEl("clinicalOrderForm")
-                .classList.remove("hidden");
+
+            if (!clsMaLichKham) {
+                clsThongBao(
+                    "Không tìm thấy mã lịch khám.",
+                    true
+                );
+                return;
+            }
+
+            if (clsHoSoHoanTat) {
+                clsThongBao(
+                    "Hồ sơ đã hoàn tất, không thể tạo chỉ định.",
+                    true
+                );
+                return;
+            }
+
+            // Chuyển sang trang tạo phiếu chỉ định mới
+            window.location.href =
+                `/auth/bac-si/tao-chi-dinh?maLichKham=${clsMaLichKham}`;
         }
     );
+
+
 
     clsEl("btnCancelOrder").addEventListener(
         "click",

@@ -1,0 +1,887 @@
+
+/* ============================================
+   MEDCARE - TẠO PHIẾU CHỈ ĐỊNH CẬN LÂM SÀNG
+   Giao diện trắng - xanh
+   Danh mục 3 cột cố định
+   Tổng kết ở cuối trang
+============================================ */
+
+/* 1. TOÀN TRANG */
+
+.order-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 18px 24px 30px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #1e293b;
+}
+
+.order-page *,
+.order-dialog * {
+    box-sizing: border-box;
+}
+
+.order-page button,
+.order-page input,
+.order-page textarea,
+.order-dialog button {
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* 2. TIÊU ĐỀ */
+
+.order-heading {
+    margin-bottom: 14px;
+}
+
+.order-heading a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.order-heading a:hover {
+    color: #1d4ed8;
+}
+
+.order-heading h1 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: normal;
+    text-transform: none;
+    color: #172b4d;
+}
+
+.order-heading h1 i {
+    font-size: 20px;
+    color: #2563eb;
+}
+
+/* Ẩn mô tả lặp dưới tiêu đề */
+.order-heading > p {
+    display: none;
+}
+
+/* 3. THÔNG TIN BỆNH NHÂN */
+
+.order-patient {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 14px;
+    padding: 15px 17px;
+    margin-bottom: 10px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.order-patient > div {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.order-patient span {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 400;
+}
+
+.order-patient strong {
+    color: #172b4d;
+    font-size: 13px;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+/* 4. CHẨN ĐOÁN */
+
+.order-diagnosis {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 14px;
+    padding: 11px 14px;
+    border: 1px solid #dbeafe;
+    border-radius: 9px;
+    background: #eff6ff;
+    font-size: 13px;
+    color: #475569;
+}
+
+.order-diagnosis strong {
+    color: #2563eb;
+}
+
+/* 5. THÔNG BÁO LỖI */
+
+.order-alert {
+    padding: 12px 15px;
+    margin-bottom: 14px;
+    border: 1px solid #fecaca;
+    border-radius: 9px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 13px;
+}
+
+.order-alert[hidden] {
+    display: none !important;
+}
+
+/* 6. TAB CẬN LÂM SÀNG */
+
+.service-tabs {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin: 0 0 15px;
+}
+
+.service-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    border: 1px solid #dbe4f0;
+    border-radius: 9px;
+    background: white;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.service-tab:hover:not(.active) {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.service-tab.active {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
+
+/* 7. DANH MỤC TRÊN - TỔNG KẾT DƯỚI */
+
+.order-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 20px;
+    align-items: start;
+}
+
+.order-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #ffffff;
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.03);
+}
+
+/* Bỏ tiêu đề danh mục bị lặp */
+.order-layout
+> .order-card:not(.order-summary)
+> .order-card-header {
+    display: none !important;
+}
+
+/* 8. THANH TÌM KIẾM */
+
+.order-search {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    height: 43px;
+    padding: 0 14px;
+    margin-bottom: 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.order-search:focus-within {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.order-search input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #1e293b;
+    font-size: 13px;
+}
+
+.order-search input::placeholder {
+    color: #94a3b8;
+}
+
+/* Bỏ hướng dẫn lặp */
+.order-selection-guide {
+    display: none !important;
+}
+
+/* 9. DANH MỤC XÉT NGHIỆM 3 CỘT */
+
+#serviceGroups {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-items: start;
+    gap: 16px;
+    column-count: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* Mỗi cột độc lập, không nhảy nhóm */
+#serviceGroups .medcare-paper-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+/* Khung từng nhóm */
+#serviceGroups .medcare-paper-group {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 1px solid #dbe7fa;
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+/* Tiêu đề nhóm */
+#serviceGroups .medcare-paper-group h3 {
+    margin: 0;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 0;
+    background: #fff1b5;
+    color: #9a3412;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+/* Nội dung nhóm */
+#serviceGroups .medcare-paper-group .group-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 10px 12px;
+    border: none;
+}
+
+/* Mỗi checkbox */
+#serviceGroups .medcare-paper-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-height: 31px;
+    padding: 6px 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+#serviceGroups .medcare-paper-option:hover {
+    background: #f1f5f9;
+}
+
+#serviceGroups
+.medcare-paper-option:has(input:checked) {
+    background: #eff6ff;
+}
+
+/* Checkbox */
+#serviceGroups .medcare-paper-option input {
+    appearance: auto;
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    margin: 1px 0 0;
+    accent-color: #2563eb;
+}
+
+/* Nội dung tên xét nghiệm */
+#serviceGroups .medcare-paper-option .service-info {
+    display: block;
+    min-width: 0;
+}
+
+#serviceGroups .medcare-paper-option strong {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+#serviceGroups
+.medcare-paper-option:has(input:checked) strong {
+    color: #1d4ed8;
+    font-weight: 600;
+}
+
+/* Phụ đề XN tế bào âm đạo */
+.medcare-paper-subtitle {
+    margin: 7px 0 4px;
+    padding-left: 5px;
+    color: #15803d;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Dòng dị ứng */
+.medcare-paper-static {
+    text-align: center;
+    color: #0e7490;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+/* Không có kết quả tìm kiếm */
+#serviceGroups > p {
+    grid-column: 1 / -1;
+    padding: 15px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* 10. BỎ YÊU CẦU THÊM VÀ CHỮ KÝ */
+
+.medcare-paper-foot,
+#medcarePaperFoot {
+    display: none !important;
+}
+
+/* 11. TỔNG KẾT CHỈ ĐỊNH - NỀN TRẮNG */
+
+.order-summary {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 18px;
+    position: static !important;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 22px 24px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #ffffff !important;
+    color: #1e293b;
+}
+
+/* Tiêu đề và số mục cùng hàng */
+.order-summary > .order-card-header {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 0 0 16px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.order-summary .order-card-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    margin: 0;
+    color: #172b4d;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+.order-summary .order-card-header h2 i {
+    color: #2563eb;
+    font-size: 18px;
+}
+
+/* Ẩn dòng giải thích dưới tổng kết */
+.order-summary .order-card-header p {
+    display: none;
+}
+
+/* Badge số mục ở góc phải */
+#selectedBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 6px 12px;
+    min-width: 30px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Thêm chữ sau số */
+#selectedBadge::after {
+    content: " mục đã chọn";
+}
+
+/* Các nhóm đã chọn nằm ngang 3 cột */
+#selectedServices {
+    grid-column: 1 / -1;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    align-items: start;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 22px 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Nhóm tổng kết */
+#selectedServices .selected-group {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+/* Tên nhóm xanh */
+#selectedServices .selected-group-title {
+    display: block;
+    margin: 0 0 10px;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+/* Ẩn icon thừa trước tên nhóm */
+#selectedServices .selected-group-title i {
+    display: none;
+}
+
+/* Danh sách đã chọn */
+#selectedServices .selected-group-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+/* Mỗi dòng */
+#selectedServices .selected-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+/* Dấu check xanh lá */
+#selectedServices .selected-item-info {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    min-width: 0;
+}
+
+#selectedServices .selected-item-info::before {
+    content: "✓";
+    flex-shrink: 0;
+    color: #16a34a;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+#selectedServices .selected-item strong {
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* Nút X để bỏ xét nghiệm */
+#selectedServices .remove-service {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 50%;
+    background: #f8fafc;
+    color: #94a3b8;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+#selectedServices .remove-service:hover {
+    background: #fee2e2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+/* Chưa chọn xét nghiệm */
+#selectedServices .selected-empty {
+    grid-column: 1 / -1;
+    padding: 14px 0;
+    color: #94a3b8;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* 12. TỔNG SỐ BÊN TRÁI */
+
+.order-summary .order-total {
+    grid-column: 1;
+    min-width: 0;
+    margin: 20px 0 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.order-summary .order-total > div {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+}
+
+.order-summary .order-total span {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+#serviceCount {
+    color: #172b4d;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+#serviceCount::after {
+    content: " mục";
+    color: #334155;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* 13. NÚT TẠO PHIẾU BÊN PHẢI */
+
+.btn-create-order {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    border: none;
+    border-radius: 9px;
+    padding: 12px 19px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-create-order:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.btn-create-order:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.order-summary > .btn-create-order {
+    grid-column: 2;
+    justify-self: end;
+    width: auto;
+    margin-top: 20px;
+}
+
+/* 14. BỎ NỘI DUNG KHÔNG CẦN */
+
+.order-note,
+.order-page-footer,
+#totalPrice {
+    display: none !important;
+}
+
+/* 15. POPUP XÁC NHẬN */
+
+.order-dialog {
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.order-dialog[hidden] {
+    display: none !important;
+}
+
+.order-dialog:not([hidden]) {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.55);
+}
+
+.order-dialog-content {
+    width: min(650px, 100%);
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 26px;
+    border-radius: 15px;
+    background: #ffffff;
+    color: #1e293b;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+}
+
+.order-confirm-icon {
+    display: flex;
+    justify-content: center;
+    color: #2563eb;
+    font-size: 27px;
+    margin-bottom: 10px;
+}
+
+.order-dialog-content h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #172b4d;
+}
+
+.order-dialog-content > p {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.order-confirm-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    text-align: left;
+}
+
+.order-confirm-summary .selected-group {
+    min-width: 0;
+}
+
+.order-confirm-summary .selected-group-title {
+    margin: 0 0 9px;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.order-confirm-summary .selected-item {
+    display: flex;
+    gap: 7px;
+    margin-bottom: 7px;
+}
+
+.order-confirm-summary .selected-item strong {
+    color: #334155;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.order-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 22px;
+}
+
+.btn-cancel-order {
+    padding: 12px 18px;
+    border: 1px solid #cbd5e1;
+    border-radius: 9px;
+    background: white;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* 16. RESPONSIVE */
+
+@media (max-width: 1200px) {
+    .order-patient {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    #serviceGroups {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    #selectedServices {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .order-page {
+        padding: 12px;
+    }
+
+    .order-heading h1 {
+        font-size: 19px;
+    }
+
+    .order-patient {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .order-card,
+    .order-summary {
+        padding: 14px;
+    }
+
+    #serviceGroups {
+        grid-template-columns: 1fr !important;
+    }
+
+    #selectedServices {
+        grid-template-columns: 1fr;
+    }
+
+    .order-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .order-summary > .btn-create-order {
+        grid-column: 1;
+        width: 100%;
+        justify-self: stretch;
+    }
+
+    .order-confirm-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .order-dialog-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 430px) {
+    .order-patient {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* DANH MỤC SIÊU ÂM, X-QUANG, NỘI SOI, THĂM DÒ... */
+
+/* =========================================
+   DANH MỤC KHÁC - MỘT KHUNG TOÀN CHIỀU NGANG
+   Giữ nguyên tab Xét nghiệm 3 cột
+========================================= */
+
+/* Chuyển khu vực dịch vụ thành 1 cột */
+.order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+#serviceGroups {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    gap: 0 !important;
+}
+
+/* Cột chứa danh mục phải chiếm toàn bộ chiều ngang */
+.order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+#serviceGroups > .medcare-paper-column {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+}
+
+/* Ẩn hai cột rỗng do JS vẫn tạo 3 cột */
+.order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+#serviceGroups > .medcare-paper-column:empty {
+    display: none !important;
+}
+
+/* Khung nhóm chiếm toàn bộ cột */
+.order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+#serviceGroups .medcare-paper-group {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+}
+
+/* Chia checkbox thành 2 cột bên trong khung lớn */
+.order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+#serviceGroups .medcare-paper-group .group-body {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px 24px;
+    padding: 14px 18px;
+}
+
+/* Các dòng checkbox */
+.order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+#serviceGroups .medcare-paper-option {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Điện thoại: checkbox chuyển thành 1 cột */
+@media (max-width: 600px) {
+    .order-page:has(.service-tab.active:not([data-tab="Xét nghiệm"]))
+    #serviceGroups .medcare-paper-group .group-body {
+        grid-template-columns: 1fr !important;
+    }
+}
