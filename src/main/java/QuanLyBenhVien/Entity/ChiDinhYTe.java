@@ -19,7 +19,6 @@ public class ChiDinhYTe {
         this.maPhieuChiDinh = maPhieuChiDinh;
     }
 
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "MaChiDinh")
