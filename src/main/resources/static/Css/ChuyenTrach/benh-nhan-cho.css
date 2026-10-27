@@ -1,0 +1,774 @@
+
+/* ============================================
+   BENH NHAN DANG CHO - CHUYEN TRACH
+   ============================================ */
+
+.ctq-page {
+    --ctq-primary: #2563EB;
+    --ctq-primary-dark: #1D4ED8;
+
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+
+    color: #1E293B;
+    font-size: 13px;
+}
+
+/* ============================================
+   KHUNG BẢNG
+   ============================================ */
+
+.ctq-page .ctq-panel {
+    width: 100%;
+    min-width: 0;
+
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    overflow: hidden;
+
+    box-shadow: 0 1px 5px rgba(15, 23, 42, 0.03);
+}
+
+/* ============================================
+   HEADER VÀ BỘ LỌC
+   ============================================ */
+
+.ctq-page .ctq-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+
+    padding: 17px 18px;
+    border-bottom: 1px solid #E9EDF5;
+}
+
+.ctq-page .ctq-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ctq-page .ctq-heading h2 {
+    margin: 0;
+    color: #1E293B;
+
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.ctq-page .ctq-count {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 23px;
+    padding: 4px 10px;
+
+    background: #EFF6FF;
+    border-radius: 999px;
+
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.ctq-page .ctq-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.ctq-page .ctq-filter label {
+    color: #64748B;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.ctq-page .ctq-filter select {
+    min-width: 215px;
+    max-width: 300px;
+    height: 37px;
+    padding: 0 10px;
+
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+
+    color: #475569;
+    font-size: 12px;
+}
+
+.ctq-page .ctq-filter select:focus {
+    outline: 2px solid #BFDBFE;
+    border-color: #2563EB;
+}
+
+/* ============================================
+   BẢNG CỐ ĐỊNH 7 CỘT
+   ============================================ */
+
+.ctq-page .ctq-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ctq-page .ctq-table {
+    width: 100%;
+    min-width: 1010px;
+
+    table-layout: fixed !important;
+    border-collapse: collapse;
+}
+
+/*
+   Tổng chiều rộng = 100%.
+   Các cột không thay đổi khi nội dung khác nhau.
+*/
+
+.ctq-page .ctq-col-stt {
+    width: 5%;
+}
+
+.ctq-page .ctq-col-patient {
+    width: 18%;
+}
+
+.ctq-page .ctq-col-service {
+    width: 21%;
+}
+
+.ctq-page .ctq-col-room {
+    width: 15%;
+}
+
+.ctq-page .ctq-col-time {
+    width: 17%;
+}
+
+.ctq-page .ctq-col-status {
+    width: 14%;
+}
+
+.ctq-page .ctq-col-action {
+    width: 10%;
+}
+
+/* Tiêu đề bảng */
+
+.ctq-page .ctq-table thead th {
+    height: 48px;
+    padding: 10px 12px;
+
+    background: #F7F9FE;
+    border-bottom: 1px solid #E2E8F0;
+
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 800;
+
+    text-align: left;
+    vertical-align: middle;
+    white-space: normal;
+    line-height: 1.35;
+}
+
+/* Dòng dữ liệu */
+
+.ctq-page .ctq-table tbody tr {
+    height: 64px;
+}
+
+.ctq-page .ctq-table tbody td {
+    padding: 10px 12px;
+
+    border-bottom: 1px solid #EDF2F7;
+
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.45;
+
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+.ctq-page .ctq-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ctq-page .ctq-table tbody tr:hover {
+    background: #F8FBFF;
+}
+
+.ctq-page .ctq-table th:first-child,
+.ctq-page .ctq-table td:first-child {
+    text-align: center;
+}
+
+/* ============================================
+   THÔNG TIN BỆNH NHÂN
+   ============================================ */
+
+.ctq-page .ctq-patient-cell {
+    min-width: 0;
+}
+
+.ctq-page .ctq-patient-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-clamp: 2;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+
+    margin-bottom: 4px;
+
+    color: #1E293B;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.4;
+}
+
+.ctq-page .ctq-patient-code {
+    display: block;
+
+    color: #64748B;
+    font-size: 11px;
+}
+
+/* ============================================
+   DỊCH VỤ - KHÔNG LÀM GIÃN CỘT
+   ============================================ */
+
+.ctq-page .ctq-service {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+
+    max-width: 100%;
+
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* ============================================
+   PHÒNG CHUYÊN TRÁCH
+   ============================================ */
+
+.ctq-page .ctq-room {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+
+    max-width: 100%;
+    padding: 5px 8px;
+
+    background: #F1F5F9;
+    border-radius: 7px;
+
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* ============================================
+   THỜI GIAN
+   ============================================ */
+
+.ctq-page .ctq-time {
+    display: block;
+    color: #334155;
+
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ctq-page .ctq-date {
+    display: block;
+    margin-top: 3px;
+
+    color: #94A3B8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* ============================================
+   TRẠNG THÁI
+   ============================================ */
+
+.ctq-page .ctq-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    max-width: 100%;
+    padding: 6px 10px;
+
+    background: #FEF3C7;
+    border-radius: 999px;
+
+    color: #B45309;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ctq-page .ctq-status-dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+
+    background: #F59E0B;
+    border-radius: 50%;
+}
+
+/* ============================================
+   NÚT XEM
+   ============================================ */
+
+.ctq-page .ctq-view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-width: 70px;
+    min-height: 32px;
+    padding: 7px 11px;
+
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+
+    background: #EFF6FF;
+    color: #2563EB;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ctq-page .ctq-view-btn:hover {
+    background: #DBEAFE;
+}
+
+/* ============================================
+   KHÔNG CÓ DỮ LIỆU
+   ============================================ */
+
+.ctq-page .ctq-empty {
+    height: 160px !important;
+    padding: 35px 12px !important;
+
+    color: #64748B !important;
+    text-align: center !important;
+    font-size: 13px !important;
+}
+
+/* ============================================
+   FOOTER - PHÂN TRANG
+   ============================================ */
+
+.ctq-page .ctq-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-height: 58px;
+    padding: 10px 17px;
+
+    border-top: 1px solid #E2E8F0;
+
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctq-page .ctq-pagination {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ctq-page .ctq-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-height: 33px;
+    padding: 7px 10px;
+
+    border: 1px solid #E2E8F0;
+    border-radius: 7px;
+
+    background: #FFFFFF;
+    color: #64748B;
+
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.ctq-page .ctq-page-btn:hover:not(:disabled) {
+    color: #2563EB;
+    background: #EFF6FF;
+}
+
+.ctq-page .ctq-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ctq-page .ctq-page-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 33px;
+    height: 33px;
+
+    background: #2563EB;
+    border-radius: 7px;
+
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* ============================================
+   POPUP XEM THÔNG TIN
+   ============================================ */
+
+.ctq-overlay[hidden] {
+    display: none !important;
+}
+
+.ctq-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.50);
+}
+
+.ctq-modal {
+    width: min(650px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: #FFFFFF;
+    border-radius: 15px;
+
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.2);
+}
+
+.ctq-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+
+    padding: 20px 22px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ctq-modal-header h3 {
+    margin: 0;
+    color: #1E293B;
+    font-size: 18px;
+}
+
+.ctq-modal-header p {
+    margin: 6px 0 0;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctq-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #F1F5F9;
+    color: #64748B;
+    cursor: pointer;
+}
+
+.ctq-modal-body {
+    padding: 20px 22px;
+}
+
+.ctq-patient-summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 15px;
+    margin-bottom: 20px;
+
+    background: #F8FAFC;
+    border-radius: 10px;
+}
+
+.ctq-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 46px;
+
+    background: #DBEAFE;
+    border-radius: 50%;
+
+    color: #2563EB;
+    font-size: 20px;
+}
+
+.ctq-patient-summary strong,
+.ctq-patient-summary span {
+    display: block;
+}
+
+.ctq-patient-summary strong {
+    color: #1E293B;
+    font-size: 14px;
+}
+
+.ctq-patient-summary span {
+    margin-top: 4px;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctq-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+}
+
+.ctq-detail label {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctq-detail strong {
+    color: #1E293B;
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.ctq-detail-section {
+    margin-top: 20px;
+    padding-top: 15px;
+
+    border-top: 1px solid #E2E8F0;
+}
+
+.ctq-detail-section h4 {
+    margin: 0 0 9px;
+
+    color: #334155;
+    font-size: 13px;
+}
+
+.ctq-detail-section p {
+    margin: 0;
+    color: #475569;
+
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.ctq-notice {
+    margin-top: 16px;
+    padding: 11px 12px;
+
+    border-radius: 8px;
+    border: 1px solid #FDE68A;
+
+    background: #FFFBEB;
+    color: #92400E;
+
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.ctq-notice[hidden] {
+    display: none !important;
+}
+
+.ctq-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    padding: 15px 22px;
+    border-top: 1px solid #E2E8F0;
+}
+
+/* ============================================
+   NÚT POPUP
+   ============================================ */
+
+.ctq-btn-secondary,
+.ctq-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-height: 40px;
+    padding: 9px 16px;
+
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.ctq-btn-secondary {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+}
+
+.ctq-btn-primary {
+    background: #2563EB;
+    border: 1px solid #2563EB;
+    color: #FFFFFF;
+}
+
+.ctq-btn-primary:hover:not(:disabled) {
+    background: #1D4ED8;
+}
+
+.ctq-btn-primary:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   POPUP XÁC NHẬN
+   ============================================ */
+
+.ctq-confirm {
+    width: min(420px, 100%);
+    padding: 27px;
+
+    background: #FFFFFF;
+    border-radius: 16px;
+    text-align: center;
+
+    box-shadow: 0 20px 55px rgba(15, 23, 42, .22);
+}
+
+.ctq-confirm-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 58px;
+    height: 58px;
+    margin: 0 auto 16px;
+
+    border-radius: 50%;
+    background: #DBEAFE;
+
+    color: #2563EB;
+    font-size: 24px;
+}
+
+.ctq-confirm h3 {
+    margin: 0 0 12px;
+    color: #1E293B;
+    font-size: 19px;
+}
+
+.ctq-confirm p {
+    margin: 0 0 22px;
+    color: #64748B;
+    line-height: 1.6;
+}
+
+.ctq-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1050px) {
+    .ctq-page .ctq-table {
+        min-width: 1010px;
+    }
+}
+
+@media (max-width: 650px) {
+    .ctq-page .ctq-panel-header {
+        align-items: flex-start;
+    }
+
+    .ctq-page .ctq-filter {
+        width: 100%;
+    }
+
+    .ctq-page .ctq-filter select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .ctq-page .ctq-footer {
+        flex-wrap: wrap;
+    }
+
+    .ctq-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctq-modal-body {
+        padding: 16px;
+    }
+}

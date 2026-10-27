@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Nhập kết quả chuyên trách</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/nhap-ket-qua.css}">
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="ct-result-page">
+
+    <!-- THANH TRÊN CÙNG -->
+    <div class="ct-result-top" id="ctResultTop">
+
+        <!-- CHỈ MỘT NÚT QUAY LẠI DUY NHẤT -->
+        <a th:href="@{/ChuyenTrach/dashboard}"
+           id="ctBackButton"
+           class="ct-back"
+           aria-label="Quay lại Dashboard">
+
+            <i class="fa-solid fa-arrow-left"
+               aria-hidden="true"></i>
+
+            <span class="ct-back-text">
+                Quay lại Dashboard
+            </span>
+        </a>
+
+        <span id="pageStatus">Đang tải thông tin...</span>
+    </div>
+
+    <div class="ct-result-grid">
+
+        <!-- CỘT TRÁI: THÔNG TIN CHỈ ĐỊNH -->
+        <aside class="ct-result-panel">
+
+            <div class="ct-result-heading">
+                <i class="fa-regular fa-file-lines"></i>
+                <h2>Thông tin chỉ định</h2>
+            </div>
+
+            <div class="ct-patient">
+
+                <div class="ct-patient-avatar">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+
+                <div>
+                    <strong id="patientName">Đang tải...</strong>
+                    <div id="patientCode">—</div>
+                    <small id="patientInfo">—</small>
+                </div>
+            </div>
+
+            <div class="ct-info-line">
+                <span>Mã lịch khám</span>
+                <strong id="appointmentCode">—</strong>
+            </div>
+
+            <div class="ct-info-line">
+                <span>Dịch vụ</span>
+                <strong id="serviceName">—</strong>
+            </div>
+
+            <div class="ct-info-line">
+                <span>Bác sĩ phụ trách</span>
+                <strong id="doctorName">—</strong>
+            </div>
+
+            <div class="ct-info-line">
+                <span>Phòng thực hiện</span>
+                <strong id="roomName">—</strong>
+            </div>
+
+            <div class="ct-info-line">
+                <span>Ngày chỉ định</span>
+                <strong id="orderDate">—</strong>
+            </div>
+
+            <div class="ct-note">
+                <i class="fa-solid fa-circle-info"></i>
+                Chỉ nhập kết quả tương ứng với chỉ định
+                đã được bác sĩ tạo trong hồ sơ bệnh án.
+            </div>
+
+        </aside>
+
+        <!-- CỘT PHẢI: NHẬP KẾT QUẢ -->
+        <section class="ct-result-panel">
+
+            <div class="ct-result-heading">
+                <i class="fa-solid fa-flask-vial"></i>
+
+                <div>
+                    <h2>Biểu mẫu nhập kết quả chuyên môn</h2>
+                    <p>
+                        Vui lòng nhập đầy đủ nội dung và kết luận.
+                        Lưu kết quả trước khi hoàn tất CLS.
+                    </p>
+                </div>
+            </div>
+
+            <div id="resultNotice"
+                 class="ct-result-notice"
+                 hidden></div>
+
+            <div class="ct-form-group">
+                <label for="orderSelect">
+                    Chỉ định cần nhập kết quả
+                </label>
+
+                <select id="orderSelect">
+                    <option>Đang tải danh sách...</option>
+                </select>
+            </div>
+
+            <form id="resultForm">
+
+                <div class="ct-form-group">
+                    <label for="resultContent">
+                        Nội dung kết quả <span>*</span>
+                    </label>
+
+                    <textarea id="resultContent"
+                              rows="5"
+                              maxlength="20000"
+                              placeholder="Nhập kết quả xét nghiệm hoặc thăm dò chuyên môn..."
+                              required></textarea>
+                </div>
+
+                <div class="ct-form-group">
+                    <label for="resultConclusion">
+                        Kết luận <span>*</span>
+                    </label>
+
+                    <textarea id="resultConclusion"
+                              rows="3"
+                              maxlength="20000"
+                              placeholder="Nhập kết luận của nhân viên chuyên trách..."
+                              required></textarea>
+                </div>
+
+                <div class="ct-form-group">
+                    <label>Tài liệu kết quả đính kèm</label>
+
+                    <div class="ct-file-placeholder">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+
+                        <strong>
+                            Phiếu kết quả / Ảnh máy phân tích
+                        </strong>
+
+                        <small>
+                            Chức năng tải file đang chờ kết nối lưu trữ.
+                            Hiện tại có thể lưu nội dung và kết luận.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="ct-result-actions">
+
+                    <button type="submit"
+                            id="saveResultBtn"
+                            class="ct-btn ct-btn-outline">
+
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Lưu kết quả
+                    </button>
+
+                    <button type="button"
+                            id="finishClsBtn"
+                            class="ct-btn ct-btn-primary">
+
+                        <i class="fa-solid fa-circle-check"></i>
+                        Hoàn tất CLS
+                    </button>
+
+                </div>
+            </form>
+        </section>
+
+    </div>
+
+    <!-- POPUP XÁC NHẬN GIỮA MÀN HÌNH -->
+    <div id="ctActionModal"
+         class="ct-action-modal-overlay"
+         hidden>
+
+        <div class="ct-action-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctActionTitle"
+             aria-describedby="ctActionMessage">
+
+            <div id="ctActionIcon"
+                 class="ct-action-modal-icon">
+                <i class="fa-solid fa-circle-question"></i>
+            </div>
+
+            <h3 id="ctActionTitle">Xác nhận</h3>
+
+            <p id="ctActionMessage">
+                Bạn có chắc chắn muốn tiếp tục?
+            </p>
+
+            <div class="ct-action-modal-buttons">
+
+                <button type="button"
+                        id="ctActionCancel"
+                        class="ct-action-modal-cancel">
+                    Hủy
+                </button>
+
+                <button type="button"
+                        id="ctActionConfirm"
+                        class="ct-action-modal-confirm">
+                    Xác nhận
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/nhap-ket-qua.js}"></script>
+</th:block>
+
+</body>
+</html>

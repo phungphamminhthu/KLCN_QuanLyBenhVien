@@ -1,0 +1,741 @@
+
+/* ============================================
+   DANH SÁCH BỆNH NHÂN - CHUYÊN TRÁCH
+   ============================================ */
+
+.ct-patients-page {
+    --ct-primary: #2563EB;
+    --ct-primary-hover: #1D4ED8;
+    --ct-primary-soft: #EFF6FF;
+
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    color: #1E293B;
+}
+
+/* ============================================
+   BỘ LỌC
+   ============================================ */
+
+.ct-patients-filter {
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 20px;
+
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 13px;
+}
+
+.ct-patients-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    height: 43px;
+    margin-bottom: 18px;
+    padding: 0 14px;
+
+    background: #F1F5FF;
+    border: 1px solid transparent;
+    border-radius: 9px;
+}
+
+.ct-patients-search:focus-within {
+    border-color: #93C5FD;
+    background: #FFFFFF;
+}
+
+.ct-patients-search i {
+    color: #64748B;
+    font-size: 14px;
+}
+
+.ct-patients-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+
+    border: none;
+    background: transparent;
+    outline: none;
+
+    color: #1E293B;
+    font-size: 13px;
+}
+
+.ct-patients-search input::placeholder {
+    color: #94A3B8;
+}
+
+.ct-patients-filter-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.ct-patients-filter-group {
+    min-width: 0;
+}
+
+.ct-patients-filter-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-bottom: 8px;
+
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ct-patients-filter-group label i {
+    color: #94A3B8;
+}
+
+.ct-patients-filter-group select,
+.ct-patients-filter-group input[type="date"] {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 10px;
+
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background: #F8FAFF;
+
+    color: #475569;
+    font-size: 12px;
+}
+
+.ct-patients-filter-group select:focus,
+.ct-patients-filter-group input:focus {
+    outline: 2px solid #BFDBFE;
+    border-color: #2563EB;
+}
+
+.ct-patients-date-range {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.ct-patients-date-range span {
+    color: #94A3B8;
+}
+
+.ct-patients-date-range input {
+    flex: 1;
+}
+
+/* ============================================
+   BẢNG DANH SÁCH
+   ============================================ */
+
+.ct-patients-table-panel {
+    width: 100%;
+    min-width: 0;
+
+    overflow: hidden;
+
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 13px;
+}
+
+.ct-patients-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.ct-patients-table {
+    width: 100%;
+    min-width: 1100px;
+    border-collapse: collapse;
+
+    /* Cố định chiều rộng cột */
+    table-layout: fixed;
+}
+
+.ct-patients-table thead th {
+    padding: 15px 11px;
+
+    background: #F7F9FE;
+    border-bottom: 1px solid #E2E8F0;
+
+    color: #64748B;
+    font-size: 11px;
+    font-weight: 800;
+
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.ct-patients-table tbody td {
+    padding: 14px 11px;
+
+    border-bottom: 1px solid #EDF2F7;
+
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.45;
+    vertical-align: middle;
+}
+
+.ct-patients-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.ct-patients-table tbody tr:hover {
+    background: #F8FBFF;
+}
+
+.ct-patients-table th:first-child,
+.ct-patients-table td:first-child {
+    width: 48px;
+    text-align: center;
+}
+
+.ct-patients-table .ct-patient-code {
+    color: var(--ct-primary);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ct-patients-table .ct-patient-name {
+    min-width: 115px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.ct-patients-table .ct-gender {
+    white-space: nowrap;
+}
+
+.ct-gender i {
+    margin-right: 4px;
+}
+
+.ct-gender.female i {
+    color: #EC4899;
+}
+
+.ct-gender.male i {
+    color: #3B82F6;
+}
+
+.ct-service-badge {
+    display: inline-block;
+    max-width: 185px;
+    padding: 5px 8px;
+
+    background: #EDF2FF;
+    border-radius: 7px;
+
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+/* ============================================
+   TRẠNG THÁI
+   ============================================ */
+
+.ct-patient-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    padding: 6px 10px;
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ct-patient-status.waiting {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.ct-patient-status.doing {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.ct-patient-status.done {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+/* ============================================
+   NÚT XEM HỒ SƠ
+   ============================================ */
+
+.ct-view-record {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 8px 12px;
+    min-height: 34px;
+
+    background: #EFF6FF;
+    border: 1px solid transparent;
+    border-radius: 8px;
+
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.ct-view-record:hover {
+    border-color: #BFDBFE;
+    background: #DBEAFE;
+}
+
+.ct-table-loading {
+    padding: 42px 16px !important;
+    text-align: center !important;
+    color: #64748B !important;
+    font-size: 13px !important;
+}
+
+/* ============================================
+   PHÂN TRANG
+   ============================================ */
+
+.ct-patients-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 13px 16px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ct-patients-total {
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ct-patients-page-buttons {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ct-page-button,
+.ct-current-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.ct-page-button {
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #64748B;
+    cursor: pointer;
+}
+
+.ct-page-button:hover:not(:disabled) {
+    background: #EFF6FF;
+    color: #2563EB;
+}
+
+.ct-page-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.ct-current-page {
+    background: #2563EB;
+    color: #FFFFFF;
+    font-weight: 700;
+}
+
+/* ============================================
+   POPUP HỒ SƠ
+   ============================================ */
+
+.ct-patient-modal-overlay[hidden] {
+    display: none !important;
+}
+
+.ct-patient-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    padding: 18px;
+    background: rgba(15, 23, 42, 0.48);
+}
+
+.ct-patient-modal {
+    width: min(680px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+
+    background: #FFFFFF;
+    border-radius: 15px;
+    box-shadow: 0 22px 55px rgba(15, 23, 42, 0.2);
+}
+
+.ct-patient-modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 20px 22px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ct-patient-modal-header h2 {
+    margin: 0;
+    color: #1E293B;
+    font-size: 18px;
+}
+
+.ct-patient-modal-header p {
+    margin: 5px 0 0;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ct-patient-modal-close {
+    width: 32px;
+    height: 32px;
+
+    border: none;
+    border-radius: 8px;
+    background: #F1F5F9;
+    color: #64748B;
+    cursor: pointer;
+}
+
+.ct-patient-modal-body {
+    padding: 20px 22px;
+}
+
+.ct-patient-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 20px;
+    padding: 15px;
+
+    background: #F8FAFC;
+    border-radius: 10px;
+}
+
+.ct-patient-profile-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 47px;
+    height: 47px;
+
+    background: #DBEAFE;
+    border-radius: 50%;
+    color: #2563EB;
+    font-size: 20px;
+}
+
+.ct-patient-profile strong {
+    display: block;
+    font-size: 15px;
+}
+
+.ct-patient-profile span {
+    display: block;
+    margin-top: 5px;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ct-patient-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.ct-detail-field span {
+    display: block;
+    margin-bottom: 5px;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ct-detail-field strong {
+    color: #1E293B;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ct-detail-section {
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ct-detail-section h3 {
+    margin: 0 0 8px;
+    color: #334155;
+    font-size: 13px;
+}
+
+.ct-detail-section p {
+    margin: 0;
+    color: #475569;
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+.ct-patient-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    padding: 15px 22px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ct-modal-secondary,
+.ct-modal-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    min-height: 38px;
+    padding: 9px 14px;
+
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.ct-modal-secondary {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+}
+
+.ct-modal-primary {
+    background: #2563EB;
+    border: 1px solid #2563EB;
+    color: #FFFFFF;
+}
+
+.ct-modal-primary[hidden] {
+    display: none !important;
+}
+
+body.ct-patient-modal-open {
+    overflow: hidden;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1150px) {
+    .ct-patients-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .ct-patients-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ct-patient-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ct-patients-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+
+/* ===============================================
+   CỐ ĐỊNH CỘT BẢNG DANH SÁCH BỆNH NHÂN
+   Không xê dịch khi chuyển trang
+   =============================================== */
+
+/* Bảng có bố cục cố định */
+.ct-patients-page .ct-patients-table {
+    width: 100%;
+    min-width: 1100px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+/* 1. STT */
+.ct-patients-table th:nth-child(1),
+.ct-patients-table td:nth-child(1) {
+    width: 4%;
+    text-align: center;
+}
+
+/* 2. Mã bệnh nhân */
+.ct-patients-table th:nth-child(2),
+.ct-patients-table td:nth-child(2) {
+    width: 10%;
+}
+
+/* 3. Họ tên */
+.ct-patients-table th:nth-child(3),
+.ct-patients-table td:nth-child(3) {
+    width: 12%;
+}
+
+/* 4. Ngày sinh */
+.ct-patients-table th:nth-child(4),
+.ct-patients-table td:nth-child(4) {
+    width: 9%;
+}
+
+/* 5. Giới tính */
+.ct-patients-table th:nth-child(5),
+.ct-patients-table td:nth-child(5) {
+    width: 8%;
+}
+
+/* 6. Khoa */
+.ct-patients-table th:nth-child(6),
+.ct-patients-table td:nth-child(6) {
+    width: 7%;
+}
+
+/* 7. Bác sĩ chỉ định */
+.ct-patients-table th:nth-child(7),
+.ct-patients-table td:nth-child(7) {
+    width: 11%;
+}
+
+/* 8. Dịch vụ */
+.ct-patients-table th:nth-child(8),
+.ct-patients-table td:nth-child(8) {
+    width: 17%;
+}
+
+/* 9. Trạng thái */
+.ct-patients-table th:nth-child(9),
+.ct-patients-table td:nth-child(9) {
+    width: 12%;
+}
+
+/* 10. Thao tác */
+.ct-patients-table th:nth-child(10),
+.ct-patients-table td:nth-child(10) {
+    width: 10%;
+    text-align: center;
+}
+
+/* ===============================================
+   CHIỀU CAO VÀ NỘI DUNG CÁC HÀNG
+   =============================================== */
+
+.ct-patients-table tbody tr {
+    height: 64px;
+}
+
+.ct-patients-table tbody td {
+    padding: 12px 9px;
+    vertical-align: middle;
+    overflow-wrap: break-word;
+}
+
+/* Tiêu đề cột */
+.ct-patients-table thead th {
+    padding: 14px 9px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Họ tên và bác sĩ: tối đa 2 dòng */
+.ct-patients-table .ct-patient-name,
+.ct-patients-table tbody td:nth-child(7) {
+    line-height: 1.45;
+    overflow-wrap: break-word;
+}
+
+/* ===============================================
+   DỊCH VỤ DÀI - TỐI ĐA 2 DÒNG
+   =============================================== */
+
+.ct-patients-table .ct-service-badge {
+    display: -webkit-box;
+
+    width: fit-content;
+    max-width: 100%;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+
+    padding: 5px 8px;
+    border-radius: 7px;
+
+    background: #EDF2FF;
+    color: #475569;
+
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* Giữ badge trạng thái không bị xuống dòng */
+.ct-patients-table .ct-patient-status {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+/* Nút Xem hồ sơ không thay đổi kích thước */
+.ct-patients-table .ct-view-record {
+    min-width: 96px;
+    white-space: nowrap;
+}
+
+/* Cho phép cuộn ngang ở màn hình nhỏ */
+.ct-patients-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+

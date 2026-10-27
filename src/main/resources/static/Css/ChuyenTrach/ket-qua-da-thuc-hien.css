@@ -1,0 +1,526 @@
+
+/* ================================================
+   KET QUA DA THUC HIEN - CHUYEN TRACH
+   ================================================ */
+
+.ctkq-page {
+    --ctkq-blue: #2563EB;
+    --ctkq-border: #E2E8F0;
+    --ctkq-muted: #64748B;
+    --ctkq-text: #1E293B;
+
+    width: 100%;
+    min-width: 0;
+    height: calc(100dvh - 195px);
+    min-height: 440px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    color: var(--ctkq-text);
+    font-family: "Segoe UI", Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.ctkq-page *,
+.ctkq-page *::before,
+.ctkq-page *::after {
+    box-sizing: border-box;
+}
+
+/* ================================================
+   BO LOC
+   ================================================ */
+
+.ctkq-page .ctkq-filter-panel {
+    flex-shrink: 0;
+    width: 100%;
+    padding: 17px 19px;
+
+    background: #FFFFFF;
+    border: 1px solid var(--ctkq-border);
+    border-radius: 13px;
+
+    box-shadow: 0 1px 5px rgba(15, 23, 42, .025);
+}
+
+.ctkq-page .ctkq-search {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+
+    height: 42px;
+    padding: 0 13px;
+    margin-bottom: 16px;
+
+    background: #F1F5FF;
+    border-radius: 9px;
+    color: #64748B;
+}
+
+.ctkq-page .ctkq-search:focus-within {
+    outline: 2px solid #BFDBFE;
+}
+
+.ctkq-page .ctkq-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+
+    border: none;
+    outline: none;
+    background: transparent;
+
+    color: #1E293B;
+    font: inherit;
+    font-size: 13px;
+}
+
+.ctkq-page .ctkq-search input::placeholder {
+    color: #94A3B8;
+}
+
+.ctkq-page .ctkq-filter-row {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr .85fr;
+    gap: 16px;
+}
+
+.ctkq-page .ctkq-filter-group {
+    min-width: 0;
+}
+
+.ctkq-page .ctkq-filter-group label {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 8px;
+
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ctkq-page .ctkq-filter-group label i {
+    color: #94A3B8;
+}
+
+.ctkq-page .ctkq-date-range {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ctkq-page .ctkq-date-range input,
+.ctkq-page .ctkq-filter-group select,
+.ctkq-page .ctkq-fixed-status {
+    width: 100%;
+    height: 39px;
+    min-width: 0;
+    padding: 0 11px;
+
+    border: 1px solid #DFE7F3;
+    border-radius: 8px;
+    background: #F8FAFF;
+
+    color: #475569;
+    font: inherit;
+    font-size: 12px;
+}
+
+.ctkq-page .ctkq-date-range input {
+    flex: 1;
+}
+
+.ctkq-page .ctkq-date-range > span {
+    color: #94A3B8;
+}
+
+.ctkq-page .ctkq-fixed-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    background: #ECFDF3;
+    border-color: #BBF7D0;
+
+    color: #15803D;
+    font-weight: 700;
+}
+
+/* ================================================
+   KHUNG BANG
+   ================================================ */
+
+.ctkq-page .ctkq-table-panel {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    background: #FFFFFF;
+    border: 1px solid var(--ctkq-border);
+    border-radius: 13px;
+    overflow: hidden;
+
+    box-shadow: 0 1px 5px rgba(15, 23, 42, .025);
+}
+
+.ctkq-page .ctkq-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-height: 65px;
+    padding: 14px 17px;
+
+    border-bottom: 1px solid #E9EEF5;
+    flex-shrink: 0;
+}
+
+.ctkq-page .ctkq-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-width: 0;
+}
+
+.ctkq-page .ctkq-title-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 33px;
+    height: 33px;
+
+    border-radius: 9px;
+    background: #EFF6FF;
+    color: var(--ctkq-blue);
+}
+
+.ctkq-page .ctkq-title h2 {
+    margin: 0;
+    color: #1E293B;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.ctkq-page .ctkq-count {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 5px 10px;
+    border-radius: 999px;
+
+    background: #EFF6FF;
+    color: #2563EB;
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ctkq-page .ctkq-updated {
+    color: #94A3B8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* ================================================
+   CHI CUON NOI DUNG BANG
+   ================================================ */
+
+.ctkq-page .ctkq-table-scroll {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+
+    overflow-x: auto;
+    overflow-y: auto;
+
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+.ctkq-page .ctkq-table {
+    width: 100%;
+    min-width: 1130px;
+
+    table-layout: fixed !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.ctkq-page .ctkq-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+
+    height: 46px;
+    padding: 10px 9px;
+
+    background: #F6F8FD;
+    border-bottom: 1px solid #E2E8F0;
+
+    color: #64748B;
+    font-size: 10.5px;
+    font-weight: 800;
+    text-align: left;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+.ctkq-page .ctkq-table tbody tr {
+    height: 62px;
+}
+
+.ctkq-page .ctkq-table tbody td {
+    height: 62px;
+    padding: 10px 9px;
+
+    border-bottom: 1px solid #EDF2F7;
+
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.45;
+    vertical-align: middle;
+
+    overflow-wrap: anywhere;
+}
+
+.ctkq-page .ctkq-table tbody tr:hover {
+    background: #F8FBFF;
+}
+
+.ctkq-page .ctkq-table th:first-child,
+.ctkq-page .ctkq-table td:first-child {
+    text-align: center;
+}
+
+.ctkq-page .ctkq-code {
+    color: #2563EB;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.ctkq-page .ctkq-patient-name {
+    display: block;
+    color: #1E293B;
+    font-weight: 800;
+    line-height: 1.45;
+}
+
+.ctkq-page .ctkq-patient-code {
+    display: block;
+    margin-top: 4px;
+
+    color: #94A3B8;
+    font-size: 10.5px;
+}
+
+.ctkq-page .ctkq-service,
+.ctkq-page .ctkq-doctor,
+.ctkq-page .ctkq-room {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+
+    max-width: 100%;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+}
+
+.ctkq-page .ctkq-room {
+    padding: 5px 7px;
+    background: #F1F5F9;
+    border-radius: 7px;
+    color: #475569;
+    font-size: 11px;
+}
+
+.ctkq-page .ctkq-date {
+    color: #475569;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+/* TRANG THAI HOAN THANH */
+
+.ctkq-page .ctkq-done {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    max-width: 100%;
+    padding: 6px 9px;
+
+    border-radius: 999px;
+    background: #DCFCE7;
+    color: #15803D;
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ctkq-page .ctkq-done i {
+    font-size: 10px;
+}
+
+/* NUT XEM */
+
+.ctkq-page .ctkq-view {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    min-height: 31px;
+    padding: 7px 9px;
+
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+    background: #EFF6FF;
+
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.ctkq-page .ctkq-view:hover {
+    background: #DBEAFE;
+}
+
+/* THONG BAO */
+
+.ctkq-page .ctkq-empty {
+    height: 150px !important;
+    padding: 35px 12px !important;
+
+    text-align: center !important;
+    color: #64748B !important;
+    font-size: 13px !important;
+}
+
+/* ================================================
+   FOOTER CO DINH
+   ================================================ */
+
+.ctkq-page .ctkq-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    min-height: 57px;
+    padding: 11px 17px;
+
+    flex-shrink: 0;
+    border-top: 1px solid #E2E8F0;
+    background: #FFFFFF;
+
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctkq-page .ctkq-pagination {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ctkq-page .ctkq-pagination button,
+.ctkq-page #ctkqCurrentPage {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 34px;
+    height: 34px;
+
+    border-radius: 8px;
+}
+
+.ctkq-page .ctkq-pagination button {
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #64748B;
+    cursor: pointer;
+}
+
+.ctkq-page .ctkq-pagination button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.ctkq-page #ctkqCurrentPage {
+    color: #FFFFFF;
+    background: #2563EB;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* THANH CUON */
+
+.ctkq-page .ctkq-table-scroll::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.ctkq-page .ctkq-table-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 9px;
+}
+
+.ctkq-page .ctkq-table-scroll::-webkit-scrollbar-track {
+    background: #F8FAFC;
+}
+
+/* ================================================
+   RESPONSIVE
+   ================================================ */
+
+@media (max-width: 1000px) {
+    .ctkq-page {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .ctkq-page .ctkq-filter-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ctkq-page .ctkq-table-scroll {
+        max-height: 65vh;
+        min-height: 320px;
+    }
+}
+
+@media (max-width: 650px) {
+    .ctkq-page .ctkq-filter-row {
+        grid-template-columns: 1fr;
+    }
+
+    .ctkq-page .ctkq-panel-header,
+    .ctkq-page .ctkq-footer {
+        flex-wrap: wrap;
+    }
+
+    .ctkq-page .ctkq-updated {
+        display: none;
+    }
+}

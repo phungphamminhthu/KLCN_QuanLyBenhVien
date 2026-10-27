@@ -1,0 +1,825 @@
+
+/* ==============================================
+   CHI TIET KET QUA DA THUC HIEN - CHUYEN TRACH
+   ============================================== */
+
+.ctkqd-page {
+    --blue: #2563EB;
+    --blue-soft: #EFF6FF;
+    --border: #E2E8F0;
+    --text: #1E293B;
+    --muted: #64748B;
+
+    width: 100%;
+    min-width: 0;
+    height: calc(100dvh - 138px);
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    overflow: hidden;
+    color: var(--text);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.ctkqd-page *,
+.ctkqd-page *::before,
+.ctkqd-page *::after {
+    box-sizing: border-box;
+}
+
+.ctkqd-page [hidden] {
+    display: none !important;
+}
+
+/* THANH QUAY LAI */
+
+.ctkqd-toolbar {
+    display: flex;
+    align-items: center;
+    flex: 0 0 36px;
+}
+
+.ctkqd-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    height: 36px;
+    padding: 0 13px;
+
+    border: 1px solid #DBE6F8;
+    border-radius: 9px;
+    background: #FFFFFF;
+
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ctkqd-back:hover {
+    background: var(--blue-soft);
+}
+
+/* KHUNG CHUNG */
+
+.ctkqd-card {
+    min-width: 0;
+    min-height: 0;
+    padding: 15px 17px;
+
+    background: #FFFFFF;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+
+    box-shadow: 0 2px 9px rgba(15, 23, 42, 0.025);
+}
+
+.ctkqd-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+
+    min-height: 30px;
+    padding-bottom: 10px;
+    margin-bottom: 11px;
+
+    border-bottom: 1px solid #E9EEF5;
+}
+
+.ctkqd-card-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    min-width: 0;
+    margin: 0;
+
+    color: #344769;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .25px;
+}
+
+.ctkqd-card-header h2 i {
+    color: var(--blue);
+    font-size: 13px;
+}
+
+/* ==============================================
+   3 THE THONG TIN PHIA TREN
+   ============================================== */
+
+.ctkqd-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 14px;
+
+    flex: 0 0 165px;
+    min-height: 0;
+}
+
+.ctkqd-summary-card {
+    height: 100%;
+    overflow: hidden;
+}
+
+.ctkqd-gender-badge {
+    padding: 4px 9px;
+    border-radius: 5px;
+
+    background: #EFF6FF;
+    color: #2563EB;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ctkqd-complete-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    padding: 5px 8px;
+    border-radius: 6px;
+
+    background: #DCFCE7;
+    color: #15803D;
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* BENH NHAN */
+
+.ctkqd-patient-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 9px;
+}
+
+.ctkqd-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 41px;
+    height: 41px;
+    flex-shrink: 0;
+
+    border-radius: 50%;
+    background: #E8F0FF;
+
+    color: #2563EB;
+    font-size: 18px;
+}
+
+.ctkqd-patient-main {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.ctkqd-patient-main strong {
+    font-size: 14px;
+    font-weight: 800;
+    color: #172554;
+    overflow-wrap: anywhere;
+}
+
+.ctkqd-patient-main > span {
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ctkqd-summary-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 15px;
+}
+
+.ctkqd-summary-info div {
+    display: flex;
+    gap: 5px;
+    min-width: 0;
+}
+
+.ctkqd-summary-info span {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+.ctkqd-summary-info strong {
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* CHI DINH */
+
+.ctkqd-summary-field {
+    margin-bottom: 11px;
+}
+
+.ctkqd-summary-field > span {
+    display: block;
+    margin-bottom: 5px;
+
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+.ctkqd-summary-field strong {
+    color: #1E293B;
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* MA TRA CUU */
+
+.ctkqd-code-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.ctkqd-code-list > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+
+.ctkqd-code-list span {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+.ctkqd-code-list strong {
+    color: #334155;
+    font-size: 11.5px;
+    font-weight: 800;
+    text-align: right;
+}
+
+.ctkqd-code-list > div:last-child strong {
+    color: #15803D;
+}
+
+/* ==============================================
+   2 O NOI DUNG PHIA DUOI
+   ============================================== */
+
+.ctkqd-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 14px;
+
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+}
+
+.ctkqd-result-card,
+.ctkqd-attachment-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* NOI DUNG + KET LUAN */
+
+.ctkqd-result-content {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 13px;
+
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.ctkqd-text-block {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding: 12px 13px;
+
+    border: 1px solid #E8EDF5;
+    border-radius: 10px;
+    background: #F7F9FD;
+}
+
+.ctkqd-text-block h3 {
+    margin: 0 0 8px;
+
+    color: #64748B;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ctkqd-text-value {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.7;
+
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    overflow-y: auto;
+
+    scrollbar-width: thin;
+    scrollbar-color: #CBD5E1 transparent;
+}
+
+.ctkqd-conclusion {
+    background: #F3F8FF;
+    border-color: #DFEAFE;
+}
+
+.ctkqd-conclusion h3 {
+    color: #2563EB;
+}
+
+.ctkqd-conclusion .ctkqd-text-value {
+    color: #172554;
+    font-weight: 600;
+}
+
+/* ==============================================
+   TEP DINH KEM
+   ============================================== */
+
+.ctkqd-file-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+
+    padding: 16px;
+    margin-top: 3px;
+
+    border: 1px solid #E6EDF7;
+    border-radius: 10px;
+    background: #F8FAFF;
+}
+
+.ctkqd-file-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+
+    border-radius: 10px;
+    background: #FEE2E2;
+
+    color: #DC2626;
+    font-size: 23px;
+}
+
+.ctkqd-file-info {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.ctkqd-file-info strong {
+    color: #1E293B;
+    font-size: 13px;
+    font-weight: 800;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ctkqd-file-info > span {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+.ctkqd-file-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 9px;
+    width: 100%;
+    padding-left: 60px;
+}
+
+.ctkqd-file-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 7px 9px;
+    border-radius: 7px;
+    background: #EFF6FF;
+
+    color: #2563EB;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.ctkqd-file-actions a:hover {
+    background: #DBEAFE;
+}
+
+/* KHONG CO TEP */
+
+.ctkqd-no-file {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 20px;
+    text-align: center;
+}
+
+.ctkqd-no-file i {
+    color: #CBD5E1;
+    font-size: 38px;
+}
+
+.ctkqd-no-file strong {
+    color: #475569;
+    font-size: 14px;
+}
+
+.ctkqd-no-file p {
+    max-width: 280px;
+    margin: 0;
+
+    color: #94A3B8;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* LOI API */
+
+.ctkqd-error {
+    flex-shrink: 0;
+    padding: 10px 13px;
+
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 9px;
+
+    color: #B91C1C;
+    font-size: 12px;
+}
+
+/* MAN HINH THAP: THU GON */
+
+@media (min-width: 1001px) and (max-height: 750px) {
+    .ctkqd-page {
+        gap: 9px;
+    }
+
+    .ctkqd-summary-grid {
+        flex-basis: 145px;
+        gap: 10px;
+    }
+
+    .ctkqd-card {
+        padding: 11px 13px;
+    }
+
+    .ctkqd-card-header {
+        padding-bottom: 7px;
+        margin-bottom: 8px;
+    }
+
+    .ctkqd-detail-grid {
+        gap: 10px;
+    }
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+    .ctkqd-page {
+        height: auto;
+        overflow: visible;
+    }
+
+    .ctkqd-summary-grid {
+        grid-template-columns: 1fr;
+        flex: none;
+    }
+
+    .ctkqd-summary-card {
+        min-height: 140px;
+    }
+
+    .ctkqd-detail-grid {
+        grid-template-columns: 1fr;
+        flex: none;
+    }
+
+    .ctkqd-result-card,
+    .ctkqd-attachment-card {
+        height: auto;
+        min-height: 240px;
+    }
+
+    .ctkqd-result-content {
+        grid-template-rows: auto auto;
+    }
+
+    .ctkqd-text-value {
+        overflow: visible;
+    }
+
+    .ctkqd-text-block {
+        min-height: 120px;
+    }
+}
+
+/* =====================================================
+   CHI TIẾT KẾT QUẢ - KHẮC PHỤC TRÀN NỘI DUNG
+   Giữ nguyên header, sidebar và giao diện dùng chung
+   ===================================================== */
+
+/* 1. Cho phép trang tự điều chỉnh chiều cao */
+.ctkqd-page {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    min-height: calc(100dvh - 195px);
+    overflow: visible;
+    gap: 12px;
+}
+
+/* 2. Ba thẻ phía trên có chiều cao bằng nhau */
+.ctkqd-page .ctkqd-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 190px;
+    gap: 14px;
+}
+
+/* Không cắt nội dung của các thẻ */
+.ctkqd-page .ctkqd-summary-card {
+    height: auto;
+    min-height: 190px;
+    overflow: visible;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 15px 17px;
+}
+
+/* 3. Tiêu đề của thẻ */
+.ctkqd-page .ctkqd-card-header {
+    flex-shrink: 0;
+    min-height: 32px;
+    margin-bottom: 13px;
+}
+
+.ctkqd-page .ctkqd-card-header h2 {
+    min-width: 0;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+/* 4. Thông tin bệnh nhân */
+.ctkqd-page .ctkqd-patient-row {
+    flex-shrink: 0;
+    min-width: 0;
+    margin-bottom: 12px;
+}
+
+.ctkqd-page .ctkqd-patient-main {
+    min-width: 0;
+}
+
+.ctkqd-page .ctkqd-patient-main strong {
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ctkqd-page .ctkqd-summary-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 15px;
+}
+
+.ctkqd-page .ctkqd-summary-info > div {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+}
+
+.ctkqd-page .ctkqd-summary-info strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* 5. Thông tin chỉ định:
+      sửa phần bác sĩ bị tràn ra ngoài */
+.ctkqd-page .ctkqd-summary-field {
+    min-width: 0;
+    flex-shrink: 0;
+    margin-bottom: 13px;
+}
+
+.ctkqd-page .ctkqd-summary-field > span {
+    display: block;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.ctkqd-page .ctkqd-summary-field strong {
+    display: block;
+    min-width: 0;
+
+    font-size: 12.5px;
+    line-height: 1.5;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* 6. Mã kết quả và thời gian:
+      tránh tràn mã và ngày giờ */
+.ctkqd-page .ctkqd-code-list {
+    gap: 9px;
+}
+
+.ctkqd-page .ctkqd-code-list > div {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px;
+}
+
+.ctkqd-page .ctkqd-code-list strong {
+    min-width: 0;
+    max-width: 100%;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+/* 7. Hai thẻ bên dưới cao bằng nhau */
+.ctkqd-page .ctkqd-detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: stretch;
+
+    flex: 1 1 auto;
+    width: 100%;
+    height: auto;
+    min-height: 330px;
+    gap: 14px;
+}
+
+.ctkqd-page .ctkqd-result-card,
+.ctkqd-page .ctkqd-attachment-card {
+    min-width: 0;
+    min-height: 330px;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 8. Nội dung kết quả và kết luận */
+.ctkqd-page .ctkqd-result-content {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 12px;
+}
+
+.ctkqd-page .ctkqd-text-block {
+    min-width: 0;
+    min-height: 0;
+    padding: 12px 13px;
+}
+
+.ctkqd-page .ctkqd-text-value {
+    min-width: 0;
+    min-height: 0;
+
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+
+    /* Chỉ cuộn nội dung nếu kết quả rất dài */
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* 9. Tệp đính kèm */
+.ctkqd-page .ctkqd-file-box {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.ctkqd-page .ctkqd-file-info {
+    min-width: 0;
+}
+
+.ctkqd-page .ctkqd-file-info strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.ctkqd-page .ctkqd-no-file {
+    min-height: 180px;
+}
+
+/* 10. Màn hình laptop có chiều cao thấp */
+@media (min-width: 1001px) and (max-height: 800px) {
+    .ctkqd-page {
+        gap: 10px;
+    }
+
+    .ctkqd-page .ctkqd-summary-grid,
+    .ctkqd-page .ctkqd-summary-card {
+        min-height: 175px;
+    }
+
+    .ctkqd-page .ctkqd-detail-grid,
+    .ctkqd-page .ctkqd-result-card,
+    .ctkqd-page .ctkqd-attachment-card {
+        min-height: 300px;
+    }
+
+    .ctkqd-page .ctkqd-card {
+        padding: 12px 14px;
+    }
+
+    .ctkqd-page .ctkqd-card-header {
+        margin-bottom: 10px;
+    }
+}
+
+/* 11. Tablet và điện thoại */
+@media (max-width: 1000px) {
+    .ctkqd-page {
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+    }
+
+    .ctkqd-page .ctkqd-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctkqd-page .ctkqd-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctkqd-page .ctkqd-result-card,
+    .ctkqd-page .ctkqd-attachment-card {
+        height: auto;
+        min-height: 280px;
+    }
+
+    .ctkqd-page .ctkqd-result-content {
+        grid-template-rows: auto auto;
+    }
+
+    .ctkqd-page .ctkqd-text-block {
+        min-height: 120px;
+    }
+
+    .ctkqd-page .ctkqd-text-value {
+        overflow: visible;
+    }
+}

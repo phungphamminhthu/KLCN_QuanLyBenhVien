@@ -1,0 +1,700 @@
+
+/* ==========================================
+   DANH SÁCH CHỈ ĐỊNH CHUYÊN TRÁCH
+   ========================================== */
+
+.ctcd-page {
+    --ctcd-blue: #2563EB;
+    width: 100%;
+    min-width: 0;
+    color: #1E293B;
+}
+
+.ctcd-page-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.ctcd-page-heading h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1E293B;
+}
+
+.ctcd-page-heading p {
+    margin: 6px 0 0;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctcd-refresh {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border: 1px solid #BFDBFE;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #2563EB;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* ==========================================
+   BỘ LỌC
+   ========================================== */
+
+.ctcd-filter-panel,
+.ctcd-table-panel {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+
+.ctcd-filter-panel {
+    padding: 18px;
+    margin-bottom: 16px;
+}
+
+.ctcd-search {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 42px;
+    padding: 0 13px;
+    margin-bottom: 17px;
+    border-radius: 9px;
+    background: #F1F5FF;
+    color: #64748B;
+}
+
+.ctcd-search input {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: transparent;
+    outline: none;
+    color: #1E293B;
+    font-size: 13px;
+}
+
+.ctcd-filter-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 16px;
+}
+
+.ctcd-filter-group {
+    min-width: 0;
+}
+
+.ctcd-filter-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #64748B;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.ctcd-filter-group select,
+.ctcd-filter-group input {
+    width: 100%;
+    min-width: 0;
+    height: 40px;
+    padding: 0 10px;
+    background: #F8FAFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    color: #475569;
+    font-size: 12px;
+}
+
+.ctcd-dates {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ctcd-dates span {
+    color: #94A3B8;
+}
+
+/* ==========================================
+   BẢNG CỐ ĐỊNH CỘT
+   ========================================== */
+
+.ctcd-table-panel {
+    overflow: hidden;
+}
+
+.ctcd-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 17px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ctcd-panel-title {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.ctcd-panel-title > i {
+    color: #2563EB;
+}
+
+.ctcd-panel-title h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1E293B;
+}
+
+.ctcd-count {
+    padding: 5px 10px;
+    background: #EFF6FF;
+    border-radius: 999px;
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ctcd-panel-description {
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+
+/* ============================================
+   BẢNG CỐ ĐỊNH - CUỘN BÊN TRONG
+   ============================================ */
+
+.ctcd-page .ctcd-table-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* Cố định chiều cao bảng theo màn hình */
+.ctcd-page .ctcd-table-scroll {
+    width: 100%;
+
+    height: clamp(300px, calc(100dvh - 420px), 560px);
+    min-height: 300px;
+
+    overflow-x: auto;
+    overflow-y: auto;
+
+    scrollbar-gutter: stable;
+    overscroll-behavior: contain;
+}
+
+/* Bảng không tự thay đổi chiều rộng cột */
+.ctcd-page .ctcd-table {
+    width: 100%;
+    min-width: 1120px;
+
+    table-layout: fixed !important;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Giữ tiêu đề các cột cố định khi cuộn xuống */
+.ctcd-page .ctcd-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+
+    background: #F7F9FE;
+    border-bottom: 1px solid #E2E8F0;
+
+    height: 47px;
+    vertical-align: middle;
+}
+
+/* Cố định chiều cao mỗi dòng */
+.ctcd-page .ctcd-table tbody tr {
+    height: 64px;
+}
+
+.ctcd-page .ctcd-table tbody td {
+    height: 64px;
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+/* Nội dung dịch vụ dài không làm giãn cột */
+.ctcd-page .ctcd-service-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+
+    max-width: 100%;
+    line-height: 1.4;
+}
+
+/* Giữ phân trang cố định bên dưới bảng */
+.ctcd-page .ctcd-footer {
+    flex-shrink: 0;
+    min-height: 57px;
+
+    background: #FFFFFF;
+    border-top: 1px solid #E2E8F0;
+}
+
+/* Thanh cuộn gọn */
+.ctcd-page .ctcd-table-scroll::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.ctcd-page .ctcd-table-scroll::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 10px;
+}
+
+.ctcd-page .ctcd-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+.ctcd-page .ctcd-table-scroll::-webkit-scrollbar-track {
+    background: #F8FAFC;
+}
+
+
+.ctcd-table {
+    width: 100%;
+    min-width: 1120px;
+    table-layout: fixed !important;
+    border-collapse: collapse;
+}
+
+.ctcd-table thead th {
+    padding: 13px 10px;
+    background: #F7F9FE;
+    border-bottom: 1px solid #E2E8F0;
+    color: #64748B;
+    font-size: 10px;
+    font-weight: 800;
+    text-align: left;
+    line-height: 1.4;
+    vertical-align: middle;
+}
+
+.ctcd-table tbody tr {
+    height: 64px;
+}
+
+.ctcd-table tbody td {
+    padding: 11px 10px;
+    border-bottom: 1px solid #EDF2F7;
+    color: #334155;
+    font-size: 12px;
+    line-height: 1.45;
+    vertical-align: middle;
+    overflow-wrap: anywhere;
+}
+
+.ctcd-table tbody tr:hover {
+    background: #F8FBFF;
+}
+
+.ctcd-table th:first-child,
+.ctcd-table td:first-child {
+    text-align: center;
+}
+
+.ctcd-order-code {
+    color: #2563EB;
+    font-weight: 800;
+}
+
+.ctcd-patient-name {
+    display: block;
+    color: #1E293B;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.ctcd-patient-id {
+    display: block;
+    margin-top: 4px;
+    color: #94A3B8;
+    font-size: 11px;
+}
+
+.ctcd-service-name,
+.ctcd-doctor-name,
+.ctcd-room-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+}
+
+.ctcd-room-name {
+    padding: 5px 7px;
+    background: #F1F5F9;
+    border-radius: 7px;
+    font-size: 11px;
+}
+
+.ctcd-date {
+    white-space: nowrap;
+    font-size: 11px;
+}
+
+.ctcd-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 100%;
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.ctcd-badge.waiting {
+    background: #FEF3C7;
+    color: #B45309;
+}
+
+.ctcd-badge.doing {
+    background: #DBEAFE;
+    color: #2563EB;
+}
+
+.ctcd-badge.done {
+    background: #DCFCE7;
+    color: #15803D;
+}
+
+.ctcd-badge.other {
+    background: #F1F5F9;
+    color: #475569;
+}
+
+.ctcd-view {
+    padding: 8px 11px;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+    background: #EFF6FF;
+    color: #2563EB;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ctcd-view:hover {
+    background: #DBEAFE;
+}
+
+.ctcd-empty {
+    height: 145px;
+    padding: 30px !important;
+    text-align: center !important;
+    color: #64748B !important;
+}
+
+/* ==========================================
+   PHÂN TRANG
+   ========================================== */
+
+.ctcd-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 57px;
+    padding: 12px 17px;
+    border-top: 1px solid #E2E8F0;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctcd-pagination {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.ctcd-pagination button,
+#ctcdCurrentPage {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: 8px;
+}
+
+.ctcd-pagination button {
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    color: #64748B;
+    cursor: pointer;
+}
+
+.ctcd-pagination button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+#ctcdCurrentPage {
+    background: #2563EB;
+    color: #FFFFFF;
+    font-weight: 800;
+}
+
+/* ==========================================
+   POPUP
+   ========================================== */
+
+.ctcd-overlay[hidden],
+.ctcd-modal-footer [hidden] {
+    display: none !important;
+}
+
+.ctcd-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, .52);
+}
+
+.ctcd-modal {
+    width: min(650px, 100%);
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 15px;
+    background: #FFFFFF;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, .2);
+}
+
+.ctcd-modal-header,
+.ctcd-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 19px 22px;
+}
+
+.ctcd-modal-header {
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ctcd-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.ctcd-modal-header p {
+    margin: 5px 0 0;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctcd-close {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    border-radius: 8px;
+    background: #F1F5F9;
+    cursor: pointer;
+}
+
+.ctcd-modal-body {
+    padding: 22px;
+}
+
+.ctcd-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 19px;
+}
+
+.ctcd-detail-grid label,
+.ctcd-detail-service label {
+    display: block;
+    margin-bottom: 6px;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ctcd-detail-grid strong {
+    font-size: 13px;
+    overflow-wrap: anywhere;
+}
+
+.ctcd-detail-service {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ctcd-detail-service p {
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.6;
+}
+
+.ctcd-modal-footer {
+    justify-content: flex-end;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ctcd-btn-primary,
+.ctcd-btn-secondary {
+    min-height: 40px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ctcd-btn-primary {
+    background: #2563EB;
+    color: #FFFFFF;
+    border: 1px solid #2563EB;
+}
+
+.ctcd-btn-secondary {
+    background: #FFFFFF;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+}
+
+.ctcd-confirm {
+    width: min(420px, 100%);
+    padding: 26px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    text-align: center;
+}
+
+.ctcd-confirm-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    background: #DBEAFE;
+    color: #2563EB;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+.ctcd-confirm h3 {
+    margin: 0 0 11px;
+    font-size: 19px;
+}
+
+.ctcd-confirm p {
+    color: #64748B;
+    line-height: 1.65;
+}
+
+.ctcd-confirm-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+    .ctcd-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctcd-page-heading,
+    .ctcd-panel-heading {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 600px) {
+    .ctcd-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctcd-footer {
+        flex-wrap: wrap;
+    }
+}
+
+
+/* ============================================
+   ĐỒNG NHẤT FONT CHỮ TRANG CHỈ ĐỊNH
+   ============================================ */
+
+.ctcd-page,
+.ctcd-page h1,
+.ctcd-page h2,
+.ctcd-page h3,
+.ctcd-page h4,
+.ctcd-page p,
+.ctcd-page label,
+.ctcd-page span,
+.ctcd-page strong,
+.ctcd-page input,
+.ctcd-page select,
+.ctcd-page button,
+.ctcd-page table,
+.ctcd-page th,
+.ctcd-page td {
+    font-family: "Segoe UI", Arial, sans-serif !important;
+}
+
+.ctcd-page .ctcd-panel-title h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1E293B;
+}
+
+.ctcd-page .ctcd-table thead th {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748B;
+}
+
+.ctcd-page .ctcd-table tbody td {
+    font-size: 12px;
+    font-weight: 400;
+    color: #334155;
+}
+
+.ctcd-page .ctcd-patient-name {
+    font-weight: 700;
+}
+
+.ctcd-page .ctcd-order-code {
+    font-weight: 700;
+    color: #2563EB;
+}
+

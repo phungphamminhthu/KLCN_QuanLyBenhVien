@@ -87,7 +87,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/Admin/**",
                                 "/DuocSi/**",
-                                "/TiepNhan/**"
+                                "/TiepNhan/**",
+                                "/ChuyenTrach/**"
                         ).permitAll()
 
                         // API xem tin tức công khai cho ứng dụng Flutter

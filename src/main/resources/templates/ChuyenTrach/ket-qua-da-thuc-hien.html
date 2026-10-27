@@ -1,0 +1,190 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Kết quả đã thực hiện</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/ket-qua-da-thuc-hien.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="ctkq-page">
+
+    <!-- BỘ LỌC -->
+    <section class="ctkq-filter-panel">
+
+        <div class="ctkq-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input type="search"
+                   id="ctkqSearch"
+                   placeholder="Tìm mã chỉ định, mã bệnh nhân, họ tên, dịch vụ..."
+                   autocomplete="off">
+        </div>
+
+        <div class="ctkq-filter-row">
+
+            <div class="ctkq-filter-group">
+                <label>
+                    <i class="fa-regular fa-calendar"></i>
+                    Khoảng ngày chỉ định
+                </label>
+
+                <div class="ctkq-date-range">
+                    <input type="date"
+                           id="ctkqFromDate"
+                           aria-label="Từ ngày">
+
+                    <span>—</span>
+
+                    <input type="date"
+                           id="ctkqToDate"
+                           aria-label="Đến ngày">
+                </div>
+            </div>
+
+            <div class="ctkq-filter-group">
+                <label for="ctkqRoom">
+                    <i class="fa-solid fa-door-open"></i>
+                    Phòng thực hiện
+                </label>
+
+                <select id="ctkqRoom">
+                    <option value="">Tất cả phòng</option>
+                </select>
+            </div>
+
+            <div class="ctkq-filter-group ctkq-status-filter">
+                <label>
+                    <i class="fa-solid fa-circle-check"></i>
+                    Trạng thái
+                </label>
+
+                <div class="ctkq-fixed-status">
+                    <i class="fa-solid fa-check"></i>
+                    Đã hoàn thành
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- DANH SÁCH KẾT QUẢ -->
+    <section class="ctkq-table-panel">
+
+        <div class="ctkq-panel-header">
+
+            <div class="ctkq-title">
+                <div class="ctkq-title-icon">
+                    <i class="fa-solid fa-clipboard-check"></i>
+                </div>
+
+                <h2>Danh sách chỉ định đã hoàn thành</h2>
+
+                <span id="ctkqCount"
+                      class="ctkq-count">
+                    0 chỉ định
+                </span>
+            </div>
+
+            <div class="ctkq-updated">
+                <i class="fa-solid fa-database"></i>
+                Dữ liệu từ hệ thống
+            </div>
+
+        </div>
+
+        <!-- KHUNG CUỘN RIÊNG -->
+        <div class="ctkq-table-scroll">
+
+            <table class="ctkq-table">
+
+                <!-- CỘT CỐ ĐỊNH -->
+                <colgroup>
+                    <col style="width:4%">
+                    <col style="width:10%">
+                    <col style="width:15%">
+                    <col style="width:17%">
+                    <col style="width:13%">
+                    <col style="width:12%">
+                    <col style="width:12%">
+                    <col style="width:10%">
+                    <col style="width:7%">
+                </colgroup>
+
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>MÃ CHỈ ĐỊNH</th>
+                    <th>BỆNH NHÂN</th>
+                    <th>DỊCH VỤ</th>
+                    <th>BÁC SĨ PHỤ TRÁCH</th>
+                    <th>PHÒNG</th>
+                    <th>NGÀY CHỈ ĐỊNH</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+                </thead>
+
+                <tbody id="ctkqTableBody">
+                <tr>
+                    <td colspan="9"
+                        class="ctkq-empty">
+                        Đang tải kết quả đã thực hiện...
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="ctkq-footer">
+
+            <div id="ctkqPageInfo">
+                Đang tải dữ liệu...
+            </div>
+
+            <div class="ctkq-pagination">
+
+                <button type="button"
+                        id="ctkqPrevious"
+                        aria-label="Trang trước"
+                        disabled>
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <span id="ctkqCurrentPage">1</span>
+
+                <button type="button"
+                        id="ctkqNext"
+                        aria-label="Trang sau"
+                        disabled>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/ket-qua-da-thuc-hien.js}">
+    </script>
+</th:block>
+
+</body>
+</html>

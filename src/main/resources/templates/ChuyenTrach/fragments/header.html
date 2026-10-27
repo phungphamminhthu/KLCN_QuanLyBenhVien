@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header class="reception-header"
+        th:fragment="header(refreshButtonId, roleName)">
+
+    <!-- NGÀY HIỆN TẠI VÀ LÀM MỚI -->
+    <div class="header-left">
+
+        <div class="header-date">
+            <i class="fa-regular fa-calendar"></i>
+            <span id="header-current-date">Đang tải ngày...</span>
+        </div>
+
+        <button type="button"
+                class="header-refresh-button"
+                th:id="${refreshButtonId}">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Làm mới dữ liệu</span>
+        </button>
+
+    </div>
+
+    <!-- THÔNG BÁO VÀ THÔNG TIN NHÂN VIÊN -->
+    <div class="header-right">
+
+        <!-- CHUÔNG THÔNG BÁO -->
+        <div class="header-notification">
+            <button type="button"
+                    id="notificationButton"
+                    class="notification-button"
+                    aria-label="Thông báo"
+                    aria-expanded="false">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notificationBadge"
+                      class="notification-badge"
+                      hidden>0</span>
+            </button>
+
+            <div id="notificationDropdown"
+                 class="notification-dropdown"
+                 hidden>
+                <div class="notification-dropdown-title">
+                    Thông báo
+                </div>
+                <div id="notificationList"
+                     class="notification-list">
+                    Chưa có thông báo.
+                </div>
+            </div>
+        </div>
+
+        <!-- THÔNG TIN NHÂN VIÊN -->
+        <div class="header-user">
+
+            <div class="header-user-info">
+                <strong id="header-user-name"
+                        th:text="${currentUserName ?: 'Nhân viên chuyên trách'}">
+                    Nhân viên chuyên trách
+                </strong>
+
+                <span id="header-user-email"
+                      th:text="${currentUserEmail ?: ''}">
+                </span>
+
+                <small id="header-user-role"
+                       th:text="${roleName}">
+                    Nhân viên chuyên trách
+                </small>
+            </div>
+
+            <img id="header-user-avatar"
+                 class="header-avatar"
+                 th:src="@{/Images/default-avatar.jpg}"
+                 alt="Ảnh đại diện nhân viên">
+        </div>
+
+    </div>
+
+</header>
+
+</body>
+</html>

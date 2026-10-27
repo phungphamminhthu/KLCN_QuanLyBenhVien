@@ -1,0 +1,21 @@
+/* Phân hệ Chuyên trách: highlight mục menu theo URL hiện tại.
+   Override các quy tắc .active cũ có !important trong layout.css. */
+.reception-sidebar .sidebar-menu a.ct-menu-active,
+.reception-sidebar .sidebar-menu a.ct-menu-active.active,
+.sidebar-menu a.ct-menu-active {
+    color: var(--primary, #2563EB) !important;
+    background: var(--primary-soft, #EFF6FF) !important;
+    border-radius: 9px;
+    font-weight: 700 !important;
+    box-shadow: inset 3px 0 0 var(--primary, #2563EB);
+}
+.reception-sidebar .sidebar-menu a.ct-menu-active .menu-icon,
+.reception-sidebar .sidebar-menu a.ct-menu-active .menu-icon i,
+.sidebar-menu a.ct-menu-active i {
+    color: var(--primary, #2563EB) !important;
+}
+.reception-sidebar .sidebar-menu a.ct-menu-active > span,
+.sidebar-menu a.ct-menu-active > span {
+    color: inherit !important;
+    font-weight: 700 !important;
+}

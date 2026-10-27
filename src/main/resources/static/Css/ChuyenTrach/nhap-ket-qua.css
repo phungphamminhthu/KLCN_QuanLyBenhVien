@@ -1,0 +1,584 @@
+
+/* ============================================
+   TRANG NHẬP KẾT QUẢ CHUYÊN TRÁCH
+   ============================================ */
+
+.ct-result-page {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    color: #1E293B;
+}
+
+/* ============================================
+   THANH QUAY LẠI ĐẦU TRANG
+   ============================================ */
+
+.ct-result-page .ct-result-top {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between !important;
+    gap: 16px;
+
+    width: 100%;
+    margin: 0 0 16px;
+    padding: 0;
+}
+
+/* Vị trí gốc của nút, vẫn giữ chỗ khi thu gọn */
+.ct-result-page .ct-back-slot {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    margin: 0;
+    padding: 0;
+}
+
+/* Nút quay lại khi chưa cuộn */
+.ct-result-page #ctBackButton {
+    position: static;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+
+    width: auto;
+    min-height: 40px;
+    margin: 0 !important;
+    padding: 9px 14px;
+
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+
+    color: #2563EB;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.ct-result-page #ctBackButton:hover {
+    background: #EFF6FF;
+    border-color: #93C5FD;
+}
+
+.ct-result-page #ctBackButton i {
+    font-size: 14px;
+}
+
+.ct-result-page #pageStatus {
+    margin-left: auto;
+    color: #64748B;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* ============================================
+   CHÍNH NÚT ĐÓ THU GỌN KHI CUỘN
+   JavaScript sẽ chuyển phần tử vào body.
+   Không tạo hoặc nhân bản nút.
+   ============================================ */
+
+body > #ctBackButton.ct-back-compact {
+    position: fixed !important;
+
+    top: var(--ct-back-top, 170px) !important;
+    left: var(--ct-back-left, 258px) !important;
+    right: auto !important;
+    bottom: auto !important;
+
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px;
+    min-height: 44px;
+
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0;
+
+    background: #FFFFFF;
+    border: 1px solid #93C5FD;
+    border-radius: 12px;
+
+    color: #2563EB;
+    text-decoration: none;
+
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.18);
+
+    z-index: 9990;
+    cursor: pointer;
+}
+
+body > #ctBackButton.ct-back-compact:hover {
+    background: #EFF6FF;
+}
+
+body > #ctBackButton.ct-back-compact i {
+    font-size: 18px;
+}
+
+/* Chỉ ẩn chữ khi thu gọn */
+body > #ctBackButton.ct-back-compact .ct-back-text {
+    display: none !important;
+}
+
+/* ============================================
+   BỐ CỤC 2 CỘT
+   ============================================ */
+
+.ct-result-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    align-items: start;
+    gap: 18px;
+    width: 100%;
+}
+
+.ct-result-panel {
+    min-width: 0;
+    padding: 22px;
+
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+}
+
+.ct-result-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+
+    padding-bottom: 18px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.ct-result-heading > i {
+    margin-top: 4px;
+    color: #2563EB;
+    font-size: 17px;
+}
+
+.ct-result-heading h2 {
+    margin: 0;
+    color: #1E293B;
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.ct-result-heading p {
+    margin: 6px 0 0;
+    color: #64748B;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* ============================================
+   THÔNG TIN BỆNH NHÂN
+   ============================================ */
+
+.ct-patient {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 14px;
+    margin-bottom: 20px;
+
+    background: #F8FAFC;
+    border: 1px solid #EDF2F7;
+    border-radius: 10px;
+}
+
+.ct-patient-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+
+    background: #DBEAFE;
+    border-radius: 50%;
+    color: #2563EB;
+    font-size: 20px;
+}
+
+.ct-patient strong {
+    display: block;
+    color: #1E293B;
+    font-size: 14px;
+}
+
+.ct-patient small,
+#patientCode {
+    display: block;
+    margin-top: 4px;
+    color: #64748B;
+    font-size: 12px;
+}
+
+.ct-info-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 17px;
+    font-size: 12px;
+}
+
+.ct-info-line span {
+    color: #64748B;
+}
+
+.ct-info-line strong {
+    text-align: right;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+    color: #1E293B;
+}
+
+.ct-note {
+    padding: 12px;
+
+    background: #FFFBEB;
+    border: 1px solid #FDE68A;
+    border-radius: 9px;
+
+    color: #92400E;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.ct-note i {
+    margin-right: 4px;
+}
+
+/* ============================================
+   BIỂU MẪU NHẬP KẾT QUẢ
+   ============================================ */
+
+.ct-form-group {
+    margin-bottom: 19px;
+}
+
+.ct-form-group label {
+    display: block;
+    margin-bottom: 9px;
+
+    color: #334155;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.ct-form-group label span {
+    color: #DC2626;
+}
+
+.ct-form-group select,
+.ct-form-group textarea {
+    display: block;
+    width: 100%;
+
+    padding: 12px;
+
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    border-radius: 9px;
+
+    color: #1E293B;
+    font: inherit;
+    font-size: 13px;
+}
+
+.ct-form-group textarea {
+    resize: vertical;
+    min-height: 105px;
+}
+
+.ct-form-group select:focus,
+.ct-form-group textarea:focus {
+    outline: 2px solid #BFDBFE;
+    border-color: #2563EB;
+}
+
+.ct-form-group select:disabled,
+.ct-form-group textarea:disabled {
+    background: #F8FAFC;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   TÀI LIỆU ĐÍNH KÈM
+   ============================================ */
+
+.ct-file-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    padding: 22px;
+
+    background: #F8FBFF;
+    border: 1px dashed #93C5FD;
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+.ct-file-placeholder i {
+    color: #2563EB;
+    font-size: 25px;
+}
+
+.ct-file-placeholder strong {
+    color: #2563EB;
+    font-size: 13px;
+}
+
+.ct-file-placeholder small {
+    color: #64748B;
+    line-height: 1.5;
+}
+
+/* ============================================
+   NÚT LƯU VÀ HOÀN TẤT
+   ============================================ */
+
+.ct-result-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    padding-top: 14px;
+    border-top: 1px solid #E2E8F0;
+}
+
+.ct-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    min-height: 42px;
+    padding: 10px 18px;
+
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ct-btn-outline {
+    color: #2563EB;
+    background: #FFFFFF;
+    border: 1px solid #2563EB;
+}
+
+.ct-btn-outline:hover {
+    background: #EFF6FF;
+}
+
+.ct-btn-primary {
+    color: #FFFFFF;
+    background: #2563EB;
+    border: 1px solid #2563EB;
+}
+
+.ct-btn-primary:hover {
+    background: #1D4ED8;
+}
+
+.ct-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   THÔNG BÁO TRONG FORM
+   ============================================ */
+
+.ct-result-notice[hidden] {
+    display: none !important;
+}
+
+.ct-result-notice {
+    margin-bottom: 18px;
+    padding: 12px;
+
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    border-radius: 8px;
+
+    color: #1D4ED8;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.ct-result-notice.error {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #B91C1C;
+}
+
+/* ============================================
+   POPUP XÁC NHẬN GIỮA MÀN HÌNH
+   ============================================ */
+
+.ct-action-modal-overlay[hidden] {
+    display: none !important;
+}
+
+.ct-action-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    background: rgba(15, 23, 42, 0.52);
+    backdrop-filter: blur(2px);
+}
+
+.ct-action-modal {
+    width: 100%;
+    max-width: 430px;
+    padding: 30px 26px 26px;
+
+    background: #FFFFFF;
+    border-radius: 16px;
+    text-align: center;
+
+    box-shadow: 0 22px 60px rgba(15, 23, 42, 0.24);
+}
+
+.ct-action-modal-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 18px;
+
+    background: #DBEAFE;
+    border-radius: 50%;
+
+    color: #2563EB;
+    font-size: 25px;
+}
+
+.ct-action-modal-icon.warning {
+    background: #FEF3C7;
+    color: #D97706;
+}
+
+.ct-action-modal h3 {
+    margin: 0 0 10px;
+
+    color: #1E293B;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.ct-action-modal p {
+    margin: 0 0 24px;
+
+    color: #64748B;
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.ct-action-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.ct-action-modal-cancel,
+.ct-action-modal-confirm {
+    min-width: 125px;
+    min-height: 43px;
+    padding: 10px 16px;
+
+    border-radius: 9px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ct-action-modal-cancel {
+    background: #FFFFFF;
+    border: 1px solid #CBD5E1;
+    color: #475569;
+}
+
+.ct-action-modal-cancel:hover {
+    background: #F1F5F9;
+}
+
+.ct-action-modal-confirm {
+    background: #2563EB;
+    border: 1px solid #2563EB;
+    color: #FFFFFF;
+}
+
+.ct-action-modal-confirm:hover {
+    background: #1D4ED8;
+}
+
+.ct-action-modal-confirm.danger {
+    background: #DC2626;
+    border-color: #DC2626;
+}
+
+.ct-action-modal-confirm.danger:hover {
+    background: #B91C1C;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+    .ct-result-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .ct-result-panel {
+        padding: 16px;
+    }
+
+    .ct-action-modal {
+        padding: 24px 18px;
+    }
+
+    .ct-result-page #pageStatus {
+        font-size: 11px;
+    }
+
+    .ct-result-actions {
+        justify-content: stretch;
+    }
+
+    .ct-result-actions .ct-btn {
+        flex: 1;
+    }
+}

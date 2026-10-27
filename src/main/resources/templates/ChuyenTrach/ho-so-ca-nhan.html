@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+<head>
+    <title>Hồ sơ cá nhân - Nhân viên chuyên trách</title>
+    <th:block layout:fragment="css">
+        <link rel="stylesheet" th:href="@{/Css/ChuyenTrach/ho-so-ca-nhan.css}">
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content" class="cths-page">
+    <div class="cths-grid">
+        <!-- CỘT TRÁI: THẺ NHÂN VIÊN -->
+        <section class="cths-card cths-identity" aria-label="Thông tin tóm tắt nhân viên">
+            <div class="cths-cover"></div>
+            <div class="cths-identity-body">
+                <div class="cths-avatar-wrap">
+                    <img id="cthsAvatar" alt="Ảnh đại diện nhân viên" hidden>
+                    <span id="cthsAvatarFallback" aria-hidden="true"><i class="fa-regular fa-user"></i></span>
+                </div>
+                <h1 id="cthsName">Đang tải thông tin...</h1>
+                <span id="cthsCode" class="cths-code">—</span>
+                <div class="cths-role-tag"><i class="fa-solid fa-circle-check"></i> Nhân viên chuyên trách</div>
+                <div class="cths-contact-list">
+                    <div class="cths-contact-item">
+                        <span class="cths-contact-icon"><i class="fa-regular fa-envelope"></i></span>
+                        <div><small>Email làm việc</small><strong id="cthsEmail">—</strong></div>
+                    </div>
+                    <div class="cths-contact-item">
+                        <span class="cths-contact-icon"><i class="fa-solid fa-phone"></i></span>
+                        <div><small>Số điện thoại</small><strong id="cthsPhone">—</strong></div>
+                    </div>
+                    <div class="cths-contact-item">
+                        <span class="cths-contact-icon"><i class="fa-regular fa-building"></i></span>
+                        <div><small>Bộ phận theo vai trò</small><strong id="cthsDepartment">—</strong></div>
+                    </div>
+                    <div class="cths-contact-item">
+                        <span class="cths-contact-icon"><i class="fa-solid fa-shield-halved"></i></span>
+                        <div><small>Vai trò tài khoản</small><strong>Nhân viên chuyên trách</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CỘT PHẢI: CHI TIẾT -->
+        <section class="cths-card cths-details" aria-label="Thông tin chi tiết tài khoản">
+            <div class="cths-heading">
+                <div class="cths-heading-title">
+                    <i class="fa-regular fa-address-card"></i>
+                    <h2>Thông tin chi tiết</h2>
+                </div>
+                <span class="cths-source-tag">DỮ LIỆU TỪ HỆ THỐNG</span>
+            </div>
+
+            <div id="cthsMessage" class="cths-message" role="status" hidden></div>
+
+            <div class="cths-info-grid">
+                <div class="cths-info-box">
+                    <span>HỌ TÊN</span>
+                    <strong id="cthsDetailName">—</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>MÃ TÀI KHOẢN</span>
+                    <strong id="cthsDetailCode">—</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>EMAIL BỆNH VIỆN</span>
+                    <strong id="cthsDetailEmail">—</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>SỐ ĐIỆN THOẠI LIÊN HỆ</span>
+                    <strong id="cthsDetailPhone">—</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>VAI TRÒ CẤP QUYỀN</span>
+                    <strong id="cthsDetailRole">—</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>TÌNH TRẠNG TÀI KHOẢN</span>
+                    <strong id="cthsAccountStatus" class="cths-account-status">Đang tải...</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>TÊN ĐĂNG NHẬP</span>
+                    <strong id="cthsUsername">—</strong>
+                </div>
+                <div class="cths-info-box">
+                    <span>BỘ PHẬN</span>
+                    <strong id="cthsDetailDepartment">—</strong>
+                </div>
+            </div>
+            <div class="cths-actions">
+                <button id="cthsEditButton" type="button" class="cths-button cths-button-primary" disabled>
+                    <i class="fa-regular fa-pen-to-square"></i>
+                    Chỉnh sửa hồ sơ
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <!-- CHỈ CHỈNH HỌ TÊN VÀ SĐT; KHÔNG CÓ ĐỔI MẬT KHẨU -->
+    <dialog id="cthsEditDialog" class="cths-dialog" aria-labelledby="cthsDialogTitle">
+        <form id="cthsEditForm">
+            <div class="cths-dialog-head">
+                <h2 id="cthsDialogTitle">Chỉnh sửa hồ sơ cá nhân</h2>
+                <button id="cthsCloseDialog" type="button" class="cths-icon-btn" aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="cths-dialog-hint">Bạn chỉ được sửa thông tin liên hệ của chính mình. Email, quyền và mật khẩu do quản trị viên quản lý.</p>
+            <label for="cthsEditName">Họ và tên</label>
+            <input id="cthsEditName" type="text" required minlength="2" maxlength="100">
+            <label for="cthsEditPhone">Số điện thoại</label>
+            <input id="cthsEditPhone" type="tel" maxlength="12" placeholder="Ví dụ: 0901234567">
+            <p id="cthsEditHint" class="cths-edit-hint" hidden></p>
+            <div class="cths-dialog-actions">
+                <button id="cthsCancelEdit" type="button" class="cths-button cths-button-secondary">Hủy</button>
+                <button id="cthsSaveEdit" type="submit" class="cths-button cths-button-primary">Lưu thay đổi</button>
+            </div>
+        </form>
+    </dialog>
+</div>
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/ho-so-ca-nhan.js}"></script>
+</th:block>
+</body>
+</html>

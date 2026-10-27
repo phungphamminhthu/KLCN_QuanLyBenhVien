@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <title>Danh sách chỉ định</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/chi-dinh.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="ctcd-page">
+
+
+
+    <!-- TÌM KIẾM VÀ LỌC -->
+    <section class="ctcd-filter-panel">
+
+        <div class="ctcd-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search"
+                   id="ctcdSearch"
+                   placeholder="Tìm mã chỉ định, bệnh nhân, dịch vụ..."
+                   autocomplete="off">
+        </div>
+
+        <div class="ctcd-filter-grid">
+
+            <div class="ctcd-filter-group">
+                <label>Khoảng ngày chỉ định</label>
+
+                <div class="ctcd-dates">
+                    <input type="date" id="ctcdFromDate">
+                    <span>—</span>
+                    <input type="date" id="ctcdToDate">
+                </div>
+            </div>
+
+            <div class="ctcd-filter-group">
+                <label for="ctcdRoom">
+                    Phòng thực hiện
+                </label>
+
+                <select id="ctcdRoom">
+                    <option value="">Tất cả phòng</option>
+                </select>
+            </div>
+
+            <div class="ctcd-filter-group">
+                <label for="ctcdStatus">
+                    Trạng thái chỉ định
+                </label>
+
+                <select id="ctcdStatus">
+                    <option value="">Tất cả</option>
+                    <option value="ChoThucHien">
+                        Chờ thực hiện
+                    </option>
+                    <option value="DangThucHien">
+                        Đang thực hiện
+                    </option>
+                    <option value="DaHoanThanh">
+                        Đã hoàn thành
+                    </option>
+                </select>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- BẢNG CHỈ ĐỊNH -->
+    <section class="ctcd-table-panel">
+
+        <div class="ctcd-panel-heading">
+
+            <div class="ctcd-panel-title">
+                <i class="fa-solid fa-clipboard-list"></i>
+                <h2>Chỉ định từ bác sĩ</h2>
+                <span id="ctcdCount" class="ctcd-count">
+                    0 chỉ định
+                </span>
+            </div>
+
+            <span class="ctcd-panel-description">
+                Dữ liệu được cập nhật từ hệ thống
+            </span>
+        </div>
+
+        <div class="ctcd-table-scroll">
+
+            <table class="ctcd-table">
+
+                <!-- 9 CỘT CÓ CHIỀU RỘNG CỐ ĐỊNH -->
+                <colgroup>
+                    <col style="width:4%">
+                    <col style="width:9%">
+                    <col style="width:15%">
+                    <col style="width:17%">
+                    <col style="width:13%">
+                    <col style="width:12%">
+                    <col style="width:11%">
+                    <col style="width:11%">
+                    <col style="width:8%">
+                </colgroup>
+
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>MÃ CHỈ ĐỊNH</th>
+                    <th>BỆNH NHÂN</th>
+                    <th>DỊCH VỤ</th>
+                    <th>BÁC SĨ CHỈ ĐỊNH</th>
+                    <th>PHÒNG</th>
+                    <th>NGÀY CHỈ ĐỊNH</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+                </thead>
+
+                <tbody id="ctcdTableBody">
+                <tr>
+                    <td colspan="9" class="ctcd-empty">
+                        Đang tải danh sách chỉ định...
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="ctcd-footer">
+
+            <span id="ctcdPageInfo">
+                Đang tải dữ liệu...
+            </span>
+
+            <div class="ctcd-pagination">
+
+                <button type="button"
+                        id="ctcdPrevious"
+                        aria-label="Trang trước">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+
+                <span id="ctcdCurrentPage">1</span>
+
+                <button type="button"
+                        id="ctcdNext"
+                        aria-label="Trang sau">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- POPUP CHI TIẾT CHỈ ĐỊNH -->
+    <div id="ctcdModal"
+         class="ctcd-overlay"
+         hidden>
+
+        <div class="ctcd-modal"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctcdModalTitle">
+
+            <div class="ctcd-modal-header">
+                <div>
+                    <h2 id="ctcdModalTitle">
+                        Chi tiết chỉ định
+                    </h2>
+                    <p>
+                        Thông tin từ chỉ định và lượt khám
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="ctcdClose"
+                        class="ctcd-close"
+                        aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="ctcd-modal-body">
+
+                <div class="ctcd-detail-grid">
+
+                    <div>
+                        <label>Mã chỉ định</label>
+                        <strong id="ctcdDetailId">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Mã lịch khám</label>
+                        <strong id="ctcdDetailLich">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Bệnh nhân</label>
+                        <strong id="ctcdDetailPatient">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Bác sĩ phụ trách</label>
+                        <strong id="ctcdDetailDoctor">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Phòng thực hiện</label>
+                        <strong id="ctcdDetailRoom">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Ngày chỉ định</label>
+                        <strong id="ctcdDetailDate">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Trạng thái chỉ định</label>
+                        <strong id="ctcdDetailStatus">—</strong>
+                    </div>
+
+                    <div>
+                        <label>Trạng thái lượt khám</label>
+                        <strong id="ctcdDetailVisit">—</strong>
+                    </div>
+
+                </div>
+
+                <div class="ctcd-detail-service">
+                    <label>Dịch vụ được chỉ định</label>
+                    <p id="ctcdDetailService">—</p>
+                </div>
+
+            </div>
+
+            <div class="ctcd-modal-footer">
+
+                <button type="button"
+                        id="ctcdCloseBottom"
+                        class="ctcd-btn-secondary">
+                    Đóng
+                </button>
+
+                <button type="button"
+                        id="ctcdModalAction"
+                        class="ctcd-btn-primary"
+                        hidden>
+                    Bắt đầu CLS
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- XÁC NHẬN BẮT ĐẦU CLS -->
+    <div id="ctcdConfirm"
+         class="ctcd-overlay"
+         hidden>
+
+        <div class="ctcd-confirm"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="ctcdConfirmTitle">
+
+            <div class="ctcd-confirm-icon">
+                <i class="fa-solid fa-stethoscope"></i>
+            </div>
+
+            <h3 id="ctcdConfirmTitle">
+                Xác nhận bắt đầu CLS
+            </h3>
+
+            <p id="ctcdConfirmText">
+                Bạn muốn bắt đầu thực hiện cận lâm sàng?
+            </p>
+
+            <div class="ctcd-confirm-actions">
+
+                <button type="button"
+                        id="ctcdCancel"
+                        class="ctcd-btn-secondary">
+                    Hủy
+                </button>
+
+                <button type="button"
+                        id="ctcdAccept"
+                        class="ctcd-btn-primary">
+                    Xác nhận
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/chi-dinh.js}"></script>
+</th:block>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title layout:title-pattern="$CONTENT_TITLE - MedCare Hospital">
+        MedCare Hospital
+    </title>
+
+    <!-- CSS LAYOUT GỐC CỦA TIẾP NHẬN -->
+    <link rel="stylesheet"
+          th:href="@{/Css/TiepNhan/layout.css}">
+
+    <link rel="stylesheet"
+          th:href="@{/Css/ChuyenTrach/ct-menu-active.css}">
+
+    <!-- CSS RIÊNG NHÂN VIÊN CHUYÊN TRÁCH -->
+    <link rel="stylesheet"
+          th:href="@{/Css/ChuyenTrach/layout.css}">
+
+    <!-- CSS ĐĂNG XUẤT DÙNG CHUNG -->
+    <link rel="stylesheet"
+          th:href="@{/Css/Auth/logout.css}">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- CSS CỦA TỪNG TRANG -->
+    <th:block layout:fragment="css"></th:block>
+</head>
+
+<body class="reception-layout">
+
+<div class="reception-layout-container">
+
+    <!-- SIDEBAR CHUYÊN TRÁCH -->
+    <aside th:replace="~{ChuyenTrach/fragments/sidebar :: sidebar}"></aside>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <div class="reception-main">
+
+        <!-- HEADER CHUYÊN TRÁCH -->
+        <header th:replace="~{ChuyenTrach/fragments/header :: header('refresh-dashboard-button', 'Nhân viên chuyên trách')}"></header>
+
+        <!-- NỘI DUNG TRANG CON -->
+        <main class="page-content">
+            <div layout:fragment="content"></div>
+        </main>
+
+    </div>
+</div>
+
+<!-- JS ĐĂNG XUẤT DÙNG CHUNG -->
+<script th:src="@{/Js/Auth/logout.js}"></script>
+
+<script th:src="@{/Js/ChuyenTrach/ct-menu-active.js}"></script>
+
+<!-- JS LAYOUT CHUYÊN TRÁCH -->
+<script th:src="@{/Js/ChuyenTrach/layout.js}"></script>
+
+<!-- JS RIÊNG CỦA TRANG CON -->
+<th:block layout:fragment="js"></th:block>
+
+</body>
+</html>
