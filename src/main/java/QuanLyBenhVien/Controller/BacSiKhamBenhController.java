@@ -247,9 +247,20 @@ public class BacSiKhamBenhController {
 
             List<Map<String, Object>> ketQua =
                     danhSach.stream()
-                            .map(this::chuyenLichSuThanhMap)
-                            .toList();
+                            .map(lich -> {
+                                Map<String, Object> map =
+                                        chuyenLichKhamThanhMap(lich);
 
+                                if (lich.getBenhNhan() != null) {
+                                    map.put(
+                                            "tienSuBenh",
+                                            lich.getBenhNhan().getTienSuBenh()
+                                    );
+                                }
+
+                                return map;
+                            })
+                            .toList();
             return ResponseEntity.ok(ketQua);
 
         } catch (Exception e) {
@@ -1552,40 +1563,6 @@ public class BacSiKhamBenhController {
     }
 
 
-    // =========================================================
-    // CHUYỂN LỊCH SỬ THÀNH JSON
-    // =========================================================
-
-    private Map<String, Object> chuyenLichSuThanhMap(
-            LichDangKyKham lich
-    ) {
-        Map<String, Object> map =
-                chuyenLichKhamThanhMap(lich);
-
-        // 4 chỉ số sức khỏe
-        map.put("canNang", lich.getCanNang());
-        map.put("chieuCao", lich.getChieuCao());
-
-        map.put(
-                "huyetApTamThu",
-                lich.getHuyetApTamThu()
-        );
-
-        map.put(
-                "huyetApTamTruong",
-                lich.getHuyetApTamTruong()
-        );
-
-        // Tiền sử bệnh của bệnh nhân
-        if (lich.getBenhNhan() != null) {
-            map.put(
-                    "tienSuBenh",
-                    lich.getBenhNhan().getTienSuBenh()
-            );
-        }
-
-        return map;
-    }
 
 
     // =========================================================
@@ -1721,6 +1698,10 @@ public class BacSiKhamBenhController {
                 }
             }
         }
+        map.put("canNang", hoSo.getCanNang());
+        map.put("chieuCao", hoSo.getChieuCao());
+        map.put("huyetApTamThu", hoSo.getHuyetApTamThu());
+        map.put("huyetApTamTruong", hoSo.getHuyetApTamTruong());
 
         return map;
     }
@@ -1844,6 +1825,7 @@ public class BacSiKhamBenhController {
 
         if (chiDinh.getHoSoBenhAn() != null) {
 
+
             HoSoBenhAn hoSo =
                     chiDinh.getHoSoBenhAn();
 
@@ -1854,8 +1836,11 @@ public class BacSiKhamBenhController {
 
             if (hoSo.getLichDangKyKham() != null) {
 
+
+
                 LichDangKyKham lich =
                         hoSo.getLichDangKyKham();
+                map.put("lyDoKham", lich.getLyDoKham());
 
                 map.put(
                         "maLichKham",

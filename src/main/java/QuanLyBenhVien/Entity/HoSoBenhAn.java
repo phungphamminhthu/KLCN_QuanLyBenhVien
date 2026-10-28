@@ -2,7 +2,9 @@ package QuanLyBenhVien.Entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
-
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 @Entity
 @Table(name = "HoSoBenhAn")
 public class HoSoBenhAn {
@@ -39,6 +41,18 @@ public class HoSoBenhAn {
 
     @Column(name = "TrangThai", nullable = false, length = 50)
     private String trangThai;
+
+    @Column(name = "CanNang", precision = 5, scale = 2)
+    private BigDecimal canNang;
+
+    @Column(name = "ChieuCao", precision = 5, scale = 2)
+    private BigDecimal chieuCao;
+
+    @Column(name = "HuyetApTamThu")
+    private Integer huyetApTamThu;
+
+    @Column(name = "HuyetApTamTruong")
+    private Integer huyetApTamTruong;
 
     public Integer getMaHoSoBenhAn() {
         return maHoSoBenhAn;
@@ -119,4 +133,41 @@ public class HoSoBenhAn {
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
     }
+
+    // ==========================================
+    // GETTER / SETTER CHỈ SỐ SỨC KHỎE
+    // ==========================================
+
+    public BigDecimal getCanNang() {
+        return canNang;
+    }
+
+    public void setCanNang(BigDecimal canNang) {
+        this.canNang = canNang;
+    }
+
+    public BigDecimal getChieuCao() {
+        return chieuCao;
+    }
+
+    public void setChieuCao(BigDecimal chieuCao) {
+        this.chieuCao = chieuCao;
+    }
+
+    public Integer getHuyetApTamThu() {
+        return huyetApTamThu;
+    }
+
+    public void setHuyetApTamThu(Integer huyetApTamThu) {
+        this.huyetApTamThu = huyetApTamThu;
+    }
+
+    public Integer getHuyetApTamTruong() {
+        return huyetApTamTruong;
+    }
+
+    public void setHuyetApTamTruong(Integer huyetApTamTruong) {
+        this.huyetApTamTruong = huyetApTamTruong;
+    }
+
 }
