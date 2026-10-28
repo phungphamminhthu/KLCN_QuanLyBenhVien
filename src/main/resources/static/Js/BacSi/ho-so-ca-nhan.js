@@ -101,42 +101,41 @@ async function goiAPI(url, options = {}) {
 // AVATAR
 // ==========================================
 
+
 function avatarMacDinh() {
-    return "data:image/svg+xml;charset=utf-8," +
-        encodeURIComponent(`
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 100 100">
-                <rect width="100" height="100"
-                      fill="#dbeafe"/>
-                <circle cx="50" cy="37" r="19"
-                        fill="#94a3b8"/>
-                <ellipse cx="50" cy="91"
-                         rx="34" ry="29"
-                         fill="#94a3b8"/>
-            </svg>
-        `);
+    return "/Images/default-avatar.jpg";
 }
 
 function hienThiAvatar(duongDan) {
     const avatar = $("avatar");
-
     if (!avatar) return;
 
     avatar.onerror = () => {
         avatar.onerror = null;
-        avatar.src = avatarMacDinh();
+        avatar.src = "/Images/default-avatar.jpg";
     };
 
     if (!duongDan) {
-        avatar.src = avatarMacDinh();
+        avatar.src = "/Images/default-avatar.jpg";
         return;
     }
 
-    avatar.src = duongDan.startsWith("http")
-        || duongDan.startsWith("/")
-        ? duongDan
-        : "/" + duongDan;
+    // Nếu database đã lưu URL đầy đủ
+    if (duongDan.startsWith("http://") ||
+        duongDan.startsWith("https://")) {
+        avatar.src = duongDan;
+        return;
+    }
+
+    // Lấy ảnh từ Cloudflare R2 thông qua API backend
+    const fileKey = duongDan.startsWith("/")
+        ? duongDan.substring(1)
+        : duongDan;
+
+    avatar.src = "/api/images/view?fileKey=" +
+        encodeURIComponent(fileKey);
 }
+
 
 // ==========================================
 // HIỂN THỊ HỒ SƠ
