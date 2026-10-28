@@ -48,6 +48,8 @@ public class LichDangKyKham {
     @Column(name = "TrangThai", nullable = false, length = 50)
     private String trangThai;
 
+
+
     // ==========================================
     // GETTER / SETTER CŨ
     // ==========================================

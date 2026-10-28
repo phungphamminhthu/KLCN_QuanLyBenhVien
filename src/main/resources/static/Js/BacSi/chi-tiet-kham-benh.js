@@ -783,6 +783,7 @@ function hienThiHoSo(data) {
     hienThiThongTinBenhNhan(data);
 
     hienThiTrangThai(data);
+    hienThiChiSoSucKhoe(data);
 
 
     const trieuChung = layGiaTri(
@@ -898,6 +899,58 @@ function hienThiHoSo(data) {
         khoaHoSo();
     }
 }
+
+
+function hienThiChiSoSucKhoe(data) {
+
+    const lyDoKham = layGiaTri(data, [
+        "lyDoKham",
+        "LyDoKham"
+    ]);
+
+    const canNang = layGiaTri(data, [
+        "canNang",
+        "CanNang"
+    ]);
+
+    const chieuCao = layGiaTri(data, [
+        "chieuCao",
+        "ChieuCao"
+    ]);
+
+    const huyetApTamThu = layGiaTri(data, [
+        "huyetApTamThu",
+        "HuyetApTamThu"
+    ]);
+
+    const huyetApTamTruong = layGiaTri(data, [
+        "huyetApTamTruong",
+        "HuyetApTamTruong"
+    ]);
+
+    const hienThiGiaTri = (value) => {
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return "—";
+        }
+
+        return String(value);
+    };
+
+    ganText(
+        "examReason",
+        lyDoKham || "Chưa có lý do khám"
+    );
+
+    ganText("healthWeight", hienThiGiaTri(canNang));
+    ganText("healthHeight", hienThiGiaTri(chieuCao));
+    ganText("healthSystolic", hienThiGiaTri(huyetApTamThu));
+    ganText("healthDiastolic", hienThiGiaTri(huyetApTamTruong));
+}
+
 
 
 // =========================================================
@@ -1310,16 +1363,16 @@ async function chuyenTab(tabName) {
     // CẬN LÂM SÀNG
     // ================================
 
-    if (tabName === "clinical") {
+   if (tabName === "prescription") {
 
-        clinicalButton?.classList.add("active");
+       prescriptionButton?.classList.add("active");
+       prescriptionContent?.classList.remove("hidden");
 
-        clinicalContent?.classList.remove("hidden");
+       // Đơn thuốc là bước cuối, ẩn nút cận lâm sàng
+       getElement("btnGoClinical")?.classList.add("hidden");
 
-        taiDanhSachChiDinh();
-
-        return;
-    }
+       return;
+   }
 
 
     // ================================
@@ -1340,9 +1393,11 @@ async function chuyenTab(tabName) {
     // THÔNG TIN KHÁM
     // ================================
 
-    medicalButton?.classList.add("active");
+   medicalButton?.classList.add("active");
+   medicalContent?.classList.remove("hidden");
 
-    medicalContent?.classList.remove("hidden");
+   // Trở lại Thông tin khám thì hiện nút cận lâm sàng
+   getElement("btnGoClinical")?.classList.remove("hidden");
 }
 // =========================================================
 // TẢI DANH SÁCH DỊCH VỤ
@@ -2132,6 +2187,153 @@ function renderDanhSachThuoc() {
 }
 
 
+/* =============================================
+   TÌM KIẾM THUỐC ĐỂ KÊ ĐƠN
+============================================= */
+
+function chuanHoaTimKiem(value) {
+    return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "D")
+        .toLowerCase()
+        .trim();
+}
+
+function anGoiYThuoc() {
+    const box = getElement("medicineSuggestions");
+
+    if (box) {
+        box.classList.add("hidden");
+        box.replaceChildren();
+    }
+}
+
+
+function chonThuocTimKiem(thuoc) {
+    const maThuoc = Number(
+        layGiaTri(thuoc, ["maThuoc", "MaThuoc"])
+    );
+
+    const tenThuoc = layGiaTri(
+        thuoc, ["tenThuoc", "TenThuoc"]
+    );
+
+    const donViTinh = layGiaTri(
+        thuoc, ["donViTinh", "DonViTinh"]
+    ) || "";
+
+    if (!Number.isInteger(maThuoc) || maThuoc <= 0) {
+        hienThiThongBao("Thuốc không hợp lệ.", "error");
+        return;
+    }
+
+    if (danhSachThuocDaKe.some(
+        item => Number(item.maThuoc) === maThuoc
+    )) {
+        hienThiThongBao(
+            "Thuốc này đã có trong đơn.",
+            "error"
+        );
+        return;
+    }
+
+    danhSachThuocDaKe.push({
+        maThuoc: maThuoc,
+        tenThuoc: tenThuoc || `Thuốc ${maThuoc}`,
+        donViTinh: donViTinh,
+        soLuong: null,
+        lieuDung: "",
+        thoiGianDung: null,
+        huongDanSuDung: ""
+    });
+
+    // Hiển thị ngay trong bảng
+    renderThuocDaKe();
+
+    // Làm trống ô tìm kiếm
+    ganValue("medicineSearch", "");
+    ganValue("medicineSelect", "");
+    anGoiYThuoc();
+
+    // Đưa con trỏ tới ô số lượng mới thêm
+    const rows = document.querySelectorAll(
+        "#prescriptionList tbody tr"
+    );
+
+    rows[rows.length - 1]
+        ?.querySelector(".qty-input")
+        ?.focus();
+}
+
+function hienThiDanhSachGoiYThuoc(danhSach) {
+    const box = getElement("medicineSuggestions");
+    if (!box) return;
+
+    box.replaceChildren();
+    box.classList.remove("hidden");
+
+    if (danhSach.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "medicine-suggestion-empty";
+        empty.textContent = "Không tìm thấy thuốc phù hợp.";
+        box.appendChild(empty);
+        return;
+    }
+
+    danhSach.forEach(thuoc => {
+        const tenThuoc = layGiaTri(
+            thuoc, ["tenThuoc", "TenThuoc"]
+        ) || "Thuốc";
+
+        const donViTinh = layGiaTri(
+            thuoc, ["donViTinh", "DonViTinh"]
+        ) || "";
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "medicine-suggestion";
+
+        const name = document.createElement("strong");
+        name.textContent = tenThuoc;
+
+        const unit = document.createElement("small");
+        unit.textContent = donViTinh;
+
+        button.append(name, unit);
+
+        button.addEventListener("click", () => {
+            chonThuocTimKiem(thuoc);
+        });
+
+        box.appendChild(button);
+    });
+}
+
+function timKiemThuoc() {
+    const search = getElement("medicineSearch");
+
+    if (!search || search.disabled) return;
+
+    const keyword = chuanHoaTimKiem(search.value);
+
+    const ketQua = danhSachThuoc.filter(thuoc => {
+        const tenThuoc = layGiaTri(
+            thuoc, ["tenThuoc", "TenThuoc"]
+        );
+
+        return chuanHoaTimKiem(tenThuoc)
+            .includes(keyword);
+    });
+
+    // Chưa gõ: 10 thuốc đầu tiên
+    // Đã gõ: tối đa 15 thuốc khớp tên
+    hienThiDanhSachGoiYThuoc(
+        ketQua.slice(0, keyword ? 15 : 10)
+    );
+}
+
 // =========================================================
 // TÌM THUỐC THEO MÃ
 // =========================================================
@@ -2241,35 +2443,20 @@ function hienThiThongTinThuocDangChon() {
 // =========================================================
 
 function resetFormThuoc() {
-
-    ganValue(
-        "medicineSelect",
-        ""
-    );
-
-    ganValue(
-        "medicineQuantity",
-        ""
-    );
-
-    ganValue(
-        "medicineDosage",
-        ""
-    );
-
-    ganValue(
-        "medicineDuration",
-        ""
-    );
-
-    ganValue(
-        "medicineInstruction",
-        ""
-    );
-
+    ganValue("medicineSelect", "");
+    ganValue("medicineSearch", "");
+    ganValue("medicineQuantity", "");
+    ganValue("medicineDosage", "");
+    ganValue("medicineDuration", "");
+    ganValue("medicineInstruction", "");
 
     getElement("medicineInfo")
         ?.classList.add("hidden");
+
+    getElement("prescriptionForm")
+        ?.classList.add("hidden");
+
+    anGoiYThuoc();
 }
 
 
@@ -2486,158 +2673,174 @@ function xoaThuocKhoiDon(maThuoc) {
 // =========================================================
 
 function renderThuocDaKe() {
+    const list = getElement("prescriptionList");
+    const empty = getElement("prescriptionEmpty");
+    const count = getElement("prescriptionCount");
 
-    const list =
-        getElement("prescriptionList");
+    if (!list) return;
 
-    const empty =
-        getElement("prescriptionEmpty");
-
-    const count =
-        getElement("prescriptionCount");
-
-
-    if (!list) {
-        return;
-    }
-
-
-    list.innerHTML = "";
-
+    list.replaceChildren();
 
     if (count) {
-
-        count.textContent =
-            `${danhSachThuocDaKe.length} thuốc`;
+        count.textContent = `${danhSachThuocDaKe.length} thuốc`;
     }
-
 
     if (danhSachThuocDaKe.length === 0) {
-
         empty?.classList.remove("hidden");
-
         return;
     }
-
 
     empty?.classList.add("hidden");
 
+    const daHoanTat = layGiaTri(
+        hoSoHienTai,
+        ["trangThai", "TrangThai"]
+    ) === "HoanTat";
 
-    danhSachThuocDaKe.forEach(item => {
+    const table = document.createElement("table");
+    table.className = "medicine-table";
 
-        const element =
-            document.createElement("div");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>STT</th>
+                <th>Tên thuốc</th>
+                <th>Đơn vị</th>
+                <th>Số lượng kê</th>
+                <th>Liều dùng</th>
+                <th>Thời gian dùng (ngày)</th>
+                <th>Cách dùng</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    `;
 
+    const tbody = table.querySelector("tbody");
 
-        element.className =
-            "prescription-item";
+    danhSachThuocDaKe.forEach((item, index) => {
+        const tr = document.createElement("tr");
 
+        tr.innerHTML = `
+            <td>${index + 1}</td>
 
-        const tongTien =
-            Number(item.gia || 0)
-            * Number(item.soLuong || 0);
+            <td class="medicine-name">
+                ${escapeHtml(item.tenThuoc)}
+            </td>
 
+            <td>${escapeHtml(item.donViTinh || "---")}</td>
 
-        element.innerHTML = `
+            <td>
+                <input type="number"
+                       class="medicine-table-input qty-input"
+                       min="1" step="1" required
+                       placeholder="SL">
+            </td>
 
-            <div class="prescription-item-main">
+            <td>
+                <input type="text"
+                       class="medicine-table-input dose-input"
+                       placeholder="Liều dùng">
+            </td>
 
-                <div class="prescription-item-title">
+            <td>
+                <input type="number"
+                       class="medicine-table-input days-input"
+                       min="1" step="1"
+                       placeholder="Ngày">
+            </td>
 
-                    ${escapeHtml(item.tenThuoc)}
+            <td>
+                <textarea
+                    class="medicine-table-input guide-input"
+                    rows="2"
+                    placeholder="Cách dùng"></textarea>
+            </td>
 
-                </div>
-
-                <div class="prescription-item-meta">
-
-                    <span>
-                        Số lượng:
-                        <strong>
-                            ${escapeHtml(item.soLuong)}
-                            ${escapeHtml(item.donViTinh)}
-                        </strong>
-                    </span>
-
-                    <span>
-                        Đơn giá:
-                        <strong>
-                            ${escapeHtml(dinhDangTien(item.gia))}
-                        </strong>
-                    </span>
-
-                    <span>
-                        Thành tiền:
-                        <strong>
-                            ${escapeHtml(dinhDangTien(tongTien))}
-                        </strong>
-                    </span>
-
-                </div>
-
-
-                ${
-                    item.lieuDung
-                        ? `
-                            <div class="prescription-item-detail">
-                                <strong>Liều dùng:</strong>
-                                ${escapeHtml(item.lieuDung)}
-                            </div>
-                        `
-                        : ""
-                }
-
-
-                ${
-                    item.thoiGianDung
-                        ? `
-                            <div class="prescription-item-detail">
-                                <strong>Thời gian:</strong>
-                                ${escapeHtml(item.thoiGianDung)} ngày
-                            </div>
-                        `
-                        : ""
-                }
-
-
-                ${
-                    item.huongDanSuDung
-                        ? `
-                            <div class="prescription-item-detail">
-                                <strong>Hướng dẫn:</strong>
-                                ${escapeHtml(item.huongDanSuDung)}
-                            </div>
-                        `
-                        : ""
-                }
-
-            </div>
-
-
-            <button
-                    type="button"
-                    class="prescription-remove"
-                    data-id="${escapeHtml(item.maThuoc)}"
-                    title="Xóa thuốc"
-            >
-
-                <i class="fa-solid fa-trash"></i>
-
-            </button>
+            <td>
+                <button type="button"
+                        class="medicine-delete"
+                        title="Xóa thuốc"
+                        aria-label="Xóa thuốc">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
         `;
 
+        const qty = tr.querySelector(".qty-input");
+        const dose = tr.querySelector(".dose-input");
+        const days = tr.querySelector(".days-input");
+        const guide = tr.querySelector(".guide-input");
+        const remove = tr.querySelector(".medicine-delete");
 
-        element
-            .querySelector(".prescription-remove")
-            ?.addEventListener(
-                "click",
-                () => xoaThuocKhoiDon(item.maThuoc)
+        qty.value = item.soLuong ?? "";
+        dose.value = item.lieuDung || "";
+        days.value = item.thoiGianDung ?? "";
+        guide.value = item.huongDanSuDung || "";
+
+        qty.addEventListener("input", () => {
+            const value = Number(qty.value);
+
+            if (
+                qty.value.trim() === "" ||
+                !Number.isInteger(value) ||
+                value <= 0
+            ) {
+                qty.setCustomValidity(
+                    "Vui lòng nhập số lượng nguyên dương."
+                );
+                item.soLuong = null;
+            } else {
+                qty.setCustomValidity("");
+                item.soLuong = value;
+            }
+        });
+
+        dose.addEventListener("input", () => {
+            item.lieuDung = dose.value.trim();
+        });
+
+        days.addEventListener("input", () => {
+            const value = days.value.trim();
+
+            if (value === "") {
+                days.setCustomValidity("");
+                item.thoiGianDung = null;
+                return;
+            }
+
+            const number = Number(value);
+
+            if (!Number.isInteger(number) || number <= 0) {
+                days.setCustomValidity(
+                    "Số ngày phải là số nguyên dương."
+                );
+                item.thoiGianDung = null;
+            } else {
+                days.setCustomValidity("");
+                item.thoiGianDung = number;
+            }
+        });
+
+        guide.addEventListener("input", () => {
+            item.huongDanSuDung = guide.value.trim();
+        });
+
+        remove.addEventListener("click", () => {
+            xoaThuocKhoiDon(item.maThuoc);
+        });
+
+        if (daHoanTat) {
+            [qty, dose, days, guide, remove].forEach(
+                element => element.disabled = true
             );
+        }
 
-
-        list.appendChild(element);
+        tbody.appendChild(tr);
     });
-}
 
+    list.appendChild(table);
+}
 
 // =========================================================
 // LẤY CHI TIẾT THUỐC TỪ RESPONSE BACKEND
@@ -3030,6 +3233,9 @@ async function luuDonThuoc() {
         return;
     }
 
+
+
+
     if (danhSachThuocDaKe.length === 0) {
 
         hienThiThongBao(
@@ -3039,6 +3245,36 @@ async function luuDonThuoc() {
 
         return;
     }
+
+    const inputKhongHopLe = Array.from(
+        document.querySelectorAll(
+            "#prescriptionList .medicine-table-input"
+        )
+    ).find(input => !input.checkValidity());
+
+    if (inputKhongHopLe) {
+        inputKhongHopLe.reportValidity();
+
+        hienThiThongBao(
+            "Vui lòng kiểm tra số lượng và thời gian dùng.",
+            "error"
+        );
+        return;
+    }
+
+    const soLuongKhongHopLe = danhSachThuocDaKe.some(item =>
+        !Number.isInteger(Number(item.soLuong)) ||
+        Number(item.soLuong) <= 0
+    );
+
+    if (soLuongKhongHopLe) {
+        hienThiThongBao(
+            "Vui lòng nhập số lượng hợp lệ cho tất cả thuốc.",
+            "error"
+        );
+        return;
+    }
+
 
 
     const chanDoan =
@@ -3187,7 +3423,7 @@ function khoaDonThuoc() {
         "medicineDuration",
         "medicineInstruction",
         "prescriptionNote",
-        "btnAddMedicine",
+        "medicineSearch",
         "btnSavePrescription"
     ];
 
@@ -3213,6 +3449,11 @@ function khoaDonThuoc() {
             button.disabled = true;
 
             button.dataset.locked = "true";
+        });
+
+    document.querySelectorAll(".medicine-table-input, .medicine-delete")
+        .forEach(element => {
+            element.disabled = true;
         });
 }
 // =========================================================
@@ -4575,11 +4816,38 @@ function ganSuKien() {
             }
         });
 
+
+    getElement("medicineSearch")
+        ?.addEventListener("input", timKiemThuoc);
+
+    getElement("medicineSearch")
+        ?.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                anGoiYThuoc();
+            }
+        });
+
+    document.addEventListener("click", event => {
+        const wrapper = document.querySelector(
+            ".medicine-search-wrapper"
+        );
+
+        if (wrapper && !wrapper.contains(event.target)) {
+            anGoiYThuoc();
+        }
+    });
+
+
     getElement("tabPrescription")
         ?.addEventListener(
             "click",
             () => chuyenTab("prescription")
         );
+
+    getElement("medicineSearch")
+        ?.addEventListener("focus", timKiemThuoc);
+
+
 
 
     getElement("medicineSelect")
@@ -4707,6 +4975,12 @@ function ganSuKien() {
                     }
                 }
             );
+
+        getElement("medicineSearch")
+            ?.addEventListener("input", timKiemThuoc);
+
+        getElement("medicineSearch")
+            ?.addEventListener("focus", timKiemThuoc);
 }
 
 
@@ -4731,7 +5005,7 @@ async function khoiTaoTrang() {
     }
 
 
-    hienThiThongTinBacSi();
+//    hienThiThongTinBacSi();
 
     ganSuKien();
 

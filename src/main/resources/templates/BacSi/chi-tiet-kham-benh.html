@@ -89,6 +89,55 @@
         <!-- THÔNG TIN KHÁM -->
         <div class="tab-content" id="medicalTabContent">
 
+            <!-- LÝ DO KHÁM -->
+            <div class="exam-info-section">
+                <div class="exam-section-title">
+                    <i class="fa-regular fa-clipboard"></i>
+                    <span>Lý do khám</span>
+                </div>
+
+                <div class="exam-reason-box" id="examReason">
+                    Chưa có lý do khám
+                </div>
+            </div>
+
+            <!-- CHỈ SỐ SỨC KHỎE -->
+            <div class="exam-info-section">
+                <div class="exam-section-title">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                    <span>Chỉ số sức khỏe</span>
+                </div>
+
+                <div class="exam-health-grid">
+
+                    <div class="exam-health-card">
+                        <span class="exam-health-label">Cân nặng</span>
+                        <strong id="healthWeight">—</strong>
+                        <small>kg</small>
+                    </div>
+
+                    <div class="exam-health-card">
+                        <span class="exam-health-label">Chiều cao</span>
+                        <strong id="healthHeight">—</strong>
+                        <small>cm</small>
+                    </div>
+
+                    <div class="exam-health-card">
+                        <span class="exam-health-label">Huyết áp tâm thu</span>
+                        <strong id="healthSystolic">—</strong>
+                        <small>mmHg</small>
+                    </div>
+
+                    <div class="exam-health-card">
+                        <span class="exam-health-label">Huyết áp tâm trương</span>
+                        <strong id="healthDiastolic">—</strong>
+                        <small>mmHg</small>
+                    </div>
+
+                </div>
+            </div>
+
+
             <div class="form-group">
                 <label for="symptoms">
                     Triệu chứng <span class="required">*</span>
@@ -228,70 +277,32 @@
                 </div>
             </div>
 
-            <!-- FORM THÊM THUỐC -->
-            <div class="clinical-order-form" id="prescriptionForm">
+            <!-- TÌM KIẾM THUỐC -->
+            <div class="medicine-search-wrapper">
+                <label for="medicineSearch">Tìm kiếm thuốc</label>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="medicineSelect">
-                            Thuốc <span class="required">*</span>
-                        </label>
+                <div class="medicine-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
 
-                        <select id="medicineSelect">
-                            <option value="">-- Chọn thuốc --</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="medicineQuantity">
-                            Số lượng <span class="required">*</span>
-                        </label>
-
-                        <input type="number"
-                               id="medicineQuantity"
-                               min="1"
-                               placeholder="Ví dụ: 10">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="medicineDosage">Liều dùng</label>
-                        <input type="text"
-                               id="medicineDosage"
-                               placeholder="Ví dụ: 1 viên/lần, ngày 2 lần">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="medicineDuration">Thời gian dùng (ngày)</label>
-                        <input type="number"
-                               id="medicineDuration"
-                               min="1"
-                               placeholder="Ví dụ: 5">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="medicineInstruction">Hướng dẫn sử dụng</label>
                     <input type="text"
-                           id="medicineInstruction"
-                           placeholder="Ví dụ: Uống sau ăn">
+                           id="medicineSearch"
+                           placeholder="Nhập tên thuốc để tìm kiếm..."
+                           autocomplete="off">
                 </div>
 
-                <div class="prescription-medicine-info hidden" id="medicineInfo">
-                    <span id="medicineUnit"></span>
-                    <span id="medicinePrice"></span>
-                </div>
-
-                <div class="order-form-actions">
-                    <button type="button"
-                            class="btn-primary"
-                            id="btnAddMedicine">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>Thêm thuốc</span>
-                    </button>
+                <div id="medicineSuggestions"
+                     class="medicine-suggestions hidden">
                 </div>
             </div>
+
+            <!-- Lưu mã thuốc được chọn, tương thích JS cũ -->
+            <select id="medicineSelect"
+                    class="hidden"
+                    aria-label="Thuốc đã chọn">
+                <option value="">-- Chọn thuốc --</option>
+            </select>
+
+
 
             <!-- DANH SÁCH THUỐC -->
             <div class="prescription-list-section">

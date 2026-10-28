@@ -2295,3 +2295,603 @@ button:disabled {
          grid-template-columns: 1fr;
      }
  }
+
+/* TÌM KIẾM THUỐC */
+.medicine-search-wrapper {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.medicine-search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid #dfe7f1;
+    border-radius: 9px;
+    padding: 0 14px;
+    background: #fff;
+}
+
+.medicine-search-box i {
+    color: #94a3b8;
+}
+
+.medicine-search-box input {
+    width: 100%;
+    height: 44px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+}
+
+.medicine-search-box:focus-within {
+    border-color: #2563eb;
+}
+
+.medicine-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.08);
+
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.medicine-suggestion {
+    display: block;
+    width: 100%;
+    padding: 11px 14px;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fff;
+    text-align: left;
+    color: #334155;
+    font-size: 13px;
+}
+
+.medicine-suggestion:hover {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/* FORM KÊ ĐƠN GỌN HƠN */
+#prescriptionForm.prescription-compact {
+    margin-top: 12px;
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    background: #f8fafc;
+}
+
+#prescriptionForm .form-row {
+    gap: 12px;
+}
+
+#prescriptionForm .form-group {
+    margin-bottom: 12px;
+}
+
+#prescriptionForm .form-group label {
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+#prescriptionForm input {
+    height: 38px;
+}
+
+#prescriptionForm .order-form-actions {
+    margin-top: 4px;
+}
+
+/* DANH SÁCH THUỐC GỌN HƠN */
+.prescription-list-section {
+    margin-top: 18px;
+    padding-top: 16px;
+}
+
+.prescription-item {
+    padding: 12px 14px;
+    gap: 12px;
+}
+
+.prescription-item-title {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.prescription-item-meta {
+    margin-bottom: 6px;
+    gap: 6px 16px;
+}
+
+.prescription-item-detail {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* =========================================
+   TÌM KIẾM THUỐC
+========================================= */
+
+.medicine-search-wrapper {
+    position: relative;
+    margin-bottom: 14px;
+}
+
+.medicine-search-wrapper > label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+}
+
+.medicine-search-box {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    border: 1px solid #dce4ef;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.medicine-search-box:focus-within {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+}
+
+.medicine-search-box i {
+    color: #94a3b8;
+}
+
+.medicine-search-box input {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+}
+
+.medicine-suggestions {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    z-index: 50;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    box-shadow: 0 10px 25px rgba(15,23,42,.1);
+}
+
+.medicine-suggestion {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 4px;
+    padding: 11px 14px;
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.medicine-suggestion:hover {
+    background: #eff6ff;
+}
+
+.medicine-suggestion strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.medicine-suggestion small {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.medicine-suggestion-empty {
+    padding: 14px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* FORM KÊ ĐƠN GỌN */
+#prescriptionForm.prescription-compact {
+    margin-top: 12px;
+    margin-bottom: 18px;
+    padding: 16px;
+}
+
+#prescriptionForm .form-row {
+    gap: 12px;
+}
+
+#prescriptionForm .form-group {
+    margin-bottom: 12px;
+}
+
+#prescriptionForm .form-group label {
+    margin-bottom: 6px;
+}
+
+#prescriptionForm input {
+    height: 38px;
+}
+
+.prescription-list-section {
+    margin-top: 18px;
+    padding-top: 16px;
+}
+
+.prescription-item {
+    padding: 12px 14px;
+    gap: 12px;
+}
+
+/* =========================================
+   BẢNG DANH SÁCH THUỐC
+========================================= */
+
+#prescriptionList {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.medicine-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1050px;
+    background: #fff;
+    font-size: 13px;
+}
+
+.medicine-table thead {
+    background: #f8fafc;
+}
+
+.medicine-table th {
+    padding: 13px 10px;
+    text-align: left;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    line-height: 1.4;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.medicine-table td {
+    padding: 13px 10px;
+    color: #475569;
+    vertical-align: middle;
+    border-bottom: 1px solid #edf2f7;
+}
+
+.medicine-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.medicine-name {
+    font-weight: 700;
+    color: #1e293b !important;
+    min-width: 125px;
+}
+
+.medicine-table th:nth-child(1),
+.medicine-table td:nth-child(1) {
+    width: 42px;
+    text-align: center;
+}
+
+.medicine-table th:nth-child(4) {
+    min-width: 100px;
+}
+
+.medicine-table th:nth-child(5) {
+    min-width: 145px;
+}
+
+.medicine-table th:nth-child(6) {
+    min-width: 115px;
+}
+
+.medicine-table th:nth-child(7) {
+    min-width: 175px;
+}
+
+.medicine-table-input {
+    width: 100%;
+    min-width: 70px;
+    height: 37px;
+    padding: 7px 9px;
+    border: 1px solid #dbe3ed;
+    border-radius: 6px;
+    background: white;
+    color: #334155;
+    font-size: 12px;
+    outline: none;
+}
+
+.medicine-table-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,.08);
+}
+
+.medicine-table-input:disabled {
+    background: #f8fafc;
+    color: #64748b;
+}
+
+.qty-input {
+    width: 85px;
+}
+
+.days-input {
+    width: 90px;
+}
+
+.guide-input {
+    min-height: 45px;
+    height: auto;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.medicine-price,
+.medicine-line-total {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.medicine-delete {
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 6px;
+    background: #fff1f2;
+    color: #e11d48;
+    cursor: pointer;
+}
+
+.medicine-delete:hover {
+    background: #ffe4e6;
+}
+
+.medicine-table tfoot td {
+    padding-top: 20px;
+    border-bottom: none;
+}
+
+.medicine-total-label {
+    text-align: right;
+    color: #64748b !important;
+    font-size: 13px;
+}
+
+.medicine-grand-total {
+    color: #0f172a !important;
+    font-weight: 800;
+    font-size: 17px;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    #prescriptionList {
+        overflow-x: auto;
+    }
+}
+
+/* BẢNG KÊ ĐƠN DÀNH CHO BÁC SĨ */
+
+#prescriptionList {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.medicine-table {
+    width: 100%;
+    min-width: 960px;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 13px;
+}
+
+.medicine-table th {
+    padding: 12px 10px;
+    text-align: left;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.medicine-table td {
+    padding: 12px 10px;
+    vertical-align: middle;
+    border-bottom: 1px solid #edf2f7;
+    color: #475569;
+}
+
+.medicine-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.medicine-name {
+    min-width: 140px;
+    font-weight: 700;
+    color: #1e293b !important;
+}
+
+.medicine-table-input {
+    width: 100%;
+    height: 38px;
+    padding: 8px 10px;
+    border: 1px solid #dbe3ed;
+    border-radius: 7px;
+    background: #fff;
+    color: #334155;
+    font-size: 13px;
+    outline: none;
+}
+
+.medicine-table-input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,.08);
+}
+
+.medicine-table-input:invalid {
+    border-color: #ef4444;
+}
+
+.qty-input {
+    width: 85px;
+}
+
+.days-input {
+    width: 90px;
+}
+
+.dose-input {
+    min-width: 160px;
+}
+
+.guide-input {
+    min-width: 180px;
+    height: 48px;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+.medicine-delete {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 7px;
+    background: #fff1f2;
+    color: #dc2626;
+    cursor: pointer;
+}
+
+.medicine-delete:hover {
+    background: #ffe4e6;
+}
+
+.medicine-table-input:disabled {
+    background: #f8fafc;
+    color: #64748b;
+}
+
+@media (max-width: 900px) {
+    #prescriptionList {
+        overflow-x: auto;
+    }
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================
+   LÝ DO KHÁM VÀ CHỈ SỐ SỨC KHỎE
+========================================== */
+
+.exam-info-section {
+    margin-bottom: 26px;
+}
+
+.exam-section-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #243653;
+    margin-bottom: 14px;
+}
+
+.exam-section-title i {
+    color: #2563eb;
+    font-size: 17px;
+}
+
+/* Lý do khám */
+.exam-reason-box {
+    padding: 15px 18px;
+    border: 1px solid #dbe5f2;
+    border-radius: 10px;
+    background: #f8fafc;
+    color: #334155;
+    font-size: 14px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* Bốn ô chỉ số */
+.exam-health-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.exam-health-card {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-height: 112px;
+    padding: 16px;
+    background: #f8fafc;
+    border: 1px solid #dbe5f2;
+    border-radius: 12px;
+}
+
+.exam-health-label {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.exam-health-card strong {
+    font-size: 23px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.exam-health-card small {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+    .exam-health-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Điện thoại */
+@media (max-width: 480px) {
+    .exam-health-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
