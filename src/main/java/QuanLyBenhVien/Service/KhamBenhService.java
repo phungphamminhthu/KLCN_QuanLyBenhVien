@@ -111,6 +111,7 @@ public class KhamBenhService {
                         .findByLichDangKyKham_MaLichKham(maLichKham);
 
         // 4. Nếu đang khám thì cho phép tiếp tục
+
         if ("DangKham".equals(lichKham.getTrangThai())) {
 
             HoSoBenhAn hoSo = hoSoDaCo.orElseThrow(
@@ -125,8 +126,22 @@ public class KhamBenhService {
                 );
             }
 
+            // Đồng bộ trạng thái tiếp nhận với lịch khám
+            int soDong = tiepNhanBenhNhanRepository
+                    .capNhatTrangThaiTheoLich(
+                            maLichKham,
+                            "DangKham"
+                    );
+
+            if (soDong == 0) {
+                throw new IllegalStateException(
+                        "Không tìm thấy thông tin tiếp nhận."
+                );
+            }
+
             return hoSo;
         }
+
 
         // 5. Không cho bắt đầu lại lịch đã hoàn tất
         if ("DaKham".equals(lichKham.getTrangThai())
@@ -202,16 +217,24 @@ public class KhamBenhService {
         LichDangKyKham lichKham =
                 timLichKhamCuaBacSi(maBacSi, maLichKham);
 
-        if (!"DangKham".equals(lichKham.getTrangThai())) {
+        if (!"DangKham".equals(lichKham.getTrangThai())
+                && !"ChoCLS".equals(lichKham.getTrangThai())) {
+
             throw new IllegalStateException(
-                    "Lịch khám không ở trạng thái Đang khám."
+                    "Chỉ được cập nhật hồ sơ khi đang khám hoặc chờ CLS."
             );
         }
 
         HoSoBenhAn hoSo =
                 timHoSoTheoLichKham(maLichKham);
 
-        kiemTraHoSoDangKham(hoSo);
+        if (!"DangKham".equals(hoSo.getTrangThai())
+                && !"ChoCLS".equals(hoSo.getTrangThai())) {
+
+            throw new IllegalStateException(
+                    "Hồ sơ không ở trạng thái cho phép cập nhật."
+            );
+        }
 
 
 
@@ -229,65 +252,68 @@ public class KhamBenhService {
     // =========================================================
 // 3. HOÀN TẤT KHÁM
 // =========================================================
+
     @Transactional
     public HoSoBenhAn hoanTatKham(
             Integer maBacSi,
             Integer maLichKham
     ) {
+        // 1. Lấy lịch khám thuộc bác sĩ
         LichDangKyKham lichKham =
                 timLichKhamCuaBacSi(maBacSi, maLichKham);
 
+        // 2. Lấy hồ sơ bệnh án
         HoSoBenhAn hoSo =
                 timHoSoTheoLichKham(maLichKham);
 
-        // Kiểm tra hồ sơ đang khám
-        kiemTraHoSoDangKham(hoSo);
+        // 3. Kiểm tra trạng thái lịch khám
+        String trangThaiLich = lichKham.getTrangThai();
 
-        // Kiểm tra cận lâm sàng
-        kiemTraCanLamSangDaHoanThanh(hoSo);
-
-        if (!"DangKham".equals(lichKham.getTrangThai())) {
+        if (!"DangKham".equals(trangThaiLich)
+                && !"ChoCLS".equals(trangThaiLich)) {
             throw new IllegalStateException(
-                    "Lịch khám không ở trạng thái Đang khám."
+                    "Lịch khám không ở trạng thái được phép hoàn tất."
             );
         }
 
-        // Khóa đơn thuốc nếu có
-        Optional<DonThuoc> optionalDonThuoc =
-                donThuocRepository
-                        .findByHoSoBenhAn_MaHoSoBenhAn(
-                                hoSo.getMaHoSoBenhAn()
-                        );
+        // 4. Kiểm tra trạng thái hồ sơ
+        String trangThaiHoSo = hoSo.getTrangThai();
 
-        if (optionalDonThuoc.isPresent()) {
-            DonThuoc donThuoc = optionalDonThuoc.get();
-
-            donThuoc.setTrangThai("HoanTat");
-            donThuocRepository.save(donThuoc);
+        if (!"DangKham".equals(trangThaiHoSo)
+                && !"ChoCLS".equals(trangThaiHoSo)) {
+            throw new IllegalStateException(
+                    "Hồ sơ bệnh án không ở trạng thái được phép hoàn tất."
+            );
         }
 
-        // Hoàn tất hồ sơ bệnh án
+        // 5. Chỉ cho hoàn tất khi tất cả CLS đã hoàn thành
+        kiemTraCanLamSangDaHoanThanh(hoSo);
+
+        // 6. Cập nhật HoSoBenhAn
         hoSo.setTrangThai("HoanTat");
 
-        // Cập nhật trạng thái bảng LichDangKyKham
-        lichKham.setTrangThai("DaKham");
-        lichDangKyKhamRepository.save(lichKham);
+        // 7. Cập nhật LichDangKyKham
+        lichKham.setTrangThai("HoanTat");
 
-        // Cập nhật trạng thái bảng TiepNhanBenhNhan
+        // 8. Cập nhật TiepNhanBenhNhan
         int soDong = tiepNhanBenhNhanRepository
                 .capNhatTrangThaiTheoLich(
                         maLichKham,
-                        "DaKham"
+                        "HoanTat"
                 );
 
         if (soDong == 0) {
             throw new IllegalStateException(
-                    "Không tìm thấy thông tin tiếp nhận."
+                    "Không tìm thấy thông tin tiếp nhận bệnh nhân."
             );
         }
 
+        // 9. Lưu đồng thời trong transaction
+        lichDangKyKhamRepository.save(lichKham);
+
         return hoSoBenhAnRepository.save(hoSo);
     }
+
     // =========================================================
     // 4. XEM HỒ SƠ BỆNH ÁN
     // =========================================================
@@ -328,33 +354,45 @@ public class KhamBenhService {
             Integer maDichVu,
             Integer maPhong
     ) {
+
+        // 1. Kiểm tra lịch khám thuộc bác sĩ
         LichDangKyKham lichKham =
                 timLichKhamCuaBacSi(maBacSi, maLichKham);
 
-        // Cho phép tạo thêm chỉ định khi đang chờ CLS
+        // 2. Kiểm tra trạng thái lịch khám
         String trangThai = lichKham.getTrangThai();
 
         if (!"DangKham".equals(trangThai)
                 && !"ChoCLS".equals(trangThai)) {
+
             throw new IllegalStateException(
                     "Chỉ có thể tạo chỉ định khi đang khám hoặc chờ CLS."
             );
         }
 
+        // 3. Lấy hồ sơ bệnh án
         HoSoBenhAn hoSo =
                 timHoSoTheoLichKham(maLichKham);
 
-        kiemTraHoSoDangKham(hoSo);
+        // 4. Kiểm tra trạng thái hồ sơ
+        if (!"DangKham".equals(hoSo.getTrangThai())
+                && !"ChoCLS".equals(hoSo.getTrangThai())) {
 
-        DichVuYTe dichVu = dichVuYTeRepository
-                .findById(maDichVu)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Không tìm thấy dịch vụ y tế."
-                        )
-                );
+            throw new IllegalStateException(
+                    "Hồ sơ không ở trạng thái đang khám hoặc chờ CLS."
+            );
+        }
 
-        // Tạo chỉ định cận lâm sàng
+        // 5. Kiểm tra dịch vụ
+        DichVuYTe dichVu =
+                dichVuYTeRepository.findById(maDichVu)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "Không tìm thấy dịch vụ y tế."
+                                )
+                        );
+
+        // 6. Tạo chỉ định
         ChiDinhYTe chiDinh = new ChiDinhYTe();
 
         chiDinh.setHoSoBenhAn(hoSo);
@@ -367,11 +405,15 @@ public class KhamBenhService {
         ChiDinhYTe daLuu =
                 chiDinhYTeRepository.save(chiDinh);
 
-        // Cập nhật trạng thái lịch khám
+        // 7. Cập nhật HoSoBenhAn
+        hoSo.setTrangThai("ChoCLS");
+        hoSoBenhAnRepository.save(hoSo);
+
+        // 8. Cập nhật LichDangKyKham
         lichKham.setTrangThai("ChoCLS");
         lichDangKyKhamRepository.save(lichKham);
 
-        // Cập nhật trạng thái tiếp nhận
+        // 9. Cập nhật TiepNhanBenhNhan
         int soDong = tiepNhanBenhNhanRepository
                 .capNhatTrangThaiTheoLich(
                         maLichKham,
@@ -569,6 +611,7 @@ public class KhamBenhService {
     // =========================================================
     // 14. TẠO ĐƠN THUỐC
     // =========================================================
+
     @Transactional
     public DonThuoc taoDonThuoc(
             Integer maBacSi,
@@ -576,25 +619,43 @@ public class KhamBenhService {
             DonThuocRequest request
     ) {
 
+        // 1. Kiểm tra lịch khám thuộc bác sĩ
         LichDangKyKham lichKham =
                 timLichKhamCuaBacSi(
                         maBacSi,
                         maLichKham
                 );
 
-        if (!"DangKham".equals(lichKham.getTrangThai())) {
-            throw new IllegalStateException(
-                    "Chỉ có thể kê đơn khi bệnh nhân đang được khám."
-            );
-        }
-
+        // 2. Lấy hồ sơ bệnh án
         HoSoBenhAn hoSo =
                 timHoSoTheoLichKham(maLichKham);
 
-        kiemTraHoSoDangKham(hoSo);
-        // Kiểm tra CLS trước khi tạo đơn thuốc.
+        // 3. Kiểm tra trạng thái lịch khám
+        String trangThaiLich = lichKham.getTrangThai();
+
+        if (!"DangKham".equals(trangThaiLich)
+                && !"ChoCLS".equals(trangThaiLich)) {
+
+            throw new IllegalStateException(
+                    "Chỉ có thể kê đơn khi đang khám hoặc chờ kết quả CLS."
+            );
+        }
+
+        // 4. Kiểm tra trạng thái hồ sơ bệnh án
+        String trangThaiHoSo = hoSo.getTrangThai();
+
+        if (!"DangKham".equals(trangThaiHoSo)
+                && !"ChoCLS".equals(trangThaiHoSo)) {
+
+            throw new IllegalStateException(
+                    "Hồ sơ không ở trạng thái được phép kê đơn."
+            );
+        }
+
+        // 5. Kiểm tra tất cả cận lâm sàng đã hoàn thành
         kiemTraCanLamSangDaHoanThanh(hoSo);
 
+        // 6. Kiểm tra hồ sơ đã có đơn thuốc chưa
         if (donThuocRepository
                 .findByHoSoBenhAn_MaHoSoBenhAn(
                         hoSo.getMaHoSoBenhAn()
@@ -606,8 +667,10 @@ public class KhamBenhService {
             );
         }
 
+        // 7. Kiểm tra dữ liệu đơn thuốc
         kiemTraDuLieuDonThuoc(request);
 
+        // 8. Lấy bác sĩ kê đơn
         BacSi bacSi =
                 bacSiRepository
                         .findById(maBacSi)
@@ -617,37 +680,54 @@ public class KhamBenhService {
                                 )
                         );
 
+        // 9. Khi đủ kết quả CLS, đưa ca khám về DangKham
+        if ("ChoCLS".equals(trangThaiLich)
+                || "ChoCLS".equals(trangThaiHoSo)) {
+
+            lichKham.setTrangThai("DangKham");
+            hoSo.setTrangThai("DangKham");
+
+            lichDangKyKhamRepository.save(lichKham);
+            hoSoBenhAnRepository.save(hoSo);
+
+            int soDong = tiepNhanBenhNhanRepository
+                    .capNhatTrangThaiTheoLich(
+                            maLichKham,
+                            "DangKham"
+                    );
+
+            if (soDong == 0) {
+                throw new IllegalStateException(
+                        "Không tìm thấy thông tin tiếp nhận bệnh nhân."
+                );
+            }
+        }
+
+        // 10. Tạo đơn thuốc mới
         DonThuoc donThuoc = new DonThuoc();
 
         donThuoc.setHoSoBenhAn(hoSo);
         donThuoc.setBacSi(bacSi);
-        donThuoc.setNgayKeThuoc(
-                LocalDateTime.now()
-        );
+        donThuoc.setNgayKeThuoc(LocalDateTime.now());
 
-        String chanDoan =
-                hoSo.getChanDoan();
+        // 11. Lấy chẩn đoán
+        String chanDoan = hoSo.getChanDoan();
 
-        if (chanDoan == null ||
-                chanDoan.isBlank()) {
-
-            chanDoan =
-                    request.getChanDoan();
+        if (chanDoan == null || chanDoan.isBlank()) {
+            chanDoan = request.getChanDoan();
         }
 
         donThuoc.setChanDoan(chanDoan);
-        donThuoc.setGhiChu(
-                request.getGhiChu()
-        );
+        donThuoc.setGhiChu(request.getGhiChu());
 
-        // Đơn còn được sửa trong thời gian khám
-        donThuoc.setTrangThai("DangKe");
+        // 12. Đơn thuốc được chuyển sang chờ lấy thuốc
+        donThuoc.setTrangThai("ChoLayThuoc");
 
+        // 13. Lưu đơn thuốc một lần
         DonThuoc donDaLuu =
-                donThuocRepository.save(
-                        donThuoc
-                );
+                donThuocRepository.save(donThuoc);
 
+        // 14. Lưu danh sách thuốc trong đơn
         for (CTDonThuocRequest item :
                 request.getDanhSachThuoc()) {
 
@@ -717,6 +797,7 @@ public class KhamBenhService {
     // =========================================================
     // 17. CẬP NHẬT ĐƠN THUỐC
     // =========================================================
+
     @Transactional
     public DonThuoc capNhatDonThuoc(
             Integer maBacSi,
@@ -724,28 +805,27 @@ public class KhamBenhService {
             DonThuocRequest request
     ) {
 
+        // 1. Kiểm tra lịch khám thuộc bác sĩ
         LichDangKyKham lichKham =
-                timLichKhamCuaBacSi(
-                        maBacSi,
-                        maLichKham
-                );
+                timLichKhamCuaBacSi(maBacSi, maLichKham);
 
-        if (!"DangKham".equals(
-                lichKham.getTrangThai())) {
-
+        // 2. Kiểm tra trạng thái lịch khám
+        if (!"DangKham".equals(lichKham.getTrangThai())) {
             throw new IllegalStateException(
-                    "Chỉ có thể sửa đơn thuốc khi bệnh nhân đang được khám."
+                    "Chỉ có thể sửa đơn thuốc khi bệnh nhân đang khám."
             );
         }
 
+        // 3. Lấy hồ sơ bệnh án
         HoSoBenhAn hoSo =
-                timHoSoTheoLichKham(
-                        maLichKham
-                );
+                timHoSoTheoLichKham(maLichKham);
 
         kiemTraHoSoDangKham(hoSo);
+
+        // 4. Kiểm tra kết quả CLS
         kiemTraCanLamSangDaHoanThanh(hoSo);
 
+        // 5. Lấy đơn thuốc đã lưu
         DonThuoc donThuoc =
                 donThuocRepository
                         .findByHoSoBenhAn_MaHoSoBenhAn(
@@ -757,11 +837,10 @@ public class KhamBenhService {
                                 )
                         );
 
+        // 6. Kiểm tra bác sĩ kê đơn
         if (donThuoc.getBacSi() == null ||
                 !maBacSi.equals(
-                        donThuoc
-                                .getBacSi()
-                                .getMaBacSi()
+                        donThuoc.getBacSi().getMaBacSi()
                 )) {
 
             throw new IllegalStateException(
@@ -769,46 +848,44 @@ public class KhamBenhService {
             );
         }
 
-        kiemTraDuLieuDonThuoc(request);
-
-        String chanDoan =
-                hoSo.getChanDoan();
-
-        if (chanDoan == null ||
-                chanDoan.isBlank()) {
-
-            chanDoan =
-                    request.getChanDoan();
-        }
-
-        donThuoc.setChanDoan(chanDoan);
-        donThuoc.setGhiChu(
-                request.getGhiChu()
-        );
-
-        donThuocRepository.save(
-                donThuoc
-        );
-
-        // Xóa danh sách thuốc cũ
-        ctDonThuocRepository
-                .deleteByDonThuoc_MaDonThuoc(
-                        donThuoc.getMaDonThuoc()
-                );
-
-        // Lưu danh sách mới
-        for (CTDonThuocRequest item :
-                request.getDanhSachThuoc()) {
-
-            luuChiTietDonThuoc(
-                    donThuoc,
-                    item
+        // 7. Chỉ cho sửa đơn đang chờ lấy thuốc
+        if (!"ChoLayThuoc".equals(donThuoc.getTrangThai())) {
+            throw new IllegalStateException(
+                    "Đơn thuốc đã được xử lý, không thể chỉnh sửa."
             );
         }
 
-        return donThuoc;
-    }
+        // 8. Kiểm tra dữ liệu mới
+        kiemTraDuLieuDonThuoc(request);
 
+        // 9. Cập nhật chẩn đoán và ghi chú
+        String chanDoan = hoSo.getChanDoan();
+
+        if (chanDoan == null || chanDoan.isBlank()) {
+            chanDoan = request.getChanDoan();
+        }
+
+        donThuoc.setChanDoan(chanDoan);
+        donThuoc.setGhiChu(request.getGhiChu());
+
+        // 10. Giữ trạng thái chờ lấy thuốc
+        donThuoc.setTrangThai("ChoLayThuoc");
+
+        // 11. Xóa các thuốc cũ
+        ctDonThuocRepository.deleteByDonThuoc_MaDonThuoc(
+                donThuoc.getMaDonThuoc()
+        );
+
+        // 12. Lưu danh sách thuốc mới
+        for (CTDonThuocRequest item :
+                request.getDanhSachThuoc()) {
+
+            luuChiTietDonThuoc(donThuoc, item);
+        }
+
+        // 13. Lưu đơn thuốc
+        return donThuocRepository.save(donThuoc);
+    }
 
     // =========================================================
     // 18. LẤY TẤT CẢ ĐƠN THUỐC CỦA BÁC SĨ
