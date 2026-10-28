@@ -1,0 +1,166 @@
+/* THÔNG BÁO LỖI PHÍA TRÊN POPUP */
+.checkin-error-toast[hidden] {
+    display: none !important;
+}
+
+.checkin-error-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    z-index: 2000;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: min(620px, calc(100vw - 32px));
+    padding: 16px 18px;
+    border: 1px solid #fecaca;
+    border-radius: 14px;
+    background: #fff1f2;
+    color: #991b1b;
+    box-shadow: 0 12px 32px rgb(127 29 29 / 18%);
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: 0;
+    transform: translate(-50%, -35px);
+    transition: transform .25s ease, opacity .25s ease;
+}
+
+.checkin-error-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.checkin-error-toast > i {
+    margin-top: 4px;
+    color: #dc2626;
+    font-size: 20px;
+}
+
+#registration-error-toast-text {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
+.checkin-toast-close {
+    flex: 0 0 auto;
+    border: 0;
+    padding: 0 4px;
+    background: transparent;
+    color: #991b1b;
+    font-size: 25px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* PHIẾU ĐĂNG KÝ THÀNH CÔNG GIỮA MÀN HÌNH */
+.checkin-success-modal .modal-dialog {
+    max-width: 480px;
+}
+
+.checkin-success-modal .modal-content {
+    overflow: hidden;
+    border: 1px solid #bbf7d0;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 24px 70px rgb(15 23 42 / 20%);
+}
+
+.checkin-success-modal .modal-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid #dcfce7;
+    background: #f0fdf4;
+}
+
+.checkin-success-modal .modal-title {
+    color: #15803d;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.checkin-success-modal .modal-body {
+    padding: 24px;
+    text-align: center;
+}
+
+.checkin-success-icon {
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 26px;
+}
+
+.checkin-success-label {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.checkin-success-number {
+    margin: 6px 0 12px;
+    color: #15803d;
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.checkin-success-patient {
+    margin-bottom: 20px;
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.checkin-success-details {
+    margin: 0;
+    padding: 14px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    text-align: left;
+}
+
+.checkin-success-details > div {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.checkin-success-details dt {
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.checkin-success-details dd {
+    margin: 0;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+#success-ticket-room {
+    color: #15803d;
+    font-weight: 800;
+}
+
+.checkin-success-modal .modal-footer {
+    gap: 8px;
+    padding: 16px 22px;
+    border-top: 1px solid #e2e8f0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .checkin-error-toast {
+        transition: none;
+    }
+}

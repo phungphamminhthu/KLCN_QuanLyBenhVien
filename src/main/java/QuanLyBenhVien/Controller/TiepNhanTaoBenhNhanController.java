@@ -5,6 +5,7 @@ import QuanLyBenhVien.Service.TiepNhanTaoBenhNhanService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -35,10 +36,13 @@ public class TiepNhanTaoBenhNhanController {
         this.service = service;
     }
 
-    // =========================================================
+    // =====================================================
     // TẠO HỒ SƠ BỆNH NHÂN TẠI QUẦY
     // POST /api/tiepnhan/benh-nhan
-    // =========================================================
+    //
+    // API tra cứu số điện thoại được quản lý riêng tại
+    // TiepNhanTraCuuSoDienThoaiController.
+    // =====================================================
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> taoBenhNhan(
@@ -51,16 +55,18 @@ public class TiepNhanTaoBenhNhanController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
+                .cacheControl(CacheControl.noStore())
                 .body(Map.<String, Object>of(
                         "success", true,
-                        "message", "Tạo hồ sơ bệnh nhân thành công.",
+                        "message",
+                        "Tạo hồ sơ bệnh nhân thành công.",
                         "maBenhNhan", maBenhNhan
                 ));
     }
 
-    // =========================================================
+    // =====================================================
     // KIỂM TRA ĐĂNG NHẬP VÀ VAI TRÒ
-    // =========================================================
+    // =====================================================
 
     private void kiemTraQuyen(
             Authentication authentication
@@ -69,7 +75,6 @@ public class TiepNhanTaoBenhNhanController {
                 || !authentication.isAuthenticated()
                 || authentication
                 instanceof AnonymousAuthenticationToken) {
-
             throw new ResponseStatusException(
                     HttpStatus.UNAUTHORIZED,
                     "Vui lòng đăng nhập để tiếp tục."
@@ -88,37 +93,45 @@ public class TiepNhanTaoBenhNhanController {
         if (!laNhanVienTiepNhan) {
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
-                    "Bạn không có quyền tạo hồ sơ bệnh nhân tại quầy."
+                    "Bạn không có quyền tạo hồ sơ "
+                            + "bệnh nhân tại quầy."
             );
         }
     }
 
-    // =========================================================
-    // TRẢ THÔNG BÁO LỖI CHO GIAO DIỆN
-    // =========================================================
+    // =====================================================
+    // XỬ LÝ LỖI NGHIỆP VỤ
+    // =====================================================
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>>
-    xuLyLoiNghiepVu(ResponseStatusException exception) {
-
+    xuLyLoiNghiepVu(
+            ResponseStatusException exception
+    ) {
         String thongBao = exception.getReason();
 
         if (thongBao == null || thongBao.isBlank()) {
-            thongBao = "Không thể thực hiện yêu cầu.";
+            thongBao = "Không thể tạo hồ sơ bệnh nhân.";
         }
 
         return ResponseEntity
                 .status(exception.getStatusCode())
+                .cacheControl(CacheControl.noStore())
                 .body(Map.<String, Object>of(
                         "success", false,
                         "message", thongBao
                 ));
     }
 
+    // =====================================================
+    // XỬ LÝ LỖI DATABASE
+    // =====================================================
+
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, Object>>
-    xuLyLoiDatabase(DataAccessException exception) {
-
+    xuLyLoiDatabase(
+            DataAccessException exception
+    ) {
         logger.error(
                 "Lỗi database khi tạo hồ sơ bệnh nhân tại quầy.",
                 exception
@@ -126,6 +139,7 @@ public class TiepNhanTaoBenhNhanController {
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .cacheControl(CacheControl.noStore())
                 .body(Map.<String, Object>of(
                         "success", false,
                         "message",
