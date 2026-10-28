@@ -1135,63 +1135,6 @@ public class DuocSiCapThuocService {
             );
         }
 
-        int soDongLichKham = jdbcTemplate.update(
-                """
-                UPDATE LichDangKyKham
-                SET TrangThai = 'HoanTat'
-                WHERE MaLichKham = ?
-                  AND TrangThai = 'DangLayThuoc'
-                """,
-                maLichKham
-        );
-
-        if (soDongLichKham != 1) {
-            throw new IllegalStateException(
-                    "Không thể hoàn tất lịch khám. Vui lòng kiểm tra trạng thái lịch khám."
-            );
-        }
-
-        int soDongTiepNhan = jdbcTemplate.update(
-                """
-                UPDATE TiepNhanBenhNhan
-                SET TrangThai = 'HoanTat'
-                WHERE MaTiepNhan = (
-                    SELECT MaTiepNhan
-                    FROM (
-                        SELECT MaTiepNhan
-                        FROM TiepNhanBenhNhan
-                        WHERE MaLichKham = ?
-                        ORDER BY ThoiGianTiepNhan DESC, MaTiepNhan DESC
-                        LIMIT 1
-                    ) AS latest
-                )
-                  AND TrangThai = 'DangLayThuoc'
-                """,
-                maLichKham
-        );
-
-        if (soDongTiepNhan != 1) {
-            throw new IllegalStateException(
-                    "Không thể hoàn tất trạng thái tiếp nhận bệnh nhân."
-            );
-        }
-
-        int soDongHoSo = jdbcTemplate.update(
-                """
-                UPDATE HoSoBenhAn
-                SET TrangThai = 'HoanTat'
-                WHERE MaLichKham = ?
-                  AND TrangThai = 'DangKham'
-                """,
-                maLichKham
-        );
-
-        if (soDongHoSo != 1) {
-            throw new IllegalStateException(
-                    "Không thể hoàn tất hồ sơ bệnh án. Vui lòng kiểm tra trạng thái hồ sơ."
-            );
-        }
-
         // 8. Tạo thông báo cho dược sĩ.
         NguoiDung nguoiDung = nguoiDungRepository.findById(maNguoiCap)
                 .orElseThrow(() ->
@@ -1405,14 +1348,155 @@ public class DuocSiCapThuocService {
     //        }
     //    }
 
+//    @Transactional
+//    public void batDauCapThuoc(Integer maDonThuoc) {
+//
+//        if (maDonThuoc == null || maDonThuoc <= 0) {
+//            throw new IllegalArgumentException("Mã đơn thuốc không hợp lệ.");
+//        }
+//
+//        // Khóa đơn thuốc để tránh hai yêu cầu bắt đầu lấy thuốc cùng lúc.
+//        List<String> statuses = jdbcTemplate.query(
+//                """
+//                SELECT TrangThai
+//                FROM DonThuoc
+//                WHERE MaDonThuoc = ?
+//                FOR UPDATE
+//                """,
+//                (rs, rowNum) -> rs.getString("TrangThai"),
+//                maDonThuoc
+//        );
+//
+//        if (statuses.isEmpty()) {
+//            throw new IllegalArgumentException("Không tìm thấy đơn thuốc.");
+//        }
+//
+//        if (!"ChoLayThuoc".equals(statuses.get(0))) {
+//            throw new IllegalStateException(
+//                    "Đơn thuốc không ở trạng thái Chờ lấy thuốc."
+//            );
+//        }
+//
+//        // Lấy lịch khám liên kết với đơn thuốc.
+//        Integer maLichKham = jdbcTemplate.query(
+//                """
+//                SELECT hs.MaLichKham
+//                FROM DonThuoc d
+//                JOIN HoSoBenhAn hs ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
+//                WHERE d.MaDonThuoc = ?
+//                """,
+//                rs -> rs.next() ? rs.getInt("MaLichKham") : null,
+//                maDonThuoc
+//        );
+//
+//        if (maLichKham == null) {
+//            throw new IllegalStateException(
+//                    "Không tìm thấy lịch khám liên kết với đơn thuốc."
+//            );
+//        }
+//
+//        // Xác nhận bản tiếp nhận mới nhất đang chờ lấy thuốc.
+//        List<String> trangThaiTiepNhan = jdbcTemplate.query(
+//                """
+//                SELECT TrangThai
+//                FROM TiepNhanBenhNhan
+//                WHERE MaTiepNhan = (
+//                    SELECT MaTiepNhan
+//                    FROM (
+//                        SELECT MaTiepNhan
+//                        FROM TiepNhanBenhNhan
+//                        WHERE MaLichKham = ?
+//                        ORDER BY ThoiGianTiepNhan DESC, MaTiepNhan DESC
+//                        LIMIT 1
+//                    ) AS latest
+//                )
+//                """,
+//                (rs, rowNum) -> rs.getString("TrangThai"),
+//                maLichKham
+//        );
+//
+//        if (trangThaiTiepNhan.isEmpty()
+//                || !"ChoLayThuoc".equals(trangThaiTiepNhan.get(0))) {
+//            throw new IllegalStateException(
+//                    "Thông tin tiếp nhận không ở trạng thái Chờ lấy thuốc."
+//            );
+//        }
+//
+//        // Bước 1: ChoLayThuoc -> DangLayThuoc ở đơn thuốc.
+//        int soDongDonThuoc = jdbcTemplate.update(
+//                """
+//                UPDATE DonThuoc
+//                SET TrangThai = 'DangLayThuoc'
+//                WHERE MaDonThuoc = ?
+//                  AND TrangThai = 'ChoLayThuoc'
+//                """,
+//                maDonThuoc
+//        );
+//
+//        if (soDongDonThuoc != 1) {
+//            throw new IllegalStateException(
+//                    "Không thể bắt đầu lấy thuốc. Vui lòng tải lại dữ liệu."
+//            );
+//        }
+//
+//        // Bước 2: cập nhật bản tiếp nhận mới nhất.
+//        int soDongTiepNhan = jdbcTemplate.update(
+//                """
+//                UPDATE TiepNhanBenhNhan
+//                SET TrangThai = 'DangLayThuoc'
+//                WHERE MaTiepNhan = (
+//                    SELECT MaTiepNhan
+//                    FROM (
+//                        SELECT MaTiepNhan
+//                        FROM TiepNhanBenhNhan
+//                        WHERE MaLichKham = ?
+//                        ORDER BY ThoiGianTiepNhan DESC, MaTiepNhan DESC
+//                        LIMIT 1
+//                    ) AS latest
+//                )
+//                  AND TrangThai = 'ChoLayThuoc'
+//                """,
+//                maLichKham
+//        );
+//
+//        if (soDongTiepNhan != 1) {
+//            throw new IllegalStateException(
+//                    "Không thể cập nhật trạng thái tiếp nhận bệnh nhân."
+//            );
+//        }
+//
+//        // Bước 3: lịch khám phải đang DangKham trước khi chuyển sang DangLayThuoc.
+//        int soDongLichKham = jdbcTemplate.update(
+//                """
+//                UPDATE LichDangKyKham
+//                SET TrangThai = 'DangLayThuoc'
+//                WHERE MaLichKham = ?
+//                  AND TrangThai = 'DangKham'
+//                """,
+//                maLichKham
+//        );
+//
+//        if (soDongLichKham != 1) {
+//            throw new IllegalStateException(
+//                    "Không thể cập nhật trạng thái lịch khám. "
+//                            + "Lịch khám cần ở trạng thái DangKham."
+//            );
+//        }
+//    }
+
+    // ===============================================
+    // BẮT ĐẦU CẤP THUỐC
+    // ===============================================
     @Transactional
     public void batDauCapThuoc(Integer maDonThuoc) {
 
         if (maDonThuoc == null || maDonThuoc <= 0) {
-            throw new IllegalArgumentException("Mã đơn thuốc không hợp lệ.");
+            throw new IllegalArgumentException(
+                    "Mã đơn thuốc không hợp lệ."
+            );
         }
 
-        // Khóa đơn thuốc để tránh hai yêu cầu bắt đầu lấy thuốc cùng lúc.
+        // 1. Khóa đơn thuốc để tránh hai yêu cầu xử lý đồng thời.
         List<String> statuses = jdbcTemplate.query(
                 """
                 SELECT TrangThai
@@ -1425,62 +1509,23 @@ public class DuocSiCapThuocService {
         );
 
         if (statuses.isEmpty()) {
-            throw new IllegalArgumentException("Không tìm thấy đơn thuốc.");
+            throw new IllegalArgumentException(
+                    "Không tìm thấy đơn thuốc."
+            );
         }
 
-        if (!"ChoLayThuoc".equals(statuses.get(0))) {
+        // 2. Chỉ cho phép bắt đầu lấy thuốc khi đơn đang chờ lấy thuốc.
+        String trangThaiDon = statuses.get(0);
+
+        if (!"ChoLayThuoc".equals(trangThaiDon)) {
             throw new IllegalStateException(
                     "Đơn thuốc không ở trạng thái Chờ lấy thuốc."
             );
         }
 
-        // Lấy lịch khám liên kết với đơn thuốc.
-        Integer maLichKham = jdbcTemplate.query(
-                """
-                SELECT hs.MaLichKham
-                FROM DonThuoc d
-                JOIN HoSoBenhAn hs ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
-                WHERE d.MaDonThuoc = ?
-                """,
-                rs -> rs.next() ? rs.getInt("MaLichKham") : null,
-                maDonThuoc
-        );
-
-        if (maLichKham == null) {
-            throw new IllegalStateException(
-                    "Không tìm thấy lịch khám liên kết với đơn thuốc."
-            );
-        }
-
-        // Xác nhận bản tiếp nhận mới nhất đang chờ lấy thuốc.
-        List<String> trangThaiTiepNhan = jdbcTemplate.query(
-                """
-                SELECT TrangThai
-                FROM TiepNhanBenhNhan
-                WHERE MaTiepNhan = (
-                    SELECT MaTiepNhan
-                    FROM (
-                        SELECT MaTiepNhan
-                        FROM TiepNhanBenhNhan
-                        WHERE MaLichKham = ?
-                        ORDER BY ThoiGianTiepNhan DESC, MaTiepNhan DESC
-                        LIMIT 1
-                    ) AS latest
-                )
-                """,
-                (rs, rowNum) -> rs.getString("TrangThai"),
-                maLichKham
-        );
-
-        if (trangThaiTiepNhan.isEmpty()
-                || !"ChoLayThuoc".equals(trangThaiTiepNhan.get(0))) {
-            throw new IllegalStateException(
-                    "Thông tin tiếp nhận không ở trạng thái Chờ lấy thuốc."
-            );
-        }
-
-        // Bước 1: ChoLayThuoc -> DangLayThuoc ở đơn thuốc.
-        int soDongDonThuoc = jdbcTemplate.update(
+        // 3. Chuyển trạng thái đơn thuốc:
+        // ChoLayThuoc -> DangLayThuoc.
+        int soDongCapNhat = jdbcTemplate.update(
                 """
                 UPDATE DonThuoc
                 SET TrangThai = 'DangLayThuoc'
@@ -1490,56 +1535,14 @@ public class DuocSiCapThuocService {
                 maDonThuoc
         );
 
-        if (soDongDonThuoc != 1) {
+        if (soDongCapNhat != 1) {
             throw new IllegalStateException(
-                    "Không thể bắt đầu lấy thuốc. Vui lòng tải lại dữ liệu."
-            );
-        }
-
-        // Bước 2: cập nhật bản tiếp nhận mới nhất.
-        int soDongTiepNhan = jdbcTemplate.update(
-                """
-                UPDATE TiepNhanBenhNhan
-                SET TrangThai = 'DangLayThuoc'
-                WHERE MaTiepNhan = (
-                    SELECT MaTiepNhan
-                    FROM (
-                        SELECT MaTiepNhan
-                        FROM TiepNhanBenhNhan
-                        WHERE MaLichKham = ?
-                        ORDER BY ThoiGianTiepNhan DESC, MaTiepNhan DESC
-                        LIMIT 1
-                    ) AS latest
-                )
-                  AND TrangThai = 'ChoLayThuoc'
-                """,
-                maLichKham
-        );
-
-        if (soDongTiepNhan != 1) {
-            throw new IllegalStateException(
-                    "Không thể cập nhật trạng thái tiếp nhận bệnh nhân."
-            );
-        }
-
-        // Bước 3: lịch khám phải đang DangKham trước khi chuyển sang DangLayThuoc.
-        int soDongLichKham = jdbcTemplate.update(
-                """
-                UPDATE LichDangKyKham
-                SET TrangThai = 'DangLayThuoc'
-                WHERE MaLichKham = ?
-                  AND TrangThai = 'DangKham'
-                """,
-                maLichKham
-        );
-
-        if (soDongLichKham != 1) {
-            throw new IllegalStateException(
-                    "Không thể cập nhật trạng thái lịch khám. "
-                            + "Lịch khám cần ở trạng thái DangKham."
+                    "Không thể bắt đầu lấy thuốc. "
+                            + "Vui lòng tải lại dữ liệu."
             );
         }
     }
+
 
 
     // =====================================================

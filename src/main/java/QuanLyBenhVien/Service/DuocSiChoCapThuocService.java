@@ -70,16 +70,6 @@ public class DuocSiChoCapThuocService {
 
                     INNER JOIN LichDangKyKham lk
                         ON lk.MaLichKham = hs.MaLichKham
-               
-                    INNER JOIN TiepNhanBenhNhan tn
-                         ON tn.MaTiepNhan = (
-                           SELECT t2.MaTiepNhan
-                           FROM TiepNhanBenhNhan t2
-                           WHERE t2.MaLichKham = lk.MaLichKham
-                           ORDER BY t2.ThoiGianTiepNhan DESC,
-                                    t2.MaTiepNhan DESC
-                           LIMIT 1
-                    )
 
                     INNER JOIN BenhNhan bn
                         ON bn.MaBenhNhan =
@@ -102,7 +92,6 @@ public class DuocSiChoCapThuocService {
                            d.MaDonThuoc
 
                         WHERE d.TrangThai IN ('ChoLayThuoc', 'DangLayThuoc')
-                            AND tn.TrangThai IN ('ChoLayThuoc', 'DangLayThuoc')
                     """);
 
 
@@ -363,16 +352,6 @@ public class DuocSiChoCapThuocService {
 
                         INNER JOIN LichDangKyKham lk
                            ON lk.MaLichKham = hs.MaLichKham
-                        
-                        INNER JOIN TiepNhanBenhNhan tn
-                           ON tn.MaTiepNhan = (
-                              SELECT t2.MaTiepNhan
-                              FROM TiepNhanBenhNhan t2
-                              WHERE t2.MaLichKham = lk.MaLichKham
-                              ORDER BY t2.ThoiGianTiepNhan DESC,
-                                       t2.MaTiepNhan DESC
-                              LIMIT 1
-                           )
 
                     INNER JOIN BenhNhan bn
                         ON bn.MaBenhNhan =
@@ -383,7 +362,6 @@ public class DuocSiChoCapThuocService {
                            bn.MaNguoiDung
 
                     WHERE d.TrangThai IN ('ChoLayThuoc', 'DangLayThuoc')
-                         AND tn.TrangThai IN ('ChoLayThuoc', 'DangLayThuoc')
                     """);
 
 

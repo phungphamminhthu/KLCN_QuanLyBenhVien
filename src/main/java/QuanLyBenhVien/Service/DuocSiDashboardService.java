@@ -172,7 +172,102 @@ public class DuocSiDashboardService {
     // =====================================================
     // DANH SÁCH ĐƠN THUỐC CHỜ CẤP
     // =====================================================
-
+    //    private List<DuocSiDashboardResponse.PrescriptionItem>
+    //    getDonThuocChoCap() {
+    //
+    //        String sql = """
+    //        SELECT
+    //            d.MaDonThuoc,
+    //            nd_bn.HoTen AS TenBenhNhan,
+    //            nd_bs.HoTen AS TenBacSi,
+    //            d.NgayKeThuoc,
+    //            COUNT(ct.MaCTDonThuoc) AS SoLoaiThuoc,
+    //            d.TrangThai
+    //
+    //        FROM DonThuoc d
+    //
+    //        INNER JOIN HoSoBenhAn hs
+    //            ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
+    //
+    //        INNER JOIN LichDangKyKham lk
+    //            ON lk.MaLichKham = hs.MaLichKham
+    //
+    //        INNER JOIN TiepNhanBenhNhan tn
+    //            ON tn.MaTiepNhan = (
+    //                SELECT t2.MaTiepNhan
+    //                FROM TiepNhanBenhNhan t2
+    //                WHERE t2.MaLichKham = lk.MaLichKham
+    //                ORDER BY t2.ThoiGianTiepNhan DESC,
+    //                         t2.MaTiepNhan DESC
+    //                LIMIT 1
+    //            )
+    //
+    //        INNER JOIN BenhNhan bn
+    //            ON bn.MaBenhNhan = lk.MaBenhNhan
+    //
+    //        INNER JOIN Nguoidung nd_bn
+    //            ON nd_bn.MaNguoiDung = bn.MaNguoiDung
+    //
+    //        INNER JOIN BacSi bs
+    //            ON bs.MaBacSi = d.MaBacSi
+    //
+    //        INNER JOIN Nguoidung nd_bs
+    //            ON nd_bs.MaNguoiDung = bs.MaNguoiDung
+    //
+    //        LEFT JOIN CTDonThuoc ct
+    //            ON ct.MaDonThuoc = d.MaDonThuoc
+    //
+    //        WHERE d.TrangThai = 'ChoLayThuoc'
+    //          AND tn.TrangThai = 'ChoLayThuoc'
+    //
+    //        GROUP BY
+    //            d.MaDonThuoc,
+    //            nd_bn.HoTen,
+    //            nd_bs.HoTen,
+    //            d.NgayKeThuoc,
+    //            d.TrangThai
+    //
+    //        ORDER BY d.NgayKeThuoc DESC
+    //        LIMIT 5
+    //        """;
+    //
+    //        return jdbcTemplate.query(
+    //                sql,
+    //                (rs, rowNum) -> {
+    //                    DuocSiDashboardResponse.PrescriptionItem item =
+    //                            new DuocSiDashboardResponse.PrescriptionItem();
+    //
+    //                    int maDonThuoc = rs.getInt("MaDonThuoc");
+    //
+    //                    item.setMaDonThuoc(maDonThuoc);
+    //                    item.setMaHienThi(
+    //                            "DP" + String.format("%05d", maDonThuoc)
+    //                    );
+    //
+    //                    item.setBenhNhan(rs.getString("TenBenhNhan"));
+    //                    item.setBacSi(rs.getString("TenBacSi"));
+    //
+    //                    Timestamp timestamp = rs.getTimestamp("NgayKeThuoc");
+    //
+    //                    if (timestamp != null) {
+    //                        LocalDateTime ngay = timestamp.toLocalDateTime();
+    //
+    //                        item.setNgayKe(
+    //                                ngay.format(
+    //                                        DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    //                                )
+    //                        );
+    //                    } else {
+    //                        item.setNgayKe("-");
+    //                    }
+    //
+    //                    item.setSoLoaiThuoc(rs.getInt("SoLoaiThuoc"));
+    //                    item.setTrangThai("Chờ cấp thuốc");
+    //
+    //                    return item;
+    //                }
+    //        );
+    //    }
 
     private List<DuocSiDashboardResponse.PrescriptionItem>
     getDonThuocChoCap() {
@@ -185,7 +280,6 @@ public class DuocSiDashboardService {
             d.NgayKeThuoc,
             COUNT(ct.MaCTDonThuoc) AS SoLoaiThuoc,
             d.TrangThai
-
         FROM DonThuoc d
 
         INNER JOIN HoSoBenhAn hs
@@ -193,16 +287,6 @@ public class DuocSiDashboardService {
 
         INNER JOIN LichDangKyKham lk
             ON lk.MaLichKham = hs.MaLichKham
-
-        INNER JOIN TiepNhanBenhNhan tn
-            ON tn.MaTiepNhan = (
-                SELECT t2.MaTiepNhan
-                FROM TiepNhanBenhNhan t2
-                WHERE t2.MaLichKham = lk.MaLichKham
-                ORDER BY t2.ThoiGianTiepNhan DESC,
-                         t2.MaTiepNhan DESC
-                LIMIT 1
-            )
 
         INNER JOIN BenhNhan bn
             ON bn.MaBenhNhan = lk.MaBenhNhan
@@ -220,7 +304,6 @@ public class DuocSiDashboardService {
             ON ct.MaDonThuoc = d.MaDonThuoc
 
         WHERE d.TrangThai = 'ChoLayThuoc'
-          AND tn.TrangThai = 'ChoLayThuoc'
 
         GROUP BY
             d.MaDonThuoc,
