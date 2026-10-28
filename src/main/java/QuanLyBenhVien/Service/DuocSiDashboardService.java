@@ -26,207 +26,136 @@ public class DuocSiDashboardService {
     // DASHBOARD
     // =====================================================
 
+
     public DuocSiDashboardResponse getDashboard() {
 
         DuocSiDashboardResponse response =
                 new DuocSiDashboardResponse();
 
-
         // =================================================
         // 1. ĐƠN THUỐC CHỜ CẤP
+        // Chỉ căn cứ vào trạng thái đơn thuốc.
+        // Không phụ thuộc trạng thái tiếp nhận bệnh nhân.
         // =================================================
-
         response.setDonThuocChoCap(
                 count("""
-            SELECT COUNT(DISTINCT d.MaDonThuoc)
-            FROM DonThuoc d
-            INNER JOIN HoSoBenhAn hs
-                ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
-            INNER JOIN LichDangKyKham lk
-                ON lk.MaLichKham = hs.MaLichKham
-            INNER JOIN TiepNhanBenhNhan tn
-                ON tn.MaTiepNhan = (
-                    SELECT t2.MaTiepNhan
-                    FROM TiepNhanBenhNhan t2
-                    WHERE t2.MaLichKham = lk.MaLichKham
-                    ORDER BY t2.ThoiGianTiepNhan DESC,
-                             t2.MaTiepNhan DESC
-                    LIMIT 1
-                )
-            WHERE d.TrangThai = 'ChoLayThuoc'
-              AND tn.TrangThai = 'ChoLayThuoc'
-        """)
+                SELECT COUNT(*)
+                FROM DonThuoc d
+                WHERE d.TrangThai = 'ChoLayThuoc'
+            """)
         );
 
         // =================================================
         // 2. ĐÃ CẤP HÔM NAY
+        // Phiếu cấp thuốc thành công trong ngày hôm nay.
+        // DonThuoc sau khi cấp chuyển sang HoanTat.
         // =================================================
-        /*
-         * Trong schema hiện tại không có NgayCapThuoc.
-         *
-         * Nếu quy trình của hệ thống là:
-         *
-         * Dược sĩ cấp thuốc
-         *      ↓
-         * Lập hóa đơn
-         *
-         * thì dùng NgayLapHoaDon để xác định
-         * đơn thuốc đã cấp trong ngày.
-         *
-         * CTHoaDon.MaCTDonThuoc liên kết trực tiếp
-         * tới CTDonThuoc.
-         */
-
         response.setDaCapHomNay(
-                    count("""
+                count("""
                 SELECT COUNT(DISTINCT p.MaDonThuoc)
-    
                 FROM PhieuCapThuoc p
-    
-                INNER JOIN DonThuoc d
-                    ON d.MaDonThuoc = p.MaDonThuoc
-    
                 WHERE p.TrangThai = 'DaCapThuoc'
-    
-                  AND d.TrangThai = 'DaCapThuoc'
-    
                   AND DATE(p.ThoiGianCap) = CURDATE()
             """)
         );
 
-
         // =================================================
         // 3. SỐ LOẠI THUỐC TRONG KHO
         // =================================================
-
         response.setSoLoaiThuocTrongKho(
                 count("""
-                    SELECT COUNT(DISTINCT k.MaThuoc)
-
-                    FROM KhoThuoc k
-
-                    INNER JOIN Thuoc t
-                        ON t.MaThuoc = k.MaThuoc
-
-                    WHERE k.SoLuongTon > 0
-
-                    AND (
-                        t.TrangThai = 1
-                        OR t.TrangThai = '1'
-                        OR t.TrangThai = 'HoatDong'
-                        OR t.TrangThai = 'Đang hoạt động'
-                    )
-                """)
+                SELECT COUNT(DISTINCT k.MaThuoc)
+                FROM KhoThuoc k
+                INNER JOIN Thuoc t
+                    ON t.MaThuoc = k.MaThuoc
+                WHERE k.SoLuongTon > 0
+                  AND (
+                      t.TrangThai = 1
+                      OR t.TrangThai = '1'
+                      OR t.TrangThai = 'HoatDong'
+                      OR t.TrangThai = 'Đang hoạt động'
+                  )
+            """)
         );
-
 
         // =================================================
         // 4. THUỐC SẮP HẾT HẠN
-        //
-        // Quy ước:
-        // còn hạn nhưng hết hạn trong 30 ngày tới
+        // Còn hạn và hết hạn trong 30 ngày tới.
         // =================================================
-
         response.setThuocSapHetHan(
                 count("""
-                    SELECT COUNT(DISTINCT k.MaThuoc)
-
-                    FROM KhoThuoc k
-
-                    INNER JOIN Thuoc t
-                        ON t.MaThuoc = k.MaThuoc
-
-                    WHERE k.SoLuongTon > 0
-
-                    AND k.HanSuDung >= CURDATE()
-
-                    AND k.HanSuDung <=
-                        DATE_ADD(
-                            CURDATE(),
-                            INTERVAL 30 DAY
-                        )
-
-                    AND (
-                        t.TrangThai = 1
-                        OR t.TrangThai = '1'
-                        OR t.TrangThai = 'HoatDong'
-                        OR t.TrangThai = 'Đang hoạt động'
-                    )
-                """)
+                SELECT COUNT(DISTINCT k.MaThuoc)
+                FROM KhoThuoc k
+                INNER JOIN Thuoc t
+                    ON t.MaThuoc = k.MaThuoc
+                WHERE k.SoLuongTon > 0
+                  AND k.HanSuDung >= CURDATE()
+                  AND k.HanSuDung <= DATE_ADD(
+                      CURDATE(),
+                      INTERVAL 30 DAY
+                  )
+                  AND (
+                      t.TrangThai = 1
+                      OR t.TrangThai = '1'
+                      OR t.TrangThai = 'HoatDong'
+                      OR t.TrangThai = 'Đang hoạt động'
+                  )
+            """)
         );
-
 
         // =================================================
         // 5. THUỐC ĐÃ HẾT HẠN
         // =================================================
-
         response.setThuocDaHetHan(
                 count("""
-                    SELECT COUNT(DISTINCT k.MaThuoc)
-
-                    FROM KhoThuoc k
-
-                    INNER JOIN Thuoc t
-                        ON t.MaThuoc = k.MaThuoc
-
-                    WHERE k.SoLuongTon > 0
-
-                    AND k.HanSuDung < CURDATE()
-
-                    AND (
-                        t.TrangThai = 1
-                        OR t.TrangThai = '1'
-                        OR t.TrangThai = 'HoatDong'
-                        OR t.TrangThai = 'Đang hoạt động'
-                    )
-                """)
+                SELECT COUNT(DISTINCT k.MaThuoc)
+                FROM KhoThuoc k
+                INNER JOIN Thuoc t
+                    ON t.MaThuoc = k.MaThuoc
+                WHERE k.SoLuongTon > 0
+                  AND k.HanSuDung < CURDATE()
+                  AND (
+                      t.TrangThai = 1
+                      OR t.TrangThai = '1'
+                      OR t.TrangThai = 'HoatDong'
+                      OR t.TrangThai = 'Đang hoạt động'
+                  )
+            """)
         );
-
 
         // =================================================
         // 6. THUỐC SẮP HẾT TỒN
         // =================================================
-
         response.setThuocSapHetTon(
                 count("""
-                    SELECT COUNT(DISTINCT k.MaThuoc)
-
-                    FROM KhoThuoc k
-
-                    INNER JOIN Thuoc t
-                        ON t.MaThuoc = k.MaThuoc
-
-                    WHERE k.SoLuongTon > 0
-
-                    AND k.SoLuongTon <=
-                        COALESCE(
-                            k.SoLuongToiThieu,
-                            0
-                        )
-
-                    AND (
-                        t.TrangThai = 1
-                        OR t.TrangThai = '1'
-                        OR t.TrangThai = 'HoatDong'
-                        OR t.TrangThai = 'Đang hoạt động'
-                    )
-                """)
+                SELECT COUNT(DISTINCT k.MaThuoc)
+                FROM KhoThuoc k
+                INNER JOIN Thuoc t
+                    ON t.MaThuoc = k.MaThuoc
+                WHERE k.SoLuongTon > 0
+                  AND k.SoLuongTon <= COALESCE(
+                      k.SoLuongToiThieu,
+                      0
+                  )
+                  AND (
+                      t.TrangThai = 1
+                      OR t.TrangThai = '1'
+                      OR t.TrangThai = 'HoatDong'
+                      OR t.TrangThai = 'Đang hoạt động'
+                  )
+            """)
         );
 
-
         // =================================================
-        // 7. DANH SÁCH ĐƠN THUỐC
+        // 7. DANH SÁCH ĐƠN THUỐC CHỜ CẤP
         // =================================================
-
         response.setDonThuoc(
                 getDonThuocChoCap()
         );
 
-
         // =================================================
         // 8. CẢNH BÁO KHO
         // =================================================
-
         response.setStockWarning(
                 new DuocSiDashboardResponse.StockWarning(
                         response.getThuocSapHetTon(),
@@ -235,9 +164,9 @@ public class DuocSiDashboardService {
                 )
         );
 
-
         return response;
     }
+
 
 
     // =====================================================
@@ -348,57 +277,23 @@ public class DuocSiDashboardService {
     // CHUẨN HÓA TRẠNG THÁI
     // =====================================================
 
-    private String normalizeStatus(
-            String status
-    ) {
 
-        if (status == null) {
-            return "Chờ cấp";
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "Không xác định";
         }
 
-
-        String value =
-                status.trim().toLowerCase();
-
-
-        if (
-                value.equals("chocap")
-                        ||
-                        value.equals("chờ cấp")
-                        ||
-                        value.equals("cho cap")
-        ) {
-
-            return "Chờ cấp";
-        }
-
-
-        if (
-                value.equals("dangxuly")
-                        ||
-                        value.equals("đang xử lý")
-                        ||
-                        value.equals("dang xu ly")
-        ) {
-
-            return "Đang xử lý";
-        }
-
-
-        if (
-                value.equals("dacap")
-                        ||
-                        value.equals("đã cấp")
-                        ||
-                        value.equals("da cap")
-        ) {
-
-            return "Đã cấp";
-        }
-
-
-        return status;
+        return switch (status.trim()) {
+            case "ChoLayThuoc" -> "Chờ cấp thuốc";
+            case "DangLayThuoc" -> "Đang lấy thuốc";
+            case "HoanTat" -> "Đã cấp thuốc";
+            case "DaCapThuoc" -> "Đã cấp thuốc";
+            case "DaHuy" -> "Đã hủy";
+            case "KhongDen" -> "Không đến";
+            default -> status;
+        };
     }
+
 
 
     // =====================================================

@@ -247,7 +247,19 @@ public class BacSiKhamBenhController {
 
             List<Map<String, Object>> ketQua =
                     danhSach.stream()
-                            .map(this::chuyenLichSuThanhMap)
+                            .map(lich -> {
+                                Map<String, Object> map =
+                                        chuyenLichKhamThanhMap(lich);
+
+                                if (lich.getBenhNhan() != null) {
+                                    map.put(
+                                            "tienSuBenh",
+                                            lich.getBenhNhan().getTienSuBenh()
+                                    );
+                                }
+
+                                return map;
+                            })
                             .toList();
 
             return ResponseEntity.ok(ketQua);
@@ -1556,36 +1568,36 @@ public class BacSiKhamBenhController {
     // CHUYỂN LỊCH SỬ THÀNH JSON
     // =========================================================
 
-    private Map<String, Object> chuyenLichSuThanhMap(
-            LichDangKyKham lich
-    ) {
-        Map<String, Object> map =
-                chuyenLichKhamThanhMap(lich);
-
-        // 4 chỉ số sức khỏe
-        map.put("canNang", lich.getCanNang());
-        map.put("chieuCao", lich.getChieuCao());
-
-        map.put(
-                "huyetApTamThu",
-                lich.getHuyetApTamThu()
-        );
-
-        map.put(
-                "huyetApTamTruong",
-                lich.getHuyetApTamTruong()
-        );
-
-        // Tiền sử bệnh của bệnh nhân
-        if (lich.getBenhNhan() != null) {
-            map.put(
-                    "tienSuBenh",
-                    lich.getBenhNhan().getTienSuBenh()
-            );
-        }
-
-        return map;
-    }
+    //    private Map<String, Object> chuyenLichSuThanhMap(
+    //            LichDangKyKham lich
+    //    ) {
+    //        Map<String, Object> map =
+    //                chuyenLichKhamThanhMap(lich);
+    //
+    //        // 4 chỉ số sức khỏe
+    //        map.put("canNang", lich.getCanNang());
+    //        map.put("chieuCao", lich.getChieuCao());
+    //
+    //        map.put(
+    //                "huyetApTamThu",
+    //                lich.getHuyetApTamThu()
+    //        );
+    //
+    //        map.put(
+    //                "huyetApTamTruong",
+    //                lich.getHuyetApTamTruong()
+    //        );
+    //
+    //        // Tiền sử bệnh của bệnh nhân
+    //        if (lich.getBenhNhan() != null) {
+    //            map.put(
+    //                    "tienSuBenh",
+    //                    lich.getBenhNhan().getTienSuBenh()
+    //            );
+    //        }
+    //
+    //        return map;
+    //    }
 
 
     // =========================================================
