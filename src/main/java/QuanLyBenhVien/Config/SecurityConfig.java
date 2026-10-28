@@ -98,6 +98,13 @@ public class SecurityConfig {
                                 "/api/tin-tuc/**"
                         ).permitAll()
 
+                        // API xem danh sách dịch vụ y tế công khai cho ứng dụng Flutter
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/dich-vu-y-te",
+                                "/api/dich-vu-y-te/**"
+                        ).permitAll()
+
                         // Trang chủ bệnh nhân - tạm công khai để thử giao diện
                         .requestMatchers(
                                 "/benh-nhan/trang-chu",

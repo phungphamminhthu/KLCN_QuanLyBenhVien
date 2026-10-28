@@ -31,12 +31,14 @@
         </div>
     </div>
 
+
     <nav>
-        <a href="/home">Trang chủ</a>
-        <a href="/news">Tin tức</a>
-        <a href="/home#services">Dịch vụ</a>
-        <a href="/home#about">Giới thiệu</a>
+        <a th:href="@{/home}">Trang chủ</a>
+        <a th:href="@{/news}">Tin tức</a>
+        <a th:href="@{/services}">Dịch vụ</a>
+        <a th:href="@{/about}">Giới thiệu</a>
     </nav>
+
 
     <div class="auth-buttons">
         <a href="/auth/login" class="btn-login">
