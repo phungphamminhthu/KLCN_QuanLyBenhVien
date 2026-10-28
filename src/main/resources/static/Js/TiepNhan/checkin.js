@@ -3,6 +3,8 @@
 
     const $ = id => document.getElementById(id);
     const API = "/api/tiepnhan/dang-ky-kham";
+    const PHONE_API =
+        "/api/tiepnhan/benh-nhan/tra-cuu-so-dien-thoai";
 
     let searching = false;
     let savingPatient = false;
@@ -13,7 +15,6 @@
 
     let callingAppointmentId = null;
     let appointmentsDate = null;
-
     let selectedPatientId = null;
     let selectedPatientName = "";
     let schedules = [];
@@ -21,6 +22,18 @@
     let loadedDate = null;
     let loadVersion = 0;
     let openRegistrationAfterCreate = false;
+
+    let phoneLookupVersion = 0;
+    let phoneLookupTimer = null;
+    let phoneLookupController = null;
+    let phoneLookupBusy = false;
+    let checkedPhone = "";
+    let phoneMatches = [];
+    let allowNewPatient = false;
+
+    let showSuccessAfterRegistration = false;
+    let registrationToastTimer = null;
+    let registrationToastFrame = null;
 
     const createElement = $("create-patient-modal");
     const registrationElement = $("registration-modal");
@@ -65,10 +78,6 @@
             value === null || value === undefined || value === ""
                 ? "Chưa cung cấp"
                 : String(value);
-    }
-
-    function setValue(id, value) {
-        $(id).value = value ?? "";
     }
 
     function readValue(id) {
@@ -161,6 +170,7 @@
                 "Máy chủ trả về dữ liệu không hợp lệ. "
                 + "Vui lòng kiểm tra đăng nhập."
             );
+
             error.status = response.status;
             throw error;
         }
@@ -175,6 +185,7 @@
             const error = new Error(
                 data?.message || data?.detail || fallback
             );
+
             error.status = response.status;
             throw error;
         }
@@ -189,7 +200,207 @@
     }
 
     // =====================================================
-    // DANH SÁCH LỊCH KHÁM VÀ BỘ LỌC
+    // THÔNG BÁO ĐẨY VÀ PHIẾU SỐ CHỜ
+    // =====================================================
+
+    function initRegistrationNotifications() {
+        if (!$("checkin-notifications-css")) {
+            const link = document.createElement("link");
+            link.id = "checkin-notifications-css";
+            link.rel = "stylesheet";
+            link.href = "/Css/TiepNhan/checkinthongbao.css";
+            document.head.appendChild(link);
+        }
+
+        const toast = document.createElement("div");
+        toast.id = "registration-error-toast";
+        toast.className = "checkin-error-toast";
+        toast.hidden = true;
+        toast.setAttribute("role", "alert");
+        toast.setAttribute("aria-live", "assertive");
+
+        toast.innerHTML = `
+            <i class="fa-solid fa-circle-exclamation"
+               aria-hidden="true"></i>
+
+            <div id="registration-error-toast-text"></div>
+
+            <button type="button"
+                    id="registration-error-toast-close"
+                    class="checkin-toast-close"
+                    aria-label="Đóng thông báo">×</button>
+        `;
+
+        document.body.appendChild(toast);
+
+        $("registration-error-toast-close").addEventListener(
+            "click",
+            hideRegistrationToast
+        );
+
+        const success = document.createElement("div");
+        success.id = "registration-success-modal";
+        success.className = "modal fade checkin-success-modal";
+        success.tabIndex = -1;
+
+        success.setAttribute(
+            "aria-labelledby",
+            "registration-success-title"
+        );
+
+        success.setAttribute("aria-hidden", "true");
+
+        success.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title"
+                            id="registration-success-title">
+                            Đăng ký thành công
+                        </h2>
+
+                        <button class="btn-close"
+                                type="button"
+                                data-bs-dismiss="modal"
+                                aria-label="Đóng thông báo đăng ký thành công">
+                        </button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="checkin-success-icon">
+                            <i class="fa-solid fa-check"
+                               aria-hidden="true"></i>
+                        </div>
+
+                        <div class="checkin-success-label">
+                            Số chờ của bệnh nhân
+                        </div>
+
+                        <div id="success-ticket-number"
+                             class="checkin-success-number"></div>
+
+                        <div id="success-ticket-patient"
+                             class="checkin-success-patient"></div>
+
+                        <dl class="checkin-success-details">
+                            <div>
+                                <dt>Khoa</dt>
+                                <dd id="success-ticket-department"></dd>
+                            </div>
+
+                            <div>
+                                <dt>Bác sĩ</dt>
+                                <dd id="success-ticket-doctor"></dd>
+                            </div>
+
+                            <div>
+                                <dt>Phòng khám</dt>
+                                <dd>
+                                    <strong id="success-ticket-room"></strong>
+                                </dd>
+                            </div>
+
+                            <div>
+                                <dt>Ngày khám</dt>
+                                <dd id="success-ticket-date"></dd>
+                            </div>
+
+                            <div>
+                                <dt>Giờ khám</dt>
+                                <dd id="success-ticket-time"></dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-secondary"
+                                type="button"
+                                data-bs-dismiss="modal">
+                            Đóng
+                        </button>
+
+                        <a class="btn btn-success"
+                           href="/TiepNhan/dashboard">
+                            Đến Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(success);
+
+        success.addEventListener("hidden.bs.modal", () => {
+            $("patient-search-input").focus();
+        });
+    }
+
+    function isDuplicateRegistration(message) {
+        const normalized = String(message || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d")
+            .toLowerCase()
+            .replace(/\s+/g, " ");
+
+        return normalized.includes(
+            "benh nhan da co luot kham tai khoa nay hom nay"
+        );
+    }
+
+    function hideRegistrationToast() {
+        clearTimeout(registrationToastTimer);
+        cancelAnimationFrame(registrationToastFrame);
+
+        const toast = $("registration-error-toast");
+        if (!toast) return;
+
+        toast.classList.remove("is-visible");
+        toast.hidden = true;
+    }
+
+    function showRegistrationToast(message) {
+        hideRegistrationToast();
+
+        $("registration-error-toast-text").textContent = message;
+
+        const toast = $("registration-error-toast");
+        toast.hidden = false;
+
+        void toast.offsetWidth;
+
+        registrationToastFrame = requestAnimationFrame(() => {
+            toast.classList.add("is-visible");
+
+            registrationToastTimer = setTimeout(
+                hideRegistrationToast,
+                7000
+            );
+        });
+    }
+
+    function fillRegistrationSuccess(data) {
+        hideRegistrationToast();
+
+        setText(
+            "success-ticket-number",
+            `#${String(data.number).padStart(3, "0")}`
+        );
+
+        setText("success-ticket-patient", data.patient);
+        setText("success-ticket-department", data.department);
+        setText("success-ticket-doctor", data.doctor);
+        setText("success-ticket-room", data.room);
+        setText("success-ticket-date", formatDate(data.date));
+
+        setText(
+            "success-ticket-time",
+            String(data.time || "").slice(0, 5) || "--:--"
+        );
+    }
+
+    // =====================================================
+    // DANH SÁCH LỊCH KHÁM
     // =====================================================
 
     function populateFilter(id, values, label) {
@@ -199,9 +410,7 @@
         select.replaceChildren(new Option(label, ""));
 
         [...new Set(values.filter(Boolean))]
-            .sort((a, b) =>
-                String(a).localeCompare(String(b), "vi")
-            )
+            .sort((a, b) => String(a).localeCompare(String(b), "vi"))
             .forEach(value => {
                 select.add(new Option(value, value));
             });
@@ -212,8 +421,7 @@
     }
 
     function populateDoctorFilter() {
-        const department =
-            $("appointment-department-filter").value;
+        const department = $("appointment-department-filter").value;
 
         const doctors = appointments
             .filter(item => !department || item.khoa === department)
@@ -230,14 +438,17 @@
         switch (status) {
             case "Đang khám":
                 return "bg-primary-subtle text-primary";
+
             case "Hoàn tất":
             case "Đã khám":
                 return "bg-success-subtle text-success";
+
             case "Đã hủy":
-            case "Không đến":
                 return "bg-danger-subtle text-danger";
+
             case "Đã gọi":
                 return "bg-info-subtle text-info-emphasis";
+
             default:
                 return "bg-warning-subtle text-warning-emphasis";
         }
@@ -267,8 +478,7 @@
 
     function renderAppointments() {
         const doctor = $("appointment-doctor-filter").value;
-        const department =
-            $("appointment-department-filter").value;
+        const department = $("appointment-department-filter").value;
         const status = $("appointment-status-filter").value;
 
         const filtered = appointments.filter(item =>
@@ -285,16 +495,20 @@
 
             const sequenceCell = document.createElement("td");
             const sequence = document.createElement("span");
+
             sequence.className = "badge-stt-purple";
             sequence.textContent = item.stt || "—";
             sequence.style.whiteSpace = "nowrap";
             sequence.style.width = "auto";
+
             sequenceCell.appendChild(sequence);
 
             const statusCell = document.createElement("td");
             const badge = document.createElement("span");
+
             badge.className =
                 `appointment-status ${statusClass(item.trangThai)}`;
+
             badge.textContent = item.trangThai || "Chưa cập nhật";
             statusCell.appendChild(badge);
 
@@ -304,9 +518,9 @@
             const actions = document.createElement("div");
             actions.className = "appointment-row-actions";
 
-            // Nút loa: gọi hoặc gọi lại.
             if (callableStatuses.includes(item.trangThai)) {
                 const callButton = document.createElement("button");
+
                 callButton.type = "button";
                 callButton.className = "appointment-call-button";
                 callButton.dataset.action = "call-patient";
@@ -327,18 +541,20 @@
                 callButton.disabled = !!reason;
 
                 const icon = document.createElement("i");
+
                 icon.className =
                     callingAppointmentId === positiveId(item.maLichKham)
                         ? "fa-solid fa-spinner fa-spin"
                         : "fa-solid fa-volume-high";
+
                 icon.setAttribute("aria-hidden", "true");
 
                 callButton.appendChild(icon);
                 actions.appendChild(callButton);
             }
 
-            // Mở trang hồ sơ riêng.
             const profileButton = document.createElement("button");
+
             profileButton.type = "button";
             profileButton.className =
                 "btn btn-outline-primary btn-sm text-nowrap";
@@ -355,7 +571,9 @@
             profileButton.disabled =
                 !positiveId(item.maBenhNhan)
                 || !positiveId(item.maLichKham)
-                || searching || savingPatient || registering
+                || searching
+                || savingPatient
+                || registering
                 || callingAppointmentId !== null
                 || loadingAppointments;
 
@@ -364,11 +582,15 @@
 
             row.append(
                 sequenceCell,
-                createCell(item.maLichKham, "fw-semibold text-primary"),
+                createCell(
+                    item.maLichKham,
+                    "fw-semibold text-primary"
+                ),
                 createDetailCell(
                     item.tenBenhNhan,
                     [item.maBn, item.thongTinPhu]
-                        .filter(Boolean).join(" · ")
+                        .filter(Boolean)
+                        .join(" · ")
                 ),
                 createDetailCell(item.khoa, item.bacSi),
                 createCell(item.phong || "Chưa phân công"),
@@ -430,13 +652,16 @@
     }
 
     function updateCallButtons() {
-        const profileBusy = searching || savingPatient || registering
-            || callingAppointmentId !== null || loadingAppointments;
+        const busy = searching
+            || savingPatient
+            || registering
+            || callingAppointmentId !== null
+            || loadingAppointments;
 
         $("appointments-table-body")
             .querySelectorAll('[data-action="open-profile"]')
             .forEach(button => {
-                button.disabled = profileBusy
+                button.disabled = busy
                     || !positiveId(button.dataset.patientId)
                     || !positiveId(button.dataset.appointmentId);
             });
@@ -445,12 +670,14 @@
             .querySelectorAll('[data-action="call-patient"]')
             .forEach(button => {
                 const id = positiveId(button.dataset.appointmentId);
+
                 const item = appointments.find(
                     row => positiveId(row.maLichKham) === id
                 );
 
                 const reason = callUnavailableReason(item);
                 button.disabled = !!reason;
+
                 button.title = reason || (
                     item.trangThai === "Đã gọi"
                         ? "Gọi lại bệnh nhân"
@@ -470,10 +697,8 @@
     }
 
     function speakPatientAnnouncement(item) {
-        if (
-            !("speechSynthesis" in window)
-            || !("SpeechSynthesisUtterance" in window)
-        ) {
+        if (!("speechSynthesis" in window)
+            || !("SpeechSynthesisUtterance" in window)) {
             showMessage(
                 "page-message",
                 "Đã gọi bệnh nhân. Trình duyệt không hỗ trợ phát loa; "
@@ -502,13 +727,15 @@
         speech.rate = 0.9;
 
         const voice = window.speechSynthesis.getVoices().find(
-            voice => voice.lang.toLowerCase().startsWith("vi")
+            item => item.lang.toLowerCase().startsWith("vi")
         );
 
         if (voice) speech.voice = voice;
 
         speech.onerror = event => {
-            if (["canceled", "interrupted"].includes(event.error)) return;
+            if (["canceled", "interrupted"].includes(event.error)) {
+                return;
+            }
 
             showMessage(
                 "page-message",
@@ -524,6 +751,7 @@
 
     async function callPatient(rawId) {
         const id = positiveId(rawId);
+
         const item = appointments.find(
             row => positiveId(row.maLichKham) === id
         );
@@ -537,6 +765,7 @@
 
         callingAppointmentId = id;
         updateCallButtons();
+
         $("refresh-appointments-button").disabled = true;
         showMessage("page-message", "");
 
@@ -561,7 +790,9 @@
 
             showMessage(
                 "page-message",
-                `Đã gọi bệnh nhân ${result.tenBenhNhan || item.tenBenhNhan || ""}.`,
+                `Đã gọi bệnh nhân ${
+                    result.tenBenhNhan || item.tenBenhNhan || ""
+                }.`,
                 "success"
             );
 
@@ -575,8 +806,8 @@
 
             await loadAppointments();
         } catch (error) {
-            const uncertain =
-                !error.status || error.status >= 500
+            const uncertain = !error.status
+                || error.status >= 500
                 || (error.status >= 200 && error.status < 300);
 
             showMessage(
@@ -589,8 +820,10 @@
             );
         } finally {
             callingAppointmentId = null;
+
             $("refresh-appointments-button").disabled =
                 loadingAppointments;
+
             updateCallButtons();
         }
     }
@@ -600,6 +833,7 @@
 
         loadingAppointments = true;
         $("refresh-appointments-button").disabled = true;
+
         updateTodayDisplay();
         updateCallButtons();
 
@@ -620,9 +854,12 @@
 
             appointments = [...data.hangDoiKham].sort((a, b) => {
                 const timeA = /^\d{2}:\d{2}$/.test(a.gioHen || "")
-                    ? a.gioHen : "99:99";
+                    ? a.gioHen
+                    : "99:99";
+
                 const timeB = /^\d{2}:\d{2}$/.test(b.gioHen || "")
-                    ? b.gioHen : "99:99";
+                    ? b.gioHen
+                    : "99:99";
 
                 return timeA.localeCompare(timeB)
                     || Number(a.maLichKham) - Number(b.maLichKham);
@@ -642,12 +879,15 @@
 
             populateDoctorFilter();
             renderAppointments();
+
             return true;
         } catch (error) {
             if (appointments.length === 0) {
                 $("appointments-empty").hidden = false;
+
                 $("appointments-empty-message").textContent =
                     "Chưa tải được danh sách lịch khám.";
+
                 $("appointments-record-count").textContent =
                     "Dữ liệu chưa được cập nhật.";
             }
@@ -656,17 +896,20 @@
                 "page-message",
                 error.message + " Danh sách chưa được cập nhật."
             );
+
             return false;
         } finally {
             loadingAppointments = false;
+
             $("refresh-appointments-button").disabled =
                 callingAppointmentId !== null;
+
             updateCallButtons();
         }
     }
 
     // =====================================================
-    // NGÀY SINH: DD/MM/YYYY
+    // NGÀY SINH DD/MM/YYYY
     // =====================================================
 
     function readBirthDate(
@@ -674,13 +917,16 @@
         optional = false
     ) {
         const value = readValue(inputId);
+
         if (optional && !value) return null;
 
         const match = /^([0-9]{2})\/([0-9]{2})\/([0-9]{4})$/
             .exec(value || "");
 
         if (!match) {
-            throw new Error("Nhập đủ ngày sinh theo dạng dd/mm/yyyy.");
+            throw new Error(
+                "Nhập đủ ngày sinh theo dạng dd/mm/yyyy."
+            );
         }
 
         const day = Number(match[1]);
@@ -688,12 +934,10 @@
         const year = Number(match[3]);
         const date = new Date(Date.UTC(year, month - 1, day));
 
-        if (
-            year < 1000
+        if (year < 1000
             || date.getUTCFullYear() !== year
             || date.getUTCMonth() !== month - 1
-            || date.getUTCDate() !== day
-        ) {
+            || date.getUTCDate() !== day) {
             throw new Error("Ngày sinh không hợp lệ.");
         }
 
@@ -708,17 +952,9 @@
         return iso;
     }
 
-    function initBirthDateInput(options = {}) {
-        const inputId = options.inputId || "new-birth-date";
-        const pickerId = options.pickerId || "birth-date-picker";
-        const buttonId = options.buttonId || "open-birth-calendar";
-        const formId = options.formId || "create-patient-form";
-        const messageId = options.messageId || "create-patient-message";
-        const modalElement = options.modalElement || createElement;
-        const isBusy = options.isBusy || (() => savingPatient);
-
-        const input = $(inputId);
-        const picker = $(pickerId);
+    function initBirthDateInput() {
+        const input = $("new-birth-date");
+        const picker = $("birth-date-picker");
 
         const digitsOnly = value =>
             String(value).replace(/[^0-9]/g, "");
@@ -741,6 +977,7 @@
             }
 
             if (output[cursor] === "/") cursor++;
+
             input.setSelectionRange(cursor, cursor);
         }
 
@@ -758,10 +995,14 @@
                     0,
                     8 - (digits.length - (to - from))
                 );
-                const added = digitsOnly(inserted).slice(0, available);
+
+                const added = digitsOnly(inserted)
+                    .slice(0, available);
 
                 digits = digits.slice(0, from)
-                    + added + digits.slice(to);
+                    + added
+                    + digits.slice(to);
+
                 from += added.length;
             } else {
                 if (from === to) {
@@ -774,14 +1015,16 @@
                     }
                 }
 
-                digits = digits.slice(0, from) + digits.slice(to);
+                digits = digits.slice(0, from)
+                    + digits.slice(to);
             }
 
             render(digits.slice(0, 8), from);
         }
 
         function normalize() {
-            const cursor = input.selectionStart ?? input.value.length;
+            const cursor = input.selectionStart
+                ?? input.value.length;
 
             render(
                 digitsOnly(input.value).slice(0, 8),
@@ -791,7 +1034,8 @@
 
         function syncPicker() {
             try {
-                picker.value = readBirthDate(inputId, true) || "";
+                picker.value =
+                    readBirthDate("new-birth-date", true) || "";
             } catch {
                 picker.value = "";
             }
@@ -800,23 +1044,22 @@
         input.addEventListener("beforeinput", event => {
             if (!event.cancelable || event.isComposing) return;
 
-            if (
-                ["insertText", "insertReplacementText"]
-                    .includes(event.inputType)
-            ) {
+            if ([
+                "insertText",
+                "insertReplacementText"
+            ].includes(event.inputType)) {
                 if (event.data === null) return;
+
                 event.preventDefault();
                 edit("insert", event.data);
                 return;
             }
 
-            if (
-                [
-                    "deleteContentBackward",
-                    "deleteWordBackward",
-                    "deleteSoftLineBackward"
-                ].includes(event.inputType)
-            ) {
+            if ([
+                "deleteContentBackward",
+                "deleteWordBackward",
+                "deleteSoftLineBackward"
+            ].includes(event.inputType)) {
                 event.preventDefault();
 
                 if (event.inputType !== "deleteContentBackward") {
@@ -830,13 +1073,11 @@
                 return;
             }
 
-            if (
-                [
-                    "deleteContentForward",
-                    "deleteWordForward",
-                    "deleteSoftLineForward"
-                ].includes(event.inputType)
-            ) {
+            if ([
+                "deleteContentForward",
+                "deleteWordForward",
+                "deleteSoftLineForward"
+            ].includes(event.inputType)) {
                 event.preventDefault();
 
                 if (event.inputType !== "deleteContentForward") {
@@ -852,8 +1093,12 @@
 
         input.addEventListener("paste", event => {
             if (!event.clipboardData) return;
+
             event.preventDefault();
-            edit("insert", event.clipboardData.getData("text"));
+            edit(
+                "insert",
+                event.clipboardData.getData("text")
+            );
         });
 
         input.addEventListener("input", event => {
@@ -863,8 +1108,8 @@
         input.addEventListener("compositionend", normalize);
         input.addEventListener("blur", syncPicker);
 
-        $(buttonId).addEventListener("click", () => {
-            if (isBusy()) return;
+        $("open-birth-calendar").addEventListener("click", () => {
+            if (savingPatient) return;
 
             picker.max = todayVietnam();
             syncPicker();
@@ -875,14 +1120,16 @@
                     return;
                 }
             } catch {
-                // Có thể tiếp tục nhập ngày sinh bằng bàn phím.
+                // Tiếp tục nhập bằng bàn phím nếu không mở được lịch.
             }
 
             showMessage(
-                messageId,
-                "Trình duyệt chưa mở được lịch. Bạn có thể nhập dd/mm/yyyy.",
+                "create-patient-message",
+                "Trình duyệt chưa mở được lịch. "
+                + "Bạn có thể nhập dd/mm/yyyy.",
                 "info"
             );
+
             input.focus();
         });
 
@@ -892,19 +1139,20 @@
             const [year, month, day] = picker.value.split("-");
             input.value = `${day}/${month}/${year}`;
 
-            showMessage(messageId, "");
+            showMessage("create-patient-message", "");
             input.focus();
+
             input.setSelectionRange(
                 input.value.length,
                 input.value.length
             );
         });
 
-        $(formId).addEventListener("reset", () => {
+        $("create-patient-form").addEventListener("reset", () => {
             picker.value = "";
         });
 
-        modalElement.addEventListener("show.bs.modal", () => {
+        createElement.addEventListener("show.bs.modal", () => {
             picker.max = todayVietnam();
             syncPicker();
         });
@@ -913,7 +1161,7 @@
     }
 
     // =====================================================
-    // TRẠNG THÁI FORM ĐĂNG KÝ
+    // TRẠNG THÁI FORM
     // =====================================================
 
     function selectedSchedule() {
@@ -939,7 +1187,9 @@
 
         $("patient-search-button").setAttribute(
             "aria-label",
-            searching ? "Đang tra cứu bệnh nhân" : "Tra cứu bệnh nhân"
+            searching
+                ? "Đang tra cứu bệnh nhân"
+                : "Tra cứu bệnh nhân"
         );
 
         $("patient-search-button").setAttribute(
@@ -948,11 +1198,34 @@
         );
 
         $("create-patient-fields").disabled = savingPatient;
-        $("create-patient-save").disabled = savingPatient;
+
+        $("create-patient-save").disabled =
+            savingPatient
+            || phoneLookupBusy
+            || !allowNewPatient
+            || checkedPhone !== normalizePhone($("new-phone").value);
+
         $("create-patient-close").disabled = savingPatient;
 
-        $("create-patient-save").textContent =
-            savingPatient ? "Đang lưu…" : "Lưu hồ sơ";
+        $("phone-lookup-button").disabled =
+            savingPatient || phoneLookupBusy;
+
+        $("phone-create-other").disabled =
+            savingPatient || phoneLookupBusy;
+
+        $("new-patient-details").disabled =
+            savingPatient || !allowNewPatient;
+
+        $("phone-matches")
+            .querySelectorAll("button")
+            .forEach(button => {
+                button.disabled =
+                    savingPatient || searching || phoneLookupBusy;
+            });
+
+        $("create-patient-save").textContent = savingPatient
+            ? "Đang lưu…"
+            : "Lưu hồ sơ và đăng ký khám";
 
         $("registration-close").disabled = registering;
 
@@ -960,32 +1233,45 @@
             busy || loadingSchedules || registrationLocked;
 
         $("department-select").disabled =
-            busy || loadingSchedules || registrationLocked
+            busy
+            || loadingSchedules
+            || registrationLocked
             || $("department-select").options.length <= 1;
 
         $("schedule-select").disabled =
-            busy || loadingSchedules || registrationLocked
+            busy
+            || loadingSchedules
+            || registrationLocked
             || schedules.length === 0;
 
         $("appointment-time").disabled =
-            busy || loadingSchedules || registrationLocked
+            busy
+            || loadingSchedules
+            || registrationLocked
             || !selectedSchedule();
 
         $("register-button").disabled =
-            busy || loadingSchedules || registrationLocked
-            || !selectedPatientId || !selectedSchedule();
+            busy
+            || loadingSchedules
+            || registrationLocked
+            || !selectedPatientId
+            || !selectedSchedule();
 
         $("register-button").textContent = registering
             ? "Đang đăng ký…"
             : "Đăng ký và cấp số chờ";
 
         $("reload-schedules").disabled =
-            busy || loadingSchedules || registrationLocked
+            busy
+            || loadingSchedules
+            || registrationLocked
             || !selectedPatientId;
     }
 
     function resetSelect(id, placeholder) {
-        $(id).replaceChildren(new Option(placeholder, ""));
+        $(id).replaceChildren(
+            new Option(placeholder, "")
+        );
     }
 
     function resetRegistration() {
@@ -994,8 +1280,12 @@
         loadedDate = null;
         loadingSchedules = false;
         registrationLocked = false;
+        showSuccessAfterRegistration = false;
+
+        hideRegistrationToast();
 
         $("registration-form").reset();
+
         resetSelect("department-select", "Chọn khoa");
         resetSelect("schedule-select", "Chọn khoa trước");
 
@@ -1016,6 +1306,7 @@
     function clearSelectedPatient() {
         selectedPatientId = null;
         selectedPatientName = "";
+
         resetRegistration();
 
         $("selected-patient").hidden = true;
@@ -1034,9 +1325,14 @@
         }
 
         selectedPatientName = patient.hoTen || "Bệnh nhân";
+
         resetRegistration();
 
-        setText("selected-id", `Mã bệnh nhân: ${selectedPatientId}`);
+        setText(
+            "selected-id",
+            `Mã bệnh nhân: ${selectedPatientId}`
+        );
+
         setText("selected-name", selectedPatientName);
         setText("selected-birth-date", formatDate(patient.ngaySinh));
         setText("selected-gender", patient.gioiTinh);
@@ -1052,7 +1348,7 @@
     }
 
     // =====================================================
-    // TRA CỨU VÀ TẠO BỆNH NHÂN
+    // TRA CỨU BỆNH NHÂN
     // =====================================================
 
     async function searchPatient(event) {
@@ -1066,6 +1362,7 @@
         if (!keyword) return;
 
         searching = true;
+
         showMessage("page-message", "");
         clearSelectedPatient();
         updateControls();
@@ -1100,22 +1397,258 @@
         }
     }
 
-    async function savePatient(event) {
-        event.preventDefault();
+    // =====================================================
+    // TRA CỨU SỐ ĐIỆN THOẠI
+    // =====================================================
+
+    function normalizePhone(raw) {
+        let value = String(raw || "").trim();
+
+        if (!/^[+0-9\s().-]+$/.test(value)) return "";
+
+        value = value.replace(/[\s().-]/g, "");
+
+        if (value.startsWith("+84")) {
+            value = "0" + value.slice(3);
+        }
+
+        return /^\+?[0-9]{9,14}$/.test(value)
+            ? value
+            : "";
+    }
+
+    function setPhoneLookupStatus(message, type = "secondary") {
+        $("phone-lookup-status").textContent = message;
+
+        $("phone-lookup-status").className =
+            `small mt-2 text-${type}`;
+    }
+
+    function invalidatePhoneLookup() {
+        phoneLookupVersion++;
+
+        clearTimeout(phoneLookupTimer);
+        phoneLookupController?.abort();
+
+        phoneLookupController = null;
+        phoneLookupBusy = false;
+        checkedPhone = "";
+        phoneMatches = [];
+        allowNewPatient = false;
+
+        $("phone-matches").replaceChildren();
+        $("phone-matches-panel").hidden = true;
+
+        updateControls();
+    }
+
+    function renderPhoneMatches(matches) {
+        phoneMatches = matches;
+
+        const list = $("phone-matches");
+        list.replaceChildren();
+
+        $("phone-matches-panel").hidden = matches.length === 0;
+
+        matches.forEach(patient => {
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className =
+                "list-group-item list-group-item-action text-start";
+
+            const name = document.createElement("div");
+            name.className = "fw-semibold";
+            name.textContent = patient.hoTen || "Bệnh nhân";
+
+            const details = document.createElement("div");
+            details.className = "small text-secondary";
+
+            details.textContent = [
+                `Mã BN: ${patient.maBenhNhan}`,
+                formatDate(patient.ngaySinh),
+                patient.gioiTinh,
+                patient.soDienThoai,
+                patient.diaChi
+            ].filter(Boolean).join(" · ");
+
+            button.append(name, details);
+
+            button.addEventListener("click", () => {
+                if (savingPatient
+                    || searching
+                    || registering
+                    || phoneLookupBusy
+                    || checkedPhone !== normalizePhone($("new-phone").value)) {
+                    return;
+                }
+
+                try {
+                    selectPatient(patient);
+
+                    $("patient-search-input").value =
+                        checkedPhone;
+
+                    openRegistrationAfterCreate = true;
+                    createModal.hide();
+                } catch (error) {
+                    showMessage(
+                        "create-patient-message",
+                        error.message
+                    );
+                }
+            });
+
+            list.appendChild(button);
+        });
+    }
+
+    async function lookupPhone() {
         if (savingPatient || searching || registering) return;
 
+        const phone = normalizePhone($("new-phone").value);
+
+        invalidatePhoneLookup();
+
+        const version = phoneLookupVersion;
+
+        if (!phone) {
+            setPhoneLookupStatus(
+                "Nhập số điện thoại hợp lệ gồm 9–14 chữ số, "
+                + "có thể bắt đầu bằng dấu +.",
+                "warning"
+            );
+            return;
+        }
+
+        phoneLookupBusy = true;
+
+        const controller = new AbortController();
+        phoneLookupController = controller;
+
+        setPhoneLookupStatus(
+            "Đang tra cứu hồ sơ…",
+            "primary"
+        );
+
+        updateControls();
+
+        try {
+            const data = await requestApi(
+                `${PHONE_API}?soDienThoai=${encodeURIComponent(phone)}`,
+                { signal: controller.signal }
+            );
+
+            if (version !== phoneLookupVersion
+                || !createElement.classList.contains("show")) {
+                return;
+            }
+
+            if (!Array.isArray(data)
+                || data.some(item => !positiveId(item.maBenhNhan))) {
+                throw new Error(
+                    "Danh sách hồ sơ trả về không hợp lệ."
+                );
+            }
+
+            checkedPhone = phone;
+
+            renderPhoneMatches(data);
+
+            allowNewPatient = data.length === 0;
+
+            if (data.length) {
+                setPhoneLookupStatus(
+                    `Tìm thấy ${data.length} hồ sơ. `
+                    + "Chọn đúng bệnh nhân để đăng ký khám.",
+                    "primary"
+                );
+            } else {
+                setPhoneLookupStatus(
+                    "Chưa có hồ sơ dùng số điện thoại này. "
+                    + "Bạn có thể nhập thông tin và tạo hồ sơ mới ngay.",
+                    "success"
+                );
+            }
+        } catch (error) {
+            if (version !== phoneLookupVersion
+                || error.name === "AbortError") {
+                return;
+            }
+
+            setPhoneLookupStatus(
+                "Không tra cứu được: "
+                + error.message
+                + " Bấm Kiểm tra để thử lại.",
+                "danger"
+            );
+        } finally {
+            if (version === phoneLookupVersion) {
+                phoneLookupBusy = false;
+                phoneLookupController = null;
+
+                updateControls();
+            }
+        }
+    }
+
+    // =====================================================
+    // TẠO HỒ SƠ MỚI
+    // =====================================================
+
+    async function savePatient(event) {
+        event.preventDefault();
+
+        if (savingPatient
+            || searching
+            || registering
+            || phoneLookupBusy) {
+            return;
+        }
+
         const form = $("create-patient-form");
+
         showMessage("create-patient-message", "");
+
+        const phone = normalizePhone($("new-phone").value);
+
+        if (!phone
+            || checkedPhone !== phone
+            || !allowNewPatient) {
+            showMessage(
+                "create-patient-message",
+                "Vui lòng kiểm tra số điện thoại trước khi tạo hồ sơ.",
+                "warning"
+            );
+
+            $("new-phone").focus();
+            return;
+        }
 
         if (!form.reportValidity()) return;
 
         let ngaySinh;
+        let emergencyPhone;
 
         try {
             ngaySinh = readBirthDate();
+
+            const rawEmergency = readValue("new-emergency-phone");
+
+            emergencyPhone = rawEmergency
+                ? normalizePhone(rawEmergency)
+                : null;
+
+            if (rawEmergency && !emergencyPhone) {
+                throw new Error(
+                    "Số điện thoại khẩn cấp không hợp lệ."
+                );
+            }
         } catch (error) {
-            showMessage("create-patient-message", error.message);
-            $("new-birth-date").focus();
+            showMessage(
+                "create-patient-message",
+                error.message
+            );
             return;
         }
 
@@ -1123,16 +1656,18 @@
             hoTen: readValue("new-name"),
             ngaySinh,
             gioiTinh: readValue("new-gender"),
-            soDienThoai: readValue("new-phone"),
+            soDienThoai: phone,
             email: readValue("new-email"),
             diaChi: readValue("new-address"),
-            soDienThoaiKhanCap: readValue("new-emergency-phone"),
+            soDienThoaiKhanCap: emergencyPhone,
             tienSuBenh: readValue("new-medical-history")
         };
 
         if (!payload.hoTen) {
-            showMessage("create-patient-message", "Vui lòng nhập họ tên.");
-            $("new-name").focus();
+            showMessage(
+                "create-patient-message",
+                "Vui lòng nhập họ tên."
+            );
             return;
         }
 
@@ -1140,6 +1675,43 @@
         updateControls();
 
         try {
+            const latest = await requestApi(
+                `${PHONE_API}?soDienThoai=${encodeURIComponent(phone)}`
+            );
+
+            if (!Array.isArray(latest)) {
+                throw new Error(
+                    "Kết quả tra cứu không hợp lệ."
+                );
+            }
+
+            const nameKey = value => String(value || "")
+                .trim()
+                .normalize("NFC")
+                .replace(/\s+/g, " ")
+                .toLocaleLowerCase("vi");
+
+            const existing = latest.find(patient =>
+                nameKey(patient.hoTen) === nameKey(payload.hoTen)
+                && String(patient.ngaySinh || "").slice(0, 10)
+                    === ngaySinh
+            );
+
+            if (existing) {
+                renderPhoneMatches(latest);
+
+                allowNewPatient = false;
+
+                showMessage(
+                    "create-patient-message",
+                    "Đã có hồ sơ cùng họ tên, ngày sinh và số điện thoại. "
+                    + "Hãy chọn hồ sơ trong danh sách phía trên.",
+                    "warning"
+                );
+
+                return;
+            }
+
             const result = await requestApi(
                 "/api/tiepnhan/benh-nhan",
                 {
@@ -1152,33 +1724,50 @@
 
             if (!id) {
                 throw new Error(
-                    "Phản hồi không có mã bệnh nhân. "
-                    + "Hãy tra cứu trước khi tạo lại."
+                    "Phản hồi thiếu mã bệnh nhân. "
+                    + "Hãy tra cứu lại trước khi tạo tiếp."
                 );
             }
 
-            selectPatient({ ...payload, maBenhNhan: id });
-            $("patient-search-input").value = id;
+            selectPatient({
+                ...payload,
+                maBenhNhan: id
+            });
+
+            $("patient-search-input").value = phone;
 
             savingPatient = false;
             updateControls();
-            openRegistrationAfterCreate = true;
 
+            openRegistrationAfterCreate = true;
             createModal.hide();
+
             form.reset();
 
             showMessage(
                 "page-message",
-                `Đã lưu hồ sơ ${payload.hoTen}, mã ${id}.`,
+                `Đã tạo hồ sơ ${payload.hoTen}, mã ${id}. `
+                + "Chọn bác sĩ để đăng ký khám và cấp số chờ.",
                 "success"
             );
         } catch (error) {
             showMessage(
                 "create-patient-message",
                 error.message
-                + " Nếu kết nối gián đoạn, hãy tra cứu lại "
-                + "để kiểm tra hồ sơ đã lưu chưa."
             );
+
+            if (!error.status
+                || error.status >= 500
+                || (error.status >= 200 && error.status < 300)) {
+                checkedPhone = "";
+                allowNewPatient = false;
+
+                setPhoneLookupStatus(
+                    "Chưa xác định kết quả lưu. "
+                    + "Bấm Kiểm tra để tra cứu lại trước khi tạo tiếp.",
+                    "danger"
+                );
+            }
         } finally {
             savingPatient = false;
             updateControls();
@@ -1186,17 +1775,18 @@
     }
 
     // =====================================================
-    // KHOA VÀ CA LÀM VIỆC BÁC SĨ
+    // KHOA VÀ LỊCH BÁC SĨ
     // =====================================================
 
     async function loadDepartments() {
-        if (
-            !selectedPatientId || registering || registrationLocked
-        ) {
+        if (!selectedPatientId
+            || registering
+            || registrationLocked) {
             return;
         }
 
         const version = ++loadVersion;
+
         loadingSchedules = true;
         schedules = [];
         loadedDate = null;
@@ -1207,19 +1797,26 @@
         $("schedule-summary").hidden = true;
         $("appointment-time").value = "";
         $("appointment-time").setCustomValidity("");
-        $("registration-date").value = formatDate(todayVietnam());
+
+        $("registration-date").value =
+            formatDate(todayVietnam());
 
         showMessage("registration-message", "");
         updateControls();
 
         try {
             const requestedDate = todayVietnam();
-            const departments = await requestApi(`${API}/khoa`);
+
+            const departments = await requestApi(
+                `${API}/khoa`
+            );
 
             if (version !== loadVersion) return;
 
             if (!Array.isArray(departments)) {
-                throw new Error("Danh sách khoa không hợp lệ.");
+                throw new Error(
+                    "Danh sách khoa không hợp lệ."
+                );
             }
 
             if (requestedDate !== todayVietnam()) {
@@ -1229,11 +1826,15 @@
             }
 
             loadedDate = requestedDate;
+
             resetSelect("department-select", "Chọn khoa");
 
             departments.forEach(item => {
                 $("department-select").add(
-                    new Option(item.tenKhoa, String(item.maKhoa))
+                    new Option(
+                        item.tenKhoa,
+                        String(item.maKhoa)
+                    )
                 );
             });
 
@@ -1246,8 +1847,16 @@
             }
         } catch (error) {
             if (version !== loadVersion) return;
-            resetSelect("department-select", "Chưa tải được khoa");
-            showMessage("registration-message", error.message);
+
+            resetSelect(
+                "department-select",
+                "Chưa tải được khoa"
+            );
+
+            showMessage(
+                "registration-message",
+                error.message
+            );
         } finally {
             if (version === loadVersion) {
                 loadingSchedules = false;
@@ -1261,25 +1870,36 @@
 
         const version = ++loadVersion;
         const maKhoa = Number($("department-select").value);
+
         schedules = [];
 
         $("schedule-summary").hidden = true;
         $("appointment-time").value = "";
         $("appointment-time").setCustomValidity("");
+
         $("appointment-time-help").textContent =
             "Chọn bác sĩ để xem giờ có thể đăng ký.";
 
         showMessage("registration-message", "");
 
         if (!maKhoa) {
-            resetSelect("schedule-select", "Chọn khoa trước");
+            resetSelect(
+                "schedule-select",
+                "Chọn khoa trước"
+            );
+
             loadingSchedules = false;
             updateControls();
             return;
         }
 
         loadingSchedules = true;
-        resetSelect("schedule-select", "Đang tải lịch bác sĩ…");
+
+        resetSelect(
+            "schedule-select",
+            "Đang tải lịch bác sĩ…"
+        );
+
         updateControls();
 
         try {
@@ -1296,11 +1916,17 @@
             if (version !== loadVersion) return;
 
             if (!Array.isArray(data)) {
-                throw new Error("Danh sách lịch bác sĩ không hợp lệ.");
+                throw new Error(
+                    "Danh sách lịch bác sĩ không hợp lệ."
+                );
             }
 
             schedules = data;
-            resetSelect("schedule-select", "Chọn bác sĩ và ca làm việc");
+
+            resetSelect(
+                "schedule-select",
+                "Chọn bác sĩ và ca làm việc"
+            );
 
             schedules.forEach(item => {
                 $("schedule-select").add(new Option(
@@ -1322,8 +1948,16 @@
             if (version !== loadVersion) return;
 
             schedules = [];
-            resetSelect("schedule-select", "Chưa có lịch bác sĩ");
-            showMessage("registration-message", error.message);
+
+            resetSelect(
+                "schedule-select",
+                "Chưa có lịch bác sĩ"
+            );
+
+            showMessage(
+                "registration-message",
+                error.message
+            );
         } finally {
             if (version === loadVersion) {
                 loadingSchedules = false;
@@ -1357,13 +1991,11 @@
         const end = toMinutes(schedule.gioKetThuc);
         const current = toMinutes(now.time);
 
-        if (
-            loadedDate !== now.date
+        if (loadedDate !== now.date
             || schedule.ngayLamViec !== now.date
             || !Number.isFinite(start)
             || !Number.isFinite(end)
-            || end <= start
-        ) {
+            || end <= start) {
             throw new Error(
                 "Ca làm việc không phù hợp. Hãy tải lại lịch."
             );
@@ -1373,7 +2005,9 @@
         const maximum = end - 1;
 
         if (minimum > maximum) {
-            throw new Error("Ca làm việc đã hết giờ đăng ký.");
+            throw new Error(
+                "Ca làm việc đã hết giờ đăng ký."
+            );
         }
 
         return { minimum, maximum };
@@ -1382,50 +2016,71 @@
     function onScheduleChange() {
         $("appointment-time").value = "";
         $("appointment-time").setCustomValidity("");
+
         showMessage("registration-message", "");
 
         const schedule = selectedSchedule();
+
         $("schedule-summary").hidden = !schedule;
 
         if (!schedule) {
             $("appointment-time-help").textContent =
                 "Chọn bác sĩ để xem giờ có thể đăng ký.";
+
             updateControls();
             return;
         }
 
-        setText("schedule-doctor", schedule.tenBacSi);
-        setText("schedule-room", schedule.tenPhong);
+        setText(
+            "schedule-doctor",
+            schedule.tenBacSi
+        );
+
+        setText(
+            "schedule-room",
+            schedule.tenPhong
+        );
+
         setText(
             "schedule-hours",
             `${schedule.gioBatDau}–${schedule.gioKetThuc}`
         );
 
         try {
-            const { minimum, maximum } = scheduleBounds(schedule);
-            $("appointment-time").min = minuteText(minimum);
-            $("appointment-time").max = minuteText(maximum);
+            const { minimum, maximum } =
+                scheduleBounds(schedule);
+
+            $("appointment-time").min =
+                minuteText(minimum);
+
+            $("appointment-time").max =
+                minuteText(maximum);
+
             $("appointment-time-help").textContent =
                 `Có thể đăng ký từ ${minuteText(minimum)} `
                 + `đến ${minuteText(maximum)}.`;
         } catch (error) {
-            showMessage("registration-message", error.message);
+            showMessage(
+                "registration-message",
+                error.message
+            );
         }
 
         updateControls();
     }
 
     // =====================================================
-    // ĐĂNG KÝ KHÁM VÀ CẤP SỐ CHỜ
+    // ĐĂNG KÝ KHÁM
     // =====================================================
 
     async function registerAppointment(event) {
         event.preventDefault();
 
-        if (
-            registering || searching || savingPatient
-            || loadingSchedules || registrationLocked
-        ) {
+        if (registering
+            || searching
+            || savingPatient
+            || loadingSchedules
+            || registrationLocked) {
             return;
         }
 
@@ -1442,28 +2097,33 @@
 
         const schedule = selectedSchedule();
 
-        if (!schedule || !$("registration-form").reportValidity()) {
+        if (!schedule
+            || !$("registration-form").reportValidity()) {
             return;
         }
 
         const time = readValue("appointment-time");
 
         try {
-            const { minimum, maximum } = scheduleBounds(schedule);
+            const { minimum, maximum } =
+                scheduleBounds(schedule);
+
             const chosen = toMinutes(time);
 
-            if (
-                !/^[0-9]{2}:[0-9]{2}$/.test(time || "")
+            if (!/^[0-9]{2}:[0-9]{2}$/.test(time || "")
                 || !Number.isFinite(chosen)
-                || chosen < minimum || chosen > maximum
-            ) {
+                || chosen < minimum
+                || chosen > maximum) {
                 throw new Error(
                     `Chọn giờ từ ${minuteText(minimum)} `
                     + `đến ${minuteText(maximum)}.`
                 );
             }
         } catch (error) {
-            showMessage("registration-message", error.message);
+            showMessage(
+                "registration-message",
+                error.message
+            );
             return;
         }
 
@@ -1500,35 +2160,45 @@
                 );
             }
 
-            setText(
-                "ticket-number",
-                `#${String(number).padStart(3, "0")}`
-            );
-            setText("ticket-patient", selectedPatientName);
-            setText("ticket-department", `Khoa: ${departmentName}`);
-            setText("ticket-doctor", `Bác sĩ: ${schedule.tenBacSi}`);
-            setText("ticket-room", `Phòng: ${schedule.tenPhong}`);
-            setText(
-                "ticket-time",
-                `${formatDate(result.ngayKham)} — `
-                + String(result.gioKham).slice(0, 5)
-            );
+            fillRegistrationSuccess({
+                number,
+                patient: selectedPatientName,
+                department: departmentName,
+                doctor: schedule.tenBacSi,
+                room: schedule.tenPhong,
+                date: result.ngayKham,
+                time: result.gioKham
+            });
 
-            $("queue-ticket").hidden = false;
+            $("queue-ticket").hidden = true;
 
-            showMessage(
-                "registration-message",
-                `Đã tạo lịch khám mã ${appointmentId}.`,
-                "success"
-            );
+            showMessage("registration-message", "");
+
+            showSuccessAfterRegistration = true;
 
             void loadAppointments();
         } catch (error) {
-            if (
-                registrationLocked
-                || !error.status || error.status >= 500
-                || error.status === 200 || error.status === 201
-            ) {
+            if (isDuplicateRegistration(error.message)) {
+                // Không khóa popup khi trùng lịch.
+                // Giữ nguyên thông tin để nhân viên chỉnh sửa tiếp.
+                registrationLocked = false;
+
+                showMessage("registration-message", "");
+
+                // Thông báo đẩy tự ẩn sau 7 giây.
+                showRegistrationToast(error.message);
+
+                // Chỉ cập nhật danh sách bên ngoài, không reset form.
+                void loadAppointments();
+
+                return;
+            }
+
+            if (registrationLocked
+                || !error.status
+                || error.status >= 500
+                || error.status === 200
+                || error.status === 201) {
                 registrationLocked = true;
 
                 showMessage(
@@ -1539,24 +2209,31 @@
 
                 void loadAppointments();
             } else {
-                showMessage("registration-message", error.message);
+                showMessage(
+                    "registration-message",
+                    error.message
+                );
             }
         } finally {
             registering = false;
             updateControls();
+
+            if (showSuccessAfterRegistration) {
+                registrationModal.hide();
+            }
         }
     }
 
     // =====================================================
-    // MỞ TRANG HỒ SƠ BỆNH NHÂN RIÊNG
+    // MỞ TRANG HỒ SƠ
     // =====================================================
 
     function openProfile(patientId, appointmentId) {
-        if (
-            searching || savingPatient || registering
+        if (searching
+            || savingPatient
+            || registering
             || callingAppointmentId !== null
-            || loadingAppointments
-        ) {
+            || loadingAppointments) {
             showMessage(
                 "page-message",
                 "Vui lòng chờ thao tác hiện tại hoàn tất.",
@@ -1587,7 +2264,7 @@
     }
 
     // =====================================================
-    // THÔNG BÁO TRÊN HEADER
+    // THÔNG BÁO HEADER
     // =====================================================
 
     function initNotifications() {
@@ -1600,7 +2277,12 @@
 
         function setOpen(open, returnFocus = false) {
             panel.hidden = !open;
-            button.setAttribute("aria-expanded", String(open));
+
+            button.setAttribute(
+                "aria-expanded",
+                String(open)
+            );
+
             button.setAttribute(
                 "aria-label",
                 open ? "Đóng thông báo" : "Mở thông báo"
@@ -1618,7 +2300,9 @@
         });
 
         document.addEventListener("click", event => {
-            if (!wrapper.contains(event.target)) setOpen(false);
+            if (!wrapper.contains(event.target)) {
+                setOpen(false);
+            }
         });
 
         document.addEventListener("keydown", event => {
@@ -1639,23 +2323,28 @@
     // =====================================================
 
     $("patient-search-form").addEventListener(
-        "submit", searchPatient
+        "submit",
+        searchPatient
     );
 
     $("create-patient-form").addEventListener(
-        "submit", savePatient
+        "submit",
+        savePatient
     );
 
     $("registration-form").addEventListener(
-        "submit", registerAppointment
+        "submit",
+        registerAppointment
     );
 
     $("department-select").addEventListener(
-        "change", loadDoctorSchedules
+        "change",
+        loadDoctorSchedules
     );
 
     $("schedule-select").addEventListener(
-        "change", onScheduleChange
+        "change",
+        onScheduleChange
     );
 
     $("appointment-time").addEventListener("input", () => {
@@ -1677,50 +2366,138 @@
     );
 
     $("appointment-doctor-filter").addEventListener(
-        "change", renderAppointments
+        "change",
+        renderAppointments
     );
 
     $("appointment-status-filter").addEventListener(
-        "change", renderAppointments
+        "change",
+        renderAppointments
     );
 
-    $("refresh-appointments-button").addEventListener("click", () => {
-        showMessage("page-message", "");
-        void loadAppointments();
-    });
-
-    $("appointments-table-body").addEventListener("click", event => {
-        const button = event.target.closest("button[data-action]");
-
-        if (!button || button.disabled) return;
-
-        if (button.dataset.action === "call-patient") {
-            void callPatient(button.dataset.appointmentId);
-        } else if (button.dataset.action === "open-profile") {
-            openProfile(
-                button.dataset.patientId,
-                button.dataset.appointmentId
-            );
+    $("refresh-appointments-button").addEventListener(
+        "click",
+        () => {
+            showMessage("page-message", "");
+            void loadAppointments();
         }
-    });
+    );
+
+    $("appointments-table-body").addEventListener(
+        "click",
+        event => {
+            const button = event.target.closest(
+                "button[data-action]"
+            );
+
+            if (!button || button.disabled) return;
+
+            if (button.dataset.action === "call-patient") {
+                void callPatient(button.dataset.appointmentId);
+            } else if (button.dataset.action === "open-profile") {
+                openProfile(
+                    button.dataset.patientId,
+                    button.dataset.appointmentId
+                );
+            }
+        }
+    );
 
     $("open-create-patient").addEventListener("click", () => {
         if (savingPatient || searching || registering) return;
 
         openRegistrationAfterCreate = false;
+
+        $("create-patient-form").reset();
+        invalidatePhoneLookup();
+
         showMessage("create-patient-message", "");
+
+        setPhoneLookupStatus(
+            "Nhập số điện thoại để tìm hồ sơ đã có."
+        );
+
+        const keywordPhone = normalizePhone(
+            $("patient-search-input").value
+        );
+
+        if (keywordPhone) {
+            $("new-phone").value = keywordPhone;
+        }
+
         createModal.show();
     });
 
     createElement.addEventListener("shown.bs.modal", () => {
+        $("new-phone").focus();
+
+        if (normalizePhone($("new-phone").value)) {
+            void lookupPhone();
+        }
+    });
+
+    $("new-phone").addEventListener("input", () => {
+        invalidatePhoneLookup();
+        showMessage("create-patient-message", "");
+
+        if (normalizePhone($("new-phone").value)) {
+            setPhoneLookupStatus(
+                "Đang chờ tra cứu…",
+                "primary"
+            );
+
+            phoneLookupTimer = setTimeout(
+                () => void lookupPhone(),
+                400
+            );
+        } else {
+            setPhoneLookupStatus(
+                "Nhập đủ số điện thoại để kiểm tra hồ sơ."
+            );
+        }
+    });
+
+    $("new-phone").addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            void lookupPhone();
+        }
+    });
+
+    $("phone-lookup-button").addEventListener("click", () => {
+        void lookupPhone();
+    });
+
+    $("phone-create-other").addEventListener("click", () => {
+        if (savingPatient
+            || phoneLookupBusy
+            || !phoneMatches.length
+            || !checkedPhone
+            || checkedPhone !== normalizePhone($("new-phone").value)) {
+            return;
+        }
+
+        allowNewPatient = true;
+        updateControls();
+
+        setPhoneLookupStatus(
+            "Tạo hồ sơ riêng cho người khác dùng chung số liên hệ. "
+            + "Kiểm tra họ tên và ngày sinh trước khi lưu.",
+            "primary"
+        );
+
         $("new-name").focus();
     });
 
     createElement.addEventListener("hide.bs.modal", event => {
-        if (savingPatient) event.preventDefault();
+        if (savingPatient) {
+            event.preventDefault();
+        }
     });
 
     createElement.addEventListener("hidden.bs.modal", () => {
+        invalidatePhoneLookup();
+
         if (openRegistrationAfterCreate) {
             openRegistrationAfterCreate = false;
             registrationModal.show();
@@ -1728,17 +2505,28 @@
     });
 
     registrationElement.addEventListener("hide.bs.modal", event => {
-        if (registering) event.preventDefault();
+        if (registering) {
+            event.preventDefault();
+        }
     });
 
     registrationElement.addEventListener("hidden.bs.modal", () => {
-        $("patient-search-input").focus();
+        if (showSuccessAfterRegistration) {
+            showSuccessAfterRegistration = false;
+
+            bootstrap.Modal.getOrCreateInstance(
+                $("registration-success-modal")
+            ).show();
+        } else {
+            $("patient-search-input").focus();
+        }
     });
 
     // =====================================================
     // KHỞI TẠO
     // =====================================================
 
+    initRegistrationNotifications();
     initBirthDateInput();
     initNotifications();
     updateTodayDisplay();

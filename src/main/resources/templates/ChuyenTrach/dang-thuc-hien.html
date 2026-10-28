@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>Danh sách đang thực hiện CLS</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/dang-thuc-hien.css}">
+    </th:block>
+</head>
+
+<body>
+
+<div layout:fragment="content" class="ctdoing-page">
+
+    <!-- NÚT QUAY LẠI DASHBOARD -->
+    <div class="ctdoing-back-row">
+        <a th:href="@{/ChuyenTrach/dashboard}"
+           class="ctdoing-back">
+
+            <i class="fa-solid fa-arrow-left"
+               aria-hidden="true"></i>
+
+            Quay lại Dashboard
+        </a>
+    </div>
+
+    <!-- KHUNG DANH SÁCH BỆNH NHÂN -->
+    <section class="ctdoing-panel"
+             aria-labelledby="ctdoingHeading">
+
+        <!-- THANH TIÊU ĐỀ THU GỌN -->
+        <header class="ctdoing-panel-header">
+
+            <!-- TIÊU ĐỀ VÀ SỐ LƯỢNG -->
+            <div class="ctdoing-title-row">
+
+                <h2 id="ctdoingHeading">
+                    Bệnh nhân đang thực hiện CLS hôm nay
+                </h2>
+
+                <span id="ctdoingCount"
+                      class="ctdoing-count">
+                    0 bệnh nhân
+                </span>
+
+            </div>
+
+            <!-- LỌC THEO PHÒNG -->
+            <div class="ctdoing-toolbar">
+
+                <label for="ctdoingRoom"
+                       class="ctdoing-room-label">
+                    Lọc theo phòng:
+                </label>
+
+                <select id="ctdoingRoom"
+                        class="ctdoing-room">
+
+                    <option value="">
+                        Tất cả phòng chuyên trách
+                    </option>
+
+                </select>
+
+            </div>
+
+        </header>
+
+        <!-- THANH TÌM KIẾM -->
+        <div class="ctdoing-search-row">
+
+            <label class="ctdoing-search">
+
+                <i class="fa-solid fa-magnifying-glass"
+                   aria-hidden="true"></i>
+
+                <input id="ctdoingSearch"
+                       type="search"
+                       autocomplete="off"
+                       placeholder="Tìm mã lượt khám, mã BN, tên bệnh nhân, dịch vụ..."
+                       aria-label="Tìm kiếm bệnh nhân">
+
+            </label>
+
+            <span class="ctdoing-scroll-hint">
+                <i class="fa-solid fa-computer-mouse"
+                   aria-hidden="true"></i>
+                Cuộn trong bảng để xem danh sách
+            </span>
+
+        </div>
+
+        <!-- BẢNG DỮ LIỆU CÓ THANH CUỘN -->
+        <div class="ctdoing-table-scroll"
+             tabindex="0"
+             aria-label="Danh sách bệnh nhân đang thực hiện">
+
+            <table class="ctdoing-table">
+
+                <colgroup>
+                    <col style="width:5%">
+                    <col style="width:20%">
+                    <col style="width:23%">
+                    <col style="width:16%">
+                    <col style="width:13%">
+                    <col style="width:13%">
+                    <col style="width:10%">
+                </colgroup>
+
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>BỆNH NHÂN</th>
+                    <th>DỊCH VỤ</th>
+                    <th>PHÒNG THỰC HIỆN</th>
+                    <th>THỜI GIAN KHÁM</th>
+                    <th>TRẠNG THÁI</th>
+                    <th>THAO TÁC</th>
+                </tr>
+                </thead>
+
+                <tbody id="ctdoingTableBody">
+                <tr>
+                    <td colspan="7"
+                        class="ctdoing-message">
+                        Đang tải dữ liệu...
+                    </td>
+                </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="ctdoing-footer">
+
+            <span id="ctdoingPageInfo"
+                  role="status"
+                  aria-live="polite">
+                Đang tải dữ liệu...
+            </span>
+
+            <span class="ctdoing-footer-note">
+                Dữ liệu hôm nay · Trạng thái đang thực hiện
+            </span>
+
+        </footer>
+
+    </section>
+
+</div>
+
+<!-- JAVASCRIPT RIÊNG -->
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/dang-thuc-hien.js}">
+    </script>
+</th:block>
+
+</body>
+</html>

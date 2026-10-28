@@ -1,0 +1,684 @@
+
+/* ============================================
+   DANH SÁCH ĐANG THỰC HIỆN CLS
+   MEDCARE HOSPITAL
+
+   Màu chủ đạo kế thừa từ layout.css
+   --ct-primary: #2563EB
+   --ct-primary-light: #EFF6FF
+   ============================================ */
+
+/* ============================================
+   1. CẤU TRÚC TRANG
+   ============================================ */
+
+.ctdoing-page {
+    --ctdoing-primary: var(--ct-primary, #2563EB);
+    --ctdoing-primary-light: var(--ct-primary-light, #EFF6FF);
+    --ctdoing-primary-border: #BFDBFE;
+    --ctdoing-border: var(--ct-border, #E2E8F0);
+    --ctdoing-text: #1E293B;
+    --ctdoing-muted: #64748B;
+
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    min-width: 0;
+
+    height: calc(100dvh - 128px);
+    min-height: 430px;
+
+    gap: 12px;
+    overflow: hidden;
+
+    color: var(--ctdoing-text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.ctdoing-page,
+.ctdoing-page *,
+.ctdoing-page *::before,
+.ctdoing-page *::after {
+    box-sizing: border-box;
+}
+
+/* ============================================
+   2. NÚT QUAY LẠI DASHBOARD
+   ============================================ */
+
+.ctdoing-back-row {
+    display: flex;
+    align-items: center;
+
+    flex: 0 0 auto;
+}
+
+.ctdoing-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    min-height: 36px;
+    padding: 8px 13px;
+
+    border: 1px solid var(--ctdoing-primary-border);
+    border-radius: 9px;
+
+    background: #FFFFFF;
+    color: var(--ctdoing-primary);
+
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.ctdoing-back:hover {
+    background: var(--ctdoing-primary-light);
+    border-color: var(--ctdoing-primary);
+    color: var(--ctdoing-primary);
+}
+
+.ctdoing-back:focus-visible {
+    outline: 2px solid var(--ctdoing-primary);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   3. KHUNG DANH SÁCH
+   ============================================ */
+
+.ctdoing-panel {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 1 auto;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+
+    background: #FFFFFF;
+    border: 1px solid var(--ctdoing-border);
+    border-radius: 14px;
+
+    overflow: hidden;
+
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+/* ============================================
+   4. THANH TIÊU ĐỀ THU GỌN
+   ============================================ */
+
+.ctdoing-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex: 0 0 auto;
+
+    gap: 12px;
+    min-height: 58px;
+
+    padding: 10px 16px;
+
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--ctdoing-border);
+}
+
+/* Tiêu đề + số lượng */
+
+.ctdoing-title-row {
+    display: flex;
+    align-items: center;
+    flex: 1 1 auto;
+
+    min-width: 0;
+    gap: 9px;
+}
+
+.ctdoing-title-row h2 {
+    margin: 0;
+
+    color: #1E293B;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* Badge số lượng bệnh nhân */
+
+.ctdoing-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 auto;
+
+    padding: 5px 10px;
+
+    background: var(--ctdoing-primary-light);
+    color: var(--ctdoing-primary);
+
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* ============================================
+   5. BỘ LỌC PHÒNG
+   ============================================ */
+
+.ctdoing-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    flex: 0 0 auto;
+
+    gap: 9px;
+}
+
+.ctdoing-room-label {
+    font-size: 12px;
+    color: var(--ctdoing-muted);
+
+    white-space: nowrap;
+}
+
+.ctdoing-room {
+    width: 220px;
+    max-width: 100%;
+
+    height: 35px;
+    min-height: 35px;
+
+    padding: 6px 10px;
+
+    background: #FFFFFF;
+    color: #334155;
+
+    border: 1px solid #CBD5E1;
+    border-radius: 8px;
+
+    font-family: inherit;
+    font-size: 12px;
+
+    cursor: pointer;
+}
+
+.ctdoing-room:hover {
+    border-color: #93C5FD;
+}
+
+.ctdoing-room:focus,
+.ctdoing-room:focus-visible {
+    outline: none;
+
+    border-color: var(--ctdoing-primary);
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+/* ============================================
+   6. THANH TÌM KIẾM
+   ============================================ */
+
+.ctdoing-search-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex: 0 0 auto;
+
+    gap: 12px;
+    padding: 10px 16px;
+
+    background: #FFFFFF;
+    border-bottom: 1px solid var(--ctdoing-border);
+}
+
+.ctdoing-search {
+    display: flex;
+    align-items: center;
+
+    gap: 9px;
+
+    width: min(440px, 100%);
+    min-width: 0;
+
+    height: 36px;
+    padding: 0 12px;
+
+    background: #F8FAFC;
+
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+
+    color: #94A3B8;
+}
+
+.ctdoing-search:focus-within {
+    border-color: var(--ctdoing-primary);
+
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+.ctdoing-search input {
+    width: 100%;
+    min-width: 0;
+
+    border: none;
+    outline: none;
+    box-shadow: none;
+
+    background: transparent;
+    color: #334155;
+
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.ctdoing-search input:focus {
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+.ctdoing-search input::placeholder {
+    color: #94A3B8;
+}
+
+.ctdoing-scroll-hint {
+    color: #94A3B8;
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.ctdoing-scroll-hint i {
+    margin-right: 5px;
+}
+
+/* ============================================
+   7. KHUNG CUỘN BẢNG
+   ============================================ */
+
+.ctdoing-table-scroll {
+    flex: 1 1 auto;
+
+    width: 100%;
+    min-height: 0;
+
+    overflow-x: auto;
+    overflow-y: auto;
+
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+}
+
+.ctdoing-table-scroll:focus-visible {
+    outline: 2px solid var(--ctdoing-primary);
+    outline-offset: -2px;
+}
+
+/* ============================================
+   8. BẢNG DỮ LIỆU
+   ============================================ */
+
+.ctdoing-table {
+    width: 100%;
+    min-width: 1010px;
+
+    table-layout: fixed;
+
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+/* Tiêu đề cột cố định khi cuộn */
+
+.ctdoing-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+
+    height: 46px;
+    padding: 10px;
+
+    background: #F1F5F9;
+
+    border-bottom: 1px solid #E2E8F0;
+
+    color: #64748B;
+
+    text-align: left;
+    vertical-align: middle;
+
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.4;
+}
+
+/* Nội dung bảng */
+
+.ctdoing-table tbody tr {
+    height: 64px;
+}
+
+.ctdoing-table tbody td {
+    height: 64px;
+    padding: 10px;
+
+    border-bottom: 1px solid #E2E8F0;
+
+    color: #334155;
+
+    vertical-align: middle;
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+}
+
+/* Hover dòng */
+
+.ctdoing-table tbody tr:hover {
+    background: var(--ctdoing-primary-light);
+}
+
+/* Căn giữa cột STT */
+
+.ctdoing-table th:first-child,
+.ctdoing-table td:first-child {
+    text-align: center;
+}
+
+/* ============================================
+   9. THÔNG TIN BỆNH NHÂN
+   ============================================ */
+
+.ctdoing-patient-name {
+    display: block;
+
+    color: #1E293B;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ctdoing-patient-code {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #94A3B8;
+    font-size: 10.5px;
+}
+
+/* ============================================
+   10. TÊN DỊCH VỤ
+   ============================================ */
+
+.ctdoing-service {
+    display: -webkit-box;
+
+    max-width: 100%;
+
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+
+    overflow: hidden;
+    overflow-wrap: anywhere;
+}
+
+/* ============================================
+   11. PHÒNG THỰC HIỆN
+   ============================================ */
+
+.ctdoing-room-tag {
+    display: inline-block;
+
+    max-width: 100%;
+    padding: 6px 10px;
+
+    background: #F1F5F9;
+    color: #475569;
+
+    border-radius: 7px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+/* ============================================
+   12. THỜI GIAN KHÁM
+   ============================================ */
+
+.ctdoing-time {
+    display: block;
+
+    color: #334155;
+    font-weight: 700;
+}
+
+.ctdoing-date {
+    display: block;
+
+    margin-top: 4px;
+
+    color: #94A3B8;
+    font-size: 10.5px;
+}
+
+/* ============================================
+   13. TRẠNG THÁI ĐANG THỰC HIỆN
+   ============================================ */
+
+.ctdoing-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    max-width: 100%;
+    gap: 7px;
+
+    padding: 7px 10px;
+
+    background: var(--ctdoing-primary-light);
+    color: var(--ctdoing-primary);
+
+    border: 1px solid var(--ctdoing-primary-border);
+    border-radius: 999px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    white-space: nowrap;
+}
+
+.ctdoing-status::before {
+    content: "";
+
+    flex: 0 0 6px;
+
+    width: 6px;
+    height: 6px;
+
+    border-radius: 50%;
+    background: currentColor;
+}
+
+/* ============================================
+   14. NÚT TIẾP TỤC NHẬP KẾT QUẢ
+   ============================================ */
+
+.ctdoing-go {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 34px;
+    padding: 7px 10px;
+
+    background: var(--ctdoing-primary-light);
+    color: var(--ctdoing-primary);
+
+    border: 1px solid var(--ctdoing-primary-border);
+    border-radius: 8px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-decoration: none;
+    white-space: nowrap;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.ctdoing-go:hover {
+    background: var(--ctdoing-primary);
+    color: #FFFFFF;
+
+    border-color: var(--ctdoing-primary);
+}
+
+.ctdoing-go:focus-visible {
+    outline: 2px solid var(--ctdoing-primary);
+    outline-offset: 2px;
+}
+
+.ctdoing-go[aria-disabled="true"] {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* ============================================
+   15. THÔNG BÁO BẢNG TRỐNG
+   ============================================ */
+
+.ctdoing-message {
+    height: 150px !important;
+    padding: 42px 14px !important;
+
+    text-align: center;
+
+    color: #94A3B8 !important;
+    font-size: 12px;
+}
+
+/* ============================================
+   16. FOOTER BẢNG
+   ============================================ */
+
+.ctdoing-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex: 0 0 auto;
+
+    flex-wrap: wrap;
+    gap: 10px;
+
+    min-height: 48px;
+    padding: 10px 16px;
+
+    background: #FFFFFF;
+    border-top: 1px solid var(--ctdoing-border);
+
+    color: #64748B;
+    font-size: 11.5px;
+}
+
+.ctdoing-footer-note {
+    color: #94A3B8;
+}
+
+/* ============================================
+   17. THANH CUỘN
+   ============================================ */
+
+.ctdoing-table-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.ctdoing-table-scroll::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+
+.ctdoing-table-scroll::-webkit-scrollbar-thumb {
+    background: #BFDBFE;
+    border-radius: 10px;
+}
+
+.ctdoing-table-scroll::-webkit-scrollbar-thumb:hover {
+    background: var(--ctdoing-primary);
+}
+
+/* ============================================
+   18. RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1100px) {
+
+    .ctdoing-panel-header {
+        flex-wrap: wrap;
+    }
+
+    .ctdoing-title-row {
+        flex-wrap: wrap;
+    }
+
+    .ctdoing-toolbar {
+        justify-content: flex-start;
+    }
+
+    .ctdoing-scroll-hint {
+        display: none;
+    }
+}
+
+@media (max-width: 750px) {
+
+    .ctdoing-page {
+        height: calc(100dvh - 110px);
+        min-height: 420px;
+    }
+
+    .ctdoing-panel-header {
+        padding: 10px 12px;
+    }
+
+    .ctdoing-search-row {
+        padding: 9px 12px;
+    }
+
+    .ctdoing-toolbar {
+        width: 100%;
+    }
+
+    .ctdoing-room {
+        flex: 1 1 auto;
+    }
+
+    .ctdoing-footer {
+        padding: 10px 12px;
+    }
+}

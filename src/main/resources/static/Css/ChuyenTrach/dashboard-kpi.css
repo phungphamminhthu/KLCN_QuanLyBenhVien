@@ -1,0 +1,65 @@
+/* Thẻ KPI có tương tác - giữ nguyên màu và kích thước hiện có */
+#statCards .ct-stat-card.ct-stat-clickable {
+    cursor: pointer;
+    position: relative;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+#statCards .ct-stat-card.ct-stat-clickable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 22px rgba(54, 48, 110, .12);
+    border-color: #c8baff;
+}
+#statCards .ct-stat-card.ct-stat-clickable:focus-visible {
+    outline: 3px solid #6b41ff;
+    outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+    #statCards .ct-stat-card.ct-stat-clickable {
+        transition: none;
+    }
+}
+
+/* MÀU VIỀN KPI ĐỒNG NHẤT LOGO MEDCARE - xanh tím #6439ff */
+#statCards .ct-stat-card.ct-stat-clickable:hover,
+#statCards .ct-stat-card.ct-stat-clickable:focus-within {
+    border: 1.5px solid #6439ff;
+    box-shadow: 0 7px 20px rgba(100, 57, 255, .13);
+}
+#statCards .ct-stat-card.ct-stat-clickable:focus-visible {
+    outline: 2px solid #6439ff;
+    outline-offset: 2px;
+}
+
+/* TRẠNG THÁI TRONG BẢNG DASHBOARD: 3 MÀU RÕ RÀNG */
+#tableArea .ct-order-table .ct-status,
+#tableArea .ct-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 11px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.35;
+    white-space: nowrap;
+}
+#tableArea .ct-order-table .ct-status-waiting,
+#tableArea .ct-status-waiting {
+    background-color: #fef9c3;
+    border-color: #fef08a;
+    color: #a16207;
+}
+#tableArea .ct-order-table .ct-status-processing,
+#tableArea .ct-status-processing {
+    background-color: #f3e8ff;
+    border-color: #e9d5ff;
+    color: #7e22ce;
+}
+#tableArea .ct-order-table .ct-status-done,
+#tableArea .ct-status-done {
+    background-color: #dcfce7;
+    border-color: #bbf7d0;
+    color: #15803d;
+}

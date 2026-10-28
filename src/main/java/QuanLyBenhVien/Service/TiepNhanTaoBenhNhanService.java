@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,7 +38,73 @@ public class TiepNhanTaoBenhNhanService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // Trả về mã bệnh nhân vừa tạo.
+    // =====================================================
+    // TRA CỨU HỒ SƠ THEO SỐ ĐIỆN THOẠI
+    // Không lọc TrangThai của nguoidung vì hồ sơ tại quầy
+    // có thể gắn với tài khoản nội bộ chưa được đăng nhập.
+    // =====================================================
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> traCuuSoDienThoai(
+            String soDienThoai
+    ) {
+        String soDaChuanHoa = chuanHoaSoDienThoai(
+                soDienThoai,
+                "Số điện thoại",
+                true
+        );
+
+        String sql = """
+                SELECT
+                    bn.MaBenhNhan AS maBenhNhan,
+                    nd.HoTen AS hoTen,
+                    bn.NgaySinh AS ngaySinh,
+                    bn.GioiTinh AS gioiTinh,
+                    nd.SoDienThoai AS soDienThoai,
+                    nd.Email AS email,
+                    bn.DiaChi AS diaChi
+                FROM benhnhan bn
+                JOIN nguoidung nd
+                    ON nd.MaNguoiDung = bn.MaNguoiDung
+                WHERE
+                    CASE
+                        WHEN LEFT(
+                            REGEXP_REPLACE(
+                                COALESCE(nd.SoDienThoai, ''),
+                                '[^0-9+]',
+                                ''
+                            ),
+                            3
+                        ) = '+84'
+                        THEN CONCAT(
+                            '0',
+                            SUBSTRING(
+                                REGEXP_REPLACE(
+                                    nd.SoDienThoai,
+                                    '[^0-9+]',
+                                    ''
+                                ),
+                                4
+                            )
+                        )
+                        ELSE REGEXP_REPLACE(
+                            COALESCE(nd.SoDienThoai, ''),
+                            '[^0-9+]',
+                            ''
+                        )
+                    END = ?
+                ORDER BY nd.HoTen, bn.MaBenhNhan
+                """;
+
+        return jdbcTemplate.queryForList(sql, soDaChuanHoa);
+    }
+
+    // =====================================================
+    // TẠO HỒ SƠ BỆNH NHÂN TẠI QUẦY
+    // Không yêu cầu bệnh nhân có tài khoản app trước.
+    // Hai bản ghi được tạo trong cùng một transaction.
+    // =====================================================
+
     @Transactional
     public Integer taoBenhNhan(
             TiepNhanTaoBenhNhanDTO dto
@@ -48,16 +115,28 @@ public class TiepNhanTaoBenhNhanService {
 
         String hoTen = chuanHoa(dto.getHoTen());
         String gioiTinh = chuanHoa(dto.getGioiTinh());
-        String soDienThoai = chuanHoa(dto.getSoDienThoai());
         String email = chuanHoa(dto.getEmail());
         String diaChi = chuanHoa(dto.getDiaChi());
-        String soDienThoaiKhanCap =
-                chuanHoa(dto.getSoDienThoaiKhanCap());
         String tienSuBenh = chuanHoa(dto.getTienSuBenh());
+
+        String soDienThoai = chuanHoaSoDienThoai(
+                dto.getSoDienThoai(),
+                "Số điện thoại",
+                true
+        );
+
+        String soDienThoaiKhanCap = chuanHoaSoDienThoai(
+                dto.getSoDienThoaiKhanCap(),
+                "Số điện thoại khẩn cấp",
+                false
+        );
 
         LocalDate ngaySinh = dto.getNgaySinh();
 
-        kiemTraBatBuoc(hoTen, "Họ tên");
+        if (hoTen == null) {
+            throw loiDuLieu("Vui lòng nhập họ tên.");
+        }
+
         kiemTraDoDai(hoTen, 255, "Họ tên");
 
         if (ngaySinh == null) {
@@ -79,20 +158,6 @@ public class TiepNhanTaoBenhNhanService {
                 && !"Khác".equals(gioiTinh)) {
             throw loiDuLieu(
                     "Giới tính phải là Nam, Nữ hoặc Khác."
-            );
-        }
-
-        // Có thể dùng số liên hệ của người thân.
-        kiemTraBatBuoc(soDienThoai, "Số điện thoại");
-        kiemTraSoDienThoai(
-                soDienThoai,
-                "Số điện thoại"
-        );
-
-        if (soDienThoaiKhanCap != null) {
-            kiemTraSoDienThoai(
-                    soDienThoaiKhanCap,
-                    "Số điện thoại khẩn cấp"
             );
         }
 
@@ -124,12 +189,13 @@ public class TiepNhanTaoBenhNhanService {
                 throw new ResponseStatusException(
                         HttpStatus.CONFLICT,
                         "Email đã được sử dụng. "
-                                + "Vui lòng tìm hồ sơ hiện có trước."
+                                + "Vui lòng kiểm tra hồ sơ hiện có "
+                                + "hoặc để trống email nếu bệnh nhân "
+                                + "không có email riêng."
                 );
             }
         }
 
-        // Tra cứu theo tên vai trò, không cố định mã 6 trong code.
         List<Integer> vaiTroBenhNhan =
                 jdbcTemplate.queryForList(
                         """
@@ -148,10 +214,12 @@ public class TiepNhanTaoBenhNhanService {
             );
         }
 
-        String tenDangNhap =
-                "quay_" + UUID.randomUUID()
-                        .toString()
-                        .replace("-", "");
+        // Bản ghi nội bộ để liên kết hồ sơ.
+        // Không dùng số điện thoại làm tên đăng nhập.
+        String tenDangNhap = "quay_"
+                + UUID.randomUUID()
+                .toString()
+                .replace("-", "");
 
         String matKhauMaHoa = passwordEncoder.encode(
                 UUID.randomUUID().toString()
@@ -175,12 +243,11 @@ public class TiepNhanTaoBenhNhanService {
                     soDienThoaiKhanCap,
                     tienSuBenh
             );
-
-        } catch (DuplicateKeyException e) {
+        } catch (DuplicateKeyException exception) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Thông tin tài khoản đã tồn tại. "
-                            + "Vui lòng kiểm tra hồ sơ trước khi tạo mới."
+                    "Thông tin đã tồn tại. "
+                            + "Vui lòng tra cứu lại trước khi tạo mới."
             );
         }
     }
@@ -289,20 +356,50 @@ public class TiepNhanTaoBenhNhanService {
         }
 
         String ketQua = giaTri.trim();
-
         return ketQua.isEmpty() ? null : ketQua;
     }
 
-    private void kiemTraBatBuoc(
+    private String chuanHoaSoDienThoai(
             String giaTri,
-            String tenTruong
+            String tenTruong,
+            boolean batBuoc
     ) {
-        if (giaTri == null) {
+        String ketQua = chuanHoa(giaTri);
+
+        if (ketQua == null) {
+            if (batBuoc) {
+                throw loiDuLieu(
+                        "Vui lòng nhập "
+                                + tenTruong.toLowerCase(Locale.ROOT)
+                                + "."
+                );
+            }
+
+            return null;
+        }
+
+        // Cho phép nhập khoảng trắng, dấu chấm, gạch nối,
+        // dấu ngoặc khi ghi số điện thoại.
+        if (!ketQua.matches("^[+0-9\\s().-]+$")) {
+            throw loiDuLieu(tenTruong + " không hợp lệ.");
+        }
+
+        ketQua = ketQua.replaceAll("[\\s().-]", "");
+
+        // Quy về đầu 0 cho số Việt Nam.
+        if (ketQua.startsWith("+84")) {
+            ketQua = "0" + ketQua.substring(3);
+        }
+
+        if (!ketQua.matches("^\\+?[0-9]{9,14}$")) {
             throw loiDuLieu(
-                    "Vui lòng nhập " + tenTruong.toLowerCase()
-                            + "."
+                    tenTruong
+                            + " phải gồm 9–14 chữ số, "
+                            + "có thể bắt đầu bằng dấu +."
             );
         }
+
+        return ketQua;
     }
 
     private void kiemTraDoDai(
@@ -314,19 +411,6 @@ public class TiepNhanTaoBenhNhanService {
             throw loiDuLieu(
                     tenTruong + " không được vượt quá "
                             + toiDa + " ký tự."
-            );
-        }
-    }
-
-    private void kiemTraSoDienThoai(
-            String giaTri,
-            String tenTruong
-    ) {
-        if (!giaTri.matches("^\\+?[0-9]{9,14}$")) {
-            throw loiDuLieu(
-                    tenTruong
-                            + " phải gồm 9–14 chữ số, "
-                            + "có thể bắt đầu bằng dấu +."
             );
         }
     }
