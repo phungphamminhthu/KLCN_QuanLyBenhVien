@@ -83,19 +83,21 @@ public class BacSiKhamBenhController {
     // =========================================================
     // 1. DANH SÁCH BỆNH NHÂN CHỜ KHÁM
     // =========================================================
+
     @GetMapping("/danh-sach-cho-kham")
     public ResponseEntity<?> danhSachChoKham(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         try {
-
             BacSi bacSi = layBacSiDangNhap(userDetails);
 
             List<LichDangKyKham> danhSach =
-                    lichDangKyKhamRepository.findDanhSachChoKham(
-                            bacSi.getMaBacSi(),
-                            LocalDate.now()
-                    );
+                    lichDangKyKhamRepository
+                            .findByBacSi_MaBacSiAndNgayKhamAndTrangThaiInOrderByGioKhamAsc(
+                                    bacSi.getMaBacSi(),
+                                    LocalDate.now(),
+                                    List.of("DaTiepNhan")
+                            );
 
             List<Map<String, Object>> ketQua =
                     danhSach.stream()
@@ -108,7 +110,6 @@ public class BacSiKhamBenhController {
             return loi(e);
         }
     }
-
 
     // =========================================================
     // 2. DANH SÁCH BỆNH NHÂN ĐANG KHÁM
@@ -1781,6 +1782,10 @@ public class BacSiKhamBenhController {
                 "trangThai",
                 chiDinh.getTrangThai()
         );
+        map.put(
+                "nhomXetNghiem",
+                chiDinh.getDichVuYTe().getNhomXetNghiem()
+        );
 
         if (chiDinh.getDichVuYTe() != null) {
 
@@ -1802,6 +1807,10 @@ public class BacSiKhamBenhController {
             map.put(
                     "gia",
                     chiDinh.getDichVuYTe().getGia()
+            );
+            map.put(
+                    "nhomXetNghiem",
+                    chiDinh.getDichVuYTe().getNhomXetNghiem()
             );
         }
 

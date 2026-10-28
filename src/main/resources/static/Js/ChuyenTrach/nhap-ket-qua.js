@@ -21,6 +21,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveBtn = $("saveResultBtn");
     const finishBtn = $("finishClsBtn");
     const notice = $("resultNotice");
+    const labResults = $("labResults");
+    const labGroups = $("labGroups");
+    const labCount = $("labCount");
+    const labSummary = $("labSummary");
+    const saveLabBtn = $("saveLabBtn");
+
+    let labOrders = [];
+    let normalOrders = [];
+    let labSavedValues = {};
 
     // Một nút quay lại duy nhất
     const backButton = $("ctBackButton");
@@ -140,29 +149,41 @@ document.addEventListener("DOMContentLoaded", () => {
         notice.classList.toggle("error", error);
     }
 
-    function setBusy(value) {
-        busy = value;
+   function setBusy(value) {
+       busy = value;
 
-        select.disabled = value || orders.length === 0;
+       select.disabled =
+           value || !editable || normalOrders.length === 0;
 
-        saveBtn.disabled =
-            value || !editable || orders.length === 0;
+       saveBtn.disabled =
+           value || !editable || normalOrders.length === 0;
 
-        finishBtn.disabled =
-            value || !editable || orders.length === 0;
-    }
+       finishBtn.disabled =
+           value || !editable || orders.length === 0;
+
+       saveLabBtn.disabled =
+           value || !editable || labOrders.length === 0;
+
+       getLabInputs().forEach(input => {
+           input.disabled = value || !editable;
+       });
+   }
 
     // ============================================
     // 4. KIỂM TRA THAY ĐỔI CHƯA LƯU
     // ============================================
 
     function hasUnsavedChanges() {
-        if (!editable || orders.length === 0) {
-            return false;
-        }
+        if (!editable) return false;
 
-        return content.value !== savedValues.content ||
-               conclusion.value !== savedValues.conclusion;
+        const normalChanged =
+            normalOrders.length > 0 &&
+            (
+                content.value !== savedValues.content ||
+                conclusion.value !== savedValues.conclusion
+            );
+
+        return normalChanged || hasUnsavedLabChanges();
     }
 
     function showOrder() {
@@ -192,6 +213,189 @@ document.addEventListener("DOMContentLoaded", () => {
             conclusion: conclusion.value
         };
     }
+
+    // ============================================
+    // GIAO DIỆN RIÊNG CHO XÉT NGHIỆM
+    // ============================================
+
+    function normalizeType(value) {
+        return String(value || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
+  function isLabOrder(order) {
+      const loaiChiDinh = normalizeType(order.loaiChiDinh);
+      const loaiDichVu = normalizeType(order.loaiDichVu);
+
+      return loaiChiDinh.includes("xet nghiem") ||
+             loaiDichVu.includes("xet nghiem");
+  }
+    function getLabGroup(order) {
+        return order.nhomXetNghiem?.trim() ||
+               "CÁC XÉT NGHIỆM KHÁC";
+    }
+
+    function getLabInputs() {
+        return [...labGroups.querySelectorAll(
+            ".ct-lab-input"
+        )];
+    }
+
+    function hasUnsavedLabChanges() {
+        return getLabInputs().some(input => {
+            const id = input.dataset.orderId;
+
+            return input.value !==
+                (labSavedValues[id] ?? "");
+        });
+    }
+
+    function renderLabResults() {
+        labGroups.replaceChildren();
+
+        labResults.hidden = labOrders.length === 0;
+
+        if (!labOrders.length) return;
+
+        const groups = new Map();
+
+        for (const order of labOrders) {
+            const name = getLabGroup(order);
+
+            if (!groups.has(name)) {
+                groups.set(name, []);
+            }
+
+            groups.get(name).push(order);
+        }
+
+        for (const [groupName, items] of groups) {
+            const group = document.createElement("section");
+            group.className = "ct-lab-group";
+
+            const heading = document.createElement("h4");
+            heading.textContent = groupName.toUpperCase();
+
+            group.appendChild(heading);
+
+            for (const order of items) {
+                const row = document.createElement("div");
+                row.className = "ct-lab-row";
+
+                const label = document.createElement("label");
+                const inputId = `lab-${order.maChiDinh}`;
+
+                label.htmlFor = inputId;
+
+                const check = document.createElement("i");
+                check.className = "fa-solid fa-check";
+
+                const name = document.createElement("span");
+                name.textContent = order.tenDichVu;
+
+                label.append(check, name);
+
+                const input = document.createElement("input");
+
+                input.id = inputId;
+                input.type = "text";
+                input.className = "ct-lab-input";
+                input.placeholder = "Nhập kết quả...";
+                input.maxLength = 20000;
+
+                input.dataset.orderId =
+                    String(order.maChiDinh);
+
+                input.value = order.noiDungKetQua || "";
+                input.disabled = !editable;
+
+                labSavedValues[String(order.maChiDinh)] =
+                    input.value;
+
+                row.append(label, input);
+                group.appendChild(row);
+            }
+
+            labGroups.appendChild(group);
+        }
+
+        labSummary.textContent =
+            `Tổng số mục: ${labOrders.length} mục`;
+    }
+
+    // Lưu từng xét nghiệm bằng API hiện tại
+    saveLabBtn.addEventListener("click", async () => {
+        if (busy || !editable || !labOrders.length) {
+            return;
+        }
+
+        const changes = getLabInputs().filter(input => {
+            const id = input.dataset.orderId;
+
+            return input.value !==
+                (labSavedValues[id] ?? "");
+        });
+
+        if (!changes.length) {
+            showNotice(
+                "Không có kết quả xét nghiệm mới cần lưu."
+            );
+            return;
+        }
+
+        if (changes.some(input => !input.value.trim())) {
+            showNotice(
+                "Kết quả xét nghiệm không được để trống.",
+                true
+            );
+            return;
+        }
+
+        setBusy(true);
+
+        let savedCount = 0;
+
+        try {
+            for (const input of changes) {
+                const id = input.dataset.orderId;
+                const value = input.value.trim();
+
+                await api(
+                    `/chi-dinh/${encodeURIComponent(id)}/luu`,
+                    "POST",
+                    {
+                        noiDungKetQua: value,
+                        ketLuan:
+                            "Đã ghi nhận kết quả xét nghiệm; " +
+                            "chờ bác sĩ đánh giá."
+                    }
+                );
+
+                labSavedValues[id] = input.value;
+                savedCount++;
+            }
+
+            await load();
+
+            showNotice(
+                `Đã lưu ${savedCount} kết quả xét nghiệm.`
+            );
+
+        } catch (error) {
+            showNotice(
+                `Đã lưu ${savedCount} mục. ` +
+                `Có lỗi: ${error.message}`,
+                true
+            );
+
+        } finally {
+            setBusy(false);
+        }
+    });
+
 
     // ============================================
     // 5. POPUP XÁC NHẬN GIỮA MÀN HÌNH
@@ -663,27 +867,87 @@ document.addEventListener("DOMContentLoaded", () => {
                     : "Chờ bắt đầu CLS"
             );
 
+
             editable = data.trangThai === "DangCLS";
 
             orders = Array.isArray(data.chiDinh)
                 ? data.chiDinh
                 : [];
 
+            console.log("DANH SÁCH CHỈ ĐỊNH:", orders);
+            console.log("CHỈ ĐỊNH ĐẦU TIÊN:", orders[0]);
+
+
+            // Phân loại xét nghiệm và các dịch vụ khác
+            labOrders = orders.filter(isLabOrder);
+            normalOrders = orders.filter(
+                order => !isLabOrder(order)
+            );
+
+            // Hiển thị nhóm xét nghiệm
+            renderLabResults();
+            // Ẩn tiêu đề cũ nếu phiếu chỉ có xét nghiệm
+            const normalHeading = $("normalResultHeading");
+
+            if (normalHeading) {
+                normalHeading.hidden =
+                    labOrders.length > 0 && normalOrders.length === 0;
+            }
+
+            // Các dịch vụ khác giữ giao diện cũ
+            const normalVisible = normalOrders.length > 0;
+
+            select.closest(".ct-form-group").hidden =
+                !normalVisible;
+
+            content.closest(".ct-form-group").hidden =
+                !normalVisible;
+
+            conclusion.closest(".ct-form-group").hidden =
+                !normalVisible;
+
+            const fileBox = document.querySelector(
+                ".ct-file-placeholder"
+            );
+
+            if (fileBox) {
+                fileBox.closest(".ct-form-group").hidden =
+                    !normalVisible;
+            }
+
+            saveBtn.hidden = !normalVisible;
+
             select.replaceChildren();
 
-            // Trường hợp chưa có chỉ định
-            if (orders.length === 0) {
+            if (normalVisible) {
+                const requestedId = new URLSearchParams(
+                    window.location.search
+                ).get("maChiDinh");
 
-                const option =
-                    document.createElement("option");
+                const previousId =
+                    selectedOrderId || requestedId;
 
-                option.textContent =
-                    "Chưa có chỉ định dịch vụ";
+                for (const order of normalOrders) {
+                    const option =
+                        document.createElement("option");
 
-                select.appendChild(option);
+                    option.value = String(order.maChiDinh);
+                    option.textContent =
+                        `CD${order.maChiDinh} - ${order.tenDichVu}`;
 
+                    select.appendChild(option);
+                }
+
+                selectedOrderId = normalOrders.some(
+                    order =>
+                        String(order.maChiDinh) === previousId
+                )
+                    ? previousId
+                    : String(normalOrders[0].maChiDinh);
+
+                showOrder();
+            } else {
                 selectedOrderId = "";
-
                 content.value = "";
                 conclusion.value = "";
 
@@ -694,55 +958,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 setText(
                     "serviceName",
-                    "Chưa có chỉ định"
+                    labOrders.length
+                        ? `Xét nghiệm (${labOrders.length} mục)`
+                        : "Chưa có chỉ định"
                 );
 
-                setText("roomName", "—");
-                setText("orderDate", "—");
+               const firstLab = labOrders[0];
 
-                showNotice(
-                    "Lượt khám chưa có chỉ định dịch vụ " +
-                    "từ bác sĩ. Không thể lưu hoặc hoàn tất CLS.",
-                    true
-                );
+               setText(
+                   "roomName",
+                   firstLab?.maPhong ?? "Chưa phân phòng"
+               );
+
+               setText(
+                   "orderDate",
+                   formatDate(firstLab?.ngayChiDinh)
+               );
             }
 
-            // Có chỉ định thật
-            else {
-                const requestedId = new URLSearchParams(
-                    window.location.search
-                ).get("maChiDinh");
-
-                const previousId = selectedOrderId || requestedId;
-
-                for (const order of orders) {
-                    const option =
-                        document.createElement("option");
-
-                    option.value =
-                        String(order.maChiDinh);
-
-                    option.textContent =
-                        `CD${order.maChiDinh} - ${order.tenDichVu}`;
-
-                    select.appendChild(option);
-                }
-
-                selectedOrderId = orders.some(
-                    x => String(x.maChiDinh) === previousId
-                )
-                    ? previousId
-                    : String(orders[0].maChiDinh);
-
-                showOrder();
+            if (!orders.length) {
+                showNotice(
+                    "Lượt khám chưa có chỉ định dịch vụ.",
+                    true
+                );
+            } else {
                 notice.hidden = true;
             }
 
             content.disabled =
-                !editable || orders.length === 0;
+                !editable || normalOrders.length === 0;
 
             conclusion.disabled =
-                !editable || orders.length === 0;
+                !editable || normalOrders.length === 0;
 
             setBusy(false);
 
@@ -832,7 +1079,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: "Bạn chưa lưu kết quả",
 
                 message:
-                    "Vui lòng bấm Lưu kết quả " +
+                    "Vui lòng lưu tất cả kết quả vừa nhập " +
                     "trước khi hoàn tất CLS.",
 
                 confirmText: "Đã hiểu",

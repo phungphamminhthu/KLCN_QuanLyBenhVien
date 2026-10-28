@@ -564,3 +564,100 @@ body {
     }
 }
 
+/* =========================================
+   KẾT QUẢ XÉT NGHIỆM THEO NHÓM
+========================================= */
+
+.cls-result-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+    width: 100%;
+}
+
+.cls-result-group {
+    min-width: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: white;
+    padding: 16px 18px;
+}
+
+.cls-result-group-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #2563eb;
+    font-size: 14px;
+}
+
+.cls-result-group-title i {
+    margin-right: 6px;
+}
+
+.cls-result-group-title span {
+    color: #64748b;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.cls-result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.cls-result-row:last-child {
+    border-bottom: none;
+}
+
+.cls-result-name {
+    min-width: 0;
+    font-size: 13px;
+    color: #334155;
+}
+
+.cls-result-value {
+    max-width: 48%;
+    padding: 6px 10px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 7px;
+    font-size: 13px;
+    text-align: right;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.cls-result-waiting {
+    color: #d97706;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.cls-result-clickable {
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.cls-result-clickable:hover,
+.cls-result-clickable:focus-visible {
+    background: #f8fafc;
+    outline-color: #2563eb;
+}
+
+@media (max-width: 850px) {
+    .cls-result-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+

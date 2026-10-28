@@ -42,8 +42,9 @@
         <!-- CỘT TRÁI: THÔNG TIN CHỈ ĐỊNH -->
         <aside class="ct-result-panel">
 
-            <div class="ct-result-heading">
-                <i class="fa-regular fa-file-lines"></i>
+            <div class="ct-result-heading" id="normalResultHeading">
+                <i class="fa-solid fa-flask-vial"></i>
+                <h2>Thông tin chỉ định</h2>
                 <h2>Thông tin chỉ định</h2>
             </div>
 
@@ -111,6 +112,22 @@
             <div id="resultNotice"
                  class="ct-result-notice"
                  hidden></div>
+            <!-- GIAO DIỆN RIÊNG CHO XÉT NGHIỆM -->
+            <div id="labResults" class="ct-lab-results" hidden>
+
+                <div id="labGroups" class="ct-lab-grid"></div>
+
+                <div class="ct-lab-footer">
+                    <span id="labSummary"></span>
+
+                    <button type="button"
+                            id="saveLabBtn"
+                            class="ct-btn ct-btn-outline">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                        Lưu kết quả xét nghiệm
+                    </button>
+                </div>
+            </div>
 
             <div class="ct-form-group">
                 <label for="orderSelect">

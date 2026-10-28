@@ -8,7 +8,10 @@ import QuanLyBenhVien.Entity.KetQuaDichVu;
 import QuanLyBenhVien.Entity.LichDangKyKham;
 import QuanLyBenhVien.Entity.NguoiDung;
 import QuanLyBenhVien.Repository.KetQuaDichVuRepository;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,8 @@ import java.util.Map;
 public class ChuyenTrachChiTietKetQuaController {
 
     private final KetQuaDichVuRepository ketQuaRepository;
+    @PersistenceContext
+    private EntityManager em;
 
     public ChuyenTrachChiTietKetQuaController(
             KetQuaDichVuRepository ketQuaRepository
@@ -37,17 +42,22 @@ public class ChuyenTrachChiTietKetQuaController {
     // =====================================================
     // TRANG CHI TIẾT KẾT QUẢ
     // =====================================================
-
-    @GetMapping(
-            "/ChuyenTrach/ket-qua-da-thuc-hien/{maChiDinh}"
-    )
+// Trang chi tiết một chỉ định: CT, siêu âm, nội soi...
+    @GetMapping("/ChuyenTrach/ket-qua-da-thuc-hien/{maChiDinh}")
     public String trangChiTiet(
             @PathVariable Integer maChiDinh
     ) {
         return "ChuyenTrach/chi-tiet-ket-qua";
     }
 
-    // =====================================================
+    // Trang chi tiết toàn bộ phiếu xét nghiệm
+    @GetMapping("/ChuyenTrach/ket-qua-da-thuc-hien/phieu/{maPhieu}")
+    public String trangChiTietPhieu(
+            @PathVariable String maPhieu
+    ) {
+        return "ChuyenTrach/chi-tiet-ket-qua";
+    }
+    // =====================================================s
     // API ĐỌC KẾT QUẢ ĐÃ HOÀN THÀNH
     // Không cập nhật bất kỳ trạng thái nào
     // =====================================================
@@ -224,6 +234,151 @@ public class ChuyenTrachChiTietKetQuaController {
 
         return data;
     }
+
+    @ResponseBody
+    @GetMapping(
+            "/api/chuyen-trach/ket-qua-da-thuc-hien/phieu/{maPhieu}"
+    )
+    @Transactional(readOnly = true)
+    public Map<String, Object> chiTietPhieu(
+            @PathVariable String maPhieu,
+            Authentication authentication
+    ) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getAuthorities().stream()
+                .noneMatch(a -> "ROLE_CHUYENTRACH"
+                        .equals(a.getAuthority()))) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Không có quyền xem phiếu xét nghiệm"
+            );
+        }
+
+        // Lấy các chỉ định thuộc đúng mã phiếu từ MySQL
+        @SuppressWarnings("unchecked")
+        List<Number> ids = em.createNativeQuery("""
+            SELECT MaChiDinh
+            FROM ChiDinhYTe
+            WHERE MaPhieuChiDinh = :maPhieu
+            ORDER BY MaChiDinh
+            """)
+                .setParameter("maPhieu", maPhieu)
+                .getResultList();
+
+        if (ids.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy phiếu xét nghiệm"
+            );
+        }
+
+        List<Map<String, Object>> danhSach = new ArrayList<>();
+        ChiDinhYTe dauTien = null;
+        Integer maHoSo = null;
+
+        for (Number id : ids) {
+            ChiDinhYTe chiDinh = em.find(
+                    ChiDinhYTe.class,
+                    id.intValue()
+            );
+
+            if (chiDinh == null) {
+                throw new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Không tìm thấy chỉ định trong phiếu"
+                );
+            }
+
+            if (dauTien == null) {
+                dauTien = chiDinh;
+                maHoSo = chiDinh.getHoSoBenhAn()
+                        .getMaHoSoBenhAn();
+            }
+
+            // Không cho gộp nhầm dữ liệu của hồ sơ khác
+            if (!maHoSo.equals(
+                    chiDinh.getHoSoBenhAn().getMaHoSoBenhAn()
+            )) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Phiếu chứa chỉ định thuộc nhiều hồ sơ"
+                );
+            }
+
+            String loai = String.valueOf(
+                    chiDinh.getDichVuYTe().getLoaiDichVu()
+            );
+
+            if (!"Xét nghiệm".equalsIgnoreCase(loai.trim())
+                    || !"DaHoanThanh".equals(
+                    chiDinh.getTrangThai())) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Phiếu có chỉ định không phải xét nghiệm "
+                                + "hoặc chưa hoàn thành"
+                );
+            }
+
+            KetQuaDichVu ketQua = ketQuaRepository
+                    .findByChiDinhYTe_MaChiDinh(
+                            chiDinh.getMaChiDinh()
+                    )
+                    .orElseThrow(() ->
+                            new ResponseStatusException(
+                                    HttpStatus.CONFLICT,
+                                    "Có xét nghiệm chưa có kết quả"
+                            )
+                    );
+
+            Map<String, Object> item = new LinkedHashMap<>();
+
+            item.put("maChiDinh", chiDinh.getMaChiDinh());
+            item.put("tenDichVu",
+                    chiDinh.getDichVuYTe().getTenDichVu());
+            item.put("nhomXetNghiem",
+                    docThuocTinh(
+                            chiDinh.getDichVuYTe(),
+                            "nhomXetNghiem"
+                    ));
+            item.put("noiDungKetQua",
+                    ketQua.getNoiDungKetQua());
+            item.put("ketLuan", ketQua.getKetLuan());
+            item.put("ngayCoKetQua",
+                    ketQua.getNgayCoKetQua());
+            item.put("fileURL", ketQua.getFileURL());
+
+            danhSach.add(item);
+        }
+
+        LichDangKyKham lich = dauTien
+                .getHoSoBenhAn()
+                .getLichDangKyKham();
+
+        BenhNhan benhNhan = lich.getBenhNhan();
+
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        result.put("maPhieuChiDinh", maPhieu);
+        result.put("maHoSoBenhAn", maHoSo);
+        result.put("maBenhNhan", benhNhan.getMaBenhNhan());
+        result.put("tenBenhNhan",
+                benhNhan.getNguoiDung().getHoTen());
+        result.put("gioiTinh", benhNhan.getGioiTinh());
+        result.put("ngaySinh", benhNhan.getNgaySinh());
+
+        result.put("bacSiPhuTrach",
+                lich.getBacSi().getNguoiDung().getHoTen());
+
+        result.put("ngayChiDinh",
+                dauTien.getNgayChiDinh());
+
+        result.put("soXetNghiem", danhSach.size());
+        result.put("danhSachXetNghiem", danhSach);
+
+        return result;
+    }
+
 
     // =====================================================
     // ĐỌC SĐT NẾU NGUOIDUNG CÓ THUỘC TÍNH

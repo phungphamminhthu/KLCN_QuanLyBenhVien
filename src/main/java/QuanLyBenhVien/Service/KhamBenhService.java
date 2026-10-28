@@ -94,37 +94,78 @@ public class KhamBenhService {
             Integer maBacSi,
             Integer maLichKham
     ) {
-        // Lấy lịch khám thuộc bác sĩ đang đăng nhập
+        // 1. Kiểm tra lịch khám thuộc bác sĩ
         LichDangKyKham lichKham =
                 timLichKhamCuaBacSi(maBacSi, maLichKham);
 
-        // Chỉ kiểm tra trạng thái từ bảng TiepNhanBenhNhan
+        // 2. Kiểm tra bệnh nhân đã được tiếp nhận
         boolean daTiepNhan = tiepNhanBenhNhanRepository
                 .existsByLichDangKyKham_MaLichKhamAndTrangThai(
                         maLichKham,
                         "DaTiepNhan"
                 );
 
-        if (!daTiepNhan) {
+        // 3. Tìm hồ sơ bệnh án đã được tạo trước đó
+        Optional<HoSoBenhAn> hoSoDaCo =
+                hoSoBenhAnRepository
+                        .findByLichDangKyKham_MaLichKham(maLichKham);
+
+        // 4. Nếu đang khám thì cho phép tiếp tục
+        if ("DangKham".equals(lichKham.getTrangThai())) {
+
+            HoSoBenhAn hoSo = hoSoDaCo.orElseThrow(
+                    () -> new IllegalStateException(
+                            "Không tìm thấy hồ sơ đang khám."
+                    )
+            );
+
+            if (!"DangKham".equals(hoSo.getTrangThai())) {
+                throw new IllegalStateException(
+                        "Trạng thái hồ sơ không hợp lệ."
+                );
+            }
+
+            return hoSo;
+        }
+
+        // 5. Không cho bắt đầu lại lịch đã hoàn tất
+        if ("DaKham".equals(lichKham.getTrangThai())
+                || "HoanTat".equals(lichKham.getTrangThai())) {
+            throw new IllegalStateException(
+                    "Lịch khám này đã hoàn tất."
+            );
+        }
+
+        // 6. Chỉ cho bắt đầu khi lịch đã tiếp nhận
+        if (!daTiepNhan
+                || !("DaTiepNhan".equals(lichKham.getTrangThai())
+                || "ChoKham".equals(lichKham.getTrangThai()))) {
             throw new IllegalStateException(
                     "Bệnh nhân chưa được tiếp nhận hoặc không còn chờ khám."
             );
         }
 
-        // Không cho tạo trùng hồ sơ bệnh án
-        if (hoSoBenhAnRepository
-                .existsByLichDangKyKham_MaLichKham(maLichKham)) {
+        // 7. Sử dụng hồ sơ đã có hoặc tạo mới
+        HoSoBenhAn hoSo;
 
-            throw new IllegalStateException(
-                    "Lịch khám này đã có hồ sơ bệnh án."
-            );
+        if (hoSoDaCo.isPresent()) {
+            hoSo = hoSoDaCo.get();
+
+            if (!"ChoKham".equals(hoSo.getTrangThai())) {
+                throw new IllegalStateException(
+                        "Hồ sơ bệnh án không ở trạng thái Chờ khám."
+                );
+            }
+        } else {
+            hoSo = new HoSoBenhAn();
+            hoSo.setLichDangKyKham(lichKham);
         }
 
-        // Cập nhật bảng LichDangKyKham
+        // 8. Chuyển trạng thái sang Đang khám
+        hoSo.setTrangThai("DangKham");
         lichKham.setTrangThai("DangKham");
-        lichDangKyKhamRepository.save(lichKham);
 
-        // Cập nhật bảng TiepNhanBenhNhan
+        // 9. Cập nhật trạng thái tiếp nhận
         int soDong = tiepNhanBenhNhanRepository
                 .capNhatTrangThaiTheoLich(
                         maLichKham,
@@ -137,11 +178,8 @@ public class KhamBenhService {
             );
         }
 
-        // Tạo hồ sơ bệnh án
-        HoSoBenhAn hoSo = new HoSoBenhAn();
-
-        hoSo.setLichDangKyKham(lichKham);
-        hoSo.setTrangThai("DangKham");
+        // 10. Lưu dữ liệu trong cùng transaction
+        lichDangKyKhamRepository.save(lichKham);
 
         return hoSoBenhAnRepository.save(hoSo);
     }

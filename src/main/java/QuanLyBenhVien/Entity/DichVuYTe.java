@@ -1,7 +1,7 @@
 package QuanLyBenhVien.Entity;
 
 import jakarta.persistence.*;
-
+import jakarta.persistence.Column;
 import java.math.BigDecimal;
 
 @Entity
@@ -24,6 +24,16 @@ public class DichVuYTe {
 
     @Column(name = "Gia", nullable = false, precision = 15, scale = 2)
     private BigDecimal gia;
+    @Column(name = "NhomXetNghiem")
+    private String nhomXetNghiem;
+
+    public String getNhomXetNghiem() {
+        return nhomXetNghiem;
+    }
+
+    public void setNhomXetNghiem(String nhomXetNghiem) {
+        this.nhomXetNghiem = nhomXetNghiem;
+    }
 
     public DichVuYTe() {
     }

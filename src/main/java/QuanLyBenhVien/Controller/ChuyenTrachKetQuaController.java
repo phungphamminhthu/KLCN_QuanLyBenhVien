@@ -104,11 +104,29 @@ public class ChuyenTrachKetQuaController {
                 getChiDinh(maLich).stream().map(c -> {
                     Map<String, Object> row = new LinkedHashMap<>();
 
+
                     row.put("maChiDinh", c.getMaChiDinh());
-                    row.put("tenDichVu", c.getDichVuYTe().getTenDichVu());
+
+                    row.put("tenDichVu",
+                            c.getDichVuYTe().getTenDichVu());
+
+// Lấy loại chỉ định từ database
+                    row.put("loaiChiDinh",
+                            c.getLoaiChiDinh());
+
+// Lấy loại dịch vụ từ database
+                    row.put("loaiDichVu",
+                            c.getDichVuYTe().getLoaiDichVu());
+
+// Lấy nhóm xét nghiệm từ database
+                    row.put("nhomXetNghiem",
+                            c.getDichVuYTe().getNhomXetNghiem());
+
+// Thông tin phòng và thời gian
                     row.put("maPhong", c.getMaPhong());
                     row.put("ngayChiDinh", c.getNgayChiDinh());
                     row.put("trangThai", c.getTrangThai());
+
 
                     KetQuaDichVu k = getKetQua(c.getMaChiDinh());
 
@@ -227,22 +245,34 @@ public class ChuyenTrachKetQuaController {
             chiDinh.setTrangThai("DaHoanThanh");
         }
 
+        // Sau khi hoàn tất CLS,
+// chuyển bệnh nhân về trạng thái đang khám
+// để bác sĩ tiếp tục đánh giá và kê đơn thuốc.
+
         int updated = em.createQuery("""
-                UPDATE LichDangKyKham l
-                SET l.trangThai = 'ChoKham'
-                WHERE l.maLichKham = :id
-                  AND l.trangThai = 'DangCLS'
-                """)
+        UPDATE LichDangKyKham l
+        SET l.trangThai = 'DangKham'
+        WHERE l.maLichKham = :id
+          AND l.trangThai = 'DangCLS'
+        """)
                 .setParameter("id", maLich)
                 .executeUpdate();
 
         if (updated != 1) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Trạng thái lượt khám đã thay đổi");
+                    HttpStatus.CONFLICT,
+                    "Trạng thái lượt khám đã thay đổi"
+            );
         }
 
+// Đồng bộ EntityManager vì đã dùng JPQL UPDATE
+        em.clear();
+
         return Map.of(
-                "message", "Đã hoàn tất CLS và chuyển bệnh nhân về chờ bác sĩ",
-                "trangThai", "ChoKham");
+                "message",
+                "Đã hoàn tất CLS. Bệnh nhân có thể tiếp tục khám và kê đơn thuốc.",
+                "trangThai",
+                "DangKham"
+        );
     }
 }
