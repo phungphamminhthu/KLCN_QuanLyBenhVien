@@ -312,12 +312,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 (page - 1) * PAGE_SIZE + index + 1
             );
 
-            // 2. Mã chỉ định
-            addCell(
-                tr,
-                orderCode(item.maChiDinh),
-                "ctkq-code"
-            );
+           // Mã phiếu đối với xét nghiệm,
+           // mã chỉ định đối với dịch vụ khác.
+           const displayCode =
+               item.laPhieuXetNghiem
+                   ? String(item.maPhieuChiDinh).slice(0, 8) + "..."
+                   : orderCode(item.maChiDinh);
+
+           const codeCell = addCell(
+               tr,
+               displayCode,
+               "ctkq-code"
+           );
+
+           if (item.laPhieuXetNghiem) {
+               codeCell.title = String(item.maPhieuChiDinh);
+           }
 
             // 3. Bệnh nhân
             const patientTd =
@@ -393,20 +403,24 @@ document.addEventListener("DOMContentLoaded", () => {
             tr.appendChild(statusTd);
 
             // 9. Xem chi tiết chỉ định
-            const actionTd =
-                document.createElement("td");
+            // 9. NÚT XEM CHI TIẾT
+            const actionTd = document.createElement("td");
 
-            const link = create(
-                "a",
-                "ctkq-view"
-            );
+           const link = create("a", "ctkq-view");
 
-            link.href =
-                "/ChuyenTrach/ket-qua-da-thuc-hien/" +
-                encodeURIComponent(item.maChiDinh);
+           const maChiDinhXem =
+               item.danhSachXetNghiem?.[0]?.maChiDinh ??
+               item.maChiDinh;
 
-            link.title = "Xem chi tiết chỉ định";
-
+          if (item.laPhieuXetNghiem && item.maPhieuChiDinh) {
+              link.href =
+                  "/ChuyenTrach/ket-qua-da-thuc-hien/phieu/" +
+                  encodeURIComponent(item.maPhieuChiDinh);
+          } else if (Number(item.maChiDinh) > 0) {
+              link.href =
+                  "/ChuyenTrach/ket-qua-da-thuc-hien/" +
+                  Number(item.maChiDinh);
+          }
             link.appendChild(
                 create("i", "fa-regular fa-eye")
             );
@@ -417,7 +431,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             actionTd.appendChild(link);
             tr.appendChild(actionTd);
-
             tableBody.appendChild(tr);
         });
     }
@@ -487,6 +500,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams({
             tuNgay: fromDate.value,
             denNgay: toDate.value,
+            gomPhieu: "true",
 
             q: search.value.trim(),
             phong: roomFilter.value,
@@ -502,6 +516,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await apiGet(
                 `${API}?${params.toString()}`
             );
+            console.log("PHIẾU ĐÃ GOM:", data.items[0]);
 
             // Bỏ phản hồi cũ khi người dùng
             // thay đổi bộ lọc liên tục.

@@ -122,9 +122,17 @@ public class ChuyenTrachChiDinhController {
 
         Integer maPhong = c.getMaPhong();
 
-        row.put("maChiDinh", c.getMaChiDinh());
-        row.put("maLichKham", lich.getMaLichKham());
+        row.put("maPhieuChiDinh",
+                docThuocTinhTuyChon(c, "maPhieuChiDinh"));
 
+        row.put("loaiChiDinh", c.getLoaiChiDinh());
+
+        row.put("loaiDichVu",
+                c.getDichVuYTe().getLoaiDichVu());
+
+        row.put("nhomXetNghiem",
+                docThuocTinhTuyChon(
+                        c.getDichVuYTe(), "nhomXetNghiem"));
         row.put(
                 "maHoSoBenhAn",
                 c.getHoSoBenhAn().getMaHoSoBenhAn()
@@ -174,9 +182,122 @@ public class ChuyenTrachChiDinhController {
         row.put("ngayChiDinh", c.getNgayChiDinh());
         row.put("trangThaiChiDinh", c.getTrangThai());
         row.put("trangThaiLuotKham", lich.getTrangThai());
+        // Mã chỉ định thật từ MySQL
+        row.put("maChiDinh", c.getMaChiDinh());
+
+// Mã lịch khám
+        row.put("maLichKham", lich.getMaLichKham());
+
+// Mã phiếu dùng để gom các xét nghiệm
+        row.put("maPhieuChiDinh",
+                docThuocTinhTuyChon(c, "maPhieuChiDinh"));
 
         return row;
     }
+
+    private List<Map<String, Object>> gomPhieuXetNghiem(
+            List<Map<String, Object>> danhSach
+    ) {
+        Map<String, List<Map<String, Object>>> nhom =
+                new LinkedHashMap<>();
+
+        for (Map<String, Object> row : danhSach) {
+
+            String loai = chuanHoa(
+                    String.valueOf(row.get("loaiChiDinh"))
+            );
+
+            String loaiDichVu = chuanHoa(
+                    String.valueOf(row.get("loaiDichVu"))
+            );
+
+            Object maPhieu = row.get("maPhieuChiDinh");
+
+            boolean laXetNghiem =
+                    loai.contains("xet nghiem") ||
+                            loaiDichVu.contains("xet nghiem");
+
+            String key;
+
+            if (laXetNghiem &&
+                    maPhieu != null &&
+                    !maPhieu.toString().isBlank()) {
+
+                // Không gom nhầm phiếu của hồ sơ khác.
+                key = "PHIEU:"
+                        + row.get("maHoSoBenhAn")
+                        + ":"
+                        + maPhieu;
+
+            } else {
+                // Các dịch vụ khác vẫn là từng chỉ định.
+                key = "CHIDINH:" + row.get("maChiDinh");
+            }
+
+            nhom.computeIfAbsent(
+                    key, k -> new ArrayList<>()
+            ).add(row);
+        }
+
+        List<Map<String, Object>> ketQua =
+                new ArrayList<>();
+
+        for (List<Map<String, Object>> items : nhom.values()) {
+
+            Map<String, Object> first = items.get(0);
+            Map<String, Object> result =
+                    new LinkedHashMap<>(first);
+
+            // Lấy mã chỉ định đại diện từ dữ liệu thật
+            Object maDaiDien = items.stream()
+                    .map(item -> item.get("maChiDinh"))
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
+
+            // Lấy mã chỉ định đại diện từ dữ liệu thật
+            result.put(
+                    "maChiDinh",
+                    first.get("maChiDinh")
+            );
+
+// Gửi đầy đủ các chỉ định thuộc phiếu
+            result.put("danhSachXetNghiem", items);
+
+            String loai = chuanHoa(
+                    String.valueOf(first.get("loaiChiDinh"))
+            );
+
+            String loaiDichVu = chuanHoa(
+                    String.valueOf(first.get("loaiDichVu"))
+            );
+
+            boolean laPhieuXetNghiem =
+                    (loai.contains("xet nghiem") ||
+                            loaiDichVu.contains("xet nghiem"))
+                            && first.get("maPhieuChiDinh") != null
+                            && !first.get("maPhieuChiDinh")
+                            .toString().isBlank();
+
+            result.put("laPhieuXetNghiem", laPhieuXetNghiem);
+
+            if (laPhieuXetNghiem) {
+                result.put("soXetNghiem", items.size());
+
+                result.put(
+                        "dichVu",
+                        "Xét nghiệm (" + items.size() + " mục)"
+                );
+
+                result.put("danhSachXetNghiem", items);
+            }
+
+            ketQua.add(result);
+        }
+
+        return ketQua;
+    }
+
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -202,7 +323,10 @@ public class ChuyenTrachChiDinhController {
             int page,
 
             @RequestParam(defaultValue = "10")
-            int pageSize
+            int pageSize,
+
+            @RequestParam(defaultValue = "false")
+            boolean gomPhieu
     ) {
         kiemTraQuyen(user);
 
@@ -271,6 +395,12 @@ public class ChuyenTrachChiDinhController {
                     );
                 })
                 .collect(Collectors.toList());
+
+        // Chỉ gom khi giao diện yêu cầu.
+// API cũ vẫn có thể trả danh sách chỉ định riêng lẻ.
+        if (gomPhieu) {
+            filtered = gomPhieuXetNghiem(filtered);
+        }
 
         int total = filtered.size();
 

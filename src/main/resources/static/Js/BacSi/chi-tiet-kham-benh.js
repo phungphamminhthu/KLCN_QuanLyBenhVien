@@ -3223,29 +3223,27 @@ function layDuLieuDonThuoc() {
 // =========================================================
 
 async function luuDonThuoc() {
+
+    const btn = getElement("btnSavePrescription");
+
+    // 1. Kiểm tra kết quả CLS
     const ketQuaCLS = await kiemTraDieuKienCLS();
 
     if (!ketQuaCLS.duocPhep) {
-        hienThiThongBao(
-            ketQuaCLS.thongBao,
-            "error"
-        );
+        hienThiThongBao(ketQuaCLS.thongBao, "error");
         return;
     }
 
-
-
-
+    // 2. Kiểm tra danh sách thuốc
     if (danhSachThuocDaKe.length === 0) {
-
         hienThiThongBao(
             "Vui lòng thêm ít nhất một thuốc vào đơn.",
             "error"
         );
-
         return;
     }
 
+    // 3. Kiểm tra các ô nhập trong bảng
     const inputKhongHopLe = Array.from(
         document.querySelectorAll(
             "#prescriptionList .medicine-table-input"
@@ -3262,9 +3260,11 @@ async function luuDonThuoc() {
         return;
     }
 
-    const soLuongKhongHopLe = danhSachThuocDaKe.some(item =>
-        !Number.isInteger(Number(item.soLuong)) ||
-        Number(item.soLuong) <= 0
+    // 4. Kiểm tra số lượng thuốc
+    const soLuongKhongHopLe = danhSachThuocDaKe.some(
+        item =>
+            !Number.isInteger(Number(item.soLuong)) ||
+            Number(item.soLuong) <= 0
     );
 
     if (soLuongKhongHopLe) {
@@ -3275,133 +3275,75 @@ async function luuDonThuoc() {
         return;
     }
 
-
-
-    const chanDoan =
-        getElement("diagnosis")
-            ?.value.trim();
-
+    // 5. Kiểm tra chẩn đoán
+    const chanDoan = getElement("diagnosis")?.value.trim();
 
     if (!chanDoan) {
-
         hienThiThongBao(
-            "Vui lòng nhập chẩn đoán ở tab Thông tin khám trước khi kê đơn.",
+            "Vui lòng nhập chẩn đoán ở tab Thông tin khám.",
             "error"
         );
 
         chuyenTab("medical");
-
         getElement("diagnosis")?.focus();
-
         return;
     }
 
-
-    const btn =
-        getElement("btnSavePrescription");
-
-
     try {
-
         if (btn) {
             btn.disabled = true;
         }
 
+        // 6. Chuẩn bị dữ liệu đơn thuốc
+        const body = layDuLieuDonThuoc();
 
-        // Lưu hồ sơ trước để chẩn đoán trên backend là mới nhất.
+        const method = coDonThuoc ? "PUT" : "POST";
 
-        const hoSoBody =
-            layDuLieuHoSoTuForm();
-
-
-        const hoSoMoi = await goiApi(
-            `${API_BASE}/${maLichKham}/ho-so`,
-            {
-                method: "PUT",
-
-                headers:
-                    taoHeaders(true),
-
-                body:
-                    JSON.stringify(hoSoBody)
-            }
-        );
-
-
-        if (hoSoMoi) {
-            hienThiHoSo(hoSoMoi);
-        }
-
-
-        const body =
-            layDuLieuDonThuoc();
-
-
-        const method =
-            coDonThuoc
-                ? "PUT"
-                : "POST";
-
-
+        // 7. Gửi đơn thuốc trực tiếp
+        // Không gọi PUT /ho-so trước vì hồ sơ có thể đang ChoCLS
         const data = await goiApi(
             `${API_BASE}/${maLichKham}/don-thuoc`,
             {
-                method:
-                    method,
-
-                headers:
-                    taoHeaders(true),
-
-                body:
-                    JSON.stringify(body)
+                method: method,
+                headers: taoHeaders(true),
+                body: JSON.stringify(body)
             }
         );
 
-
+        // 8. Cập nhật trạng thái frontend
         coDonThuoc = true;
-
-        donThuocHienTai =
-            data || donThuocHienTai;
-
+        donThuocHienTai = data || donThuocHienTai;
 
         ganText(
             "prescriptionStatusText",
-            "Đơn thuốc đã được lưu"
+            "Đơn thuốc đã được lưu - Chờ lấy thuốc"
         );
 
-
         if (btn) {
-
             btn.innerHTML =
-                '<i class="fa-regular fa-floppy-disk"></i>'
-                + "<span>Cập nhật đơn thuốc</span>";
+                '<i class="fa-regular fa-floppy-disk"></i>' +
+                "<span>Cập nhật đơn thuốc</span>";
         }
-
 
         hienThiThongBao(
             method === "POST"
-                ? "Đã tạo đơn thuốc."
-                : "Đã cập nhật đơn thuốc."
+                ? "Đã lưu đơn thuốc thành công."
+                : "Đã cập nhật đơn thuốc thành công."
         );
 
-
-        // Đọc lại dữ liệu chuẩn từ backend.
+        // 9. Tải lại hồ sơ và đơn thuốc
+        await taiHoSo();
         await taiDonThuoc();
 
-
     } catch (error) {
-
-        console.error(error);
-
+        console.error("Lỗi lưu đơn thuốc:", error);
 
         hienThiThongBao(
             error.message || "Không thể lưu đơn thuốc.",
             "error"
         );
 
-
     } finally {
-
         if (btn && !btn.dataset.locked) {
             btn.disabled = false;
         }

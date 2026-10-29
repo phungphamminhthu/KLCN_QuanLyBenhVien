@@ -582,3 +582,135 @@ body > #ctBackButton.ct-back-compact .ct-back-text {
         flex: 1;
     }
 }
+
+/* ================================
+   NHẬP KẾT QUẢ XÉT NGHIỆM THEO NHÓM
+================================ */
+
+.ct-lab-results {
+    margin: 20px 0 26px;
+}
+
+.ct-lab-heading,
+.ct-lab-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.ct-lab-heading {
+    padding-bottom: 18px;
+    border-bottom: 1px solid #e5eaf2;
+}
+
+.ct-lab-heading h3 {
+    margin: 0;
+    font-size: 17px;
+    color: #142b50;
+}
+
+.ct-lab-heading h3 i {
+    color: #2563eb;
+    margin-right: 8px;
+}
+
+#labCount {
+    color: #2563eb;
+    background: #eff6ff;
+    border-radius: 20px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.ct-lab-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    row-gap: 28px;
+    padding: 24px 0;
+}
+
+.ct-lab-group h4 {
+    color: #2563eb;
+    font-size: 13px;
+    margin: 0 0 14px;
+    font-weight: 700;
+}
+
+.ct-lab-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.ct-lab-row label {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #334155;
+}
+
+.ct-lab-row label i {
+    color: #16a34a;
+    font-size: 12px;
+}
+
+.ct-lab-input {
+    width: 130px;
+    min-width: 0;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+}
+
+.ct-lab-input:focus {
+    border-color: #2563eb;
+}
+
+.ct-lab-footer {
+    padding-top: 20px;
+    border-top: 1px solid #e5eaf2;
+    font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+    .ct-lab-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .ct-lab-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ct-lab-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+/* Đảm bảo các phần ẩn không xuất hiện */
+.ct-result-page [hidden] {
+    display: none !important;
+}
+.ct-result-page [hidden] {
+    display: none !important;
+}
+
+.ct-lab-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 24px;
+}
+.ct-result-page [hidden] {
+    display: none !important;
+}

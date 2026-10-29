@@ -2,40 +2,48 @@
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
-    // =====================================================
+    // ============================================
     // 1. KHAI BÁO
-    // =====================================================
+    // ============================================
 
     const $ = id => document.getElementById(id);
 
-    const API =
-        "/api/chuyen-trach/ket-qua-da-thuc-hien/chi-tiet";
+    const segments = location.pathname
+        .split("/")
+        .filter(Boolean);
 
-    const maChiDinh = Number(
-        window.location.pathname
-            .split("/")
-            .filter(Boolean)
-            .pop()
-    );
+    const isLabSheet = segments.includes("phieu");
+
+    const idFromUrl = segments[segments.length - 1];
+
+    const maPhieu = isLabSheet
+        ? decodeURIComponent(idFromUrl)
+        : null;
+
+    const maChiDinh = isLabSheet
+        ? null
+        : Number(idFromUrl);
+
+    const API_BASE =
+        "/api/chuyen-trach/ket-qua-da-thuc-hien";
 
     const errorBox = $("ctkqdError");
+
     const fileBox = $("ctkqdFileBox");
     const noFileBox = $("ctkqdNoFile");
 
-    // =====================================================
-    // 2. TOKEN
-    // =====================================================
+    const labSection = $("ctkqdLabSection");
+    const normalSection = $("ctkqdNormalSection");
+    const labGroups = $("ctkqdLabGroups");
+
+    // ============================================
+    // 2. TOKEN VÀ API
+    // ============================================
 
     function getToken() {
-        return (
-            sessionStorage.getItem("Token") ||
-            localStorage.getItem("Token")
-        );
+        return sessionStorage.getItem("Token") ||
+               localStorage.getItem("Token");
     }
-
-    // =====================================================
-    // 3. GỌI API
-    // =====================================================
 
     async function apiGet(url) {
         const token = getToken();
@@ -66,28 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     data.detail ||
                     data.message ||
                     message;
-
             } catch (_) {
-                // Giữ thông báo HTTP mặc định.
-            }
-
-            if (
-                response.status === 401 ||
-                response.status === 403
-            ) {
-                message =
-                    "Phiên đăng nhập không hợp lệ " +
-                    "hoặc bạn không có quyền xem kết quả.";
-            }
-
-            if (response.status === 404) {
-                message =
-                    "Chỉ định chưa có kết quả được lưu trong MySQL.";
-            }
-
-            if (response.status === 409) {
-                message =
-                    "Chỉ định này chưa ở trạng thái hoàn thành.";
+                // Giữ thông báo mặc định
             }
 
             throw new Error(message);
@@ -96,9 +84,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
     }
 
-    // =====================================================
-    // 4. HIỂN THỊ TEXT AN TOÀN
-    // =====================================================
+    // ============================================
+    // 3. HIỂN THỊ VÀ ĐỊNH DẠNG
+    // ============================================
 
     function setText(id, value) {
         const element = $(id);
@@ -113,32 +101,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 : String(value);
     }
 
-    // =====================================================
-    // 5. ĐỊNH DẠNG MÃ VÀ NGÀY
-    // =====================================================
-
     function formatCode(prefix, value) {
-        if (
-            value === null ||
-            value === undefined
-        ) {
+        if (value === null || value === undefined) {
             return "—";
         }
 
-        return (
-            prefix +
-            String(value).padStart(6, "0")
-        );
+        return prefix + String(value).padStart(6, "0");
     }
 
     function formatDate(value, withTime = false) {
         if (!value) return "—";
 
-        const normalized = String(value)
-            .replace(" ", "T");
-
+        const normalized = String(value).replace(" ", "T");
         const [date, time] = normalized.split("T");
-
         const parts = date.split("-");
 
         if (parts.length !== 3) {
@@ -154,10 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return result;
     }
-
-    // =====================================================
-    // 6. TÍNH TUỔI
-    // =====================================================
 
     function calculateAge(birthDate) {
         if (!birthDate) return "—";
@@ -187,9 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ).formatToParts(new Date());
 
         const getPart = type => Number(
-            nowParts.find(
-                p => p.type === type
-            )?.value
+            nowParts.find(p => p.type === type)?.value
         );
 
         const currentYear = getPart("year");
@@ -200,70 +169,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (
             currentMonth < month ||
-            (
-                currentMonth === month &&
-                currentDay < day
-            )
+            (currentMonth === month && currentDay < day)
         ) {
             age--;
         }
 
-        if (age < 0 || age > 130) {
-            return "—";
-        }
-
-        return `${age} tuổi`;
+        return age >= 0 && age <= 130
+            ? `${age} tuổi`
+            : "—";
     }
 
-    // =====================================================
-    // 7. HIỂN THỊ 3 THẺ THÔNG TIN
-    // =====================================================
-
-    function renderSummary(data) {
-
-        // Bệnh nhân
-        setText(
-            "ctkqdPatientName",
-            data.tenBenhNhan
-        );
+    function renderPatient(data) {
+        setText("ctkqdPatientName", data.tenBenhNhan);
 
         setText(
             "ctkqdPatientCode",
             formatCode("BN", data.maBenhNhan)
         );
 
-        setText(
-            "ctkqdGender",
-            data.gioiTinh
-        );
+        setText("ctkqdGender", data.gioiTinh);
+        setText("ctkqdBirthDate", formatDate(data.ngaySinh));
+        setText("ctkqdAge", calculateAge(data.ngaySinh));
+        setText("ctkqdPhone", data.soDienThoai);
+
+        setText("ctkqdDoctor", data.bacSiPhuTrach);
 
         setText(
-            "ctkqdBirthDate",
-            formatDate(data.ngaySinh)
+            "ctkqdRecordCode",
+            formatCode("HSBA", data.maHoSoBenhAn)
         );
+    }
 
-        setText(
-            "ctkqdAge",
-            calculateAge(data.ngaySinh)
-        );
+    // ============================================
+    // 4. HIỂN THỊ DỊCH VỤ THÔNG THƯỜNG
+    // ============================================
 
-        setText(
-            "ctkqdPhone",
-            data.soDienThoai
-        );
+    function renderNormalResult(data) {
+        labSection.hidden = true;
+        normalSection.hidden = false;
 
-        // Chỉ định
-        setText(
-            "ctkqdService",
-            data.tenDichVu
-        );
+        renderPatient(data);
 
-        setText(
-            "ctkqdDoctor",
-            data.bacSiPhuTrach
-        );
+        setText("ctkqdService", data.tenDichVu);
 
-        // Mã tra cứu
         setText(
             "ctkqdResultCode",
             formatCode("KQ", data.maKetQua)
@@ -275,21 +223,10 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         setText(
-            "ctkqdRecordCode",
-            formatCode("HSBA", data.maHoSoBenhAn)
-        );
-
-        setText(
             "ctkqdResultDate",
             formatDate(data.ngayCoKetQua, true)
         );
-    }
 
-    // =====================================================
-    // 8. HIỂN THỊ NỘI DUNG VÀ KẾT LUẬN
-    // =====================================================
-
-    function renderResult(data) {
         setText(
             "ctkqdContent",
             data.noiDungKetQua ||
@@ -301,11 +238,13 @@ document.addEventListener("DOMContentLoaded", () => {
             data.ketLuan ||
                 "Chưa có kết luận chuyên môn được ghi nhận."
         );
+
+        renderAttachment(data.fileURL);
     }
 
-    // =====================================================
-    // 9. KIỂM TRA URL TỆP ĐÍNH KÈM
-    // =====================================================
+    // ============================================
+    // 5. KIỂM TRA URL TỆP ĐÍNH KÈM
+    // ============================================
 
     function safeFileUrl(value) {
         if (
@@ -318,7 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const raw = value.trim();
 
-        // Không chấp nhận ký tự điều khiển trong URL.
         if (/[\u0000-\u001F\u007F]/.test(raw)) {
             return null;
         }
@@ -326,140 +264,252 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             let url;
 
-            // URL đầy đủ HTTPS.
             if (/^https?:\/\//i.test(raw)) {
                 url = new URL(raw);
-
             } else if (/^[a-z][a-z0-9+.-]*:/i.test(raw)) {
-                // Chặn javascript:, data:, file:...
                 return null;
-
             } else if (raw.startsWith("//")) {
                 return null;
-
             } else {
-                // Đường dẫn tương đối từ máy chủ.
                 url = new URL(
                     raw.startsWith("/") ? raw : "/" + raw,
-                    window.location.origin
+                    location.origin
                 );
             }
 
-            // HTTPS được phép. HTTP chỉ cho phép
-            // cùng origin của ứng dụng nội bộ.
             if (
                 url.protocol !== "https:" &&
                 !(
                     url.protocol === "http:" &&
-                    url.origin === window.location.origin
+                    url.origin === location.origin
                 )
             ) {
                 return null;
             }
 
             return url;
-
         } catch (_) {
             return null;
         }
     }
 
-    // =====================================================
-    // 10. HIỂN THỊ TỆP ĐÍNH KÈM THẬT
-    // =====================================================
+    function renderAttachment(value) {
+        const url = safeFileUrl(value);
 
-    function renderAttachment(data) {
-        const fileUrl = safeFileUrl(data.fileURL);
+        fileBox.hidden = !url;
+        noFileBox.hidden = Boolean(url);
 
-        fileBox.hidden = !fileUrl;
-        noFileBox.hidden = Boolean(fileUrl);
+        if (!url) return;
 
-        if (!fileUrl) {
-            return;
-        }
-
-        let fileName = fileUrl.pathname
+        let name = url.pathname
             .split("/")
             .filter(Boolean)
             .pop() || "Tệp kết quả";
 
         try {
-            fileName = decodeURIComponent(fileName);
+            name = decodeURIComponent(name);
         } catch (_) {
-            // Giữ nguyên nếu tên tệp mã hóa không hợp lệ.
+            // Giữ tên mặc định
         }
 
-        setText(
-            "ctkqdFileName",
-            fileName
-        );
+        setText("ctkqdFileName", name);
 
         const previewLink = $("ctkqdPreview");
         const downloadLink = $("ctkqdDownload");
 
-        previewLink.href = fileUrl.href;
-        downloadLink.href = fileUrl.href;
+        previewLink.href = url.href;
+        downloadLink.href = url.href;
 
-        // Browser chỉ đảm bảo download đối với
-        // tài nguyên cùng origin hỗ trợ tải xuống.
-        if (fileUrl.origin === location.origin) {
-            downloadLink.setAttribute(
-                "download",
-                fileName
-            );
+        if (url.origin === location.origin) {
+            downloadLink.setAttribute("download", name);
         } else {
             downloadLink.removeAttribute("download");
         }
     }
 
-    // =====================================================
-    // 11. THÔNG BÁO LỖI
-    // =====================================================
+    // ============================================
+    // 6. HIỂN THỊ PHIẾU XÉT NGHIỆM
+    // ============================================
 
-    function showError(message) {
-        console.error(
-            "Chi tiết kết quả CLS:",
-            message
+    function renderLabSheet(data) {
+        labSection.hidden = false;
+        normalSection.hidden = true;
+
+        const tests = Array.isArray(data.danhSachXetNghiem)
+            ? data.danhSachXetNghiem
+            : [];
+
+        renderPatient(data);
+
+        setText(
+            "ctkqdService",
+            `Xét nghiệm (${tests.length} mục)`
         );
 
-        if (!errorBox) return;
+        // Một phiếu chứa nhiều mã kết quả
+        setText("ctkqdResultCode", "—");
 
-        errorBox.textContent = message;
-        errorBox.hidden = false;
+        // Mã phiếu thật từ database
+        setText(
+            "ctkqdOrderCode",
+            data.maPhieuChiDinh
+        );
+
+        const dates = tests
+            .map(test => test.ngayCoKetQua)
+            .filter(Boolean)
+            .sort();
+
+        setText(
+            "ctkqdResultDate",
+            dates.length
+                ? formatDate(dates[dates.length - 1], true)
+                : "—"
+        );
+
+        setText(
+            "ctkqdLabCount",
+            `${tests.length} xét nghiệm`
+        );
+
+        labGroups.replaceChildren();
+
+        // Gom các xét nghiệm theo danh mục trong MySQL
+        const groups = new Map();
+
+        for (const test of tests) {
+            const groupName =
+                String(test.nhomXetNghiem || "").trim() ||
+                "CÁC XÉT NGHIỆM KHÁC";
+
+            if (!groups.has(groupName)) {
+                groups.set(groupName, []);
+            }
+
+            groups.get(groupName).push(test);
+        }
+
+        // Hiển thị mỗi danh mục thành một nhóm
+        for (const [groupName, items] of groups) {
+            const group = document.createElement("section");
+            group.className = "ctkqd-lab-group";
+
+            const heading = document.createElement("h3");
+            heading.textContent = groupName.toUpperCase();
+
+            group.appendChild(heading);
+
+            for (const test of items) {
+                const row = document.createElement("div");
+                row.className = "ctkqd-lab-row";
+
+                const label = document.createElement("div");
+                label.className = "ctkqd-lab-name";
+
+                const icon = document.createElement("i");
+                icon.className = "fa-solid fa-check";
+
+                const name = document.createElement("span");
+                name.textContent = test.tenDichVu || "—";
+
+                label.append(icon, name);
+
+                const value = document.createElement("strong");
+                value.className = "ctkqd-lab-value";
+                value.textContent =
+                    test.noiDungKetQua?.trim() || "—";
+
+                row.append(label, value);
+                group.appendChild(row);
+
+                const fileUrl = safeFileUrl(test.fileURL);
+
+                if (fileUrl) {
+                    const attachment = document.createElement("a");
+
+                    attachment.className =
+                        "ctkqd-lab-attachment";
+
+                    attachment.href = fileUrl.href;
+                    attachment.target = "_blank";
+                    attachment.rel = "noopener noreferrer";
+                    attachment.textContent =
+                        "Xem tài liệu đính kèm";
+
+                    group.appendChild(attachment);
+                }
+            }
+
+            labGroups.appendChild(group);
+        }
     }
 
-    // =====================================================
-    // 12. TẢI DỮ LIỆU
-    // =====================================================
+    // ============================================
+    // 7. THÔNG BÁO LỖI
+    // ============================================
+
+    function showError(message) {
+        console.error("Chi tiết kết quả CLS:", message);
+
+        if (errorBox) {
+            errorBox.textContent = message;
+            errorBox.hidden = false;
+        }
+    }
+
+    // ============================================
+    // 8. TẢI DỮ LIỆU
+    // ============================================
 
     async function loadDetail() {
         if (
-            !Number.isInteger(maChiDinh) ||
-            maChiDinh <= 0
+            !isLabSheet &&
+            (!Number.isInteger(maChiDinh) || maChiDinh <= 0)
         ) {
-            showError(
-                "Mã chỉ định không hợp lệ."
-            );
+            showError("Mã chỉ định không hợp lệ.");
+            return;
+        }
+
+        if (isLabSheet && !maPhieu) {
+            showError("Mã phiếu xét nghiệm không hợp lệ.");
             return;
         }
 
         try {
-            const data = await apiGet(
-                `${API}/${encodeURIComponent(maChiDinh)}`
-            );
+            const url = isLabSheet
+                ? `${API_BASE}/phieu/${encodeURIComponent(maPhieu)}`
+                : `${API_BASE}/chi-tiet/${maChiDinh}`;
 
-            if (
-                !data ||
-                Number(data.maChiDinh) !== maChiDinh
-            ) {
-                throw new Error(
-                    "Dữ liệu kết quả không khớp mã chỉ định."
-                );
+            const data = await apiGet(url);
+
+            if (isLabSheet) {
+                // Kiểm tra đúng mã phiếu
+                if (
+                    !data ||
+                    String(data.maPhieuChiDinh) !== String(maPhieu)
+                ) {
+                    throw new Error(
+                        "Dữ liệu không khớp mã phiếu xét nghiệm."
+                    );
+                }
+
+                // Hiển thị toàn bộ phiếu
+                renderLabSheet(data);
+
+            } else {
+                // Kiểm tra mã chỉ định thông thường
+                if (
+                    !data ||
+                    Number(data.maChiDinh) !== maChiDinh
+                ) {
+                    throw new Error(
+                        "Dữ liệu không khớp mã chỉ định."
+                    );
+                }
+
+                // Giữ giao diện cũ
+                renderNormalResult(data);
             }
-
-            renderSummary(data);
-            renderResult(data);
-            renderAttachment(data);
 
             if (errorBox) {
                 errorBox.hidden = true;
@@ -473,24 +523,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Không thể tải dữ liệu"
             );
 
-            setText(
-                "ctkqdContent",
-                "Không có dữ liệu để hiển thị."
-            );
+            if (isLabSheet) {
+                labSection.hidden = true;
+                normalSection.hidden = true;
+            } else {
+                setText(
+                    "ctkqdContent",
+                    "Không có dữ liệu để hiển thị."
+                );
 
-            setText(
-                "ctkqdConclusion",
-                "Không có dữ liệu để hiển thị."
-            );
+                setText(
+                    "ctkqdConclusion",
+                    "Không có dữ liệu để hiển thị."
+                );
 
-            fileBox.hidden = true;
-            noFileBox.hidden = false;
+                fileBox.hidden = true;
+                noFileBox.hidden = false;
+            }
         }
     }
 
-    // =====================================================
-    // 13. KHỞI TẠO
-    // =====================================================
+    // ============================================
+    // 9. KHỞI TẠO
+    // ============================================
 
     loadDetail();
 });

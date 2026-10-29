@@ -18,52 +18,74 @@
 
 <div layout:fragment="content" class="ctkqd-page">
 
-    <!-- THANH ĐIỀU HƯỚNG -->
+    <!-- ======================================
+         1. THANH ĐIỀU HƯỚNG
+    ======================================= -->
     <div class="ctkqd-toolbar">
+
         <a class="ctkqd-back"
            th:href="@{/ChuyenTrach/ket-qua-da-thuc-hien}">
+
             <i class="fa-solid fa-arrow-left"></i>
+
             Quay lại kết quả đã thực hiện
         </a>
+
     </div>
 
-    <!-- THÔNG BÁO LỖI -->
+    <!-- ======================================
+         2. THÔNG BÁO LỖI
+    ======================================= -->
     <div id="ctkqdError"
          class="ctkqd-error"
          role="alert"
-         hidden></div>
+         hidden>
+    </div>
 
-    <!-- 3 Ô THÔNG TIN PHÍA TRÊN -->
+    <!-- ======================================
+         3. THÔNG TIN TỔNG QUAN
+    ======================================= -->
     <div class="ctkqd-summary-grid">
 
         <!-- THÔNG TIN BỆNH NHÂN -->
         <section class="ctkqd-card ctkqd-summary-card">
 
             <div class="ctkqd-card-header">
+
                 <h2>
                     <i class="fa-regular fa-user"></i>
                     THÔNG TIN BỆNH NHÂN
                 </h2>
 
                 <span id="ctkqdGender"
-                      class="ctkqd-gender-badge">—</span>
+                      class="ctkqd-gender-badge">
+                    —
+                </span>
+
             </div>
 
             <div class="ctkqd-patient-row">
+
                 <div class="ctkqd-avatar">
                     <i class="fa-regular fa-user"></i>
                 </div>
 
                 <div class="ctkqd-patient-main">
+
                     <strong id="ctkqdPatientName">
                         Đang tải...
                     </strong>
 
-                    <span id="ctkqdPatientCode">—</span>
+                    <span id="ctkqdPatientCode">
+                        —
+                    </span>
+
                 </div>
+
             </div>
 
             <div class="ctkqd-summary-info">
+
                 <div>
                     <span>Ngày sinh</span>
                     <strong id="ctkqdBirthDate">—</strong>
@@ -78,13 +100,16 @@
                     <span>Số điện thoại</span>
                     <strong id="ctkqdPhone">—</strong>
                 </div>
+
             </div>
+
         </section>
 
         <!-- THÔNG TIN CHỈ ĐỊNH -->
         <section class="ctkqd-card ctkqd-summary-card">
 
             <div class="ctkqd-card-header">
+
                 <h2>
                     <i class="fa-solid fa-clipboard-list"></i>
                     THÔNG TIN CHỈ ĐỊNH
@@ -94,29 +119,41 @@
                     <i class="fa-solid fa-check"></i>
                     Hoàn tất
                 </span>
+
             </div>
 
             <div class="ctkqd-summary-field">
+
                 <span>Dịch vụ thực hiện</span>
+
                 <strong id="ctkqdService">
                     Đang tải dịch vụ...
                 </strong>
+
             </div>
 
             <div class="ctkqd-summary-field">
+
                 <span>Bác sĩ phụ trách lượt khám</span>
-                <strong id="ctkqdDoctor">—</strong>
+
+                <strong id="ctkqdDoctor">
+                    —
+                </strong>
+
             </div>
+
         </section>
 
         <!-- MÃ TRA CỨU VÀ THỜI GIAN -->
         <section class="ctkqd-card ctkqd-summary-card">
 
             <div class="ctkqd-card-header">
+
                 <h2>
                     <i class="fa-regular fa-calendar"></i>
                     MÃ TRA CỨU & THỜI GIAN
                 </h2>
+
             </div>
 
             <div class="ctkqd-code-list">
@@ -142,57 +179,116 @@
                 </div>
 
             </div>
+
         </section>
 
     </div>
 
-    <!-- 2 Ô NỘI DUNG PHÍA DƯỚI -->
-    <div class="ctkqd-detail-grid">
+    <!-- ======================================
+         4. RIÊNG CHO PHIẾU XÉT NGHIỆM
+         Các xét nghiệm gom theo danh mục
+    ======================================= -->
+    <section id="ctkqdLabSection"
+             class="ctkqd-card ctkqd-lab-section"
+             hidden>
+
+        <div class="ctkqd-card-header">
+
+            <h2>
+                <i class="fa-solid fa-flask-vial"></i>
+                KẾT QUẢ PHIẾU XÉT NGHIỆM
+            </h2>
+
+            <span id="ctkqdLabCount"
+                  class="ctkqd-gender-badge">
+                —
+            </span>
+
+        </div>
+
+        <!--
+            JavaScript sẽ tạo các nhóm từ MySQL:
+            - Huyết học
+            - Sinh hóa
+            - Vi sinh
+            - Miễn dịch
+            - Các danh mục khác
+
+            Mỗi danh mục có nhiều xét nghiệm
+            và kết quả tương ứng.
+        -->
+        <div id="ctkqdLabGroups"
+             class="ctkqd-lab-grid">
+        </div>
+
+    </section>
+
+    <!-- ======================================
+         5. GIAO DIỆN CŨ CHO CÁC DỊCH VỤ KHÁC
+         CT, Siêu âm, Nội soi, X-quang...
+    ======================================= -->
+    <div id="ctkqdNormalSection"
+         class="ctkqd-detail-grid">
 
         <!-- NỘI DUNG VÀ KẾT LUẬN -->
         <section class="ctkqd-card ctkqd-result-card">
 
             <div class="ctkqd-card-header">
+
                 <h2>
                     <i class="fa-solid fa-file-medical"></i>
                     NỘI DUNG KẾT QUẢ & KẾT LUẬN
                 </h2>
+
             </div>
 
             <div class="ctkqd-result-content">
 
+                <!-- NỘI DUNG KẾT QUẢ -->
                 <div class="ctkqd-text-block">
+
                     <h3>Nội dung kết quả</h3>
 
                     <div id="ctkqdContent"
                          class="ctkqd-text-value">
+
                         Đang tải nội dung kết quả...
+
                     </div>
+
                 </div>
 
+                <!-- KẾT LUẬN -->
                 <div class="ctkqd-text-block ctkqd-conclusion">
+
                     <h3>Kết luận chuyên môn</h3>
 
                     <div id="ctkqdConclusion"
                          class="ctkqd-text-value">
+
                         Đang tải kết luận...
+
                     </div>
+
                 </div>
 
             </div>
+
         </section>
 
         <!-- TỆP ĐÍNH KÈM -->
         <section class="ctkqd-card ctkqd-attachment-card">
 
             <div class="ctkqd-card-header">
+
                 <h2>
                     <i class="fa-solid fa-paperclip"></i>
                     TỆP ĐÍNH KÈM KẾT QUẢ
                 </h2>
+
             </div>
 
-            <!-- CÓ TỆP -->
+            <!-- TRƯỜNG HỢP CÓ TỆP -->
             <div id="ctkqdFileBox"
                  class="ctkqd-file-box"
                  hidden>
@@ -202,49 +298,71 @@
                 </div>
 
                 <div class="ctkqd-file-info">
-                    <strong id="ctkqdFileName">—</strong>
-                    <span>Tài liệu kết quả đã lưu</span>
+
+                    <strong id="ctkqdFileName">
+                        —
+                    </strong>
+
+                    <span>
+                        Tài liệu kết quả đã lưu
+                    </span>
+
                 </div>
 
                 <div class="ctkqd-file-actions">
+
                     <a id="ctkqdPreview"
                        href="#"
                        target="_blank"
                        rel="noopener noreferrer">
+
                         <i class="fa-regular fa-eye"></i>
                         Xem tệp
+
                     </a>
 
                     <a id="ctkqdDownload"
                        href="#"
                        target="_blank"
                        rel="noopener noreferrer">
+
                         <i class="fa-solid fa-download"></i>
                         Mở / Tải tệp
+
                     </a>
+
                 </div>
+
             </div>
 
-            <!-- KHÔNG CÓ TỆP -->
+            <!-- TRƯỜNG HỢP KHÔNG CÓ TỆP -->
             <div id="ctkqdNoFile"
                  class="ctkqd-no-file">
 
                 <i class="fa-regular fa-folder-open"></i>
 
-                <strong>Chưa có tệp đính kèm</strong>
+                <strong>
+                    Chưa có tệp đính kèm
+                </strong>
 
                 <p>
                     Kết quả này chưa có tài liệu
                     được lưu trong hệ thống.
                 </p>
+
             </div>
 
         </section>
 
     </div>
+    <!-- KẾT THÚC GIAO DIỆN DỊCH VỤ THÔNG THƯỜNG -->
 
 </div>
+<!-- KẾT THÚC ctkqd-page -->
 
+<!-- ======================================
+     6. JAVASCRIPT
+======================================= -->
 <th:block layout:fragment="js">
     <script th:src="@{/Js/ChuyenTrach/chi-tiet-ket-qua.js}">
     </script>

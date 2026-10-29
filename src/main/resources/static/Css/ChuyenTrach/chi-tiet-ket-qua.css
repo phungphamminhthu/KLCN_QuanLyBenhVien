@@ -823,3 +823,75 @@
         overflow: visible;
     }
 }
+.ctkqd-page [hidden] {
+    display: none !important;
+}
+
+.ctkqd-lab-section {
+    margin-top: 16px;
+    padding: 22px;
+}
+
+.ctkqd-lab-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px 36px;
+    padding-top: 22px;
+}
+
+.ctkqd-lab-group h3 {
+    margin: 0 0 16px;
+    color: #2563eb;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.ctkqd-lab-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px 0;
+    border-bottom: 1px solid #edf1f7;
+}
+
+.ctkqd-lab-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    color: #334155;
+}
+
+.ctkqd-lab-name i {
+    color: #16a34a;
+    font-size: 12px;
+}
+
+.ctkqd-lab-value {
+    flex: 0 0 135px;
+    padding: 10px 12px;
+    border: 1px solid #dbe3f0;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #172b4d;
+    text-align: center;
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.ctkqd-lab-attachment {
+    display: inline-block;
+    margin: 6px 0 12px;
+    font-size: 12px;
+    color: #2563eb;
+}
+
+@media (max-width: 850px) {
+    .ctkqd-lab-grid {
+        grid-template-columns: 1fr;
+    }
+}
