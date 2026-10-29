@@ -1,13 +1,28 @@
+
 (() => {
     "use strict";
 
     const API = "/api/tiepnhan/lich-su-kham";
     const $ = id => document.getElementById(id);
+    const TIME_ZONE = "Asia/Ho_Chi_Minh";
 
+    let selectedDate = todayVietnam();
     let page = 1;
-    let totalPages = 1;
-    let loading = false;
+    let pageSize = 5;
+    let keyword = "";
+    let selectedDoctor = "";
+    let selectedRoom = "";
+    let allVisits = [];
+    let doctors = [];
     let loaded = false;
+    let loading = false;
+    let requestVersion = 0;
+    let activeController = null;
+    let searchTimer = null;
+
+    // =====================================================
+    // HÀM CHUNG
+    // =====================================================
 
     function getToken() {
         return sessionStorage.getItem("Token")
@@ -18,629 +33,461 @@
     }
 
     function text(value, fallback = "—") {
-        if (value === null || value === undefined) {
-            return fallback;
-        }
-
-        const result = String(value).trim();
+        const result = String(value ?? "").trim();
         return result || fallback;
     }
 
     function positiveId(value) {
         const number = Number(value);
-
-        return Number.isSafeInteger(number) && number > 0
-            ? number
-            : null;
+        return Number.isSafeInteger(number) && number > 0 ? number : null;
     }
 
-    function formatDate(value) {
-        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(
-            String(value || "")
-        );
+    function normalize(value) {
+        return String(value ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[đĐ]/g, "d")
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, " ");
+    }
 
-        return match
-            ? `${match[3]}/${match[2]}/${match[1]}`
-            : "—";
+    function todayVietnam() {
+        const parts = new Intl.DateTimeFormat("en-GB", {
+            timeZone: TIME_ZONE,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit"
+        }).formatToParts(new Date());
+        const get = type => parts.find(item => item.type === type).value;
+        return `${get("year")}-${get("month")}-${get("day")}`;
+    }
+
+    function formatDate(raw) {
+        const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(raw || ""));
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : "—";
+    }
+
+    function validDate(value) {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+        if (!match) return false;
+        const year = Number(match[1]);
+        const month = Number(match[2]);
+        const day = Number(match[3]);
+        const check = new Date(Date.UTC(year, month - 1, day));
+        return year >= 1000 && year <= 9999
+            && check.getUTCFullYear() === year
+            && check.getUTCMonth() === month - 1
+            && check.getUTCDate() === day;
     }
 
     function updateHeaderDate() {
         const element = $("header-date-display");
+        if (!element) return;
+        element.textContent = new Intl.DateTimeFormat("vi-VN", {
+            timeZone: TIME_ZONE,
+            weekday: "long",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric"
+        }).format(new Date());
+    }
 
-        if (!element) {
+    function showMessage(content = "") {
+        const element = $("history-message");
+        element.textContent = content;
+        element.hidden = !content;
+    }
+
+    function updateDateControls() {
+        $("history-date-label").textContent = formatDate(selectedDate);
+        const picker = $("history-filter-date");
+        picker.value = selectedDate;
+        picker.style.cssText = "";
+        picker.tabIndex = -1;
+        $("history-prev-date").disabled = loading || selectedDate <= "1000-01-01";
+        $("history-next-date").disabled = loading || selectedDate >= "9999-12-31";
+        $("history-open-calendar").disabled = loading;
+    }
+
+    function updateControls() {
+        $("history-card").setAttribute("aria-busy", String(loading));
+        $("history-loading").hidden = !loading;
+        $("history-doctor-filter").disabled = loading || !loaded;
+        $("history-room-filter").disabled = loading || !loaded;
+        $("history-page-size").disabled = loading || !loaded;
+        $("history-search-button").disabled = loading;
+        // Người dùng vẫn có thể nhập để lọc ngay sau khi dữ liệu tải về.
+        $("history-search-input").disabled = false;
+        $("refresh-history-button") && ($("refresh-history-button").disabled = loading);
+        updateDateControls();
+    }
+
+    async function fetchPage(date, currentPage, signal) {
+        const params = new URLSearchParams({
+            trang: String(currentPage),
+            kichThuocTrang: "50",
+            tuNgay: date,
+            denNgay: date
+        });
+        const headers = { Accept: "application/json" };
+        const token = getToken().trim();
+        if (token) {
+            headers.Authorization = /^Bearer\s/i.test(token) ? token : `Bearer ${token}`;
+        }
+        const response = await fetch(`${API}?${params}`, {
+            method: "GET",
+            headers,
+            credentials: "same-origin",
+            cache: "no-store",
+            signal
+        });
+        if (response.status === 401) throw new Error("Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.");
+        if (response.status === 403) throw new Error("Bạn không có quyền xem lịch sử khám.");
+        const contentType = response.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) {
+            throw new Error("API lịch sử khám không trả về JSON hợp lệ.");
+        }
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data?.message || `Không tải được lịch sử (HTTP ${response.status}).`);
+        }
+        if (!data || !Array.isArray(data.danhSach)) {
+            throw new Error("Phản hồi lịch sử khám không đúng định dạng.");
+        }
+        const totalPages = Number(data.tongSoTrang);
+        if (!Number.isSafeInteger(totalPages) || totalPages < 0) {
+            throw new Error("Thông tin phân trang của API không hợp lệ.");
+        }
+        return { data, totalPages };
+    }
+
+    // Dùng 50 mục/trang khi lấy dữ liệu để giảm số lần gọi API.
+    // Chỉ cần tải lại khi thay ngày hoặc bấm Làm mới.
+    async function loadDate(date = selectedDate) {
+        if (!validDate(date)) {
+            showMessage("Ngày khám không hợp lệ.");
             return;
         }
 
-        const now = new Date();
-        const timeZone = "Asia/Ho_Chi_Minh";
+        const version = ++requestVersion;
+        activeController?.abort();
+        const controller = new AbortController();
+        activeController = controller;
 
-        const weekday = new Intl.DateTimeFormat("vi-VN", {
-            weekday: "long",
-            timeZone
-        }).format(now);
+        selectedDate = date;
+        loading = true;
+        loaded = false;
+        allVisits = [];
+        $("history-table-body").replaceChildren();
+        $("history-empty").hidden = true;
+        $("history-record-count").textContent = "Đang tải dữ liệu...";
+        showMessage();
+        updateControls();
 
-        const date = new Intl.DateTimeFormat("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            timeZone
-        }).format(now);
+        try {
+            const first = await fetchPage(date, 1, controller.signal);
+            if (version !== requestVersion) return;
+            const visits = [...first.data.danhSach];
+            const pages = first.totalPages;
+            const fetchedDoctors = Array.isArray(first.data.danhSachBacSi)
+                ? first.data.danhSachBacSi
+                : [];
 
-        const capitalizedWeekday =
-            weekday.charAt(0).toUpperCase() + weekday.slice(1);
-
-        element.textContent = `${capitalizedWeekday}, ${date}`;
-    }
-
-    function showMessage(message = "") {
-        const element = $("history-message");
-        element.textContent = message;
-        element.hidden = !message;
-    }
-
-    function updatePagination() {
-        $("history-page-label").textContent =
-            `Trang ${page} / ${totalPages}`;
-
-        $("history-prev-page").disabled =
-            loading || !loaded || page <= 1;
-
-        $("history-next-page").disabled =
-            loading || !loaded || page >= totalPages;
-    }
-
-    function setLoading(value) {
-        loading = value;
-
-        $("history-loading").hidden = !value;
-        $("history-card").setAttribute(
-            "aria-busy",
-            String(value)
-        );
-
-        [
-            "history-search-input",
-            "history-search-button",
-            "history-doctor-filter",
-            "history-department-filter",
-            "history-from-date",
-            "history-to-date",
-            "history-page-size",
-            "refresh-history-button"
-        ].forEach(id => {
-            const element = $(id);
-
-            if (element) {
-                element.disabled = value;
+            for (let index = 2; index <= pages; index++) {
+                const next = await fetchPage(date, index, controller.signal);
+                if (version !== requestVersion) return;
+                visits.push(...next.data.danhSach);
             }
+
+            if (version !== requestVersion) return;
+            allVisits = visits;
+            doctors = fetchedDoctors;
+            loaded = true;
+            page = 1;
+            populateFilters();
+            render();
+        } catch (error) {
+            if (version !== requestVersion || error.name === "AbortError") return;
+            showMessage(error.message || "Không thể tải lịch sử khám.");
+            $("history-empty").hidden = false;
+            $("history-empty-message").textContent = "Không tải được danh sách lịch sử khám.";
+            $("history-record-count").textContent = "Chưa tải được dữ liệu.";
+        } finally {
+            if (version === requestVersion) {
+                loading = false;
+                activeController = null;
+                updateControls();
+            }
+        }
+    }
+
+    function populateFilters() {
+        const doctorSelect = $("history-doctor-filter");
+        doctorSelect.replaceChildren(new Option("Tất cả bác sĩ", ""));
+        const seenDoctors = new Set();
+        doctors.forEach(item => {
+            const id = positiveId(item.ma);
+            if (!id || seenDoctors.has(id)) return;
+            seenDoctors.add(id);
+            doctorSelect.add(new Option(text(item.ten, `Bác sĩ ${id}`), String(id)));
         });
+        if (![...seenDoctors].some(id => String(id) === selectedDoctor)) {
+            selectedDoctor = "";
+        }
+        doctorSelect.value = selectedDoctor;
 
-        updatePagination();
+        const roomSelect = $("history-room-filter");
+        roomSelect.replaceChildren(new Option("Tất cả phòng", ""));
+        const rooms = [...new Set(allVisits.map(item => String(item.tenPhong || "").trim())
+            .filter(room => room && room !== "Chưa phân công"))]
+            .sort((a, b) => a.localeCompare(b, "vi"));
+        rooms.forEach(room => roomSelect.add(new Option(room, room)));
+        if (!rooms.includes(selectedRoom)) selectedRoom = "";
+        roomSelect.value = selectedRoom;
     }
 
-    function fillFilter(id, items, defaultLabel) {
-        const select = $(id);
-        const previousValue = select.value;
-        const fragment = document.createDocumentFragment();
+    function matchDoctor(item) {
+        if (!selectedDoctor) return true;
+        const itemDoctorId = positiveId(item.maBacSi);
+        if (itemDoctorId) return String(itemDoctorId) === selectedDoctor;
+        const selected = doctors.find(row => String(row.ma) === selectedDoctor);
+        return !!selected && normalize(item.tenBacSi) === normalize(selected.ten);
+    }
 
-        fragment.append(new Option(defaultLabel, ""));
+    function matchKeyword(item) {
+        const term = normalize(keyword);
+        if (!term) return true;
+        const appointmentId = positiveId(item.maLichKham);
+        const patientId = positiveId(item.maBenhNhan);
+        const candidates = [
+            item.maLichKham, appointmentId ? `LK-${appointmentId}` : "",
+            item.maBenhNhan, patientId ? `BN-${patientId}` : "",
+            item.tenBenhNhan, item.soDienThoai,
+            item.ngaySinh ? formatDate(item.ngaySinh) : "",
+            item.tenBacSi, item.tenPhong
+        ];
+        return candidates.some(value => normalize(value).includes(term));
+    }
 
-        const usedIds = new Set();
-
-        for (const item of items) {
-            const ma = positiveId(item.ma);
-
-            if (!ma || usedIds.has(ma)) {
-                continue;
-            }
-
-            usedIds.add(ma);
-
-            fragment.append(
-                new Option(
-                    text(item.ten, `Mã ${ma}`),
-                    String(ma)
-                )
-            );
-        }
-
-        select.replaceChildren(fragment);
-
-        if (previousValue && !usedIds.has(Number(previousValue))) {
-            select.append(
-                new Option(
-                    `Mã ${previousValue} (không còn lịch phù hợp)`,
-                    previousValue
-                )
-            );
-        }
-
-        select.value = previousValue;
+    function filteredVisits() {
+        return allVisits.filter(item =>
+            matchKeyword(item)
+            && matchDoctor(item)
+            && (!selectedRoom || String(item.tenPhong || "").trim() === selectedRoom)
+        );
     }
 
     function appendText(parent, value, className) {
         const element = document.createElement("div");
-
         element.className = className;
         element.textContent = text(value);
         parent.append(element);
-
         return element;
     }
 
     function addCell(row, value) {
         const cell = document.createElement("td");
-
-        if (value !== undefined) {
-            cell.textContent = text(value);
-        }
-
+        if (value !== undefined) cell.textContent = text(value);
         row.append(cell);
         return cell;
     }
 
     function renderRows(items) {
         const fragment = document.createDocumentFragment();
-
         for (const item of items) {
             const row = document.createElement("tr");
-
-            // Số thứ tự thực tế từ bảng sothutu.
             const sequence = positiveId(item.soThuTu);
-
-            addCell(
-                row,
-                sequence ? `#${String(sequence).padStart(3, "0")}` : "—"
-            );
+            addCell(row, sequence ? `#${String(sequence).padStart(3, "0")}` : "—");
 
             const appointmentId = positiveId(item.maLichKham);
             const patientId = positiveId(item.maBenhNhan);
-
-            const codeCell = addCell(row);
-
-            appendText(
-                codeCell,
-                appointmentId ? `LK-${appointmentId}` : "—",
-                "history-code"
-            );
+            appendText(addCell(row), appointmentId ? `LK-${appointmentId}` : "—", "history-code");
 
             const patientCell = addCell(row);
-
-            appendText(
-                patientCell,
-                item.tenBenhNhan,
-                "history-primary-text"
-            );
-
-            appendText(
-                patientCell,
-                patientId ? `BN-${patientId}` : "—",
-                "history-secondary-text"
-            );
-
-            const patientInfo = [
+            appendText(patientCell, item.tenBenhNhan, "history-primary-text");
+            appendText(patientCell, patientId ? `BN-${patientId}` : "—", "history-secondary-text");
+            const info = [
                 item.ngaySinh ? formatDate(item.ngaySinh) : "",
-                text(item.gioiTinh, ""),
-                text(item.soDienThoai, "")
+                text(item.gioiTinh, ""), text(item.soDienThoai, "")
             ].filter(Boolean);
-
-            if (patientInfo.length) {
-                appendText(
-                    patientCell,
-                    patientInfo.join(" • "),
-                    "history-secondary-text"
-                );
-            }
+            if (info.length) appendText(patientCell, info.join(" · "), "history-secondary-text");
 
             const dateCell = addCell(row);
-
-            appendText(
-                dateCell,
-                formatDate(item.ngayKham),
-                "history-primary-text"
-            );
-
-            appendText(
-                dateCell,
-                item.gioKham,
-                "history-secondary-text"
-            );
+            appendText(dateCell, formatDate(item.ngayKham), "history-primary-text");
+            appendText(dateCell, String(item.gioKham || "").slice(0, 5), "history-secondary-text");
 
             const doctorCell = addCell(row);
-
-            appendText(
-                doctorCell,
-                item.tenKhoa,
-                "history-primary-text"
-            );
-
-            appendText(
-                doctorCell,
-                item.tenBacSi,
-                "history-secondary-text"
-            );
-
+            appendText(doctorCell, item.tenKhoa, "history-primary-text");
+            appendText(doctorCell, item.tenBacSi, "history-secondary-text");
             addCell(row, item.tenPhong);
 
             const statusCell = addCell(row);
             const status = document.createElement("span");
-
             status.className = "history-status";
             status.textContent = "Đã khám xong";
             statusCell.append(status);
 
             const detailCell = addCell(row);
-
             if (patientId && appointmentId) {
                 const link = document.createElement("a");
-
                 const params = new URLSearchParams({
                     maLichKham: String(appointmentId),
                     from: "appointment-history"
                 });
-
                 link.className = "history-detail-button";
                 link.textContent = "Chi tiết";
-
-                link.href =
-                    `/TiepNhan/ho-so-benh-nhan/${patientId}?${params}`;
-
-                link.setAttribute(
-                    "aria-label",
-                    `Xem chi tiết lịch LK-${appointmentId} của ${
-                        text(item.tenBenhNhan, "bệnh nhân")
-                    }`
-                );
-
+                link.href = `/TiepNhan/ho-so-benh-nhan/${patientId}?${params}`;
+                link.setAttribute("aria-label", `Xem lịch khám LK-${appointmentId} của ${text(item.tenBenhNhan, "bệnh nhân")}`);
                 detailCell.append(link);
             }
-
             fragment.append(row);
         }
-
         $("history-table-body").replaceChildren(fragment);
-
-        const scrollArea = document.querySelector(
-            ".history-table-scroll"
-        );
-
-        if (scrollArea) {
-            scrollArea.scrollTop = 0;
-        }
+        const scrollArea = document.querySelector(".history-table-scroll");
+        if (scrollArea) scrollArea.scrollTop = 0;
     }
 
-    function buildParams() {
-        const fromInput = $("history-from-date");
-        const toInput = $("history-to-date");
+    function render() {
+        if (!loaded) return;
+        const items = filteredVisits();
+        const pages = Math.ceil(items.length / pageSize);
+        if (page > pages) page = Math.max(1, pages);
+        const start = (page - 1) * pageSize;
+        renderRows(items.slice(start, start + pageSize));
 
-        if (!fromInput.checkValidity() || !toInput.checkValidity()) {
-            throw new Error("Ngày lọc không hợp lệ.");
-        }
-
-        const fromDate = fromInput.value;
-        const toDate = toInput.value;
-
-        if (fromDate && toDate && fromDate > toDate) {
-            throw new Error(
-                "Ngày bắt đầu không được lớn hơn ngày kết thúc."
-            );
-        }
-
-       const params = new URLSearchParams({
-           trang: String(page),
-           kichThuocTrang: "5"
-       });
-
-        const filters = {
-            tuKhoa: $("history-search-input").value.trim(),
-            maBacSi: $("history-doctor-filter").value,
-            maKhoa: $("history-department-filter").value,
-            tuNgay: fromDate,
-            denNgay: toDate
-        };
-
-        for (const [key, value] of Object.entries(filters)) {
-            if (value) {
-                params.set(key, value);
-            }
-        }
-
-        return params;
+        $("history-empty").hidden = items.length > 0;
+        $("history-empty-message").textContent =
+            keyword || selectedDoctor || selectedRoom
+                ? "Không tìm thấy lịch khám phù hợp với điều kiện đã chọn."
+                : "Không có lịch khám đã hoàn tất trong ngày này.";
+        $("history-record-count").textContent = items.length
+            ? `Hiển thị ${start + 1}–${Math.min(start + pageSize, items.length)} / ${items.length} lịch khám`
+            : "Hiển thị 0 lịch khám";
+        $("history-page-label").textContent = `Trang ${pages ? page : 0} / ${pages}`;
+        $("history-prev-page").disabled = page <= 1;
+        $("history-next-page").disabled = pages === 0 || page >= pages;
+        $("history-page-size").value = String(pageSize);
     }
 
-    async function loadHistory() {
-        if (loading) {
-            return;
-        }
+    function moveDate(offset) {
+        const [year, month, day] = selectedDate.split("-").map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
+        date.setUTCDate(date.getUTCDate() + offset);
+        const next = [
+            String(date.getUTCFullYear()).padStart(4, "0"),
+            String(date.getUTCMonth() + 1).padStart(2, "0"),
+            String(date.getUTCDate()).padStart(2, "0")
+        ].join("-");
+        if (validDate(next)) void loadDate(next);
+    }
 
-        showMessage();
-        updateHeaderDate();
-
-        let params;
-
+    function openDateCalendar() {
+        const input = $("history-filter-date");
+        input.value = selectedDate;
         try {
-            params = buildParams();
-        } catch (error) {
-            showMessage(error.message);
-            return;
+            if (typeof input.showPicker === "function") {
+                input.showPicker();
+                return;
+            }
+        } catch {
+            // Một số trình duyệt không hỗ trợ showPicker.
         }
-
-        loaded = false;
-        $("history-empty").hidden = true;
-        $("history-table-body").replaceChildren();
-        $("history-record-count").textContent = "Đang tải dữ liệu...";
-
-        setLoading(true);
-
-        const controller = new AbortController();
-        const timeout = setTimeout(
-            () => controller.abort(),
-            20000
-        );
-
-        try {
-            const headers = {
-                Accept: "application/json"
-            };
-
-            const token = getToken().trim();
-
-            if (token) {
-                headers.Authorization = /^Bearer\s/i.test(token)
-                    ? token
-                    : `Bearer ${token}`;
-            }
-
-            const response = await fetch(`${API}?${params}`, {
-                method: "GET",
-                headers,
-                cache: "no-store",
-                credentials: "same-origin",
-                signal: controller.signal
-            });
-
-            if (response.status === 401) {
-                throw new Error(
-                    "Phiên đăng nhập đã hết hạn. Bạn hãy đăng nhập lại."
-                );
-            }
-
-            if (response.status === 403) {
-                throw new Error(
-                    "Không có quyền truy cập API lịch sử khám. " +
-                    "Hãy kiểm tra tài khoản và phân quyền."
-                );
-            }
-
-            const contentType =
-                response.headers.get("content-type") || "";
-
-            if (!contentType.includes("application/json")) {
-                throw new Error(
-                    "API không trả về JSON. Hãy kiểm tra đăng nhập " +
-                    "và đường dẫn /api/tiepnhan/lich-su-kham."
-                );
-            }
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || `Không thể tải dữ liệu (HTTP ${
-                        response.status
-                    }).`
-                );
-            }
-
-            if (!data || !Array.isArray(data.danhSach)) {
-                throw new Error(
-                    "Dữ liệu API không đúng cấu trúc TiepNhanLichSuKhamDTO."
-                );
-            }
-
-            const responsePage = Number(data.trangHienTai);
-            const responsePages = Number(data.tongSoTrang);
-            const total = Number(data.tongLichKham);
-            const size = Number(data.kichThuocTrang);
-
-            if (
-                !Number.isSafeInteger(responsePage)
-                || responsePage < 1
-                || !Number.isSafeInteger(responsePages)
-                || responsePages < responsePage
-                || !Number.isSafeInteger(total)
-                || total < 0
-                || ![5, 10, 20, 50].includes(size)
-            ) {
-                throw new Error("Thông tin phân trang từ API không hợp lệ.");
-            }
-
-            page = responsePage;
-            totalPages = responsePages;
-
-            fillFilter(
-                "history-doctor-filter",
-                Array.isArray(data.danhSachBacSi)
-                    ? data.danhSachBacSi
-                    : [],
-                "Tất cả bác sĩ"
-            );
-
-            fillFilter(
-                "history-department-filter",
-                Array.isArray(data.danhSachKhoa)
-                    ? data.danhSachKhoa
-                    : [],
-                "Tất cả khoa"
-            );
-
-            renderRows(data.danhSach);
-
-            $("history-empty").hidden = data.danhSach.length > 0;
-
-            $("history-empty-message").textContent =
-                "Không có lịch khám đã hoàn tất phù hợp với bộ lọc.";
-
-            if (data.danhSach.length) {
-                const start = (page - 1) * size + 1;
-                const end = start + data.danhSach.length - 1;
-
-                $("history-record-count").textContent =
-                    `Hiển thị ${start}–${end} / ${total} lịch khám`;
-            } else {
-                $("history-record-count").textContent =
-                    "Hiển thị 0 / 0 lịch khám";
-            }
-
-            loaded = true;
-        } catch (error) {
-            console.error("Lỗi tải lịch sử khám:", error);
-
-            showMessage(
-                error.name === "AbortError"
-                    ? "Tải dữ liệu quá lâu. Bạn hãy bấm Làm mới dữ liệu."
-                    : error.message || "Không thể tải lịch sử khám."
-            );
-
-            $("history-table-body").replaceChildren();
-            $("history-empty").hidden = true;
-            $("history-record-count").textContent =
-                "Chưa tải được dữ liệu.";
-
-            totalPages = 1;
-            page = 1;
-        } finally {
-            clearTimeout(timeout);
-            setLoading(false);
-        }
-    }
-
-    function reloadFirstPage() {
-        if (loading) {
-            return;
-        }
-
-        page = 1;
-        void loadHistory();
+        input.style.cssText = "position:static!important;width:145px!important;height:34px!important;opacity:1!important;pointer-events:auto!important;";
+        input.tabIndex = 0;
+        input.focus();
+        input.click();
     }
 
     function setupNotifications() {
         const wrapper = $("notification-wrapper");
         const button = $("notification-button");
         const panel = $("notification-panel");
-        const closeButton = $("notification-close");
-
-        if (!wrapper || !button || !panel) {
-            return;
-        }
-
-        function closePanel() {
-            panel.hidden = true;
-            button.setAttribute("aria-expanded", "false");
-        }
-
-        button.addEventListener("click", () => {
-            panel.hidden = !panel.hidden;
-
-            button.setAttribute(
-                "aria-expanded",
-                String(!panel.hidden)
-            );
-        });
-
-        closeButton?.addEventListener("click", closePanel);
-
+        const close = $("notification-close");
+        if (!wrapper || !button || !panel) return;
+        const setOpen = open => {
+            panel.hidden = !open;
+            button.setAttribute("aria-expanded", String(open));
+        };
+        button.addEventListener("click", () => setOpen(panel.hidden));
+        close?.addEventListener("click", () => setOpen(false));
         document.addEventListener("click", event => {
-            if (!wrapper.contains(event.target)) {
-                closePanel();
-            }
+            if (!wrapper.contains(event.target)) setOpen(false);
         });
-
         document.addEventListener("keydown", event => {
-            if (event.key === "Escape" && !panel.hidden) {
-                closePanel();
-                button.focus();
-            }
+            if (event.key === "Escape") setOpen(false);
         });
     }
 
     function init() {
-        const requiredIds = [
-            "history-message",
-            "history-card",
-            "history-filter-form",
-            "history-search-input",
-            "history-search-button",
-            "history-doctor-filter",
-            "history-department-filter",
-            "history-from-date",
-            "history-to-date",
-            "history-table-body",
-            "history-loading",
-            "history-empty",
-            "history-empty-message",
-            "history-record-count",
-            "history-prev-page",
-            "history-next-page",
-            "history-page-label"
+        const required = [
+            "history-card", "history-message", "history-loading", "history-empty",
+            "history-empty-message", "history-table-body", "history-search-input",
+            "history-filter-form", "history-search-button", "history-doctor-filter",
+            "history-room-filter", "history-prev-date", "history-next-date",
+            "history-date-label", "history-open-calendar", "history-filter-date",
+            "history-page-size", "history-prev-page", "history-next-page",
+            "history-record-count", "history-page-label"
         ];
-
-        const missing = requiredIds.filter(id => !$(id));
-
+        const missing = required.filter(id => !$(id));
         if (missing.length) {
-            console.error(
-                "appointment-history.html thiếu các ID:",
-                missing
-            );
+            console.error("appointment-history.html thiếu ID:", missing);
             return;
         }
 
-        $("history-filter-form").addEventListener(
-            "submit",
-            event => {
-                event.preventDefault();
-                reloadFirstPage();
-            }
-        );
-
-        [
-            "history-doctor-filter",
-            "history-department-filter",
-            "history-from-date",
-            "history-to-date"
-        ].forEach(id => {
-            $(id).addEventListener("change", reloadFirstPage);
+        $("history-filter-form").addEventListener("submit", event => {
+            event.preventDefault();
+            clearTimeout(searchTimer);
+            keyword = $("history-search-input").value.trim();
+            page = 1;
+            render();
         });
-
-        // Khi bấm dấu x trong ô tìm kiếm để xóa từ khóa.
-        $("history-search-input").addEventListener("search", () => {
-            if (!$("history-search-input").value.trim()) {
-                reloadFirstPage();
-            }
+        $("history-search-input").addEventListener("input", () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                keyword = $("history-search-input").value.trim();
+                page = 1;
+                render();
+            }, 200);
         });
-
+        $("history-doctor-filter").addEventListener("change", () => {
+            selectedDoctor = $("history-doctor-filter").value;
+            page = 1;
+            render();
+        });
+        $("history-room-filter").addEventListener("change", () => {
+            selectedRoom = $("history-room-filter").value;
+            page = 1;
+            render();
+        });
+        $("history-page-size").addEventListener("change", () => {
+            pageSize = Number($("history-page-size").value) || 5;
+            page = 1;
+            render();
+        });
         $("history-prev-page").addEventListener("click", () => {
-            if (!loading && loaded && page > 1) {
-                page--;
-                void loadHistory();
-            }
+            if (loaded && page > 1) { page--; render(); }
         });
-
         $("history-next-page").addEventListener("click", () => {
-            if (!loading && loaded && page < totalPages) {
+            if (loaded && page < Math.ceil(filteredVisits().length / pageSize)) {
                 page++;
-                void loadHistory();
+                render();
             }
         });
-
-        $("refresh-history-button")?.addEventListener(
-            "click",
-            () => void loadHistory()
-        );
+        $("history-prev-date").addEventListener("click", () => moveDate(-1));
+        $("history-next-date").addEventListener("click", () => moveDate(1));
+        $("history-open-calendar").addEventListener("click", openDateCalendar);
+        $("history-filter-date").addEventListener("change", () => {
+            const date = $("history-filter-date").value;
+            if (validDate(date)) void loadDate(date);
+            else showMessage("Ngày khám không hợp lệ.");
+        });
+        $("refresh-history-button")?.addEventListener("click", () => void loadDate(selectedDate));
 
         setupNotifications();
         updateHeaderDate();
-        void loadHistory();
+        updateDateControls();
+        void loadDate(selectedDate);
     }
 
     if (document.readyState === "loading") {

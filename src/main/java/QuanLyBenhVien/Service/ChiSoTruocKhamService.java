@@ -425,7 +425,7 @@ public class ChiSoTruocKhamService {
                     HuyetApTamTruong,
                     TrangThai
                 )
-                SELECT ?, ?, ?, ?, ?, 'ChoKham'
+                SELECT ?, ?, ?, ?, ?, 'DaGoi'
                 FROM lichdangkykham l
                 WHERE l.MaLichKham = ?
                   AND l.MaKhoa = ?

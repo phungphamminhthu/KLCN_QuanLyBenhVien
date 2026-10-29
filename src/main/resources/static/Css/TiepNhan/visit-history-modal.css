@@ -1,0 +1,763 @@
+
+/* =====================================================
+   POPUP CHI TIẾT LỊCH SỬ KHÁM
+   Không sử dụng icon trang trí
+   ===================================================== */
+
+.vhm-overlay[hidden],
+.vhm-shell [hidden] {
+    display: none !important;
+}
+
+.vhm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 18px;
+    background: rgba(34, 40, 69, .55);
+    backdrop-filter: blur(2px);
+
+    font-family: "Plus Jakarta Sans", Arial, sans-serif;
+}
+
+.vhm-shell {
+    display: flex;
+    flex-direction: column;
+
+    width: min(960px, 100%);
+    max-height: min(94vh, 1080px);
+
+    overflow: hidden;
+
+    background: #fff;
+    border: 1px solid #e6e8f2;
+    border-radius: 16px;
+    box-shadow: 0 18px 65px rgba(21, 26, 54, .25);
+
+    color: #292f55;
+}
+
+/* HEADER */
+
+.vhm-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+
+    padding: 20px 24px 14px;
+    border-bottom: 1px solid #edf0f7;
+}
+
+.vhm-header h2 {
+    margin: 0 0 4px;
+    font-size: 20px;
+    line-height: 1.35;
+    font-weight: 800;
+    color: #1d2551;
+}
+
+.vhm-header p {
+    margin: 0;
+    color: #838aa8;
+    font-size: 12px;
+}
+
+.vhm-close {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    padding: 0;
+
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+
+    color: #606783;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.vhm-close:hover,
+.vhm-close:focus-visible {
+    background: #f1efff;
+    color: #6337e9;
+}
+
+/* PHẦN NỘI DUNG CUỘN */
+
+.vhm-content {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    padding: 16px 22px 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    scrollbar-width: thin;
+    scrollbar-color: #c9cce0 transparent;
+}
+
+.vhm-message {
+    margin: 4px 0 12px;
+    padding: 18px;
+    background: #f8f7ff;
+    border-radius: 9px;
+    color: #525b84;
+    font-size: 13px;
+}
+
+/* KHUNG NỘI DUNG */
+
+.vhm-section {
+    margin: 0 0 12px;
+    padding: 14px;
+
+    border: 1px solid #e8e9f6;
+    border-radius: 11px;
+    background: #fff;
+}
+
+.vhm-section h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.5;
+    color: #20294e;
+}
+
+.vhm-section h4 {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #2c3258;
+}
+
+/* THÔNG TIN LƯỢT KHÁM + BỆNH NHÂN */
+
+.vhm-info-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.5fr)
+        minmax(0, 1fr);
+    gap: 10px;
+}
+
+.vhm-info-card {
+    min-width: 0;
+    padding: 13px;
+
+    border: 1px solid #e8eaf6;
+    border-radius: 10px;
+    background: #fcfcff;
+}
+
+.vhm-info-wide {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 12px;
+    align-content: start;
+}
+
+.vhm-pair {
+    display: grid;
+    grid-template-columns:
+        minmax(96px, 42%)
+        minmax(0, 1fr);
+
+    align-items: baseline;
+    gap: 8px;
+    padding: 4px 0;
+    min-width: 0;
+
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.vhm-pair-label {
+    color: #7b83a0;
+}
+
+.vhm-pair-value {
+    color: #30385b;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.vhm-status {
+    display: inline-block;
+    justify-self: start;
+
+    padding: 3px 8px;
+    border-radius: 6px;
+
+    background: #e8f8ef;
+    color: #158553;
+}
+
+/* BỐN Ô SỐ ĐO */
+
+.vhm-vitals {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.vhm-vital {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 65px;
+    padding: 10px;
+
+    border: 1px solid #e6e5fc;
+    border-radius: 9px;
+    background: #f8f6ff;
+    text-align: center;
+}
+
+.vhm-vital:nth-child(2) {
+    background: #f5f9ff;
+    border-color: #e3edff;
+}
+
+.vhm-vital:nth-child(3) {
+    background: #fff6f8;
+    border-color: #f8e9ed;
+}
+
+.vhm-vital:nth-child(4) {
+    background: #f4fbf9;
+    border-color: #e3f3ee;
+}
+
+.vhm-vital span {
+    margin-bottom: 4px;
+    color: #7982a3;
+    font-size: 11px;
+}
+
+.vhm-vital strong {
+    color: #613af2;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+/* BẢNG CẬN LÂM SÀNG VÀ HÓA ĐƠN */
+
+.vhm-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.vhm-table {
+    width: 100%;
+    min-width: 580px;
+
+    border-spacing: 0;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.vhm-table thead th {
+    padding: 9px 10px;
+
+    background: #eff1fa;
+    color: #626b91;
+    text-align: left;
+    white-space: nowrap;
+    font-weight: 700;
+}
+
+.vhm-table thead th:first-child {
+    border-radius: 7px 0 0 0;
+}
+
+.vhm-table thead th:last-child {
+    border-radius: 0 7px 0 0;
+}
+
+.vhm-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eceef5;
+
+    color: #3c456e;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.vhm-table tbody tr:hover > td {
+    background: #faf9ff;
+}
+
+.vhm-table .vhm-muted {
+    color: #268258;
+    font-weight: 700;
+}
+
+.vhm-link {
+    padding: 0;
+    border: 0;
+    background: none;
+
+    color: #693af3;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.vhm-cls-detail {
+    background: #fafaff !important;
+    padding: 13px !important;
+}
+
+.vhm-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 20px;
+}
+
+.vhm-inner-table {
+    margin-top: 8px;
+}
+
+.vhm-file-link {
+    display: inline-block;
+    margin: 10px 0 0;
+
+    color: #613af2;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.vhm-empty {
+    margin: 8px 0 0;
+    color: #9096aa;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+/* HÓA ĐƠN */
+
+.vhm-invoice {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1.15fr)
+        minmax(0, 2.2fr)
+        minmax(160px, 1fr);
+
+    gap: 10px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+
+    border-bottom: 1px dashed #e4e6f2;
+}
+
+.vhm-invoice:last-child {
+    margin-bottom: 0;
+    border-bottom: 0;
+    padding-bottom: 0;
+}
+
+.vhm-invoice-info,
+.vhm-invoice-summary {
+    min-width: 0;
+    padding: 12px;
+
+    background: #fcfcff;
+    border: 1px solid #e9eaf4;
+    border-radius: 9px;
+}
+
+.vhm-invoice-info .vhm-pair,
+.vhm-invoice-summary .vhm-pair {
+    grid-template-columns:
+        minmax(70px, 43%)
+        minmax(0, 1fr);
+    font-size: 10px;
+}
+
+.vhm-invoice-items {
+    min-width: 0;
+
+    border: 1px solid #eceef5;
+    border-radius: 9px;
+}
+
+.vhm-invoice-items .vhm-table {
+    min-width: 400px;
+}
+
+.vhm-invoice-items .vhm-table td,
+.vhm-invoice-items .vhm-table th {
+    padding: 9px 7px;
+    font-size: 10px;
+}
+
+.vhm-invoice-summary .vhm-pair:nth-child(3) {
+    margin-top: 4px;
+    padding: 8px 4px;
+    background: #f0ecff;
+    border-radius: 6px;
+}
+
+.vhm-invoice-summary
+.vhm-pair:nth-child(3)
+.vhm-pair-value {
+    color: #633df2;
+}
+
+.vhm-payments {
+    grid-column: 1 / -1;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+.vhm-payments h4 {
+    margin: 8px 0;
+}
+
+.vhm-payments .vhm-table {
+    min-width: 620px;
+}
+
+/* GHI CHÚ VÀ KẾT LUẬN */
+
+.vhm-conclusion {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 18px;
+
+    padding: 12px 14px;
+
+    border: 1px solid #e8e5ff;
+    border-radius: 9px;
+    background: #f9f7ff;
+}
+
+.vhm-conclusion .vhm-pair {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 5px;
+}
+
+/* NÚT ĐÓNG CUỐI POPUP */
+
+.vhm-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+
+    padding: 11px 22px;
+
+    border-top: 1px solid #eceef5;
+    background: #fff;
+}
+
+.vhm-footer button {
+    min-height: 34px;
+    padding: 7px 20px;
+
+    border: 1px solid #653df4;
+    border-radius: 8px;
+    background: #653df4;
+
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.vhm-footer button:hover {
+    background: #5632e0;
+}
+
+.vhm-shell button:focus-visible,
+.vhm-shell a:focus-visible {
+    outline: 2px solid #7c3aed;
+    outline-offset: 3px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 850px) {
+    .vhm-info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .vhm-invoice {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .vhm-invoice-items {
+        grid-column: 1 / -1;
+        grid-row: 2;
+    }
+
+    .vhm-payments {
+        grid-row: 3;
+    }
+}
+
+@media (max-width: 575px) {
+    .vhm-overlay {
+        padding: 8px;
+    }
+
+    .vhm-shell {
+        max-height: 96vh;
+        border-radius: 12px;
+    }
+
+    .vhm-header {
+        padding: 14px 16px 11px;
+    }
+
+    .vhm-header h2 {
+        font-size: 17px;
+    }
+
+    .vhm-content {
+        padding: 12px;
+    }
+
+    .vhm-section {
+        padding: 11px;
+    }
+
+    .vhm-info-wide,
+    .vhm-detail-grid,
+    .vhm-conclusion {
+        grid-template-columns: 1fr;
+    }
+
+    .vhm-vitals {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .vhm-invoice {
+        grid-template-columns: 1fr;
+    }
+
+    .vhm-invoice-items,
+    .vhm-payments {
+        grid-column: auto;
+        grid-row: auto;
+    }
+
+    .vhm-footer {
+        padding: 10px 12px;
+    }
+}
+
+
+/* =====================================================
+   ĐỒNG BỘ GIAO DIỆN POPUP VỚI MEDCARE
+   - Căn giữa dấu X
+   - Dùng màu chủ đạo từ layout
+   - Bỏ nút Đóng phía dưới
+   ===================================================== */
+
+.vhm-overlay {
+    --vhm-primary: var(--primary, #2563eb);
+    --vhm-primary-soft: var(--primary-soft, #eff6ff);
+}
+
+/* =====================================================
+   1. CHỈNH NÚT X GÓC PHẢI
+   ===================================================== */
+
+.vhm-shell .vhm-close {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 34px;
+
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+
+    margin: 0;
+    padding: 0;
+
+    border: none;
+    border-radius: 9px;
+
+    background: var(--vhm-primary-soft);
+    color: var(--vhm-primary);
+
+    /* Ẩn ký tự X cũ để vẽ X cân đối */
+    font-size: 0;
+    line-height: 0;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+/* Hai nét tạo dấu X nằm chính giữa */
+
+.vhm-shell .vhm-close::before,
+.vhm-shell .vhm-close::after {
+    content: "";
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+
+    width: 15px;
+    height: 2px;
+
+    border-radius: 2px;
+    background: currentColor;
+
+    transform-origin: center;
+}
+
+.vhm-shell .vhm-close::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.vhm-shell .vhm-close::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.vhm-shell .vhm-close:hover {
+    background: var(--vhm-primary-soft);
+    transform: scale(1.06);
+}
+
+.vhm-shell .vhm-close:focus-visible {
+    outline: 2px solid var(--vhm-primary);
+    outline-offset: 3px;
+}
+
+/* =====================================================
+   2. ĐỒNG BỘ MÀU CHỦ ĐẠO
+   KHÔNG DÙNG MÀU TÍM CỐ ĐỊNH
+   ===================================================== */
+
+/* Các nội dung nổi bật */
+
+.vhm-shell .vhm-vital strong,
+.vhm-shell .vhm-link,
+.vhm-shell .vhm-file-link,
+.vhm-shell .vhm-invoice-summary
+.vhm-pair:nth-child(3) .vhm-pair-value {
+    color: var(--vhm-primary);
+}
+
+/* Nền nhấn nhẹ */
+
+.vhm-shell .vhm-message,
+.vhm-shell .vhm-vital:first-child,
+.vhm-shell .vhm-invoice-summary
+.vhm-pair:nth-child(3),
+.vhm-shell .vhm-conclusion {
+    background-color: var(--vhm-primary-soft);
+}
+
+/* Viền của những khu vực nổi bật */
+
+.vhm-shell .vhm-vital:first-child,
+.vhm-shell .vhm-conclusion {
+    border-color: var(--vhm-primary-soft);
+}
+
+/* Hiệu ứng hover bảng */
+
+.vhm-shell .vhm-table tbody tr:hover > td {
+    background-color: var(--vhm-primary-soft);
+}
+
+/* Focus nút và đường dẫn */
+
+.vhm-shell button:focus-visible,
+.vhm-shell a:focus-visible {
+    outline-color: var(--vhm-primary);
+}
+
+/* =====================================================
+   3. BỎ NÚT ĐÓNG PHÍA DƯỚI
+   CHỈ GIỮ NÚT X GÓC TRÊN PHẢI
+   ===================================================== */
+
+.vhm-shell .vhm-footer {
+    display: none !important;
+}
+
+/* Đảm bảo vùng nội dung vẫn cuộn bình thường */
+
+.vhm-shell .vhm-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: 22px;
+}
+
+/* =====================================================
+   4. CĂN HEADER POPUP
+   ===================================================== */
+
+.vhm-shell .vhm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.vhm-shell .vhm-header > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.vhm-shell .vhm-header h2 {
+    margin: 0 0 4px;
+}
+
+.vhm-shell .vhm-header p {
+    margin: 0;
+}
+
+/* =====================================================
+   5. RESPONSIVE TRÊN ĐIỆN THOẠI
+   ===================================================== */
+
+@media (max-width: 575px) {
+    .vhm-shell .vhm-close {
+        flex-basis: 32px;
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        min-height: 32px;
+    }
+
+    .vhm-shell .vhm-close::before,
+    .vhm-shell .vhm-close::after {
+        width: 13px;
+    }
+
+    .vhm-shell .vhm-header {
+        align-items: flex-start;
+    }
+}
