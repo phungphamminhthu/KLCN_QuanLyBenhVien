@@ -1,0 +1,863 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Hồ sơ bệnh án | MedCare Hospital</title>
+    <meta name="description" content="Tra cứu hồ sơ bệnh án tại MedCare Hospital">
+
+    <style>
+        :root {
+            --primary: #2563EB;
+            --primary-light: #DBEAFE;
+            --background: #F8FAFC;
+            --white: #FFFFFF;
+            --text: #1E293B;
+            --secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #15803D;
+            --danger: #DC2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 15px 20px;
+        }
+
+        .header-inner {
+            max-width: 1000px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand {
+            color: var(--primary);
+            font-size: 21px;
+            font-weight: 800;
+            text-decoration: none;
+        }
+
+        .header-label {
+            color: var(--secondary);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 28px auto;
+            padding: 0 16px 40px;
+        }
+
+        .page-title {
+            margin: 0 0 6px;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            margin: 0 0 22px;
+            color: var(--secondary);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 18px;
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .card-title .icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 19px;
+        }
+
+        .record-banner {
+            color: white;
+            background: linear-gradient(120deg, #2563EB, #0EA5E9);
+            border-radius: 18px;
+            padding: 24px;
+            margin-bottom: 18px;
+        }
+
+        .record-banner h2 {
+            margin: 0 0 8px;
+            font-size: 24px;
+        }
+
+        .record-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 22px;
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: white;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px 24px;
+        }
+
+        .field {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .field-label {
+            display: block;
+            color: var(--secondary);
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .field-value {
+            white-space: pre-wrap;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .empty {
+            color: var(--secondary);
+            font-size: 14px;
+            padding: 8px 0;
+        }
+
+        .item {
+            padding: 14px;
+            margin-bottom: 10px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-title {
+            margin: 0 0 12px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 20px;
+        }
+
+        .cost-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .cost-row:last-child {
+            border-bottom: 0;
+        }
+
+        .cost-total {
+            color: var(--primary);
+            font-size: 17px;
+            font-weight: 800;
+        }
+
+        .message {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--white);
+            margin-bottom: 18px;
+        }
+
+        .message.error {
+            color: var(--danger);
+            border-color: #FECACA;
+            background: #FEF2F2;
+        }
+
+        .message.info {
+            color: var(--secondary);
+        }
+
+        .spinner {
+            width: 30px;
+            height: 30px;
+            margin: 0 auto 12px;
+            border: 3px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 17px;
+            margin-top: 10px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .footer {
+            color: var(--secondary);
+            text-align: center;
+            font-size: 12px;
+            padding: 20px;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin-top: 20px;
+            }
+
+            .page-title {
+                font-size: 22px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .grid,
+            .item-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .record-banner {
+                padding: 19px;
+            }
+
+            .header-label {
+                max-width: 130px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<header class="header">
+    <div class="header-inner">
+        <a class="brand" href="/">MedCare Hospital</a>
+        <span class="header-label">Tra cứu hồ sơ bệnh án</span>
+    </div>
+</header>
+
+<main class="container">
+    <h1 class="page-title">Hồ sơ bệnh án</h1>
+    <p class="subtitle">
+        Thông tin hồ sơ được truy xuất từ hệ thống quản lý bệnh viện.
+    </p>
+
+    <div id="loading" class="message info center" role="status">
+        <div class="spinner"></div>
+        Đang kiểm tra quyền truy cập và tải hồ sơ...
+    </div>
+
+    <div id="errorBox" class="message error" role="alert" hidden>
+        <strong id="errorTitle">Không thể tải hồ sơ</strong>
+        <p id="errorMessage"></p>
+        <button id="retryButton" class="button" type="button" hidden>
+            Thử lại
+        </button>
+        <a id="loginButton" class="button" href="/auth/login" hidden>
+            Đăng nhập
+        </a>
+    </div>
+
+    <div id="recordContent" hidden>
+        <section class="record-banner">
+            <h2 id="recordHeading">Hồ sơ bệnh án</h2>
+            <div class="record-meta">
+                <span>Ngày khám: <strong id="recordDate">—</strong></span>
+                <span>Giờ khám: <strong id="recordTime">—</strong></span>
+            </div>
+            <span id="recordStatus" class="status">Chưa cập nhật</span>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">
+                <span class="icon">♙</span>
+                Thông tin khám bệnh
+            </h2>
+            <div class="grid">
+                <div class="field">
+                    <span class="field-label">Bác sĩ</span>
+                    <div id="doctor" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Chuyên khoa</span>
+                    <div id="department" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Lý do khám</span>
+                    <div id="reason" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Triệu chứng</span>
+                    <div id="symptoms" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Chẩn đoán</span>
+                    <div id="diagnosis" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Kết luận</span>
+                    <div id="conclusion" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Hướng điều trị</span>
+                    <div id="treatment" class="field-value">—</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">
+                <span class="icon">♥</span>
+                Chỉ số sức khỏe
+            </h2>
+            <div class="grid">
+                <div class="field">
+                    <span class="field-label">Cân nặng</span>
+                    <div id="weight" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Chiều cao</span>
+                    <div id="height" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Huyết áp</span>
+                    <div id="bloodPressure" class="field-value">—</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">
+                <span class="icon">⚕</span>
+                Chỉ định y tế
+            </h2>
+            <div id="orders"></div>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">
+                <span class="icon">✚</span>
+                Đơn thuốc
+            </h2>
+            <div id="prescriptions"></div>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">
+                <span class="icon">▤</span>
+                Chi phí khám bệnh
+            </h2>
+            <div id="costs"></div>
+            <div id="invoices"></div>
+        </section>
+
+        <section class="card">
+            <h2 class="card-title">
+                <span class="icon">▣</span>
+                Lịch tái khám
+            </h2>
+            <div class="grid">
+                <div class="field">
+                    <span class="field-label">Ngày tái khám</span>
+                    <div id="followUpDate" class="field-value">—</div>
+                </div>
+                <div class="field">
+                    <span class="field-label">Ghi chú</span>
+                    <div id="followUpNote" class="field-value">—</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<footer class="footer">
+    MedCare Hospital · Thông tin được hiển thị theo hồ sơ đã lưu tại bệnh viện.
+</footer>
+
+<script th:inline="javascript">
+    const qrToken = /*[[${qrToken}]]*/ null;
+
+    const API_BASE = window.location.origin;
+    const LOGIN_URL = "/auth/login";
+
+    const loadingEl = document.getElementById("loading");
+    const errorBox = document.getElementById("errorBox");
+    const errorTitle = document.getElementById("errorTitle");
+    const errorMessage = document.getElementById("errorMessage");
+    const retryButton = document.getElementById("retryButton");
+    const loginButton = document.getElementById("loginButton");
+    const recordContent = document.getElementById("recordContent");
+
+    function getJwt() {
+        return localStorage.getItem("Token")
+            || sessionStorage.getItem("Token");
+    }
+
+    function showLoading(message) {
+        loadingEl.hidden = false;
+        loadingEl.innerHTML =
+            '<div class="spinner"></div>' + escapeHtml(message);
+        errorBox.hidden = true;
+        recordContent.hidden = true;
+    }
+
+    function showError(title, message, options = {}) {
+        loadingEl.hidden = true;
+        recordContent.hidden = true;
+        errorBox.hidden = false;
+
+        errorTitle.textContent = title;
+        errorMessage.textContent = message;
+
+        retryButton.hidden = !options.retry;
+        loginButton.hidden = !options.login;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
+    function getValue(obj, ...keys) {
+        for (const key of keys) {
+            if (obj && obj[key] !== undefined && obj[key] !== null
+                && String(obj[key]).trim() !== ""
+                && String(obj[key]) !== "null") {
+                return obj[key];
+            }
+        }
+        return "";
+    }
+
+    function textValue(value, fallback = "Chưa cập nhật") {
+        return value === null || value === undefined || String(value).trim() === ""
+            ? fallback
+            : String(value);
+    }
+
+    function setText(id, value, fallback = "Chưa cập nhật") {
+        document.getElementById(id).textContent = textValue(value, fallback);
+    }
+
+    function formatDate(value) {
+        if (!value) return "Chưa cập nhật";
+
+        const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+
+        return String(value);
+    }
+
+    function formatMoney(value) {
+        const amount = Number(value);
+        if (!Number.isFinite(amount)) return "0 đ";
+
+        return new Intl.NumberFormat("vi-VN", {
+            maximumFractionDigits: 0
+        }).format(amount) + " đ";
+    }
+
+    function formatStatus(value) {
+        const statuses = {
+            chokham: "Chờ khám",
+            datiepnhan: "Đã tiếp nhận",
+            dangkham: "Đang khám",
+            chocls: "Chờ cận lâm sàng",
+            dangcls: "Đang cận lâm sàng",
+            hoantat: "Hoàn tất",
+            dahuy: "Đã hủy",
+            khongden: "Không đến"
+        };
+
+        const key = String(value || "").replace(/\s/g, "").toLowerCase();
+        return statuses[key] || textValue(value);
+    }
+
+    function makeField(label, value) {
+        const wrapper = document.createElement("div");
+        wrapper.className = "field";
+
+        const title = document.createElement("span");
+        title.className = "field-label";
+        title.textContent = label;
+
+        const content = document.createElement("div");
+        content.className = "field-value";
+        content.textContent = textValue(value);
+
+        wrapper.append(title, content);
+        return wrapper;
+    }
+
+    function makeItem(title, fields) {
+        const item = document.createElement("div");
+        item.className = "item";
+
+        const heading = document.createElement("h3");
+        heading.className = "item-title";
+        heading.textContent = title;
+
+        const grid = document.createElement("div");
+        grid.className = "item-grid";
+
+        fields.forEach(field => {
+            if (field && field.value !== undefined) {
+                grid.appendChild(makeField(field.label, field.value));
+            }
+        });
+
+        item.append(heading, grid);
+        return item;
+    }
+
+    function renderList(containerId, items, emptyText, renderer) {
+        const container = document.getElementById(containerId);
+        container.replaceChildren();
+
+        if (!Array.isArray(items) || items.length === 0) {
+            const empty = document.createElement("p");
+            empty.className = "empty";
+            empty.textContent = emptyText;
+            container.appendChild(empty);
+            return;
+        }
+
+        items.forEach((item, index) => {
+            container.appendChild(renderer(item, index));
+        });
+    }
+
+    function renderRecord(data) {
+        const d = data.data && typeof data.data === "object"
+            ? data.data
+            : data;
+
+        setText("recordHeading",
+            "Hồ sơ #" + textValue(
+                getValue(d, "maHoSoBenhAn", "MaHoSoBenhAn", "maHoSo", "MaHoSo"),
+                "bệnh án"
+            ));
+
+        setText("recordDate",
+            formatDate(getValue(d, "ngayKham", "NgayKham")));
+        setText("recordTime",
+            getValue(d, "gioKham", "GioKham"));
+        setText("recordStatus",
+            formatStatus(getValue(d, "trangThai", "TrangThai")));
+
+        setText("doctor", getValue(d, "tenBacSi", "TenBacSi"));
+        setText("department", getValue(d, "tenKhoa", "TenKhoa"));
+        setText("reason", getValue(d, "lyDoKham", "LyDoKham"));
+        setText("symptoms", getValue(d, "trieuChung", "TrieuChung"));
+        setText("diagnosis", getValue(d, "chanDoan", "ChanDoan"));
+        setText("conclusion", getValue(d, "ketLuan", "KetLuan"));
+        setText("treatment", getValue(d, "huongDieuTri", "HuongDieuTri"));
+
+        const weight = getValue(d, "canNang", "CanNang");
+        const height = getValue(d, "chieuCao", "ChieuCao");
+        const systolic = getValue(d, "huyetApTamThu", "HuyetApTamThu");
+        const diastolic = getValue(d, "huyetApTamTruong", "HuyetApTamTruong");
+
+        setText("weight", weight === "" ? "" : weight + " kg");
+        setText("height", height === "" ? "" : height + " cm");
+        setText("bloodPressure",
+            systolic === "" && diastolic === ""
+                ? ""
+                : (systolic || "--") + "/" + (diastolic || "--") + " mmHg");
+
+        const orders = getValue(d, "chiDinh", "ChiDinh");
+        renderList("orders", orders, "Chưa có chỉ định y tế.", (item, index) =>
+            makeItem(
+                getValue(item, "tenDichVu", "TenDichVu") || `Chỉ định ${index + 1}`,
+                [
+                    { label: "Loại chỉ định", value: getValue(item, "loaiChiDinh", "LoaiChiDinh") },
+                    { label: "Ngày chỉ định", value: formatDate(getValue(item, "ngayChiDinh", "NgayChiDinh")) },
+                    { label: "Trạng thái", value: formatStatus(getValue(item, "trangThai", "TrangThai")) },
+                    { label: "Đơn giá", value: formatMoney(getValue(item, "donGia", "DonGia")) }
+                ]
+            )
+        );
+
+        const prescriptions = getValue(d, "donThuoc", "DonThuoc");
+        renderList("prescriptions", prescriptions, "Chưa có đơn thuốc.", (item, index) => {
+            const fields = [
+                { label: "Ngày kê", value: formatDate(getValue(item, "ngayKeThuoc", "NgayKeThuoc")) },
+                { label: "Chẩn đoán", value: getValue(item, "chanDoan", "ChanDoan") },
+                { label: "Ghi chú", value: getValue(item, "ghiChu", "GhiChu") }
+            ];
+
+            const card = makeItem(
+                "Đơn thuốc #" + textValue(
+                    getValue(item, "maDonThuoc", "MaDonThuoc"),
+                    String(index + 1)
+                ),
+                fields
+            );
+
+            const medicines = getValue(item, "chiTiet", "ChiTiet");
+            if (Array.isArray(medicines) && medicines.length) {
+                const heading = document.createElement("h4");
+                heading.textContent = "Danh sách thuốc";
+                card.appendChild(heading);
+
+                medicines.forEach((med, medIndex) => {
+                    card.appendChild(makeItem(
+                        getValue(med, "tenThuoc", "TenThuoc") || `Thuốc ${medIndex + 1}`,
+                        [
+                            { label: "Số lượng", value: getValue(med, "soLuong", "SoLuong") },
+                            { label: "Đơn vị tính", value: getValue(med, "donViTinh", "DonViTinh") },
+                            { label: "Liều dùng", value: getValue(med, "lieuDung", "LieuDung") },
+                            { label: "Thời gian dùng", value: getValue(med, "thoiGianDung", "ThoiGianDung") },
+                            { label: "Hướng dẫn", value: getValue(med, "huongDanSuDung", "HuongDanSuDung") }
+                        ]
+                    ));
+                });
+            }
+
+            const total = document.createElement("p");
+            total.className = "cost-total";
+            total.textContent = "Tổng đơn thuốc: " +
+                formatMoney(getValue(item, "tongTien", "TongTien"));
+            card.appendChild(total);
+
+            return card;
+        });
+
+        const costs = getValue(d, "chiPhi", "ChiPhi") || {};
+        const costsContainer = document.getElementById("costs");
+        costsContainer.replaceChildren();
+
+        [
+            ["Phí khám", getValue(costs, "phiKham", "PhiKham")],
+            ["Phí chỉ định", getValue(costs, "phiChiDinh", "PhiChiDinh")],
+            ["Tiền thuốc", getValue(costs, "tienThuoc", "TienThuoc")],
+            ["Tổng tiền", getValue(costs, "tongCong", "TongCong")]
+        ].forEach(([label, value], index) => {
+            const row = document.createElement("div");
+            row.className = "cost-row";
+
+            const name = document.createElement("span");
+            name.textContent = label;
+
+            const amount = document.createElement("strong");
+            amount.textContent = formatMoney(value);
+
+            if (index === 3) amount.className = "cost-total";
+
+            row.append(name, amount);
+            costsContainer.appendChild(row);
+        });
+
+        const invoices = getValue(d, "hoaDon", "HoaDon");
+        renderList("invoices", invoices, "", (item, index) =>
+            makeItem(
+                "Hóa đơn #" + textValue(
+                    getValue(item, "maHoaDon", "MaHoaDon"),
+                    String(index + 1)
+                ),
+                [
+                    { label: "Ngày lập", value: formatDate(getValue(item, "ngayLapHoaDon", "NgayLapHoaDon")) },
+                    { label: "Loại hóa đơn", value: getValue(item, "loaiHoaDon", "LoaiHoaDon") },
+                    { label: "Trạng thái", value: getValue(item, "trangThai", "TrangThai") },
+                    { label: "Tổng hóa đơn", value: formatMoney(getValue(item, "tongTien", "TongTien")) }
+                ]
+            )
+        );
+
+        setText("followUpDate",
+            formatDate(getValue(d, "ngayTaiKham", "NgayTaiKham")));
+        setText("followUpNote",
+            getValue(d, "ghiChuTaiKham", "GhiChuTaiKham"));
+
+        loadingEl.hidden = true;
+        errorBox.hidden = true;
+        recordContent.hidden = false;
+    }
+
+    function redirectToLogin() {
+        // Giữ lại chính xác URL QR để sau đăng nhập quay lại hồ sơ.
+        sessionStorage.setItem("qrReturnUrl", window.location.href);
+
+        const loginUrl = new URL(LOGIN_URL, window.location.origin);
+        loginUrl.searchParams.set("returnUrl", window.location.href);
+
+        window.location.replace(loginUrl.href);
+    }
+
+    async function loadMedicalRecord() {
+        if (!qrToken || typeof qrToken !== "string" || !qrToken.trim()) {
+            showError(
+                "Mã QR không hợp lệ",
+                "Không tìm thấy mã tra cứu hồ sơ trong đường dẫn."
+            );
+            return;
+        }
+
+        const jwt = getJwt();
+
+        if (!jwt) {
+            redirectToLogin();
+            return;
+        }
+
+        showLoading("Đang tải hồ sơ bệnh án...");
+
+        try {
+            const response = await fetch(
+                `${API_BASE}/api/medical-records/qr/${encodeURIComponent(qrToken)}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${jwt}`
+                    },
+                    cache: "no-store"
+                }
+            );
+
+            if (response.status === 401) {
+                localStorage.removeItem("Token");
+                sessionStorage.removeItem("Token");
+
+                showError(
+                    "Phiên đăng nhập không hợp lệ",
+                    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+                    { login: true }
+                );
+
+                // Giữ URL QR để có thể tiếp tục sau đăng nhập.
+                sessionStorage.setItem("qrReturnUrl", window.location.href);
+                return;
+            }
+
+            if (response.status === 403) {
+                showError(
+                    "Không có quyền xem hồ sơ",
+                    "Tài khoản hiện tại không được phép xem hồ sơ này."
+                );
+                return;
+            }
+
+            if (response.status === 404) {
+                showError(
+                    "Không tìm thấy hồ sơ",
+                    "Mã QR không hợp lệ hoặc hồ sơ không tồn tại."
+                );
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(`Máy chủ trả về HTTP ${response.status}.`);
+            }
+
+            const data = await response.json();
+
+            if (!data || typeof data !== "object") {
+                throw new Error("Dữ liệu hồ sơ không hợp lệ.");
+            }
+
+            renderRecord(data);
+
+        } catch (error) {
+            console.error("Lỗi tải hồ sơ bệnh án:", error);
+
+            showError(
+                "Không thể tải hồ sơ bệnh án",
+                "Vui lòng kiểm tra kết nối mạng rồi thử lại.",
+                { retry: true }
+            );
+        }
+    }
+
+    retryButton.addEventListener("click", loadMedicalRecord);
+
+    loginButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        redirectToLogin();
+    });
+
+    document.addEventListener("DOMContentLoaded", loadMedicalRecord);
+</script>
+</body>
+</html>

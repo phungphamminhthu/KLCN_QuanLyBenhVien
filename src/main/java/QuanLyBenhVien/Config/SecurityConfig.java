@@ -75,6 +75,7 @@ public class SecurityConfig {
                                 "/Css/**",
                                 "/Js/**",
                                 "/Images/**",
+                                "/medical-records/qr",
                                 "/ws",
                                 "/ws/**",
                                 "/api/auth/**",
@@ -120,6 +121,12 @@ public class SecurityConfig {
                                 "/api/duocsi",
                                 "/api/duocsi/**"
                         ).hasRole("DUOCSI")
+
+                        // API xem hồ sơ bệnh án: bắt buộc đăng nhập
+                        .requestMatchers(
+                                "/api/medical-records",
+                                "/api/medical-records/**"
+                        ).hasAnyRole("BENHNHAN", "BACSI", "ADMIN")
 
                         // API kho thuốc: chỉ Dược sĩ
                         .requestMatchers(

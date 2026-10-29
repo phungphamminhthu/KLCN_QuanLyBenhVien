@@ -12,4 +12,11 @@ public interface CTDonThuocRepository extends JpaRepository<CTDonThuoc, Integer>
     );
 
     void deleteByDonThuoc_MaDonThuoc(Integer maDonThuoc);
+
+    // =====================================
+    // tìm đơn thuốc bằng mã đơn thuốc của benh nhan
+    // =====================================
+    List<CTDonThuoc> findByDonThuoc_MaDonThuoc(
+            Integer maDonThuoc
+    );
 }

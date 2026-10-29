@@ -44,4 +44,9 @@ public interface ChiDinhYTeRepository
             LocalDateTime start,
             LocalDateTime end
     );
+
+    // tìm chi dinh tu mahosobenhan
+    List<ChiDinhYTe> findByHoSoBenhAn_MaHoSoBenhAn(
+            Integer maHoSoBenhAn
+    );
 }

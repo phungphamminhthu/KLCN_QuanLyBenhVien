@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 public interface ThanhToanRepository
@@ -33,4 +34,7 @@ public interface ThanhToanRepository
             @Param("maLichKham") Integer maLichKham,
             @Param("trangThaiThanhCong") String trangThaiThanhCong
     );
+
+    // thanh toán theo mã hóa đơn
+    List<ThanhToan> findByMaHoaDon(Integer maHoaDon);
 }

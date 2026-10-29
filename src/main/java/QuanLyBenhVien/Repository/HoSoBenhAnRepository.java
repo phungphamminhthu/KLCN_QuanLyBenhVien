@@ -77,4 +77,12 @@ public interface HoSoBenhAnRepository
             Integer maHoSoBenhAn,
             String tenDangNhap
     );
+
+    // mã qr
+    Optional<HoSoBenhAn> findByQrToken(String qrToken);
+
+    List<HoSoBenhAn>
+    findByLichDangKyKham_BenhNhan_NguoiDung_TenDangNhapAndNgayTaiKhamIsNotNullOrderByNgayTaiKhamAsc(
+            String tenDangNhap
+    );
 }

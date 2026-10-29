@@ -7,20 +7,25 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import QuanLyBenhVien.Service.MedicalRecordDetailService;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/medical-records")
 public class HoSoBenhAnController {
 
     private final HoSoBenhAnRepository hoSoBenhAnRepository;
+    private final MedicalRecordDetailService medicalRecordDetailService;
 
     public HoSoBenhAnController(
-            HoSoBenhAnRepository hoSoBenhAnRepository) {
+            HoSoBenhAnRepository hoSoBenhAnRepository,
+            MedicalRecordDetailService medicalRecordDetailService) {
         this.hoSoBenhAnRepository = hoSoBenhAnRepository;
+        this.medicalRecordDetailService = medicalRecordDetailService;
     }
 
     /**
@@ -71,9 +76,14 @@ public class HoSoBenhAnController {
                         id,
                         authentication.getName()
                 )
-                .<ResponseEntity<?>>map(record ->
-                        ResponseEntity.ok(toResponse(record))
-                )
+                .<ResponseEntity<?>>map(record -> {
+                    Map<String, Object> detail =
+                            medicalRecordDetailService.getDetail(
+                                    record.getMaHoSoBenhAn()
+                            );
+
+                    return ResponseEntity.ok(detail);
+                })
                 .orElseGet(() ->
                         ResponseEntity.status(HttpStatus.NOT_FOUND)
                                 .body(Map.of(
@@ -128,4 +138,105 @@ public class HoSoBenhAnController {
 
         return data;
     }
+
+
+    /**
+     * Lấy hoặc tạo QR token cho hồ sơ bệnh án.
+     * Chỉ bệnh nhân sở hữu hồ sơ mới được lấy token.
+     */
+    @GetMapping("/{id}/qr-token")
+    public ResponseEntity<?> getQrToken(
+            @PathVariable Integer id,
+            Authentication authentication) {
+
+        // Kiểm tra đăng nhập
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getName() == null
+                || "anonymousUser".equals(authentication.getName())) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Vui lòng đăng nhập."));
+        }
+
+        // Kiểm tra hồ sơ có thuộc bệnh nhân đang đăng nhập không
+        return hoSoBenhAnRepository
+                .findByMaHoSoBenhAnAndLichDangKyKham_BenhNhan_NguoiDung_TenDangNhap(
+                        id,
+                        authentication.getName())
+                .<ResponseEntity<?>>map(record -> {
+                    try {
+                        String token = medicalRecordDetailService
+                                .getOrCreateQrToken(
+                                        record.getMaHoSoBenhAn());
+
+                        return ResponseEntity.ok(
+                                Map.of("qrToken", token));
+
+                    } catch (NoSuchElementException ex) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of(
+                                        "message",
+                                        "Không tìm thấy hồ sơ bệnh án."));
+                    }
+                })
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of(
+                                        "message",
+                                        "Không tìm thấy hồ sơ hoặc bạn không có quyền truy cập."
+                                )));
+    }
+
+    @GetMapping("/qr/{token}")
+    public ResponseEntity<?> getMedicalRecordByQr(
+            @PathVariable String token,
+            Authentication authentication) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getName() == null
+                || "anonymousUser".equals(authentication.getName())) {
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("message", "Vui lòng đăng nhập."));
+        }
+
+        return hoSoBenhAnRepository.findByQrToken(token)
+                .<ResponseEntity<?>>map(record -> {
+
+                    var lichKham = record.getLichDangKyKham();
+
+                    boolean isOwner = lichKham != null
+                            && lichKham.getBenhNhan() != null
+                            && lichKham.getBenhNhan().getNguoiDung() != null
+                            && authentication.getName().equals(
+                            lichKham.getBenhNhan()
+                                    .getNguoiDung()
+                                    .getTenDangNhap()
+                    );
+
+                    if (!isOwner) {
+                        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of(
+                                        "message",
+                                        "Không tìm thấy hồ sơ hoặc bạn không có quyền truy cập."
+                                ));
+                    }
+
+                    return ResponseEntity.ok(
+                            medicalRecordDetailService.getDetail(
+                                    record.getMaHoSoBenhAn()
+                            )
+                    );
+                })
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                .body(Map.of(
+                                        "message",
+                                        "Mã QR không hợp lệ hoặc hồ sơ không tồn tại."
+                                ))
+                );
+    }
+
 }

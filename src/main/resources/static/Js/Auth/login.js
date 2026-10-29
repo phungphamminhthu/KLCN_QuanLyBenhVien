@@ -501,74 +501,78 @@ document.addEventListener("DOMContentLoaded", function () {
                 // CHUYỂN TRANG THEO VAI TRÒ
                 // ==============================
 
-                setTimeout(
-                    function () {
 
-                        switch (data.VaiTro) {
+                setTimeout(function () {
+                    // Nếu đăng nhập từ QR hồ sơ bệnh án,
+                    // ưu tiên quay lại đúng trang QR trước.
+                    const qrReturnUrl = sessionStorage.getItem("qrReturnUrl");
 
-                            case "ADMIN":
+                    if (qrReturnUrl && data.VaiTro === "BENHNHAN") {
+                        try {
+                            const target = new URL(qrReturnUrl, window.location.origin);
 
-                                window.location.href =
-                                    "/Admin/dashboard";
-
-                                break;
-
-
-                            case "BACSI":
-
-                                // Đánh dấu bác sĩ vừa đăng nhập thành công
-                                sessionStorage.setItem(
-                                    "thongBaoChoKhamSauDangNhap",
-                                    "1"
-                                );
-
-                                // Chuyển đến trang chủ bác sĩ
-                                window.location.href =
-                                    "/auth/bac-si/trang-chu";
-
-                                break;
-
-                            case "TIEPNHAN":
-
-                                window.location.href =
-                                    "/TiepNhan/dashboard";
-
-                                break;
-
-
-                            case "CHUYENTRACH":
-
-                                window.location.href =
-                                    "/ChuyenTrach/dashboard";
-
-                                break;
-
-
-                            case "DUOCSI":
-                                window.location.href = "/DuocSi/dashboard";
-                                break;
-
-                            case "BENHNHAN":
-                                window.location.href = "/benh-nhan/trang-chu";
-                                break;
-
-                            default:
-                                console.error("Vai trò nhận được từ API:", data.VaiTro);
-
-                                showMessage(
-                                    "Vai trò tài khoản không hợp lệ: " +
-                                    (data.VaiTro || "không xác định"),
-                                    "error"
-                                );
-
-                                LoginButton.disabled = false;
-                                LoginButton.textContent = "Đăng nhập";
-                                break;
+                            // Chỉ cho phép quay lại trang QR trên cùng website.
+                            if (
+                                target.origin === window.location.origin &&
+                                target.pathname === "/medical-records/qr" &&
+                                target.searchParams.has("token")
+                            ) {
+                                sessionStorage.removeItem("qrReturnUrl");
+                                window.location.replace(target.href);
+                                return;
+                            }
+                        } catch (error) {
+                            console.error("URL quay lại từ QR không hợp lệ:", error);
                         }
 
-                    },
-                    500
-                );
+                        sessionStorage.removeItem("qrReturnUrl");
+                    }
+
+                    // Luồng đăng nhập bình thường của các role được giữ nguyên.
+                    switch (data.VaiTro) {
+                        case "ADMIN":
+                            window.location.href = "/Admin/dashboard";
+                            break;
+
+                        case "BACSI":
+                            sessionStorage.setItem(
+                                "thongBaoChoKhamSauDangNhap",
+                                "1"
+                            );
+                            window.location.href = "/auth/bac-si/trang-chu";
+                            break;
+
+                        case "TIEPNHAN":
+                            window.location.href = "/TiepNhan/dashboard";
+                            break;
+
+                        case "CHUYENTRACH":
+                            window.location.href = "/ChuyenTrach/dashboard";
+                            break;
+
+                        case "DUOCSI":
+                            window.location.href = "/DuocSi/dashboard";
+                            break;
+
+                        case "BENHNHAN":
+                            window.location.href = "/benh-nhan/trang-chu";
+                            break;
+
+                        default:
+                            console.error("Vai trò nhận được từ API:", data.VaiTro);
+
+                            showMessage(
+                                "Vai trò tài khoản không hợp lệ: " +
+                                (data.VaiTro || "không xác định"),
+                                "error"
+                            );
+
+                            LoginButton.disabled = false;
+                            LoginButton.textContent = "Đăng nhập";
+                            break;
+                    }
+                }, 500);
+
 
 
             } catch (error) {

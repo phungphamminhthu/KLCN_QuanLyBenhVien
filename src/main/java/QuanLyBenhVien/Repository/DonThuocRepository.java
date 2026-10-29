@@ -11,4 +11,6 @@ public interface DonThuocRepository extends JpaRepository<DonThuoc, Integer> {
     Optional<DonThuoc> findByHoSoBenhAn_MaHoSoBenhAn(Integer maHoSoBenhAn);
 
     List<DonThuoc> findByBacSi_MaBacSiOrderByNgayKeThuocDesc(Integer maBacSi);
+
+
 }
