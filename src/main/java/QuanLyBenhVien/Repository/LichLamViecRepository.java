@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface LichLamViecRepository
         extends JpaRepository<LichLamViec, Integer> {
@@ -77,5 +78,21 @@ public interface LichLamViecRepository
     List<LichLamViec> findLichBacSiDatKham(
             @Param("maKhoa") Integer maKhoa,
             @Param("ngayKham") LocalDate ngayKham
+    );
+
+    @Query("""
+    SELECT l
+    FROM LichLamViec l
+    JOIN FETCH l.phong p
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayLamViec = :ngayKham
+      AND :gioKham >= l.gioBatDau
+      AND :gioKham < l.gioKetThuc
+      AND l.trangThai = 'DangLamViec'
+    """)
+    Optional<LichLamViec> timLichLamViecTheoCaKham(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham,
+            @Param("gioKham") LocalTime gioKham
     );
 }

@@ -207,6 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
             lichkham: "📅",
             chidinh: "📋",
             donthuoc: "💊",
+            don_thuoc: "💊",
             general: "🔔"
         };
 

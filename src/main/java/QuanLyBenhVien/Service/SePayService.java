@@ -396,15 +396,6 @@ public class SePayService {
             );
         }
 
-        // 7. Kiểm tra trạng thái thanh toán của lịch
-        if (!"ChuaThanhToan".equalsIgnoreCase(
-                lich.getTrangThaiThanhToan())) {
-
-            throw new IllegalArgumentException(
-                    "Lịch khám không ở trạng thái chờ thanh toán."
-            );
-        }
-
         // 8. Kiểm tra số tiền
         if (hoaDon.getTongTien() == null
                 || hoaDon.getTongTien().compareTo(

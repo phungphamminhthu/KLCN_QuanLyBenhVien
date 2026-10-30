@@ -29,6 +29,7 @@ public class LichDangKyKhamService {
     private final CTHoaDonRepository ctHoaDonRepository;
     private final DichVuYTeRepository dichVuYTeRepository;
     private final ThanhToanRepository thanhToanRepository;
+    private final ThongBaoService thongBaoService;
 
     //CTHoaDonRepository ctHoaDonRepository
     public LichDangKyKhamService(
@@ -40,7 +41,8 @@ public class LichDangKyKhamService {
             HoaDonRepository hoaDonRepository,
             CTHoaDonRepository ctHoaDonRepository,
             DichVuYTeRepository dichVuYTeRepository,
-            ThanhToanRepository thanhToanRepository) {
+            ThanhToanRepository thanhToanRepository,
+            ThongBaoService thongBaoService) {
 
         this.lichRepository = lichRepository;
         this.lichLamViecRepository = lichLamViecRepository;
@@ -51,6 +53,7 @@ public class LichDangKyKhamService {
         this.ctHoaDonRepository = ctHoaDonRepository;
         this.dichVuYTeRepository = dichVuYTeRepository;
         this.thanhToanRepository = thanhToanRepository;
+        this.thongBaoService = thongBaoService;
     }
 
     @Transactional
@@ -278,6 +281,14 @@ public class LichDangKyKhamService {
         chiTiet.setThanhTien(giaKham);
 
         ctHoaDonRepository.save(chiTiet);
+
+        // 14. Tạo thông báo đặt lịch thành công
+        thongBaoService.taoThongBao(
+                nguoiDung.getMaNguoiDung(),
+                "Đặt lịch thành công",
+                "Lịch khám của bạn đã được ghi nhận. Vui lòng theo dõi trạng thái lịch khám.",
+                "DAT_LICH"
+        );
 
 
         // 13. Trả kết quả cho Flutter

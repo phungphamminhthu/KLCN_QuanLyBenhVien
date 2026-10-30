@@ -2,6 +2,7 @@ package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.CTDonThuocRequest;
 import QuanLyBenhVien.DTO.DonThuocRequest;
+import QuanLyBenhVien.Repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -16,18 +17,7 @@ import QuanLyBenhVien.Entity.HoSoBenhAn;
 import QuanLyBenhVien.Entity.KetQuaDichVu;
 import QuanLyBenhVien.Entity.LichDangKyKham;
 import QuanLyBenhVien.Entity.Thuoc;
-
-import QuanLyBenhVien.Repository.BacSiRepository;
-import QuanLyBenhVien.Repository.CTDonThuocRepository;
-import QuanLyBenhVien.Repository.ChiDinhYTeRepository;
-import QuanLyBenhVien.Repository.ChiTietKetQuaRepository;
-import QuanLyBenhVien.Repository.DichVuYTeRepository;
-import QuanLyBenhVien.Repository.DonThuocRepository;
-import QuanLyBenhVien.Repository.HoSoBenhAnRepository;
-import QuanLyBenhVien.Repository.KetQuaDichVuRepository;
-import QuanLyBenhVien.Repository.LichDangKyKhamRepository;
-import QuanLyBenhVien.Repository.ThuocRepository;
-import QuanLyBenhVien.Repository.TiepNhanBenhNhanRepository;
+import QuanLyBenhVien.Entity.LichLamViec;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +45,10 @@ public class KhamBenhService {
     private final CTDonThuocRepository ctDonThuocRepository;
     private final BacSiRepository bacSiRepository;
 
+    // thong bao
+    private final LichLamViecRepository lichLamViecRepository;
+    private final ThongBaoService thongBaoService;
+
 
     public KhamBenhService(
             LichDangKyKhamRepository lichDangKyKhamRepository,
@@ -67,7 +61,9 @@ public class KhamBenhService {
             ThuocRepository thuocRepository,
             DonThuocRepository donThuocRepository,
             CTDonThuocRepository ctDonThuocRepository,
-            BacSiRepository bacSiRepository
+            BacSiRepository bacSiRepository,
+            LichLamViecRepository lichLamViecRepository,
+            ThongBaoService thongBaoService
     ) {
         this.lichDangKyKhamRepository = lichDangKyKhamRepository;
         this.tiepNhanBenhNhanRepository = tiepNhanBenhNhanRepository;
@@ -82,6 +78,9 @@ public class KhamBenhService {
         this.donThuocRepository = donThuocRepository;
         this.ctDonThuocRepository = ctDonThuocRepository;
         this.bacSiRepository = bacSiRepository;
+
+        this.lichLamViecRepository = lichLamViecRepository;
+        this.thongBaoService = thongBaoService;
     }
 
 
@@ -195,6 +194,11 @@ public class KhamBenhService {
 
         // 10. Lưu dữ liệu trong cùng transaction
         lichDangKyKhamRepository.save(lichKham);
+        HoSoBenhAn hoSoDaLuu = hoSoBenhAnRepository.save(hoSo);
+
+        // 11. Gửi thông báo khi bệnh nhân được chuyển sang Đang khám
+        guiThongBaoBacSiGoiKham(lichKham);
+
 
         return hoSoBenhAnRepository.save(hoSo);
     }
@@ -426,7 +430,46 @@ public class KhamBenhService {
             );
         }
 
+        // Gửi thông báo cho bệnh nhân sau khi tạo chỉ định thành công
+        guiThongBaoChiDinhCLS(lichKham, dichVu);
+
         return daLuu;
+    }
+
+    // ===================================================
+    // gui thong bao cho chi dinh
+    // ===================================================
+    private void guiThongBaoChiDinhCLS(
+            LichDangKyKham lichKham,
+            DichVuYTe dichVu
+    ) {
+        if (lichKham.getBenhNhan() == null
+                || lichKham.getBenhNhan().getNguoiDung() == null) {
+            return;
+        }
+
+        Integer maNguoiDung = lichKham.getBenhNhan()
+                .getNguoiDung()
+                .getMaNguoiDung();
+
+        if (maNguoiDung == null) {
+            return;
+        }
+
+        String tenDichVu = dichVu.getTenDichVu();
+
+        if (tenDichVu == null || tenDichVu.isBlank()) {
+            tenDichVu = "dịch vụ cận lâm sàng";
+        }
+
+        thongBaoService.taoThongBao(
+                maNguoiDung,
+                "Có chỉ định cận lâm sàng",
+                "Bác sĩ đã chỉ định bạn thực hiện: "
+                        + tenDichVu
+                        + ". Vui lòng kiểm tra thông tin.",
+                "CHI_DINH_CLS"
+        );
     }
 
     // =========================================================
@@ -736,6 +779,30 @@ public class KhamBenhService {
                     item
             );
         }
+
+        // 15. Gửi thông báo đơn thuốc mới cho bệnh nhân
+        Integer maNguoiDung = lichKham.getBenhNhan()
+                .getNguoiDung()
+                .getMaNguoiDung();
+
+        thongBaoService.taoThongBao(
+                maNguoiDung,
+                "Đơn thuốc mới",
+                "Bác sĩ đã hoàn tất kê đơn thuốc cho bạn. "
+                        + "Vui lòng đến nhà thuốc.",
+                "DON_THUOC"
+        );
+
+        // 16. Gửi thông báo realtime cho tất cả Dược sĩ
+        thongBaoService.taoThongBaoTheoVaiTro(
+                List.of("DUOCSI"),
+                "Có đơn thuốc mới",
+                "Bác sĩ vừa kê đơn thuốc mới. Mã đơn thuốc: "
+                        + donDaLuu.getMaDonThuoc()
+                        + ". Vui lòng kiểm tra danh sách đơn thuốc chờ cấp.",
+                "DON_THUOC"
+        );
+
 
         return donDaLuu;
     }
@@ -1304,9 +1371,9 @@ public class KhamBenhService {
     }
 
     // =========================================================
-// KIỂM TRA ĐIỀU KIỆN CẬN LÂM SÀNG
-// TRƯỚC KHI KÊ ĐƠN HOẶC HOÀN TẤT KHÁM
-// =========================================================
+    // KIỂM TRA ĐIỀU KIỆN CẬN LÂM SÀNG
+    // TRƯỚC KHI KÊ ĐƠN HOẶC HOÀN TẤT KHÁM
+    // =========================================================
 
     private void kiemTraCanLamSangDaHoanThanh(
             HoSoBenhAn hoSo
@@ -1361,5 +1428,43 @@ public class KhamBenhService {
                 );
             }
         }
+    }
+
+    // ================================================
+    // thong bao goi kham
+    // ================================================
+    private void guiThongBaoBacSiGoiKham(LichDangKyKham lichKham) {
+        if (lichKham.getBenhNhan() == null
+                || lichKham.getBenhNhan().getNguoiDung() == null) {
+            return;
+        }
+
+        Integer maNguoiDung = lichKham.getBenhNhan()
+                .getNguoiDung()
+                .getMaNguoiDung();
+
+        if (maNguoiDung == null) {
+            return;
+        }
+
+        LichLamViec lichLamViec = lichLamViecRepository
+                .timLichLamViecTheoCaKham(
+                        lichKham.getBacSi().getMaBacSi(),
+                        lichKham.getNgayKham(),
+                        lichKham.getGioKham()
+                )
+                .orElse(null);
+
+        String tenPhong = lichLamViec != null
+                && lichLamViec.getPhong() != null
+                ? lichLamViec.getPhong().getTenPhong()
+                : "phòng khám theo hướng dẫn của nhân viên bệnh viện";
+
+        thongBaoService.taoThongBao(
+                maNguoiDung,
+                "Bác sĩ đang mời bạn vào khám",
+                "Bác sĩ đang mời bạn vào phòng khám " + tenPhong + ".",
+                "BAC_SI_GOI_KHAM"
+        );
     }
 }

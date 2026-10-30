@@ -14,6 +14,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import QuanLyBenhVien.Repository.TiepNhanBenhNhanRepository;
+import QuanLyBenhVien.Repository.HoSoBenhAnRepository;
+import QuanLyBenhVien.Entity.HoSoBenhAn;
+import QuanLyBenhVien.Service.ThongBaoService;
+import QuanLyBenhVien.Service.ThongBaoService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +27,8 @@ import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/chuyen-trach/ket-qua")
@@ -28,6 +36,22 @@ public class ChuyenTrachKetQuaController {
 
     @PersistenceContext
     private EntityManager em;
+    @Autowired
+    private ThongBaoService thongBaoService;
+
+    private final TiepNhanBenhNhanRepository tiepNhanBenhNhanRepository;
+    private final HoSoBenhAnRepository hoSoBenhAnRepository;
+    //private final ThongBaoService thongBaoService;
+
+    public ChuyenTrachKetQuaController(
+            TiepNhanBenhNhanRepository tiepNhanBenhNhanRepository,
+            HoSoBenhAnRepository hoSoBenhAnRepository,
+            ThongBaoService thongBaoService
+    ) {
+        this.tiepNhanBenhNhanRepository = tiepNhanBenhNhanRepository;
+        this.hoSoBenhAnRepository = hoSoBenhAnRepository;
+        this.thongBaoService = thongBaoService;
+    }
 
     private void checkRole(CustomUserDetails user) {
         if (user == null || user.getAuthorities().stream()
@@ -199,6 +223,77 @@ public class ChuyenTrachKetQuaController {
         return Map.of("message", "Đã lưu kết quả.");
     }
 
+    //    @PostMapping("/{maLich}/hoan-tat")
+    //    @Transactional
+    //    public Map<String, String> hoanTat(
+    //            @PathVariable Integer maLich,
+    //            @AuthenticationPrincipal CustomUserDetails user
+    //    ) {
+    //        checkRole(user);
+    //
+    //        LichDangKyKham lich = getLich(maLich);
+    //
+    //        if (!"DangCLS".equals(lich.getTrangThai())) {
+    //            throw new ResponseStatusException(
+    //                    HttpStatus.CONFLICT, "Lượt khám chưa ở trạng thái DangCLS");
+    //        }
+    //
+    //        List<ChiDinhYTe> danhSach = getChiDinh(maLich);
+    //
+    //        if (danhSach.isEmpty()) {
+    //            throw new ResponseStatusException(
+    //                    HttpStatus.CONFLICT,
+    //                    "Chưa có chỉ định thật. Không thể hoàn tất CLS");
+    //        }
+    //
+    //        for (ChiDinhYTe chiDinh : danhSach) {
+    //            KetQuaDichVu k = getKetQua(chiDinh.getMaChiDinh());
+    //
+    //            if (k == null ||
+    //                    k.getNoiDungKetQua() == null ||
+    //                    k.getNoiDungKetQua().isBlank() ||
+    //                    k.getKetLuan() == null ||
+    //                    k.getKetLuan().isBlank()) {
+    //                throw new ResponseStatusException(
+    //                        HttpStatus.CONFLICT,
+    //                        "Còn chỉ định chưa nhập đầy đủ kết quả");
+    //            }
+    //
+    //            k.setTrangThai("DaHoanThanh");
+    //            k.setNgayCoKetQua(LocalDateTime.now(
+    //                    ZoneId.of("Asia/Ho_Chi_Minh")));
+    //            chiDinh.setTrangThai("DaHoanThanh");
+    //        }
+    //        em.flush();
+    //
+    //        // Sau khi hoàn tất CLS, bệnh nhân quay lại bác sĩ
+    //        // để tiếp tục đánh giá và kê đơn thuốc.
+    //        int updated = em.createQuery("""
+    //                UPDATE LichDangKyKham l
+    //                SET l.trangThai = 'DangKham'
+    //                WHERE l.maLichKham = :id
+    //                  AND l.trangThai = 'DangCLS'
+    //                """)
+    //                .setParameter("id", maLich)
+    //                .executeUpdate();
+    //
+    //        if (updated != 1) {
+    //            throw new ResponseStatusException(
+    //                    HttpStatus.CONFLICT,
+    //                    "Trạng thái lượt khám đã thay đổi"
+    //            );
+    //        }
+    //
+    //        // Đồng bộ EntityManager vì đã dùng JPQL UPDATE
+    //        em.clear();
+    //
+    //        return Map.of(
+    //                "message",
+    //                "Đã hoàn tất CLS. Bệnh nhân có thể tiếp tục khám và kê đơn thuốc.",
+    //                "trangThai",
+    //                "DangKham"
+    //        );
+    //    }
     @PostMapping("/{maLich}/hoan-tat")
     @Transactional
     public Map<String, String> hoanTat(
@@ -211,7 +306,9 @@ public class ChuyenTrachKetQuaController {
 
         if (!"DangCLS".equals(lich.getTrangThai())) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Lượt khám chưa ở trạng thái DangCLS");
+                    HttpStatus.CONFLICT,
+                    "Lượt khám chưa ở trạng thái DangCLS"
+            );
         }
 
         List<ChiDinhYTe> danhSach = getChiDinh(maLich);
@@ -219,53 +316,123 @@ public class ChuyenTrachKetQuaController {
         if (danhSach.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Chưa có chỉ định thật. Không thể hoàn tất CLS");
+                    "Chưa có chỉ định thật. Không thể hoàn tất CLS"
+            );
         }
 
+        // 1. Kiểm tra tất cả chỉ định đã có kết quả đầy đủ
         for (ChiDinhYTe chiDinh : danhSach) {
             KetQuaDichVu k = getKetQua(chiDinh.getMaChiDinh());
 
-            if (k == null ||
-                    k.getNoiDungKetQua() == null ||
-                    k.getNoiDungKetQua().isBlank() ||
-                    k.getKetLuan() == null ||
-                    k.getKetLuan().isBlank()) {
+            if (k == null
+                    || k.getNoiDungKetQua() == null
+                    || k.getNoiDungKetQua().isBlank()
+                    || k.getKetLuan() == null
+                    || k.getKetLuan().isBlank()) {
                 throw new ResponseStatusException(
                         HttpStatus.CONFLICT,
-                        "Còn chỉ định chưa nhập đầy đủ kết quả");
+                        "Còn chỉ định chưa nhập đầy đủ kết quả"
+                );
             }
 
             k.setTrangThai("DaHoanThanh");
             k.setNgayCoKetQua(LocalDateTime.now(
-                    ZoneId.of("Asia/Ho_Chi_Minh")));
+                    ZoneId.of("Asia/Ho_Chi_Minh")
+            ));
+
             chiDinh.setTrangThai("DaHoanThanh");
         }
+
         em.flush();
 
-        // Sau khi hoàn tất CLS, bệnh nhân quay lại bác sĩ
-        // để tiếp tục đánh giá và kê đơn thuốc.
-        int updated = em.createQuery("""
-                UPDATE LichDangKyKham l
-                SET l.trangThai = 'DangKham'
-                WHERE l.maLichKham = :id
-                  AND l.trangThai = 'DangCLS'
-                """)
+        // 2. Cập nhật HoSoBenhAn
+        HoSoBenhAn hoSo = em.createQuery("""
+            SELECT h
+            FROM HoSoBenhAn h
+            WHERE h.lichDangKyKham.maLichKham = :id
+            """, HoSoBenhAn.class)
+                .setParameter("id", maLich)
+                .getResultStream()
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Không tìm thấy hồ sơ bệnh án"
+                ));
+
+        if (!"ChoCLS".equals(hoSo.getTrangThai())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Hồ sơ bệnh án không ở trạng thái ChoCLS"
+            );
+        }
+
+        hoSo.setTrangThai("DangKham");
+
+        // 3. Cập nhật LichDangKyKham
+        int updatedLich = em.createQuery("""
+            UPDATE LichDangKyKham l
+            SET l.trangThai = 'DangKham'
+            WHERE l.maLichKham = :id
+              AND l.trangThai = 'DangCLS'
+            """)
                 .setParameter("id", maLich)
                 .executeUpdate();
 
-        if (updated != 1) {
+        if (updatedLich != 1) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Trạng thái lượt khám đã thay đổi"
             );
         }
 
-        // Đồng bộ EntityManager vì đã dùng JPQL UPDATE
+        // 4. Cập nhật TiepNhanBenhNhan
+        int updatedTiepNhan =
+                tiepNhanBenhNhanRepository.capNhatTrangThaiTheoLich(
+                        maLich,
+                        "DangKham"
+                );
+
+        if (updatedTiepNhan == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không tìm thấy thông tin tiếp nhận bệnh nhân"
+            );
+        }
+
+        // 5. Lưu hồ sơ bệnh án
+        hoSoBenhAnRepository.save(hoSo);
+
+        // Đồng bộ dữ liệu sau khi cập nhật 3 bảng
+        em.flush();
+
+        // 6. Gửi thông báo kết quả CLS cho bệnh nhân
+        Integer maNguoiDung = lich.getBenhNhan()
+                .getNguoiDung()
+                .getMaNguoiDung();
+
+        String tenDichVu = danhSach.stream()
+                .map(cd -> cd.getDichVuYTe().getTenDichVu())
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.joining(", "));
+
+        String noiDung = "Kết quả cận lâm sàng của bạn đã được cập nhật"
+                + (tenDichVu.isBlank() ? "." : ": " + tenDichVu + ".")
+                + " Vui lòng kiểm tra.";
+
+        thongBaoService.taoThongBao(
+                maNguoiDung,
+                "Đã có kết quả cận lâm sàng",
+                noiDung,
+                "KET_QUA_CLS"
+        );
+
+        // Đồng bộ EntityManager
         em.clear();
 
         return Map.of(
                 "message",
-                "Đã hoàn tất CLS. Bệnh nhân có thể tiếp tục khám và kê đơn thuốc.",
+                "Đã hoàn tất CLS. Hồ sơ, lịch khám và tiếp nhận đã chuyển về Đang khám.",
                 "trangThai",
                 "DangKham"
         );

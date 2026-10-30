@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import QuanLyBenhVien.Service.ThongBaoService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -22,15 +23,18 @@ public class DuocSiCapThuocService {
     private final JdbcTemplate jdbcTemplate;
     private final NguoiDungRepository nguoiDungRepository;
     private final ThongBaoWebSocketService thongBaoWebSocketService;
+    private final ThongBaoService thongBaoService;
 
     public DuocSiCapThuocService(
             JdbcTemplate jdbcTemplate,
             NguoiDungRepository nguoiDungRepository,
-            ThongBaoWebSocketService thongBaoWebSocketService
+            ThongBaoWebSocketService thongBaoWebSocketService,
+            ThongBaoService thongBaoService
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.nguoiDungRepository = nguoiDungRepository;
         this.thongBaoWebSocketService = thongBaoWebSocketService;
+        this.thongBaoService = thongBaoService;
     }
 
     // =====================================================
@@ -1134,6 +1138,38 @@ public class DuocSiCapThuocService {
                     "Không thể hoàn tất đơn thuốc. Vui lòng tải lại dữ liệu."
             );
         }
+
+        // 7.1. Lấy mã người dùng của bệnh nhân
+        Integer maNguoiDungBenhNhan = jdbcTemplate.query(
+                """
+                SELECT bn.MaNguoiDung
+                FROM DonThuoc d
+                JOIN HoSoBenhAn hs
+                    ON hs.MaHoSoBenhAn = d.MaHoSoBenhAn
+                JOIN LichDangKyKham lk
+                    ON lk.MaLichKham = hs.MaLichKham
+                JOIN BenhNhan bn
+                    ON bn.MaBenhNhan = lk.MaBenhNhan
+                WHERE d.MaDonThuoc = ?
+                """,
+                rs -> rs.next() ? rs.getInt("MaNguoiDung") : null,
+                maDonThuoc
+        );
+
+        if (maNguoiDungBenhNhan == null) {
+            throw new IllegalStateException(
+                    "Không tìm thấy tài khoản bệnh nhân của đơn thuốc."
+            );
+        }
+
+        // 7.2. Gửi thông báo hoàn tất cấp thuốc
+        thongBaoService.taoThongBao(
+                maNguoiDungBenhNhan,
+                "Đã hoàn tất cấp thuốc",
+                "Dược sĩ đã hoàn tất cấp thuốc theo đơn của bạn. "
+                        + "Vui lòng đến nhà thuốc kiểm tra thuốc.",
+                "CAP_THUOC_HOAN_TAT"
+        );
 
         // 8. Tạo thông báo cho dược sĩ.
         NguoiDung nguoiDung = nguoiDungRepository.findById(maNguoiCap)

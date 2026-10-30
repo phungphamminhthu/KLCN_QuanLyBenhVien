@@ -2,6 +2,7 @@
 package QuanLyBenhVien.Controller;
 
 import QuanLyBenhVien.Entity.NguoiDung;
+import QuanLyBenhVien.Entity.ThongBao;
 import QuanLyBenhVien.Repository.NguoiDungRepository;
 import QuanLyBenhVien.Service.ThongBaoService;
 
@@ -96,5 +97,35 @@ public class ThongBaoController {
                 nguoiDung.getMaNguoiDung());
 
         return Map.of("updated", soLuong);
+    }
+
+    // ====================================
+    // test fcm
+    // ====================================
+    @PostMapping("/test-fcm")
+    public ResponseEntity<?> testFcm(
+            @RequestBody Map<String, Integer> request
+    ) {
+        Integer maNguoiDung = request.get("maNguoiDung");
+
+        if (maNguoiDung == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Thiếu maNguoiDung"));
+        }
+
+        ThongBao thongBao = thongBaoService.taoThongBao(
+                maNguoiDung,
+                "Kiểm tra thông báo",
+                "Đây là thông báo thử nghiệm từ hệ thống bệnh viện.",
+                "TEST"
+        );
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "success", true,
+                        "message", "Đã tạo thông báo thử nghiệm",
+                        "id", thongBao.getMaThongBao()
+                )
+        );
     }
 }
