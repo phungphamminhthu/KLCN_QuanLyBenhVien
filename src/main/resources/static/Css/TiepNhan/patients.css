@@ -869,3 +869,44 @@
         padding: 14px;
     }
 }
+
+
+/* NÚT HỒ SƠ: ICON CON MẮT + CHỮ */
+.patients-page .patients-table th:nth-child(8),
+.patients-page .patients-table td:nth-child(8) {
+    width: 124px;
+    text-align: right;
+}
+
+.patients-page .patients-profile-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-width: 92px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--primary);
+    border-radius: 7px;
+    background: #fff;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: background-color .2s, color .2s;
+}
+
+.patients-page .patients-profile-button i {
+    font-size: 13px;
+}
+
+.patients-page .patients-profile-button:hover:not(:disabled),
+.patients-page .patients-profile-button:focus-visible {
+    background: var(--primary);
+    color: #fff;
+}
+
+.patients-page .patients-profile-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}

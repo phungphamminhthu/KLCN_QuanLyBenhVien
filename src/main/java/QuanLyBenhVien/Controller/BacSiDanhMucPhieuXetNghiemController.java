@@ -274,11 +274,7 @@ public class BacSiDanhMucPhieuXetNghiemController {
         // BƯỚC 6: TẠO CHỈ ĐỊNH
         // --------------------------------------
 
-// --------------------------------------
-// BƯỚC 6: TẠO PHIẾU CHỈ ĐỊNH
-// --------------------------------------
-
-// Tạo một mã phiếu chung cho lần bấm tạo phiếu này
+        // Tạo một mã phiếu chung cho lần bấm tạo phiếu này
         String maPhieuChiDinh = UUID.randomUUID().toString();
 
         List<Integer> danhSachMaChiDinh = new ArrayList<>();
@@ -406,4 +402,204 @@ public class BacSiDanhMucPhieuXetNghiemController {
                         thongBao
                 ));
     }
+
+    // ==============================================
+// API TẠO CHỈ ĐỊNH HỖN HỢP NHIỀU TAB
+// ==============================================
+
+    @Transactional
+    @PostMapping("/{maLichKham}/chi-dinh-hon-hop")
+    public ResponseEntity<?> taoChiDinhHonHop(
+            @PathVariable Integer maLichKham,
+            @RequestBody(required = false)
+            TaoPhieuXetNghiemRequest request,
+            @AuthenticationPrincipal
+            CustomUserDetails userDetails
+    ) {
+        // 1. Kiểm tra bác sĩ đăng nhập
+        BacSi bacSi = layBacSiDangNhap(userDetails);
+
+        // 2. Kiểm tra lịch khám
+        if (maLichKham == null || maLichKham <= 0) {
+            throw new IllegalArgumentException(
+                    "Mã lịch khám không hợp lệ."
+            );
+        }
+
+        // 3. Kiểm tra danh sách dịch vụ
+        if (request == null
+                || request.maDichVu() == null
+                || request.maDichVu().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn ít nhất một dịch vụ."
+            );
+        }
+
+        if (request.maDichVu().size() > 50) {
+            throw new IllegalArgumentException(
+                    "Chỉ được chọn tối đa 50 dịch vụ."
+            );
+        }
+
+        LinkedHashSet<Integer> danhSachMaDichVu =
+                new LinkedHashSet<>();
+
+        for (Integer ma : request.maDichVu()) {
+            if (ma == null || ma <= 0) {
+                throw new IllegalArgumentException(
+                        "Có mã dịch vụ không hợp lệ."
+                );
+            }
+
+            if (!danhSachMaDichVu.add(ma)) {
+                throw new IllegalArgumentException(
+                        "Danh sách có dịch vụ bị trùng."
+                );
+            }
+        }
+
+        // 4. Kiểm tra ghi chú
+        String ghiChu = request.ghiChuKhac() == null
+                ? ""
+                : request.ghiChuKhac().trim();
+
+        if (ghiChu.length() > 1500) {
+            throw new IllegalArgumentException(
+                    "Ghi chú không được vượt quá 1500 ký tự."
+            );
+        }
+
+        // 5. Phân loại dịch vụ xét nghiệm và dịch vụ khác
+        List<Integer> danhSachXetNghiem = new ArrayList<>();
+        List<Integer> danhSachDichVuKhac = new ArrayList<>();
+
+        for (Integer maDichVu : danhSachMaDichVu) {
+            Long soLuong = jdbcTemplate.queryForObject(
+                    """
+                    SELECT COUNT(*)
+                    FROM PhieuXetNghiemDanhMuc
+                    WHERE MaDichVu = ?
+                    """,
+                    Long.class,
+                    maDichVu
+            );
+
+            if (soLuong != null && soLuong > 0) {
+                danhSachXetNghiem.add(maDichVu);
+            } else {
+                danhSachDichVuKhac.add(maDichVu);
+            }
+        }
+
+        if (!ghiChu.isBlank() && danhSachXetNghiem.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Ghi chú bổ sung chỉ áp dụng cho phiếu xét nghiệm."
+            );
+        }
+
+        // 6. Tạo mã phiếu chung cho nhóm xét nghiệm
+        String maPhieuChiDinh = danhSachXetNghiem.isEmpty()
+                ? null
+                : UUID.randomUUID().toString();
+
+        List<Integer> danhSachMaChiDinh = new ArrayList<>();
+        List<Integer> danhSachMaChiDinhXetNghiem =
+                new ArrayList<>();
+        Integer maHoSoBenhAn = null;
+
+        // 7. Tạo từng chỉ định xét nghiệm
+        for (Integer maDichVu : danhSachXetNghiem) {
+            ChiDinhYTe chiDinh = khamBenhService.taoChiDinh(
+                    bacSi.getMaBacSi(),
+                    maLichKham,
+                    maDichVu,
+                    null
+            );
+
+            int soDong = jdbcTemplate.update(
+                    """
+                    UPDATE ChiDinhYTe
+                    SET MaPhieuChiDinh = ?
+                    WHERE MaChiDinh = ?
+                      AND MaHoSoBenhAn = ?
+                    """,
+                    maPhieuChiDinh,
+                    chiDinh.getMaChiDinh(),
+                    chiDinh.getHoSoBenhAn().getMaHoSoBenhAn()
+            );
+
+            if (soDong != 1) {
+                throw new IllegalStateException(
+                        "Không thể gắn mã phiếu cho chỉ định "
+                                + chiDinh.getMaChiDinh()
+                );
+            }
+
+            danhSachMaChiDinh.add(chiDinh.getMaChiDinh());
+            danhSachMaChiDinhXetNghiem.add(
+                    chiDinh.getMaChiDinh()
+            );
+
+            maHoSoBenhAn =
+                    chiDinh.getHoSoBenhAn().getMaHoSoBenhAn();
+        }
+
+        // 8. Tạo từng chỉ định thuộc các tab khác
+        for (Integer maDichVu : danhSachDichVuKhac) {
+            ChiDinhYTe chiDinh = khamBenhService.taoChiDinh(
+                    bacSi.getMaBacSi(),
+                    maLichKham,
+                    maDichVu,
+                    null
+            );
+
+            danhSachMaChiDinh.add(chiDinh.getMaChiDinh());
+
+            if (maHoSoBenhAn == null) {
+                maHoSoBenhAn =
+                        chiDinh.getHoSoBenhAn().getMaHoSoBenhAn();
+            }
+        }
+
+        // 9. Lưu ghi chú bổ sung nếu có nhóm xét nghiệm
+        if (!ghiChu.isBlank()) {
+            jdbcTemplate.update(
+                    """
+                    INSERT INTO PhieuXetNghiemGhiChu
+                        (MaHoSoBenhAn, NoiDung)
+                    VALUES (?, ?)
+                    """,
+                    maHoSoBenhAn,
+                    ghiChu
+            );
+        }
+
+        // 10. Trả kết quả
+        Map<String, Object> ketQua = new LinkedHashMap<>();
+
+        ketQua.put(
+                "message",
+                "Tạo các chỉ định cận lâm sàng thành công."
+        );
+        ketQua.put("maLichKham", maLichKham);
+        ketQua.put("maPhieuChiDinh", maPhieuChiDinh);
+        ketQua.put("soChiDinh", danhSachMaChiDinh.size());
+        ketQua.put("maChiDinh", danhSachMaChiDinh);
+        ketQua.put(
+                "maChiDinhXetNghiem",
+                danhSachMaChiDinhXetNghiem
+        );
+        ketQua.put(
+                "soChiDinhXetNghiem",
+                danhSachMaChiDinhXetNghiem.size()
+        );
+        ketQua.put(
+                "soChiDinhDichVuKhac",
+                danhSachDichVuKhac.size()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ketQua);
+    }
+
 }

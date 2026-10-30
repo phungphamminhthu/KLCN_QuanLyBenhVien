@@ -305,10 +305,29 @@
     text-align: center;
 }
 
+/* MÃ CHỈ ĐỊNH: cho phép xuống dòng khi mã quá dài */
+/* Ô chứa mã chỉ định */
+.ctkq-page .ctkq-table tbody td.ctkq-code-cell {
+    width: 11%;
+    max-width: 0;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+/* Mã chỉ định dài tự xuống dòng */
 .ctkq-page .ctkq-code {
-    color: #2563EB;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+
+    color: #000000;
     font-weight: 800;
-    white-space: nowrap;
+    line-height: 1.4;
+
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .ctkq-page .ctkq-patient-name {

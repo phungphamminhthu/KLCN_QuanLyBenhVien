@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi"
       xmlns:th="http://www.thymeleaf.org"
@@ -18,42 +17,33 @@
 
 <div layout:fragment="content" class="ctkqd-page">
 
-    <!-- ======================================
-         1. THANH ĐIỀU HƯỚNG
-    ======================================= -->
+    <!-- 1. THANH ĐIỀU HƯỚNG -->
     <div class="ctkqd-toolbar">
-
         <a class="ctkqd-back"
            th:href="@{/ChuyenTrach/ket-qua-da-thuc-hien}">
-
-            <i class="fa-solid fa-arrow-left"></i>
-
+            <i class="fa-solid fa-arrow-left"
+               aria-hidden="true"></i>
             Quay lại kết quả đã thực hiện
         </a>
-
     </div>
 
-    <!-- ======================================
-         2. THÔNG BÁO LỖI
-    ======================================= -->
+    <!-- 2. THÔNG BÁO LỖI -->
     <div id="ctkqdError"
          class="ctkqd-error"
          role="alert"
          hidden>
     </div>
 
-    <!-- ======================================
-         3. THÔNG TIN TỔNG QUAN
-    ======================================= -->
+    <!-- 3. THÔNG TIN TỔNG QUAN -->
     <div class="ctkqd-summary-grid">
 
         <!-- THÔNG TIN BỆNH NHÂN -->
         <section class="ctkqd-card ctkqd-summary-card">
 
             <div class="ctkqd-card-header">
-
                 <h2>
-                    <i class="fa-regular fa-user"></i>
+                    <i class="fa-regular fa-user"
+                       aria-hidden="true"></i>
                     THÔNG TIN BỆNH NHÂN
                 </h2>
 
@@ -61,17 +51,16 @@
                       class="ctkqd-gender-badge">
                     —
                 </span>
-
             </div>
 
             <div class="ctkqd-patient-row">
 
                 <div class="ctkqd-avatar">
-                    <i class="fa-regular fa-user"></i>
+                    <i class="fa-regular fa-user"
+                       aria-hidden="true"></i>
                 </div>
 
                 <div class="ctkqd-patient-main">
-
                     <strong id="ctkqdPatientName">
                         Đang tải...
                     </strong>
@@ -79,7 +68,6 @@
                     <span id="ctkqdPatientCode">
                         —
                     </span>
-
                 </div>
 
             </div>
@@ -109,37 +97,33 @@
         <section class="ctkqd-card ctkqd-summary-card">
 
             <div class="ctkqd-card-header">
-
                 <h2>
-                    <i class="fa-solid fa-clipboard-list"></i>
+                    <i class="fa-solid fa-clipboard-list"
+                       aria-hidden="true"></i>
                     THÔNG TIN CHỈ ĐỊNH
                 </h2>
 
                 <span class="ctkqd-complete-badge">
-                    <i class="fa-solid fa-check"></i>
+                    <i class="fa-solid fa-check"
+                       aria-hidden="true"></i>
                     Hoàn tất
                 </span>
-
             </div>
 
             <div class="ctkqd-summary-field">
-
                 <span>Dịch vụ thực hiện</span>
 
                 <strong id="ctkqdService">
                     Đang tải dịch vụ...
                 </strong>
-
             </div>
 
             <div class="ctkqd-summary-field">
-
                 <span>Bác sĩ phụ trách lượt khám</span>
 
                 <strong id="ctkqdDoctor">
                     —
                 </strong>
-
             </div>
 
         </section>
@@ -148,12 +132,11 @@
         <section class="ctkqd-card ctkqd-summary-card">
 
             <div class="ctkqd-card-header">
-
                 <h2>
-                    <i class="fa-regular fa-calendar"></i>
-                    MÃ TRA CỨU & THỜI GIAN
+                    <i class="fa-regular fa-calendar"
+                       aria-hidden="true"></i>
+                    MÃ TRA CỨU &amp; THỜI GIAN
                 </h2>
-
             </div>
 
             <div class="ctkqd-code-list">
@@ -184,10 +167,8 @@
 
     </div>
 
-    <!-- ======================================
-         4. RIÊNG CHO PHIẾU XÉT NGHIỆM
-         Các xét nghiệm gom theo danh mục
-    ======================================= -->
+    <!-- 4. RIÊNG CHO PHIẾU XÉT NGHIỆM -->
+    <!-- JavaScript tạo các nhóm xét nghiệm theo danh mục -->
     <section id="ctkqdLabSection"
              class="ctkqd-card ctkqd-lab-section"
              hidden>
@@ -195,7 +176,8 @@
         <div class="ctkqd-card-header">
 
             <h2>
-                <i class="fa-solid fa-flask-vial"></i>
+                <i class="fa-solid fa-flask-vial"
+                   aria-hidden="true"></i>
                 KẾT QUẢ PHIẾU XÉT NGHIỆM
             </h2>
 
@@ -207,14 +189,14 @@
         </div>
 
         <!--
-            JavaScript sẽ tạo các nhóm từ MySQL:
+            JavaScript sẽ tạo các nhóm từ dữ liệu hệ thống:
             - Huyết học
             - Sinh hóa
             - Vi sinh
             - Miễn dịch
             - Các danh mục khác
 
-            Mỗi danh mục có nhiều xét nghiệm
+            Mỗi danh mục có thể có nhiều xét nghiệm
             và kết quả tương ứng.
         -->
         <div id="ctkqdLabGroups"
@@ -223,10 +205,8 @@
 
     </section>
 
-    <!-- ======================================
-         5. GIAO DIỆN CŨ CHO CÁC DỊCH VỤ KHÁC
-         CT, Siêu âm, Nội soi, X-quang...
-    ======================================= -->
+    <!-- 5. GIAO DIỆN CHO CÁC DỊCH VỤ KHÁC -->
+    <!-- Ví dụ: CT, siêu âm, nội soi, X-quang... -->
     <div id="ctkqdNormalSection"
          class="ctkqd-detail-grid">
 
@@ -234,12 +214,11 @@
         <section class="ctkqd-card ctkqd-result-card">
 
             <div class="ctkqd-card-header">
-
                 <h2>
-                    <i class="fa-solid fa-file-medical"></i>
-                    NỘI DUNG KẾT QUẢ & KẾT LUẬN
+                    <i class="fa-solid fa-file-medical"
+                       aria-hidden="true"></i>
+                    NỘI DUNG KẾT QUẢ &amp; KẾT LUẬN
                 </h2>
-
             </div>
 
             <div class="ctkqd-result-content">
@@ -251,9 +230,7 @@
 
                     <div id="ctkqdContent"
                          class="ctkqd-text-value">
-
                         Đang tải nội dung kết quả...
-
                     </div>
 
                 </div>
@@ -265,9 +242,7 @@
 
                     <div id="ctkqdConclusion"
                          class="ctkqd-text-value">
-
                         Đang tải kết luận...
-
                     </div>
 
                 </div>
@@ -280,12 +255,11 @@
         <section class="ctkqd-card ctkqd-attachment-card">
 
             <div class="ctkqd-card-header">
-
                 <h2>
-                    <i class="fa-solid fa-paperclip"></i>
+                    <i class="fa-solid fa-paperclip"
+                       aria-hidden="true"></i>
                     TỆP ĐÍNH KÈM KẾT QUẢ
                 </h2>
-
             </div>
 
             <!-- TRƯỜNG HỢP CÓ TỆP -->
@@ -294,7 +268,8 @@
                  hidden>
 
                 <div class="ctkqd-file-icon">
-                    <i class="fa-solid fa-file-medical"></i>
+                    <i class="fa-solid fa-file-medical"
+                       aria-hidden="true"></i>
                 </div>
 
                 <div class="ctkqd-file-info">
@@ -315,20 +290,18 @@
                        href="#"
                        target="_blank"
                        rel="noopener noreferrer">
-
-                        <i class="fa-regular fa-eye"></i>
+                        <i class="fa-regular fa-eye"
+                           aria-hidden="true"></i>
                         Xem tệp
-
                     </a>
 
                     <a id="ctkqdDownload"
                        href="#"
                        target="_blank"
                        rel="noopener noreferrer">
-
-                        <i class="fa-solid fa-download"></i>
+                        <i class="fa-solid fa-download"
+                           aria-hidden="true"></i>
                         Mở / Tải tệp
-
                     </a>
 
                 </div>
@@ -339,7 +312,8 @@
             <div id="ctkqdNoFile"
                  class="ctkqd-no-file">
 
-                <i class="fa-regular fa-folder-open"></i>
+                <i class="fa-regular fa-folder-open"
+                   aria-hidden="true"></i>
 
                 <strong>
                     Chưa có tệp đính kèm
@@ -360,12 +334,9 @@
 </div>
 <!-- KẾT THÚC ctkqd-page -->
 
-<!-- ======================================
-     6. JAVASCRIPT
-======================================= -->
+<!-- 6. JAVASCRIPT -->
 <th:block layout:fragment="js">
-    <script th:src="@{/Js/ChuyenTrach/chi-tiet-ket-qua.js}">
-    </script>
+    <script th:src="@{/Js/ChuyenTrach/chi-tiet-ket-qua.js}"></script>
 </th:block>
 
 </body>

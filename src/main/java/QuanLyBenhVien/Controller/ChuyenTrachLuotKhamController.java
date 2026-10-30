@@ -27,27 +27,15 @@ public class ChuyenTrachLuotKhamController {
     @PersistenceContext
     private EntityManager entityManager;
 
-    // =====================================================
-    // NGÀY HIỆN TẠI
-    // =====================================================
-
     private LocalDate homNay() {
-        return LocalDate.now(
-                ZoneId.of("Asia/Ho_Chi_Minh")
-        );
+        return LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
     }
 
-    // =====================================================
-    // KIỂM TRA QUYỀN NHÂN VIÊN CHUYÊN TRÁCH
-    // =====================================================
-
     private void kiemTraQuyen(CustomUserDetails user) {
-
         if (user == null ||
                 user.getAuthorities().stream().noneMatch(
                         a -> "ROLE_CHUYENTRACH".equals(a.getAuthority())
                 )) {
-
             throw new ResponseStatusException(
                     HttpStatus.FORBIDDEN,
                     "Bạn không có quyền thực hiện chức năng này."
@@ -64,7 +52,6 @@ public class ChuyenTrachLuotKhamController {
     public List<Map<String, Object>> danhSachHomNay(
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-
         kiemTraQuyen(user);
 
         List<LichDangKyKham> danhSach = entityManager
@@ -77,77 +64,33 @@ public class ChuyenTrachLuotKhamController {
                     AND l.trangThai IN :trangThai
                     ORDER BY l.gioKham ASC, l.maLichKham ASC
                     """, LichDangKyKham.class)
-
                 .setParameter("ngay", homNay())
-
-                .setParameter(
-                        "trangThai",
-                        List.of("ChoCLS", "DangCLS")
-                )
-
+                .setParameter("trangThai", List.of("ChoCLS", "DangCLS"))
                 .getResultList();
 
         return danhSach.stream().map(l -> {
-
             Map<String, Object> item = new LinkedHashMap<>();
 
-            // Thông tin lượt khám
-            item.put(
-                    "maLichKham",
-                    l.getMaLichKham()
-            );
-
-            item.put(
-                    "maBenhNhan",
-                    l.getBenhNhan().getMaBenhNhan()
-            );
-
+            item.put("maLichKham", l.getMaLichKham());
+            item.put("maBenhNhan", l.getBenhNhan().getMaBenhNhan());
             item.put(
                     "tenBenhNhan",
-                    l.getBenhNhan()
-                            .getNguoiDung()
-                            .getHoTen()
+                    l.getBenhNhan().getNguoiDung().getHoTen()
             );
-
-            item.put(
-                    "ngayKham",
-                    l.getNgayKham().toString()
-            );
-
-            item.put(
-                    "gioKham",
-                    l.getGioKham().toString()
-            );
-
-            item.put(
-                    "trangThai",
-                    l.getTrangThai()
-            );
-
-            // =============================================
-            // BÁC SĨ PHỤ TRÁCH
-            // Lấy từ NguoiDung thông qua BacSi
-            // =============================================
+            item.put("ngayKham", l.getNgayKham().toString());
+            item.put("gioKham", l.getGioKham().toString());
+            item.put("trangThai", l.getTrangThai());
 
             String tenBacSi = null;
 
             if (l.getBacSi() != null &&
                     l.getBacSi().getNguoiDung() != null) {
-
                 tenBacSi = l.getBacSi()
                         .getNguoiDung()
                         .getHoTen();
             }
 
-            item.put(
-                    "bacSiPhuTrach",
-                    tenBacSi
-            );
-
-            // =============================================
-            // DỊCH VỤ CẬN LÂM SÀNG
-            // Lấy từ ChiDinhYTe của đúng lượt khám
-            // =============================================
+            item.put("bacSiPhuTrach", tenBacSi);
 
             List<ChiDinhYTe> chiDinh = entityManager
                     .createQuery("""
@@ -158,12 +101,7 @@ public class ChuyenTrachLuotKhamController {
                                .lichDangKyKham.maLichKham = :maLichKham
                         ORDER BY c.ngayChiDinh ASC
                         """, ChiDinhYTe.class)
-
-                    .setParameter(
-                            "maLichKham",
-                            l.getMaLichKham()
-                    )
-
+                    .setParameter("maLichKham", l.getMaLichKham())
                     .getResultList();
 
             List<String> dichVu = chiDinh.stream()
@@ -180,13 +118,12 @@ public class ChuyenTrachLuotKhamController {
             );
 
             return item;
-
         }).toList();
     }
 
     // =====================================================
-    // BẮT ĐẦU KHÁM CHUYÊN TRÁCH
-    // ChoCLS -> DangCLS
+    // BẮT ĐẦU CLS: ChoCLS -> DangCLS
+    // Cập nhật đồng bộ cả 3 bảng
     // =====================================================
 
     @PostMapping("/{maLichKham}/bat-dau")
@@ -195,20 +132,20 @@ public class ChuyenTrachLuotKhamController {
             @PathVariable Integer maLichKham,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-
         kiemTraQuyen(user);
 
         return chuyenTrangThai(
                 maLichKham,
                 "ChoCLS",
                 "DangCLS",
-                "Đã bắt đầu khám chuyên trách."
+                "Đã bắt đầu cận lâm sàng."
         );
     }
 
     // =====================================================
-    // HOÀN THÀNH KHÁM CHUYÊN TRÁCH
-    // DangCLS -> ChoKham
+    // HOÀN THÀNH CLS, CHUYỂN VỀ BÁC SĨ:
+    // DangCLS -> DangKham
+    // Cập nhật đồng bộ cả 3 bảng
     // =====================================================
 
     @PostMapping("/{maLichKham}/hoan-thanh")
@@ -217,19 +154,18 @@ public class ChuyenTrachLuotKhamController {
             @PathVariable Integer maLichKham,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-
         kiemTraQuyen(user);
 
         return chuyenTrangThai(
                 maLichKham,
                 "DangCLS",
-                "ChoKham",
-                "Đã hoàn thành khám chuyên trách."
+                "DangKham",
+                "Đã hoàn thành CLS và chuyển bệnh nhân về bác sĩ."
         );
     }
 
     // =====================================================
-    // CẬP NHẬT TRẠNG THÁI LƯỢT KHÁM
+    // CẬP NHẬT TRẠNG THÁI ĐỒNG BỘ 3 BẢNG
     // =====================================================
 
     private Map<String, String> chuyenTrangThai(
@@ -238,45 +174,182 @@ public class ChuyenTrachLuotKhamController {
             String trangThaiMoi,
             String thongBao
     ) {
+        // Kiểm tra lượt khám phải tồn tại, đúng ngày và đúng trạng thái.
+        LichDangKyKham lich = entityManager.find(
+                LichDangKyKham.class,
+                maLichKham
+        );
 
-        int soDong = entityManager.createQuery("""
-                UPDATE LichDangKyKham l
-                SET l.trangThai = :trangThaiMoi
-                WHERE l.maLichKham = :maLichKham
-                AND l.trangThai = :trangThaiCu
-                AND l.ngayKham = :ngay
-                """)
-
-                .setParameter(
-                        "trangThaiMoi",
-                        trangThaiMoi
-                )
-
-                .setParameter(
-                        "maLichKham",
-                        maLichKham
-                )
-
-                .setParameter(
-                        "trangThaiCu",
-                        trangThaiCu
-                )
-
-                .setParameter(
-                        "ngay",
-                        homNay()
-                )
-
-                .executeUpdate();
-
-        if (soDong != 1) {
-
+        if (lich == null ||
+                lich.getNgayKham() == null ||
+                !lich.getNgayKham().equals(homNay()) ||
+                !trangThaiCu.equals(lich.getTrangThai())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Lượt khám không còn ở trạng thái phù hợp."
+                    "Lượt khám không tồn tại, không thuộc ngày hôm nay "
+                            + "hoặc không còn ở trạng thái " + trangThaiCu + "."
             );
         }
 
+        //        // 1. Cập nhật LichDangKyKham.
+        //        int soLich = entityManager.createQuery("""
+        //                UPDATE LichDangKyKham l
+        //                SET l.trangThai = :trangThaiMoi
+        //                WHERE l.maLichKham = :maLichKham
+        //                  AND l.trangThai = :trangThaiCu
+        //                  AND l.ngayKham = :ngay
+        //                """)
+        //                .setParameter("trangThaiMoi", trangThaiMoi)
+        //                .setParameter("maLichKham", maLichKham)
+        //                .setParameter("trangThaiCu", trangThaiCu)
+        //                .setParameter("ngay", homNay())
+        //                .executeUpdate();
+        //
+        //        if (soLich != 1) {
+        //            throw new ResponseStatusException(
+        //                    HttpStatus.CONFLICT,
+        //                    "Không thể cập nhật trạng thái lượt khám."
+        //            );
+        //        }
+        //
+        //        // 2. Cập nhật các bản ghi TiepNhanBenhNhan
+        //        // liên kết với lượt khám này và đang ở trạng thái cũ.
+        //        int soTiepNhan = entityManager.createQuery("""
+        //                UPDATE TiepNhanBenhNhan t
+        //                SET t.trangThai = :trangThaiMoi
+        //                WHERE t.lichDangKyKham.maLichKham = :maLichKham
+        //                  AND t.trangThai = :trangThaiCu
+        //                """)
+        //                .setParameter("trangThaiMoi", trangThaiMoi)
+        //                .setParameter("maLichKham", maLichKham)
+        //                .setParameter("trangThaiCu", trangThaiCu)
+        //                .executeUpdate();
+        //        if (soTiepNhan != 1) {
+        //            throw new ResponseStatusException(
+        //                    HttpStatus.CONFLICT,
+        //                    "Không thể cập nhật trạng thái tiếp nhận bệnh nhân. "
+        //                            + "Không tìm thấy bản ghi đang ở trạng thái "
+        //                            + trangThaiCu + "."
+        //            );
+        //        }
+        //
+        //        // 3. Cập nhật HoSoBenhAn theo trạng thái hợp lệ.
+        //        // Khi bắt đầu CLS: giữ nguyên ChoCLS.
+        //        // Khi hoàn thành CLS: chuyển về DangKham.
+        //
+        //        int soHoSo = 0;
+        //
+        //        if ("DangCLS".equals(trangThaiMoi)) {
+        //            // Không ghi DangCLS vào HoSoBenhAn vì CHECK constraint
+        //            // của bảng này không cho phép trạng thái đó.
+        //            soHoSo = entityManager.createQuery("""
+        //                    UPDATE HoSoBenhAn h
+        //                    SET h.trangThai = 'ChoCLS'
+        //                    WHERE h.lichDangKyKham.maLichKham = :maLichKham
+        //                      AND h.trangThai = 'ChoCLS'
+        //                    """)
+        //                    .setParameter("maLichKham", maLichKham)
+        //                    .executeUpdate();
+        //
+        //        } else if ("DangKham".equals(trangThaiMoi)) {
+        //            soHoSo = entityManager.createQuery("""
+        //                    UPDATE HoSoBenhAn h
+        //                    SET h.trangThai = 'DangKham'
+        //                    WHERE h.lichDangKyKham.maLichKham = :maLichKham
+        //                      AND h.trangThai = 'ChoCLS'
+        //                    """)
+        //                    .setParameter("maLichKham", maLichKham)
+        //                    .executeUpdate();
+        //        }
+        //
+        //        // Hồ sơ bệnh án phải tồn tại và ở trạng thái đúng
+        //        // để bảo đảm quy trình không bị cập nhật lệch.
+        //        if (soHoSo != 1) {
+        //            throw new ResponseStatusException(
+        //                    HttpStatus.CONFLICT,
+        //                    "Không thể đồng bộ trạng thái hồ sơ bệnh án. "
+        //                            + "Vui lòng kiểm tra trạng thái hiện tại "
+        //                            + "của HoSoBenhAn."
+        //            );
+        //        }
+        // 1. Cập nhật LichDangKyKham
+        int soLich = entityManager.createQuery("""
+        UPDATE LichDangKyKham l
+        SET l.trangThai = :trangThaiMoi
+        WHERE l.maLichKham = :maLichKham
+          AND l.trangThai = :trangThaiCu
+          AND l.ngayKham = :ngay
+        """)
+                .setParameter("trangThaiMoi", trangThaiMoi)
+                .setParameter("maLichKham", maLichKham)
+                .setParameter("trangThaiCu", trangThaiCu)
+                .setParameter("ngay", homNay())
+                .executeUpdate();
+
+        if (soLich != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không thể cập nhật trạng thái lượt khám."
+            );
+        }
+
+// 2. Cập nhật TiepNhanBenhNhan
+        int soTiepNhan = entityManager.createQuery("""
+        UPDATE TiepNhanBenhNhan t
+        SET t.trangThai = :trangThaiMoi
+        WHERE t.lichDangKyKham.maLichKham = :maLichKham
+          AND t.trangThai = :trangThaiCu
+        """)
+                .setParameter("trangThaiMoi", trangThaiMoi)
+                .setParameter("maLichKham", maLichKham)
+                .setParameter("trangThaiCu", trangThaiCu)
+                .executeUpdate();
+
+        if (soTiepNhan != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không thể cập nhật trạng thái tiếp nhận bệnh nhân."
+            );
+        }
+
+// 3. Cập nhật HoSoBenhAn
+        int soHoSo;
+
+        if ("DangCLS".equals(trangThaiMoi)) {
+            // Hồ sơ vẫn giữ ChoCLS trong lúc nhân viên thực hiện CLS.
+            soHoSo = entityManager.createQuery("""
+            UPDATE HoSoBenhAn h
+            SET h.trangThai = 'ChoCLS'
+            WHERE h.lichDangKyKham.maLichKham = :maLichKham
+              AND h.trangThai = 'ChoCLS'
+            """)
+                    .setParameter("maLichKham", maLichKham)
+                    .executeUpdate();
+
+        } else if ("DangKham".equals(trangThaiMoi)) {
+            // Hoàn thành CLS, chuyển hồ sơ về bác sĩ tiếp tục khám.
+            soHoSo = entityManager.createQuery("""
+            UPDATE HoSoBenhAn h
+            SET h.trangThai = 'DangKham'
+            WHERE h.lichDangKyKham.maLichKham = :maLichKham
+              AND h.trangThai = 'ChoCLS'
+            """)
+                    .setParameter("maLichKham", maLichKham)
+                    .executeUpdate();
+
+        } else {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Trạng thái chuyển đổi không hợp lệ."
+            );
+        }
+
+        if (soHoSo != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không thể đồng bộ trạng thái hồ sơ bệnh án."
+            );
+        }
         return Map.of(
                 "message", thongBao,
                 "trangThai", trangThaiMoi

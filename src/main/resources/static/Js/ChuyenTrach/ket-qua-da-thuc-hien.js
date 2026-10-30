@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
@@ -8,9 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const $ = id => document.getElementById(id);
 
-    const API =
-        "/api/chuyen-trach/danh-sach-chi-dinh";
-
+    const API = "/api/chuyen-trach/danh-sach-chi-dinh";
     const PAGE_SIZE = 50;
 
     const search = $("ctkqSearch");
@@ -64,10 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         ).formatToParts(new Date());
 
-        const value = type => (
-            parts.find(part => part.type === type)
-                ?.value || ""
-        );
+        const value = type =>
+            parts.find(part => part.type === type)?.value || "";
 
         return (
             value("year") + "-" +
@@ -123,7 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     errorData.detail ||
                     errorData.message ||
                     message;
-
             } catch (_) {
                 // Giữ thông báo mặc định.
             }
@@ -172,14 +166,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return td;
     }
 
-    function addClampedCell(
-        row,
-        value,
-        className
-    ) {
+    function addClampedCell(row, value, className) {
         const td = create("td");
-
         const text = value || "—";
+
         const span = create(
             "span",
             className,
@@ -199,21 +189,33 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     function orderCode(value) {
-        return "CD" +
-            String(value).padStart(6, "0");
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return "—";
+        }
+
+        return "CD" + String(value).padStart(6, "0");
     }
 
     function patientCode(value) {
-        return "BN" +
-            String(value).padStart(6, "0");
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return "—";
+        }
+
+        return "BN" + String(value).padStart(6, "0");
     }
 
     function formatDate(value) {
         if (!value) return "—";
 
-        const normalized = String(value)
-            .replace(" ", "T");
-
+        const normalized = String(value).replace(" ", "T");
         const [date, time] = normalized.split("T");
         const parts = date.split("-");
 
@@ -312,26 +314,35 @@ document.addEventListener("DOMContentLoaded", () => {
                 (page - 1) * PAGE_SIZE + index + 1
             );
 
-           // Mã phiếu đối với xét nghiệm,
-           // mã chỉ định đối với dịch vụ khác.
-           const displayCode =
-               item.laPhieuXetNghiem
-                   ? String(item.maPhieuChiDinh).slice(0, 8) + "..."
-                   : orderCode(item.maChiDinh);
+            // 2. Mã phiếu xét nghiệm hoặc mã chỉ định.
+            const isLabSheet =
+                Boolean(item.laPhieuXetNghiem) &&
+                item.maPhieuChiDinh !== null &&
+                item.maPhieuChiDinh !== undefined &&
+                String(item.maPhieuChiDinh).trim() !== "";
 
-           const codeCell = addCell(
-               tr,
-               displayCode,
-               "ctkq-code"
-           );
+            const displayCode = isLabSheet
+                ? String(item.maPhieuChiDinh)
+                : orderCode(item.maChiDinh);
 
-           if (item.laPhieuXetNghiem) {
-               codeCell.title = String(item.maPhieuChiDinh);
-           }
+            // 2. Mã phiếu xét nghiệm hoặc mã chỉ định.
+            const codeCell = document.createElement("td");
+            codeCell.className = "ctkq-code-cell";
+
+            const codeText = document.createElement("span");
+            codeText.className = "ctkq-code";
+            codeText.textContent = displayCode;
+            codeText.title = displayCode;
+
+            codeCell.appendChild(codeText);
+            tr.appendChild(codeCell);
+
+            if (isLabSheet) {
+                codeCell.title = String(item.maPhieuChiDinh);
+            }
 
             // 3. Bệnh nhân
-            const patientTd =
-                document.createElement("td");
+            const patientTd = document.createElement("td");
 
             patientTd.appendChild(
                 create(
@@ -351,7 +362,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             tr.appendChild(patientTd);
 
-            // 4. Dịch vụ thực tế
+            // 4. Dịch vụ
             addClampedCell(
                 tr,
                 item.dichVu,
@@ -380,8 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             // 8. Trạng thái chỉ định
-            const statusTd =
-                document.createElement("td");
+            const statusTd = document.createElement("td");
 
             const status = create(
                 "span",
@@ -393,6 +403,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 "fa-solid fa-circle-check"
             );
 
+            icon.setAttribute("aria-hidden", "true");
+
             status.appendChild(icon);
 
             status.appendChild(
@@ -402,25 +414,37 @@ document.addEventListener("DOMContentLoaded", () => {
             statusTd.appendChild(status);
             tr.appendChild(statusTd);
 
-            // 9. Xem chi tiết chỉ định
-            // 9. NÚT XEM CHI TIẾT
+            // 9. Nút xem chi tiết
             const actionTd = document.createElement("td");
 
-           const link = create("a", "ctkq-view");
+            const link = create(
+                "a",
+                "ctkq-view"
+            );
 
-           const maChiDinhXem =
-               item.danhSachXetNghiem?.[0]?.maChiDinh ??
-               item.maChiDinh;
+            if (isLabSheet) {
+                // Xem toàn bộ phiếu xét nghiệm đã gom.
+                link.href =
+                    "/ChuyenTrach/ket-qua-da-thuc-hien/phieu/" +
+                    encodeURIComponent(item.maPhieuChiDinh);
 
-          if (item.laPhieuXetNghiem && item.maPhieuChiDinh) {
-              link.href =
-                  "/ChuyenTrach/ket-qua-da-thuc-hien/phieu/" +
-                  encodeURIComponent(item.maPhieuChiDinh);
-          } else if (Number(item.maChiDinh) > 0) {
-              link.href =
-                  "/ChuyenTrach/ket-qua-da-thuc-hien/" +
-                  Number(item.maChiDinh);
-          }
+                link.title = "Xem toàn bộ phiếu xét nghiệm";
+            } else if (
+                Number.isInteger(Number(item.maChiDinh)) &&
+                Number(item.maChiDinh) > 0
+            ) {
+                // Xem kết quả của một chỉ định thông thường.
+                link.href =
+                    "/ChuyenTrach/ket-qua-da-thuc-hien/" +
+                    encodeURIComponent(item.maChiDinh);
+
+                link.title = "Xem chi tiết chỉ định";
+            } else {
+                link.removeAttribute("href");
+                link.setAttribute("aria-disabled", "true");
+                link.title = "Không có mã chỉ định hợp lệ";
+            }
+
             link.appendChild(
                 create("i", "fa-regular fa-eye")
             );
@@ -431,6 +455,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             actionTd.appendChild(link);
             tr.appendChild(actionTd);
+
             tableBody.appendChild(tr);
         });
     }
@@ -441,16 +466,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updatePagination(result) {
         page = Number(result.page) || 1;
-        totalPages =
-            Number(result.totalPages) || 1;
+
+        totalPages = Math.max(
+            1,
+            Number(result.totalPages) || 1
+        );
 
         const total = Number(result.total) || 0;
 
-        countBadge.textContent =
-            `${total} chỉ định`;
+        countBadge.textContent = `${total} chỉ định`;
 
-        currentPageText.textContent =
-            String(page);
+        currentPageText.textContent = String(page);
 
         previousButton.disabled = page <= 1;
         nextButton.disabled = page >= totalPages;
@@ -476,14 +502,7 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadResults() {
         const version = ++requestVersion;
 
-        showMessage(
-            "Đang tải danh sách chỉ định đã hoàn thành..."
-        );
-
-        if (
-            !fromDate.value ||
-            !toDate.value
-        ) {
+        if (!fromDate.value || !toDate.value) {
             showMessage(
                 "Vui lòng chọn đầy đủ khoảng ngày."
             );
@@ -497,17 +516,17 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        showMessage(
+            "Đang tải danh sách chỉ định đã hoàn thành..."
+        );
+
         const params = new URLSearchParams({
             tuNgay: fromDate.value,
             denNgay: toDate.value,
             gomPhieu: "true",
-
             q: search.value.trim(),
             phong: roomFilter.value,
-
-            // Luôn lấy chỉ định đã hoàn thành.
             trangThai: "DaHoanThanh",
-
             page: String(page),
             pageSize: String(PAGE_SIZE)
         });
@@ -516,10 +535,8 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await apiGet(
                 `${API}?${params.toString()}`
             );
-            console.log("PHIẾU ĐÃ GOM:", data.items[0]);
 
-            // Bỏ phản hồi cũ khi người dùng
-            // thay đổi bộ lọc liên tục.
+            // Bỏ phản hồi cũ nếu người dùng đổi bộ lọc.
             if (version !== requestVersion) {
                 return;
             }
@@ -538,16 +555,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             updatePagination(data);
 
-            // Kiểm tra bổ sung phía frontend.
-            // Điều kiện lọc chính vẫn ở backend.
+            // Backend là nơi lọc trạng thái chính.
             const completed = data.items.filter(
                 item =>
-                    item.trangThaiChiDinh ===
-                    "DaHoanThanh"
+                    item.trangThaiChiDinh === "DaHoanThanh"
             );
 
             renderTable(completed);
-
         } catch (error) {
             if (version !== requestVersion) {
                 return;
@@ -558,13 +572,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
-            showMessage(error.message);
+            showMessage(
+                error.message || "Không thể tải danh sách kết quả."
+            );
 
-            countBadge.textContent =
-                "Không thể tải dữ liệu";
-
-            pageInfo.textContent =
-                "Không tải được danh sách";
+            countBadge.textContent = "Không thể tải dữ liệu";
+            pageInfo.textContent = "Không tải được danh sách";
 
             previousButton.disabled = true;
             nextButton.disabled = true;
@@ -604,32 +617,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // 12. CHUYỂN TRANG
     // =====================================================
 
-    previousButton.addEventListener(
-        "click",
-        () => {
-            if (page <= 1) return;
+    previousButton.addEventListener("click", () => {
+        if (page <= 1) return;
 
-            page--;
-            loadResults();
-        }
-    );
+        page--;
+        loadResults();
+    });
 
-    nextButton.addEventListener(
-        "click",
-        () => {
-            if (page >= totalPages) return;
+    nextButton.addEventListener("click", () => {
+        if (page >= totalPages) return;
 
-            page++;
-            loadResults();
-        }
-    );
+        page++;
+        loadResults();
+    });
 
     // =====================================================
     // 13. NÚT LÀM MỚI TRÊN HEADER
     // =====================================================
 
-    const refreshButton =
-        $("refresh-dashboard-button");
+    const refreshButton = $("refresh-dashboard-button");
 
     if (refreshButton) {
         refreshButton.addEventListener(

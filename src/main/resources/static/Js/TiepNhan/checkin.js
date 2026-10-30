@@ -1159,7 +1159,6 @@
 
         picker.max = todayVietnam();
     }
-
     // =====================================================
     // TRẠNG THÁI FORM
     // =====================================================
@@ -1591,946 +1590,463 @@
             }
         }
     }
+        // =====================================================
+        // ĐĂNG KÝ KHÁM
+        // =====================================================
 
-    // =====================================================
-    // TẠO HỒ SƠ MỚI
-    // =====================================================
+        async function registerAppointment(event) {
+            event.preventDefault();
 
-    async function savePatient(event) {
-        event.preventDefault();
-
-        if (savingPatient
-            || searching
-            || registering
-            || phoneLookupBusy) {
-            return;
-        }
-
-        const form = $("create-patient-form");
-
-        showMessage("create-patient-message", "");
-
-        const phone = normalizePhone($("new-phone").value);
-
-        if (!phone
-            || checkedPhone !== phone
-            || !allowNewPatient) {
-            showMessage(
-                "create-patient-message",
-                "Vui lòng kiểm tra số điện thoại trước khi tạo hồ sơ.",
-                "warning"
-            );
-
-            $("new-phone").focus();
-            return;
-        }
-
-        if (!form.reportValidity()) return;
-
-        let ngaySinh;
-        let emergencyPhone;
-
-        try {
-            ngaySinh = readBirthDate();
-
-            const rawEmergency = readValue("new-emergency-phone");
-
-            emergencyPhone = rawEmergency
-                ? normalizePhone(rawEmergency)
-                : null;
-
-            if (rawEmergency && !emergencyPhone) {
-                throw new Error(
-                    "Số điện thoại khẩn cấp không hợp lệ."
-                );
-            }
-        } catch (error) {
-            showMessage(
-                "create-patient-message",
-                error.message
-            );
-            return;
-        }
-
-        const payload = {
-            hoTen: readValue("new-name"),
-            ngaySinh,
-            gioiTinh: readValue("new-gender"),
-            soDienThoai: phone,
-            email: readValue("new-email"),
-            diaChi: readValue("new-address"),
-            soDienThoaiKhanCap: emergencyPhone,
-            tienSuBenh: readValue("new-medical-history")
-        };
-
-        if (!payload.hoTen) {
-            showMessage(
-                "create-patient-message",
-                "Vui lòng nhập họ tên."
-            );
-            return;
-        }
-
-        savingPatient = true;
-        updateControls();
-
-        try {
-            const latest = await requestApi(
-                `${PHONE_API}?soDienThoai=${encodeURIComponent(phone)}`
-            );
-
-            if (!Array.isArray(latest)) {
-                throw new Error(
-                    "Kết quả tra cứu không hợp lệ."
-                );
-            }
-
-            const nameKey = value => String(value || "")
-                .trim()
-                .normalize("NFC")
-                .replace(/\s+/g, " ")
-                .toLocaleLowerCase("vi");
-
-            const existing = latest.find(patient =>
-                nameKey(patient.hoTen) === nameKey(payload.hoTen)
-                && String(patient.ngaySinh || "").slice(0, 10)
-                    === ngaySinh
-            );
-
-            if (existing) {
-                renderPhoneMatches(latest);
-
-                allowNewPatient = false;
-
-                showMessage(
-                    "create-patient-message",
-                    "Đã có hồ sơ cùng họ tên, ngày sinh và số điện thoại. "
-                    + "Hãy chọn hồ sơ trong danh sách phía trên.",
-                    "warning"
-                );
-
+            if (registering
+                || searching
+                || savingPatient
+                || loadingSchedules
+                || registrationLocked) {
                 return;
             }
 
-            const result = await requestApi(
-                "/api/tiepnhan/benh-nhan",
-                {
+            showMessage("registration-message", "");
+            $("appointment-time").setCustomValidity("");
+
+            if (!selectedPatientId) {
+                showMessage(
+                    "registration-message",
+                    "Vui lòng chọn bệnh nhân."
+                );
+                return;
+            }
+
+            const schedule = selectedSchedule();
+
+            if (!schedule
+                || !$("registration-form").reportValidity()) {
+                return;
+            }
+
+            const time = readValue("appointment-time");
+
+            try {
+                const { minimum, maximum } =
+                    scheduleBounds(schedule);
+
+                const chosen = toMinutes(time);
+
+                if (!/^[0-9]{2}:[0-9]{2}$/.test(time || "")
+                    || !Number.isFinite(chosen)
+                    || chosen < minimum
+                    || chosen > maximum) {
+                    throw new Error(
+                        `Chọn giờ từ ${minuteText(minimum)} `
+                        + `đến ${minuteText(maximum)}.`
+                    );
+                }
+            } catch (error) {
+                showMessage(
+                    "registration-message",
+                    error.message
+                );
+                return;
+            }
+
+            const departmentName =
+                $("department-select").selectedOptions[0].textContent;
+
+            const payload = {
+                maBenhNhan: selectedPatientId,
+                maKhoa: Number($("department-select").value),
+                maBacSi: Number(schedule.maBacSi),
+                maLichLamViec: Number(schedule.maLichLamViec),
+                gioKham: time,
+                lyDoKham: readValue("appointment-reason")
+            };
+
+            registering = true;
+            updateControls();
+
+            try {
+                const result = await requestApi(API, {
                     method: "POST",
                     body: JSON.stringify(payload)
+                });
+
+                registrationLocked = true;
+
+                const number = positiveId(result.soThuTu);
+                const appointmentId = positiveId(result.maLichKham);
+
+                if (!number || !appointmentId) {
+                    throw new Error(
+                        "Phản hồi thành công nhưng thiếu thông tin số chờ. "
+                        + "Hãy kiểm tra danh sách trước khi đăng ký lại."
+                    );
                 }
-            );
 
-            const id = positiveId(result.maBenhNhan);
-
-            if (!id) {
-                throw new Error(
-                    "Phản hồi thiếu mã bệnh nhân. "
-                    + "Hãy tra cứu lại trước khi tạo tiếp."
-                );
-            }
-
-            selectPatient({
-                ...payload,
-                maBenhNhan: id
-            });
-
-            $("patient-search-input").value = phone;
-
-            savingPatient = false;
-            updateControls();
-
-            openRegistrationAfterCreate = true;
-            createModal.hide();
-
-            form.reset();
-
-            showMessage(
-                "page-message",
-                `Đã tạo hồ sơ ${payload.hoTen}, mã ${id}. `
-                + "Chọn bác sĩ để đăng ký khám và cấp số chờ.",
-                "success"
-            );
-        } catch (error) {
-            showMessage(
-                "create-patient-message",
-                error.message
-            );
-
-            if (!error.status
-                || error.status >= 500
-                || (error.status >= 200 && error.status < 300)) {
-                checkedPhone = "";
-                allowNewPatient = false;
-
-                setPhoneLookupStatus(
-                    "Chưa xác định kết quả lưu. "
-                    + "Bấm Kiểm tra để tra cứu lại trước khi tạo tiếp.",
-                    "danger"
-                );
-            }
-        } finally {
-            savingPatient = false;
-            updateControls();
-        }
-    }
-
-    // =====================================================
-    // KHOA VÀ LỊCH BÁC SĨ
-    // =====================================================
-
-    async function loadDepartments() {
-        if (!selectedPatientId
-            || registering
-            || registrationLocked) {
-            return;
-        }
-
-        const version = ++loadVersion;
-
-        loadingSchedules = true;
-        schedules = [];
-        loadedDate = null;
-
-        resetSelect("department-select", "Đang tải khoa…");
-        resetSelect("schedule-select", "Chọn khoa trước");
-
-        $("schedule-summary").hidden = true;
-        $("appointment-time").value = "";
-        $("appointment-time").setCustomValidity("");
-
-        $("registration-date").value =
-            formatDate(todayVietnam());
-
-        showMessage("registration-message", "");
-        updateControls();
-
-        try {
-            const requestedDate = todayVietnam();
-
-            const departments = await requestApi(
-                `${API}/khoa`
-            );
-
-            if (version !== loadVersion) return;
-
-            if (!Array.isArray(departments)) {
-                throw new Error(
-                    "Danh sách khoa không hợp lệ."
-                );
-            }
-
-            if (requestedDate !== todayVietnam()) {
-                throw new Error(
-                    "Ngày đã thay đổi. Hãy tải lại lịch bác sĩ."
-                );
-            }
-
-            loadedDate = requestedDate;
-
-            resetSelect("department-select", "Chọn khoa");
-
-            departments.forEach(item => {
-                $("department-select").add(
-                    new Option(
-                        item.tenKhoa,
-                        String(item.maKhoa)
-                    )
-                );
-            });
-
-            if (!departments.length) {
-                showMessage(
-                    "registration-message",
-                    "Hôm nay không còn ca làm việc phù hợp để đăng ký.",
-                    "info"
-                );
-            }
-        } catch (error) {
-            if (version !== loadVersion) return;
-
-            resetSelect(
-                "department-select",
-                "Chưa tải được khoa"
-            );
-
-            showMessage(
-                "registration-message",
-                error.message
-            );
-        } finally {
-            if (version === loadVersion) {
-                loadingSchedules = false;
-                updateControls();
-            }
-        }
-    }
-
-    async function loadDoctorSchedules() {
-        if (registering || registrationLocked) return;
-
-        const version = ++loadVersion;
-        const maKhoa = Number($("department-select").value);
-
-        schedules = [];
-
-        $("schedule-summary").hidden = true;
-        $("appointment-time").value = "";
-        $("appointment-time").setCustomValidity("");
-
-        $("appointment-time-help").textContent =
-            "Chọn bác sĩ để xem giờ có thể đăng ký.";
-
-        showMessage("registration-message", "");
-
-        if (!maKhoa) {
-            resetSelect(
-                "schedule-select",
-                "Chọn khoa trước"
-            );
-
-            loadingSchedules = false;
-            updateControls();
-            return;
-        }
-
-        loadingSchedules = true;
-
-        resetSelect(
-            "schedule-select",
-            "Đang tải lịch bác sĩ…"
-        );
-
-        updateControls();
-
-        try {
-            if (loadedDate !== todayVietnam()) {
-                throw new Error(
-                    "Ngày đã thay đổi. Hãy tải lại lịch bác sĩ."
-                );
-            }
-
-            const data = await requestApi(
-                `${API}/lich-bac-si?maKhoa=${maKhoa}`
-            );
-
-            if (version !== loadVersion) return;
-
-            if (!Array.isArray(data)) {
-                throw new Error(
-                    "Danh sách lịch bác sĩ không hợp lệ."
-                );
-            }
-
-            schedules = data;
-
-            resetSelect(
-                "schedule-select",
-                "Chọn bác sĩ và ca làm việc"
-            );
-
-            schedules.forEach(item => {
-                $("schedule-select").add(new Option(
-                    `${item.tenBacSi} — `
-                    + `${item.gioBatDau}–${item.gioKetThuc} — `
-                    + `${item.tenPhong}`,
-                    String(item.maLichLamViec)
-                ));
-            });
-
-            if (!schedules.length) {
-                showMessage(
-                    "registration-message",
-                    "Khoa này không còn ca làm việc phù hợp hôm nay.",
-                    "info"
-                );
-            }
-        } catch (error) {
-            if (version !== loadVersion) return;
-
-            schedules = [];
-
-            resetSelect(
-                "schedule-select",
-                "Chưa có lịch bác sĩ"
-            );
-
-            showMessage(
-                "registration-message",
-                error.message
-            );
-        } finally {
-            if (version === loadVersion) {
-                loadingSchedules = false;
-                updateControls();
-            }
-        }
-    }
-
-    function toMinutes(value) {
-        const match = /^([0-9]{2}):([0-9]{2})/
-            .exec(String(value || ""));
-
-        if (!match) return NaN;
-
-        const hour = Number(match[1]);
-        const minute = Number(match[2]);
-
-        return hour <= 23 && minute <= 59
-            ? hour * 60 + minute
-            : NaN;
-    }
-
-    function minuteText(value) {
-        return `${String(Math.floor(value / 60)).padStart(2, "0")}:`
-            + String(value % 60).padStart(2, "0");
-    }
-
-    function scheduleBounds(schedule) {
-        const now = vietnamNow();
-        const start = toMinutes(schedule.gioBatDau);
-        const end = toMinutes(schedule.gioKetThuc);
-        const current = toMinutes(now.time);
-
-        if (loadedDate !== now.date
-            || schedule.ngayLamViec !== now.date
-            || !Number.isFinite(start)
-            || !Number.isFinite(end)
-            || end <= start) {
-            throw new Error(
-                "Ca làm việc không phù hợp. Hãy tải lại lịch."
-            );
-        }
-
-        const minimum = Math.max(start, current);
-        const maximum = end - 1;
-
-        if (minimum > maximum) {
-            throw new Error(
-                "Ca làm việc đã hết giờ đăng ký."
-            );
-        }
-
-        return { minimum, maximum };
-    }
-
-    function onScheduleChange() {
-        $("appointment-time").value = "";
-        $("appointment-time").setCustomValidity("");
-
-        showMessage("registration-message", "");
-
-        const schedule = selectedSchedule();
-
-        $("schedule-summary").hidden = !schedule;
-
-        if (!schedule) {
-            $("appointment-time-help").textContent =
-                "Chọn bác sĩ để xem giờ có thể đăng ký.";
-
-            updateControls();
-            return;
-        }
-
-        setText(
-            "schedule-doctor",
-            schedule.tenBacSi
-        );
-
-        setText(
-            "schedule-room",
-            schedule.tenPhong
-        );
-
-        setText(
-            "schedule-hours",
-            `${schedule.gioBatDau}–${schedule.gioKetThuc}`
-        );
-
-        try {
-            const { minimum, maximum } =
-                scheduleBounds(schedule);
-
-            $("appointment-time").min =
-                minuteText(minimum);
-
-            $("appointment-time").max =
-                minuteText(maximum);
-
-            $("appointment-time-help").textContent =
-                `Có thể đăng ký từ ${minuteText(minimum)} `
-                + `đến ${minuteText(maximum)}.`;
-        } catch (error) {
-            showMessage(
-                "registration-message",
-                error.message
-            );
-        }
-
-        updateControls();
-    }
-
-    // =====================================================
-    // ĐĂNG KÝ KHÁM
-    // =====================================================
-
-    async function registerAppointment(event) {
-        event.preventDefault();
-
-        if (registering
-            || searching
-            || savingPatient
-            || loadingSchedules
-            || registrationLocked) {
-            return;
-        }
-
-        showMessage("registration-message", "");
-        $("appointment-time").setCustomValidity("");
-
-        if (!selectedPatientId) {
-            showMessage(
-                "registration-message",
-                "Vui lòng chọn bệnh nhân."
-            );
-            return;
-        }
-
-        const schedule = selectedSchedule();
-
-        if (!schedule
-            || !$("registration-form").reportValidity()) {
-            return;
-        }
-
-        const time = readValue("appointment-time");
-
-        try {
-            const { minimum, maximum } =
-                scheduleBounds(schedule);
-
-            const chosen = toMinutes(time);
-
-            if (!/^[0-9]{2}:[0-9]{2}$/.test(time || "")
-                || !Number.isFinite(chosen)
-                || chosen < minimum
-                || chosen > maximum) {
-                throw new Error(
-                    `Chọn giờ từ ${minuteText(minimum)} `
-                    + `đến ${minuteText(maximum)}.`
-                );
-            }
-        } catch (error) {
-            showMessage(
-                "registration-message",
-                error.message
-            );
-            return;
-        }
-
-        const departmentName =
-            $("department-select").selectedOptions[0].textContent;
-
-        const payload = {
-            maBenhNhan: selectedPatientId,
-            maKhoa: Number($("department-select").value),
-            maBacSi: Number(schedule.maBacSi),
-            maLichLamViec: Number(schedule.maLichLamViec),
-            gioKham: time,
-            lyDoKham: readValue("appointment-reason")
-        };
-
-        registering = true;
-        updateControls();
-
-        try {
-            const result = await requestApi(API, {
-                method: "POST",
-                body: JSON.stringify(payload)
-            });
-
-            registrationLocked = true;
-
-            const number = positiveId(result.soThuTu);
-            const appointmentId = positiveId(result.maLichKham);
-
-            if (!number || !appointmentId) {
-                throw new Error(
-                    "Phản hồi thành công nhưng thiếu thông tin số chờ. "
-                    + "Hãy kiểm tra danh sách trước khi đăng ký lại."
-                );
-            }
-
-            fillRegistrationSuccess({
-                number,
-                patient: selectedPatientName,
-                department: departmentName,
-                doctor: schedule.tenBacSi,
-                room: schedule.tenPhong,
-                date: result.ngayKham,
-                time: result.gioKham
-            });
-
-            $("queue-ticket").hidden = true;
-
-            showMessage("registration-message", "");
-
-            showSuccessAfterRegistration = true;
-
-            void loadAppointments();
-        } catch (error) {
-            if (isDuplicateRegistration(error.message)) {
-                // Không khóa popup khi trùng lịch.
-                // Giữ nguyên thông tin để nhân viên chỉnh sửa tiếp.
-                registrationLocked = false;
+                fillRegistrationSuccess({
+                    number,
+                    patient: selectedPatientName,
+                    department: departmentName,
+                    doctor: schedule.tenBacSi,
+                    room: schedule.tenPhong,
+                    date: result.ngayKham,
+                    time: result.gioKham
+                });
+
+                $("queue-ticket").hidden = true;
 
                 showMessage("registration-message", "");
 
-                // Thông báo đẩy tự ẩn sau 7 giây.
-                showRegistrationToast(error.message);
+                showSuccessAfterRegistration = true;
 
-                // Chỉ cập nhật danh sách bên ngoài, không reset form.
                 void loadAppointments();
+            } catch (error) {
+                if (isDuplicateRegistration(error.message)) {
+                    registrationLocked = false;
 
+                    showMessage("registration-message", "");
+                    showRegistrationToast(error.message);
+
+                    void loadAppointments();
+
+                    return;
+                }
+
+                if (registrationLocked
+                    || !error.status
+                    || error.status >= 500
+                    || error.status === 200
+                    || error.status === 201) {
+                    registrationLocked = true;
+
+                    showMessage(
+                        "registration-message",
+                        error.message
+                        + " Hãy kiểm tra danh sách trước khi đăng ký lại."
+                    );
+
+                    void loadAppointments();
+                } else {
+                    showMessage(
+                        "registration-message",
+                        error.message
+                    );
+                }
+            } finally {
+                registering = false;
+                updateControls();
+
+                if (showSuccessAfterRegistration) {
+                    registrationModal.hide();
+                }
+            }
+        }
+
+        // =====================================================
+        // MỞ TRANG HỒ SƠ
+        // =====================================================
+
+        function openProfile(patientId, appointmentId) {
+            if (searching
+                || savingPatient
+                || registering
+                || callingAppointmentId !== null
+                || loadingAppointments) {
+                showMessage(
+                    "page-message",
+                    "Vui lòng chờ thao tác hiện tại hoàn tất.",
+                    "warning"
+                );
                 return;
             }
 
-            if (registrationLocked
-                || !error.status
-                || error.status >= 500
-                || error.status === 200
-                || error.status === 201) {
-                registrationLocked = true;
+            const id = positiveId(patientId);
+            const visitId = positiveId(appointmentId);
 
+            if (!id || !visitId) {
                 showMessage(
-                    "registration-message",
-                    error.message
-                    + " Hãy kiểm tra danh sách trước khi đăng ký lại."
+                    "page-message",
+                    "Mã bệnh nhân hoặc lịch khám không hợp lệ."
+                );
+                return;
+            }
+
+            const params = new URLSearchParams({
+                maLichKham: String(visitId),
+                from: "checkin"
+            });
+
+            window.location.assign(
+                `/TiepNhan/ho-so-benh-nhan/${id}?${params.toString()}`
+            );
+        }
+
+        // =====================================================
+        // THÔNG BÁO HEADER
+        // =====================================================
+
+        function initNotifications() {
+            const wrapper = $("notification-wrapper");
+            const button = $("notification-button");
+            const panel = $("notification-panel");
+            const closeButton = $("notification-close");
+
+            if (!wrapper || !button || !panel || !closeButton) return;
+
+            function setOpen(open, returnFocus = false) {
+                panel.hidden = !open;
+
+                button.setAttribute(
+                    "aria-expanded",
+                    String(open)
                 );
 
+                button.setAttribute(
+                    "aria-label",
+                    open ? "Đóng thông báo" : "Mở thông báo"
+                );
+
+                if (returnFocus) button.focus();
+            }
+
+            button.addEventListener("click", () => {
+                setOpen(panel.hidden);
+            });
+
+            closeButton.addEventListener("click", () => {
+                setOpen(false, true);
+            });
+
+            document.addEventListener("click", event => {
+                if (!wrapper.contains(event.target)) {
+                    setOpen(false);
+                }
+            });
+
+            document.addEventListener("keydown", event => {
+                if (event.key === "Escape" && !panel.hidden) {
+                    setOpen(false, true);
+                }
+            });
+
+            wrapper.addEventListener("focusout", event => {
+                if (!wrapper.contains(event.relatedTarget)) {
+                    setOpen(false);
+                }
+            });
+        }
+
+        // =====================================================
+        // SỰ KIỆN
+        // =====================================================
+
+        $("patient-search-form").addEventListener(
+            "submit",
+            searchPatient
+        );
+
+        $("create-patient-form").addEventListener(
+            "submit",
+            savePatient
+        );
+
+        $("registration-form").addEventListener(
+            "submit",
+            registerAppointment
+        );
+
+        $("department-select").addEventListener(
+            "change",
+            loadDoctorSchedules
+        );
+
+        $("schedule-select").addEventListener(
+            "change",
+            onScheduleChange
+        );
+
+        $("appointment-time").addEventListener("input", () => {
+            $("appointment-time").setCustomValidity("");
+        });
+
+        $("reload-schedules").addEventListener("click", () => {
+            if (!searching && !savingPatient && !registering) {
+                void loadDepartments();
+            }
+        });
+
+        $("appointment-department-filter").addEventListener(
+            "change",
+            () => {
+                populateDoctorFilter();
+                renderAppointments();
+            }
+        );
+
+        $("appointment-doctor-filter").addEventListener(
+            "change",
+            renderAppointments
+        );
+
+        $("appointment-status-filter").addEventListener(
+            "change",
+            renderAppointments
+        );
+
+        $("refresh-appointments-button").addEventListener(
+            "click",
+            () => {
+                showMessage("page-message", "");
                 void loadAppointments();
+            }
+        );
+
+        $("appointments-table-body").addEventListener(
+            "click",
+            event => {
+                const button = event.target.closest(
+                    "button[data-action]"
+                );
+
+                if (!button || button.disabled) return;
+
+                if (button.dataset.action === "call-patient") {
+                    void callPatient(button.dataset.appointmentId);
+                } else if (button.dataset.action === "open-profile") {
+                    openProfile(
+                        button.dataset.patientId,
+                        button.dataset.appointmentId
+                    );
+                }
+            }
+        );
+
+        $("open-create-patient").addEventListener("click", () => {
+            if (savingPatient || searching || registering) return;
+
+            openRegistrationAfterCreate = false;
+
+            $("create-patient-form").reset();
+            invalidatePhoneLookup();
+
+            showMessage("create-patient-message", "");
+
+            setPhoneLookupStatus(
+                "Nhập số điện thoại để tìm hồ sơ đã có."
+            );
+
+            const keywordPhone = normalizePhone(
+                $("patient-search-input").value
+            );
+
+            if (keywordPhone) {
+                $("new-phone").value = keywordPhone;
+            }
+
+            createModal.show();
+        });
+
+        createElement.addEventListener("shown.bs.modal", () => {
+            $("new-phone").focus();
+
+            if (normalizePhone($("new-phone").value)) {
+                void lookupPhone();
+            }
+        });
+
+        $("new-phone").addEventListener("input", () => {
+            invalidatePhoneLookup();
+            showMessage("create-patient-message", "");
+
+            if (normalizePhone($("new-phone").value)) {
+                setPhoneLookupStatus(
+                    "Đang chờ tra cứu…",
+                    "primary"
+                );
+
+                phoneLookupTimer = setTimeout(
+                    () => void lookupPhone(),
+                    400
+                );
             } else {
-                showMessage(
-                    "registration-message",
-                    error.message
+                setPhoneLookupStatus(
+                    "Nhập đủ số điện thoại để kiểm tra hồ sơ."
                 );
             }
-        } finally {
-            registering = false;
+        });
+
+        $("new-phone").addEventListener("keydown", event => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                void lookupPhone();
+            }
+        });
+
+        $("phone-lookup-button").addEventListener("click", () => {
+            void lookupPhone();
+        });
+
+        $("phone-create-other").addEventListener("click", () => {
+            if (savingPatient
+                || phoneLookupBusy
+                || !phoneMatches.length
+                || !checkedPhone
+                || checkedPhone !== normalizePhone($("new-phone").value)) {
+                return;
+            }
+
+            allowNewPatient = true;
             updateControls();
 
-            if (showSuccessAfterRegistration) {
-                registrationModal.hide();
-            }
-        }
-    }
-
-    // =====================================================
-    // MỞ TRANG HỒ SƠ
-    // =====================================================
-
-    function openProfile(patientId, appointmentId) {
-        if (searching
-            || savingPatient
-            || registering
-            || callingAppointmentId !== null
-            || loadingAppointments) {
-            showMessage(
-                "page-message",
-                "Vui lòng chờ thao tác hiện tại hoàn tất.",
-                "warning"
-            );
-            return;
-        }
-
-        const id = positiveId(patientId);
-        const visitId = positiveId(appointmentId);
-
-        if (!id || !visitId) {
-            showMessage(
-                "page-message",
-                "Mã bệnh nhân hoặc lịch khám không hợp lệ."
-            );
-            return;
-        }
-
-        const params = new URLSearchParams({
-            maLichKham: String(visitId),
-            from: "checkin"
-        });
-
-        window.location.assign(
-            `/TiepNhan/ho-so-benh-nhan/${id}?${params.toString()}`
-        );
-    }
-
-    // =====================================================
-    // THÔNG BÁO HEADER
-    // =====================================================
-
-    function initNotifications() {
-        const wrapper = $("notification-wrapper");
-        const button = $("notification-button");
-        const panel = $("notification-panel");
-        const closeButton = $("notification-close");
-
-        if (!wrapper || !button || !panel || !closeButton) return;
-
-        function setOpen(open, returnFocus = false) {
-            panel.hidden = !open;
-
-            button.setAttribute(
-                "aria-expanded",
-                String(open)
-            );
-
-            button.setAttribute(
-                "aria-label",
-                open ? "Đóng thông báo" : "Mở thông báo"
-            );
-
-            if (returnFocus) button.focus();
-        }
-
-        button.addEventListener("click", () => {
-            setOpen(panel.hidden);
-        });
-
-        closeButton.addEventListener("click", () => {
-            setOpen(false, true);
-        });
-
-        document.addEventListener("click", event => {
-            if (!wrapper.contains(event.target)) {
-                setOpen(false);
-            }
-        });
-
-        document.addEventListener("keydown", event => {
-            if (event.key === "Escape" && !panel.hidden) {
-                setOpen(false, true);
-            }
-        });
-
-        wrapper.addEventListener("focusout", event => {
-            if (!wrapper.contains(event.relatedTarget)) {
-                setOpen(false);
-            }
-        });
-    }
-
-    // =====================================================
-    // SỰ KIỆN
-    // =====================================================
-
-    $("patient-search-form").addEventListener(
-        "submit",
-        searchPatient
-    );
-
-    $("create-patient-form").addEventListener(
-        "submit",
-        savePatient
-    );
-
-    $("registration-form").addEventListener(
-        "submit",
-        registerAppointment
-    );
-
-    $("department-select").addEventListener(
-        "change",
-        loadDoctorSchedules
-    );
-
-    $("schedule-select").addEventListener(
-        "change",
-        onScheduleChange
-    );
-
-    $("appointment-time").addEventListener("input", () => {
-        $("appointment-time").setCustomValidity("");
-    });
-
-    $("reload-schedules").addEventListener("click", () => {
-        if (!searching && !savingPatient && !registering) {
-            void loadDepartments();
-        }
-    });
-
-    $("appointment-department-filter").addEventListener(
-        "change",
-        () => {
-            populateDoctorFilter();
-            renderAppointments();
-        }
-    );
-
-    $("appointment-doctor-filter").addEventListener(
-        "change",
-        renderAppointments
-    );
-
-    $("appointment-status-filter").addEventListener(
-        "change",
-        renderAppointments
-    );
-
-    $("refresh-appointments-button").addEventListener(
-        "click",
-        () => {
-            showMessage("page-message", "");
-            void loadAppointments();
-        }
-    );
-
-    $("appointments-table-body").addEventListener(
-        "click",
-        event => {
-            const button = event.target.closest(
-                "button[data-action]"
-            );
-
-            if (!button || button.disabled) return;
-
-            if (button.dataset.action === "call-patient") {
-                void callPatient(button.dataset.appointmentId);
-            } else if (button.dataset.action === "open-profile") {
-                openProfile(
-                    button.dataset.patientId,
-                    button.dataset.appointmentId
-                );
-            }
-        }
-    );
-
-    $("open-create-patient").addEventListener("click", () => {
-        if (savingPatient || searching || registering) return;
-
-        openRegistrationAfterCreate = false;
-
-        $("create-patient-form").reset();
-        invalidatePhoneLookup();
-
-        showMessage("create-patient-message", "");
-
-        setPhoneLookupStatus(
-            "Nhập số điện thoại để tìm hồ sơ đã có."
-        );
-
-        const keywordPhone = normalizePhone(
-            $("patient-search-input").value
-        );
-
-        if (keywordPhone) {
-            $("new-phone").value = keywordPhone;
-        }
-
-        createModal.show();
-    });
-
-    createElement.addEventListener("shown.bs.modal", () => {
-        $("new-phone").focus();
-
-        if (normalizePhone($("new-phone").value)) {
-            void lookupPhone();
-        }
-    });
-
-    $("new-phone").addEventListener("input", () => {
-        invalidatePhoneLookup();
-        showMessage("create-patient-message", "");
-
-        if (normalizePhone($("new-phone").value)) {
             setPhoneLookupStatus(
-                "Đang chờ tra cứu…",
+                "Tạo hồ sơ riêng cho người khác dùng chung số liên hệ. "
+                + "Kiểm tra họ tên và ngày sinh trước khi lưu.",
                 "primary"
             );
 
-            phoneLookupTimer = setTimeout(
-                () => void lookupPhone(),
-                400
-            );
-        } else {
-            setPhoneLookupStatus(
-                "Nhập đủ số điện thoại để kiểm tra hồ sơ."
-            );
-        }
-    });
+            $("new-name").focus();
+        });
 
-    $("new-phone").addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            void lookupPhone();
-        }
-    });
+        createElement.addEventListener("hide.bs.modal", event => {
+            if (savingPatient) {
+                event.preventDefault();
+            }
+        });
 
-    $("phone-lookup-button").addEventListener("click", () => {
-        void lookupPhone();
-    });
+        createElement.addEventListener("hidden.bs.modal", () => {
+            invalidatePhoneLookup();
 
-    $("phone-create-other").addEventListener("click", () => {
-        if (savingPatient
-            || phoneLookupBusy
-            || !phoneMatches.length
-            || !checkedPhone
-            || checkedPhone !== normalizePhone($("new-phone").value)) {
-            return;
-        }
+            if (openRegistrationAfterCreate) {
+                openRegistrationAfterCreate = false;
+                registrationModal.show();
+            }
+        });
 
-        allowNewPatient = true;
+        registrationElement.addEventListener("hide.bs.modal", event => {
+            if (registering) {
+                event.preventDefault();
+            }
+        });
+
+        registrationElement.addEventListener("hidden.bs.modal", () => {
+            if (showSuccessAfterRegistration) {
+                showSuccessAfterRegistration = false;
+
+                bootstrap.Modal.getOrCreateInstance(
+                    $("registration-success-modal")
+                ).show();
+            } else {
+                $("patient-search-input").focus();
+            }
+        });
+
+        // =====================================================
+        // KHỞI TẠO
+        // =====================================================
+
+        initRegistrationNotifications();
+        initBirthDateInput();
+        initNotifications();
+        updateTodayDisplay();
         updateControls();
 
-        setPhoneLookupStatus(
-            "Tạo hồ sơ riêng cho người khác dùng chung số liên hệ. "
-            + "Kiểm tra họ tên và ngày sinh trước khi lưu.",
-            "primary"
-        );
-
-        $("new-name").focus();
-    });
-
-    createElement.addEventListener("hide.bs.modal", event => {
-        if (savingPatient) {
-            event.preventDefault();
-        }
-    });
-
-    createElement.addEventListener("hidden.bs.modal", () => {
-        invalidatePhoneLookup();
-
-        if (openRegistrationAfterCreate) {
-            openRegistrationAfterCreate = false;
-            registrationModal.show();
-        }
-    });
-
-    registrationElement.addEventListener("hide.bs.modal", event => {
-        if (registering) {
-            event.preventDefault();
-        }
-    });
-
-    registrationElement.addEventListener("hidden.bs.modal", () => {
-        if (showSuccessAfterRegistration) {
-            showSuccessAfterRegistration = false;
-
-            bootstrap.Modal.getOrCreateInstance(
-                $("registration-success-modal")
-            ).show();
-        } else {
-            $("patient-search-input").focus();
-        }
-    });
-
-    // =====================================================
-    // KHỞI TẠO
-    // =====================================================
-
-    initRegistrationNotifications();
-    initBirthDateInput();
-    initNotifications();
-    updateTodayDisplay();
-    updateControls();
-
-    void loadAppointments();
-})();
+        void loadAppointments();
+    })();

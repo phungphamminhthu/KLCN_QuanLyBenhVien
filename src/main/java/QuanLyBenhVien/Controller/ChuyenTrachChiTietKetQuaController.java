@@ -1,4 +1,3 @@
-
 package QuanLyBenhVien.Controller;
 
 import QuanLyBenhVien.Entity.BenhNhan;
@@ -8,10 +7,12 @@ import QuanLyBenhVien.Entity.KetQuaDichVu;
 import QuanLyBenhVien.Entity.LichDangKyKham;
 import QuanLyBenhVien.Entity.NguoiDung;
 import QuanLyBenhVien.Repository.KetQuaDichVuRepository;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.http.HttpStatus;
@@ -30,8 +31,10 @@ import java.util.Map;
 public class ChuyenTrachChiTietKetQuaController {
 
     private final KetQuaDichVuRepository ketQuaRepository;
+
     @PersistenceContext
     private EntityManager em;
+
 
     public ChuyenTrachChiTietKetQuaController(
             KetQuaDichVuRepository ketQuaRepository
@@ -44,11 +47,13 @@ public class ChuyenTrachChiTietKetQuaController {
     // =====================================================
 // Trang chi tiết một chỉ định: CT, siêu âm, nội soi...
     @GetMapping("/ChuyenTrach/ket-qua-da-thuc-hien/{maChiDinh}")
+
     public String trangChiTiet(
             @PathVariable Integer maChiDinh
     ) {
         return "ChuyenTrach/chi-tiet-ket-qua";
     }
+
 
     // Trang chi tiết toàn bộ phiếu xét nghiệm
     @GetMapping("/ChuyenTrach/ket-qua-da-thuc-hien/phieu/{maPhieu}")
@@ -57,7 +62,8 @@ public class ChuyenTrachChiTietKetQuaController {
     ) {
         return "ChuyenTrach/chi-tiet-ket-qua";
     }
-    // =====================================================s
+
+    // ====================================================
     // API ĐỌC KẾT QUẢ ĐÃ HOÀN THÀNH
     // Không cập nhật bất kỳ trạng thái nào
     // =====================================================
@@ -378,7 +384,6 @@ public class ChuyenTrachChiTietKetQuaController {
 
         return result;
     }
-
 
     // =====================================================
     // ĐỌC SĐT NẾU NGUOIDUNG CÓ THUỘC TÍNH

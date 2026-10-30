@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -24,13 +23,14 @@
     <!-- THÔNG BÁO VÀ THÔNG TIN NHÂN VIÊN -->
     <div class="header-right">
 
-        <!-- THÔNG BÁO -->
+        <!-- CHUÔNG THÔNG BÁO -->
         <div class="header-notification">
             <button type="button"
                     id="notificationButton"
                     class="notification-button"
                     aria-label="Thông báo"
-                    aria-expanded="false">
+                    aria-expanded="false"
+                    aria-controls="notificationDropdown">
                 <i class="fa-solid fa-bell" aria-hidden="true"></i>
 
                 <span id="notificationBadge"
@@ -52,24 +52,36 @@
             </div>
         </div>
 
-        <!-- THÔNG TIN TÀI KHOẢN ĐANG ĐĂNG NHẬP -->
+        <!-- THÔNG TIN TÀI KHOẢN NHÂN VIÊN -->
         <div class="header-user">
 
             <img id="header-user-avatar"
                  class="header-avatar"
+                 th:src="@{/Images/default-avatar.jpg}"
                  src="/Images/default-avatar.jpg"
                  alt="Ảnh đại diện nhân viên"
                  onerror="this.onerror=null; this.src='/Images/default-avatar.jpg';">
 
             <div class="header-user-info">
-                <strong id="header-user-name">Đang tải...</strong>
-                <span id="header-user-email"></span>
-                <small id="header-user-role"></small>
+                <strong id="header-user-name"
+                        th:text="${currentUserName ?: 'Nhân viên chuyên trách'}">
+                    Nhân viên chuyên trách
+                </strong>
+
+                <span id="header-user-email"
+                      th:text="${currentUserEmail ?: ''}">
+                </span>
+
+                <small id="header-user-role"
+                       th:text="${roleName ?: 'Nhân viên chuyên trách'}">
+                    Nhân viên chuyên trách
+                </small>
             </div>
 
         </div>
 
     </div>
+
 </header>
 
 </body>

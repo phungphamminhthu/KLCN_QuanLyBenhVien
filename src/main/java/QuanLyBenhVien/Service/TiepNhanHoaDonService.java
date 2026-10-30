@@ -210,11 +210,15 @@ public class TiepNhanHoaDonService {
                             List.of()
                     );
 
-            // Chỉ cộng giao dịch có trạng thái ThanhCong.
+            // Chỉ cộng giao dịch có trạng thái DaThanhToan.
+            //            BigDecimal daThu = thanhToan.stream()
+            //                    .filter(tt ->
+            //                            "ThanhCong".equals(tt.trangThai())
+            //                    )
+            //                    .map(LanThanhToanDTO::soTien)
+            //                    .reduce(KHONG, BigDecimal::add);
             BigDecimal daThu = thanhToan.stream()
-                    .filter(tt ->
-                            "ThanhCong".equals(tt.trangThai())
-                    )
+                    .filter(tt -> "DaThanhToan".equals(tt.trangThai()))
                     .map(LanThanhToanDTO::soTien)
                     .reduce(KHONG, BigDecimal::add);
 
@@ -570,35 +574,41 @@ public class TiepNhanHoaDonService {
                             && ct.maChiDinh() == null
                             && ct.maCTDonThuoc() != null;
 
-            nguonHopLe &= switch (loai) {
-                case "PhiKham" -> phiKham;
+            // Dữ liệu phí khám hiện tại chưa lưu mã nguồn riêng.
+            boolean phiKhamTheoNoiDung =
+                    ct.maDichVu() == null
+                            && ct.maChiDinh() == null
+                            && ct.maCTDonThuoc() == null
+                            && ct.noiDung() != null
+                            && ct.noiDung().trim().startsWith("Phí khám - ");
+
+            boolean nguonChiTietHopLe = switch (loai) {
+                case "PhiKham" -> phiKham || phiKhamTheoNoiDung;
                 case "CanLamSang" -> cls;
                 case "TienThuoc" -> thuoc;
                 default -> false;
             };
 
-            BigDecimal thanhTienTinhLai =
-                    ct.donGia().multiply(
-                            BigDecimal.valueOf(ct.soLuong())
-                    );
+            if (!nguonChiTietHopLe) {
+                nguonHopLe = false;
+            }
 
-            thanhTienHopLe &=
-                    ct.soLuong() > 0
-                            && ct.donGia().signum() >= 0
-                            && ct.thanhTien()
-                            .compareTo(thanhTienTinhLai) == 0;
+            BigDecimal thanhTienTinhLai = ct.donGia()
+                    .multiply(BigDecimal.valueOf(ct.soLuong()));
+
+            if (ct.soLuong() <= 0
+                    || thanhTienTinhLai.compareTo(ct.thanhTien()) != 0) {
+                thanhTienHopLe = false;
+            }
         }
 
         if (!nguonHopLe) {
-            canhBao.add(
-                    "Nguồn chi tiết không khớp loại hóa đơn."
-            );
+            canhBao.add("Nguồn chi tiết không khớp loại hóa đơn.");
         }
 
         if (!thanhTienHopLe) {
             canhBao.add(
-                    "Số lượng, đơn giá hoặc thành tiền "
-                            + "chi tiết không khớp."
+                    "Số lượng, đơn giá hoặc thành tiền chi tiết không khớp."
             );
         }
 
@@ -619,6 +629,7 @@ public class TiepNhanHoaDonService {
         boolean coTrangThaiChuaXacDinh =
                 thanhToan.stream().anyMatch(tt ->
                         !Set.of(
+                                "DaThanhToan",
                                 "ThanhCong",
                                 "ThatBai",
                                 "DangXuLy"

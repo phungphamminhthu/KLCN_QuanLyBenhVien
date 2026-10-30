@@ -122,9 +122,6 @@ public class ChuyenTrachChiDinhController {
 
         Integer maPhong = c.getMaPhong();
 
-        row.put("maPhieuChiDinh",
-                docThuocTinhTuyChon(c, "maPhieuChiDinh"));
-
         row.put("loaiChiDinh", c.getLoaiChiDinh());
 
         row.put("loaiDichVu",
@@ -133,6 +130,7 @@ public class ChuyenTrachChiDinhController {
         row.put("nhomXetNghiem",
                 docThuocTinhTuyChon(
                         c.getDichVuYTe(), "nhomXetNghiem"));
+
         row.put(
                 "maHoSoBenhAn",
                 c.getHoSoBenhAn().getMaHoSoBenhAn()
@@ -249,11 +247,11 @@ public class ChuyenTrachChiDinhController {
                     new LinkedHashMap<>(first);
 
             // Lấy mã chỉ định đại diện từ dữ liệu thật
-            Object maDaiDien = items.stream()
-                    .map(item -> item.get("maChiDinh"))
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
+            //            Object maDaiDien = items.stream()
+            //                    .map(item -> item.get("maChiDinh"))
+            //                    .filter(Objects::nonNull)
+            //                    .findFirst()
+            //                    .orElse(null);
 
             // Lấy mã chỉ định đại diện từ dữ liệu thật
             result.put(
@@ -323,6 +321,7 @@ public class ChuyenTrachChiDinhController {
             int page,
 
             @RequestParam(defaultValue = "10")
+
             int pageSize,
 
             @RequestParam(defaultValue = "false")
@@ -396,8 +395,9 @@ public class ChuyenTrachChiDinhController {
                 })
                 .collect(Collectors.toList());
 
+
         // Chỉ gom khi giao diện yêu cầu.
-// API cũ vẫn có thể trả danh sách chỉ định riêng lẻ.
+        // API cũ vẫn có thể trả danh sách chỉ định riêng lẻ.
         if (gomPhieu) {
             filtered = gomPhieuXetNghiem(filtered);
         }

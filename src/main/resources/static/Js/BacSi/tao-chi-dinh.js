@@ -1032,37 +1032,33 @@ $("serviceGroups").innerHTML =
                 return;
             }
 
-            const danhSach =
-                [...daChon.values()];
-
-            const lab = danhSach.filter(
-                x => x.tab === "Xét nghiệm"
-            );
-
-            const others = danhSach.filter(
-                x => x.tab !== "Xét nghiệm"
-            );
+            const danhSach = [...daChon.values()];
 
             const ghiChuKhac =
-                $("medcareExtraText")
-                    ?.value.trim() || "";
+                $("medcareExtraText")?.value.trim() || "";
 
-            // Tránh lưu nửa chừng qua hai API
-            if (
-                lab.length &&
-                others.length
-            ) {
-
+            if (danhSach.length === 0) {
                 dongXacNhan();
-
-                baoLoi(
-                    "Hãy tạo phiếu xét nghiệm và " +
-                    "chỉ định Siêu âm/X-quang thành " +
-                    "hai lần riêng."
-                );
-
+                baoLoi("Vui lòng chọn ít nhất một dịch vụ.");
                 return;
             }
+
+            // Tránh lưu nửa chừng qua hai API
+            //            if (
+            //                lab.length &&
+            //                others.length
+            //            ) {
+            //
+            //                dongXacNhan();
+            //
+            //                baoLoi(
+            //                    "Hãy tạo phiếu xét nghiệm và " +
+            //                    "chỉ định Siêu âm/X-quang thành " +
+            //                    "hai lần riêng."
+            //                );
+            //
+            //                return;
+            //            }
 
             dangLuu = true;
 
@@ -1083,70 +1079,18 @@ $("serviceGroups").innerHTML =
 
             try {
 
-                // Lưu xét nghiệm theo danh mục mới
-                if (lab.length) {
 
-                    await api(
-                        `${API}/${maLichKham}/chi-dinh-phieu-xet-nghiem`,
+                    await api(`${API}/${maLichKham}/chi-dinh-hon-hop`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            maDichVu: danhSach.map(x => x.maDichVu),
+                            ghiChuKhac
+                        })
+                    });
 
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-
-                                maDichVu:
-                                    lab.map(
-                                        x => x.maDichVu
-                                    ),
-
-                                ghiChuKhac
-
-                            })
-                        }
-                    );
-                }
-
-                // Giữ chức năng chỉ định
-                // Siêu âm, X-quang... trước đây
-                else if (others.length) {
-
-                    await api(
-                        `${API}/${maLichKham}/chi-dinh-nhieu`,
-
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            body: JSON.stringify({
-
-                                maDichVu:
-                                    others.map(
-                                        x => x.maDichVu
-                                    ),
-
-                                danhSach:
-                                    others.map(x => ({
-
-                                        maDichVu:
-                                            x.maDichVu,
-
-                                        maChiSoDichVu:
-                                            null
-
-                                    }))
-                            })
-                        }
-                    );
-                }
 
                 // Trở về trang khám
                 location.href =

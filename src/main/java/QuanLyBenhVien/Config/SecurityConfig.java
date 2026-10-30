@@ -106,6 +106,7 @@ public class SecurityConfig {
                                 "/api/dich-vu-y-te/**"
                         ).permitAll()
 
+
                         // Trang chủ bệnh nhân - tạm công khai để thử giao diện
                         .requestMatchers(
                                 "/benh-nhan/trang-chu",

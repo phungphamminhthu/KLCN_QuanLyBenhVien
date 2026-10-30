@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
@@ -21,6 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveBtn = $("saveResultBtn");
     const finishBtn = $("finishClsBtn");
     const notice = $("resultNotice");
+
+    // Giao diện xét nghiệm
     const labResults = $("labResults");
     const labGroups = $("labGroups");
     const labCount = $("labCount");
@@ -31,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let normalOrders = [];
     let labSavedValues = {};
 
-    // Một nút quay lại duy nhất
+    // Nút quay lại
     const backButton = $("ctBackButton");
 
     // Popup xác nhận
@@ -42,14 +43,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelBtn = $("ctActionCancel");
     const confirmBtn = $("ctActionConfirm");
 
-    if (!select || !form || !backButton || !modal) {
+    if (!select || !content || !conclusion || !form ||
+        !saveBtn || !finishBtn || !backButton || !modal) {
         console.error(
             "Trang nhập kết quả thiếu phần tử HTML cần thiết."
         );
         return;
     }
 
-    // Đảm bảo popup luôn căn giữa màn hình.
     document.body.appendChild(modal);
 
     let orders = [];
@@ -106,12 +107,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 message = data.detail ||
                           data.message ||
                           message;
-
             } catch (_) {
-                // Giữ thông báo HTTP mặc định
+                // Giữ thông báo HTTP mặc định.
             }
 
             throw new Error(message);
+        }
+
+        if (response.status === 204) {
+            return null;
         }
 
         return response.json();
@@ -125,7 +129,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const node = $(id);
 
         if (node) {
-            node.textContent = value ?? "—";
+            node.textContent =
+                value === null || value === undefined || value === ""
+                    ? "—"
+                    : value;
         }
     }
 
@@ -144,30 +151,47 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function showNotice(message, error = false) {
+        if (!notice) {
+            if (error) {
+                console.error(message);
+            } else {
+                console.info(message);
+            }
+            return;
+        }
+
         notice.hidden = false;
         notice.textContent = message;
         notice.classList.toggle("error", error);
     }
 
-   function setBusy(value) {
-       busy = value;
+    function setBusy(value) {
+        busy = value;
 
-       select.disabled =
-           value || !editable || normalOrders.length === 0;
+        if (select) {
+            select.disabled =
+                value || !editable || normalOrders.length === 0;
+        }
 
-       saveBtn.disabled =
-           value || !editable || normalOrders.length === 0;
+        if (saveBtn) {
+            saveBtn.disabled =
+                value || !editable || normalOrders.length === 0;
+        }
 
-       finishBtn.disabled =
-           value || !editable || orders.length === 0;
+        if (finishBtn) {
+            finishBtn.disabled =
+                value || !editable || orders.length === 0;
+        }
 
-       saveLabBtn.disabled =
-           value || !editable || labOrders.length === 0;
+        if (saveLabBtn) {
+            saveLabBtn.disabled =
+                value || !editable || labOrders.length === 0;
+        }
 
-       getLabInputs().forEach(input => {
-           input.disabled = value || !editable;
-       });
-   }
+        getLabInputs().forEach(input => {
+            input.disabled = value || !editable;
+        });
+    }
 
     // ============================================
     // 4. KIỂM TRA THAY ĐỔI CHƯA LƯU
@@ -188,7 +212,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function showOrder() {
         const order = orders.find(
-            x => String(x.maChiDinh) === selectedOrderId
+            item => String(item.maChiDinh) === selectedOrderId
         );
 
         if (!order) return;
@@ -196,10 +220,12 @@ document.addEventListener("DOMContentLoaded", () => {
         select.value = selectedOrderId;
 
         setText("serviceName", order.tenDichVu);
+
         setText(
             "roomName",
             order.maPhong ?? "Chưa phân phòng"
         );
+
         setText(
             "orderDate",
             formatDate(order.ngayChiDinh)
@@ -215,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // GIAO DIỆN RIÊNG CHO XÉT NGHIỆM
+    // 5. GIAO DIỆN RIÊNG CHO XÉT NGHIỆM
     // ============================================
 
     function normalizeType(value) {
@@ -226,22 +252,25 @@ document.addEventListener("DOMContentLoaded", () => {
             .trim();
     }
 
-  function isLabOrder(order) {
-      const loaiChiDinh = normalizeType(order.loaiChiDinh);
-      const loaiDichVu = normalizeType(order.loaiDichVu);
+    function isLabOrder(order) {
+        const loaiChiDinh = normalizeType(order.loaiChiDinh);
+        const loaiDichVu = normalizeType(order.loaiDichVu);
+        const nhomXetNghiem = normalizeType(order.nhomXetNghiem);
 
-      return loaiChiDinh.includes("xet nghiem") ||
-             loaiDichVu.includes("xet nghiem");
-  }
+        return loaiChiDinh.includes("xet nghiem") ||
+               loaiDichVu.includes("xet nghiem") ||
+               nhomXetNghiem.length > 0;
+    }
+
     function getLabGroup(order) {
-        return order.nhomXetNghiem?.trim() ||
+        return String(order.nhomXetNghiem || "").trim() ||
                "CÁC XÉT NGHIỆM KHÁC";
     }
 
     function getLabInputs() {
-        return [...labGroups.querySelectorAll(
-            ".ct-lab-input"
-        )];
+        return labGroups
+            ? [...labGroups.querySelectorAll(".ct-lab-input")]
+            : [];
     }
 
     function hasUnsavedLabChanges() {
@@ -254,22 +283,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderLabResults() {
-        labGroups.replaceChildren();
+        if (!labGroups || !labResults) return;
 
+        labGroups.replaceChildren();
         labResults.hidden = labOrders.length === 0;
+
+        if (labCount) {
+            labCount.textContent = String(labOrders.length);
+        }
+
+        if (labSummary) {
+            labSummary.textContent =
+                `Tổng số mục: ${labOrders.length} mục`;
+        }
 
         if (!labOrders.length) return;
 
         const groups = new Map();
 
         for (const order of labOrders) {
-            const name = getLabGroup(order);
+            const groupName = getLabGroup(order);
 
-            if (!groups.has(name)) {
-                groups.set(name, []);
+            if (!groups.has(groupName)) {
+                groups.set(groupName, []);
             }
 
-            groups.get(name).push(order);
+            groups.get(groupName).push(order);
         }
 
         for (const [groupName, items] of groups) {
@@ -292,9 +331,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const check = document.createElement("i");
                 check.className = "fa-solid fa-check";
+                check.setAttribute("aria-hidden", "true");
 
                 const name = document.createElement("span");
-                name.textContent = order.tenDichVu;
+                name.textContent =
+                    order.tenDichVu ||
+                    `Chỉ định ${order.maChiDinh}`;
 
                 label.append(check, name);
 
@@ -306,9 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 input.placeholder = "Nhập kết quả...";
                 input.maxLength = 20000;
 
-                input.dataset.orderId =
-                    String(order.maChiDinh);
-
+                input.dataset.orderId = String(order.maChiDinh);
                 input.value = order.noiDungKetQua || "";
                 input.disabled = !editable;
 
@@ -321,84 +361,81 @@ document.addEventListener("DOMContentLoaded", () => {
 
             labGroups.appendChild(group);
         }
-
-        labSummary.textContent =
-            `Tổng số mục: ${labOrders.length} mục`;
     }
 
-    // Lưu từng xét nghiệm bằng API hiện tại
-    saveLabBtn.addEventListener("click", async () => {
-        if (busy || !editable || !labOrders.length) {
-            return;
-        }
-
-        const changes = getLabInputs().filter(input => {
-            const id = input.dataset.orderId;
-
-            return input.value !==
-                (labSavedValues[id] ?? "");
-        });
-
-        if (!changes.length) {
-            showNotice(
-                "Không có kết quả xét nghiệm mới cần lưu."
-            );
-            return;
-        }
-
-        if (changes.some(input => !input.value.trim())) {
-            showNotice(
-                "Kết quả xét nghiệm không được để trống.",
-                true
-            );
-            return;
-        }
-
-        setBusy(true);
-
-        let savedCount = 0;
-
-        try {
-            for (const input of changes) {
-                const id = input.dataset.orderId;
-                const value = input.value.trim();
-
-                await api(
-                    `/chi-dinh/${encodeURIComponent(id)}/luu`,
-                    "POST",
-                    {
-                        noiDungKetQua: value,
-                        ketLuan:
-                            "Đã ghi nhận kết quả xét nghiệm; " +
-                            "chờ bác sĩ đánh giá."
-                    }
-                );
-
-                labSavedValues[id] = input.value;
-                savedCount++;
+    // Lưu kết quả xét nghiệm
+    if (saveLabBtn) {
+        saveLabBtn.addEventListener("click", async () => {
+            if (busy || !editable || !labOrders.length) {
+                return;
             }
 
-            await load();
+            const changes = getLabInputs().filter(input => {
+                const id = input.dataset.orderId;
 
-            showNotice(
-                `Đã lưu ${savedCount} kết quả xét nghiệm.`
-            );
+                return input.value !==
+                    (labSavedValues[id] ?? "");
+            });
 
-        } catch (error) {
-            showNotice(
-                `Đã lưu ${savedCount} mục. ` +
-                `Có lỗi: ${error.message}`,
-                true
-            );
+            if (!changes.length) {
+                showNotice(
+                    "Không có kết quả xét nghiệm mới cần lưu."
+                );
+                return;
+            }
 
-        } finally {
-            setBusy(false);
-        }
-    });
+            if (changes.some(input => !input.value.trim())) {
+                showNotice(
+                    "Kết quả xét nghiệm không được để trống.",
+                    true
+                );
+                return;
+            }
 
+            setBusy(true);
+
+            let savedCount = 0;
+
+            try {
+                for (const input of changes) {
+                    const id = input.dataset.orderId;
+                    const value = input.value.trim();
+
+                    await api(
+                        `/chi-dinh/${encodeURIComponent(id)}/luu`,
+                        "POST",
+                        {
+                            noiDungKetQua: value,
+                            ketLuan:
+                                "Đã ghi nhận kết quả xét nghiệm; " +
+                                "chờ bác sĩ đánh giá."
+                        }
+                    );
+
+                    labSavedValues[id] = input.value;
+                    savedCount++;
+                }
+
+                await load();
+
+                showNotice(
+                    `Đã lưu ${savedCount} kết quả xét nghiệm.`
+                );
+
+            } catch (error) {
+                showNotice(
+                    `Đã lưu ${savedCount} mục. Có lỗi: ${error.message}`,
+                    true
+                );
+
+            } finally {
+                setBusy(false);
+            }
+        });
+    }
 
     // ============================================
-    // 5. POPUP XÁC NHẬN GIỮA MÀN HÌNH
+    // 6. POPUP XÁC NHẬN GIỮA MÀN HÌNH
     // ============================================
 
     function showModal({
@@ -409,10 +446,11 @@ document.addEventListener("DOMContentLoaded", () => {
         danger = false
     }) {
         return new Promise(resolve => {
-
             if (
                 modalActive ||
                 !modal ||
+                !modalTitle ||
+                !modalMessage ||
                 !cancelBtn ||
                 !confirmBtn
             ) {
@@ -428,24 +466,19 @@ document.addEventListener("DOMContentLoaded", () => {
             modalMessage.textContent = message;
             confirmBtn.textContent = confirmText;
 
-            modalIcon.classList.toggle(
-                "warning",
-                warning
-            );
+            if (modalIcon) {
+                modalIcon.classList.toggle("warning", warning);
 
-            confirmBtn.classList.toggle(
-                "danger",
-                danger
-            );
+                const icon = modalIcon.querySelector("i");
 
-            const icon = modalIcon.querySelector("i");
-
-            if (icon) {
-                icon.className = warning
-                    ? "fa-solid fa-triangle-exclamation"
-                    : "fa-solid fa-circle-question";
+                if (icon) {
+                    icon.className = warning
+                        ? "fa-solid fa-triangle-exclamation"
+                        : "fa-solid fa-circle-question";
+                }
             }
 
+            confirmBtn.classList.toggle("danger", danger);
             modal.hidden = false;
 
             let closed = false;
@@ -457,21 +490,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 modal.hidden = true;
                 modalActive = false;
 
-                cancelBtn.removeEventListener(
-                    "click", onCancel
-                );
-
-                confirmBtn.removeEventListener(
-                    "click", onConfirm
-                );
-
-                modal.removeEventListener(
-                    "click", onOverlay
-                );
-
-                document.removeEventListener(
-                    "keydown", onKeyDown
-                );
+                cancelBtn.removeEventListener("click", onCancel);
+                confirmBtn.removeEventListener("click", onConfirm);
+                modal.removeEventListener("click", onOverlay);
+                document.removeEventListener("keydown", onKeyDown);
 
                 if (previousFocus?.isConnected) {
                     previousFocus.focus();
@@ -507,7 +529,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     ) {
                         event.preventDefault();
                         confirmBtn.focus();
-
                     } else if (
                         !event.shiftKey &&
                         document.activeElement === confirmBtn
@@ -518,28 +539,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
-            cancelBtn.addEventListener(
-                "click", onCancel
-            );
-
-            confirmBtn.addEventListener(
-                "click", onConfirm
-            );
-
-            modal.addEventListener(
-                "click", onOverlay
-            );
-
-            document.addEventListener(
-                "keydown", onKeyDown
-            );
+            cancelBtn.addEventListener("click", onCancel);
+            confirmBtn.addEventListener("click", onConfirm);
+            modal.addEventListener("click", onOverlay);
+            document.addEventListener("keydown", onKeyDown);
 
             cancelBtn.focus();
         });
     }
 
     // ============================================
-    // 6. CẢNH BÁO KHI RỜI TRANG
+    // 7. CẢNH BÁO KHI RỜI TRANG
     // ============================================
 
     async function requestNavigation(url) {
@@ -548,12 +558,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hasUnsavedChanges()) {
             const confirmed = await showModal({
                 title: "Kết quả chưa được lưu",
-
                 message:
-                    "Bạn đã thay đổi nội dung kết quả " +
-                    "hoặc kết luận nhưng chưa lưu. " +
-                    "Nếu thoát bây giờ, các thay đổi này sẽ mất.",
-
+                    "Bạn đã thay đổi nội dung kết quả hoặc kết luận " +
+                    "nhưng chưa lưu. Nếu thoát bây giờ, các thay đổi này sẽ mất.",
                 confirmText: "Thoát không lưu",
                 warning: true,
                 danger: true
@@ -567,16 +574,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 7. MỘT NÚT QUAY LẠI TỰ THU GỌN
+    // 8. MỘT NÚT QUAY LẠI TỰ THU GỌN
     // ============================================
 
     function setupCompactBack() {
-
-        /*
-         * Tạo một vị trí giữ chỗ cho nút gốc.
-         * Đây KHÔNG phải nút thứ hai.
-         */
-
         const slot = document.createElement("span");
         slot.className = "ct-back-slot";
 
@@ -586,7 +587,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let compact = false;
         let framePending = false;
 
-        // Xác định cạnh dưới header
         function headerBottom() {
             const header =
                 document.querySelector(".reception-header") ||
@@ -601,55 +601,23 @@ document.addEventListener("DOMContentLoaded", () => {
             framePending = false;
 
             const headerY = headerBottom();
-
-            // Kiểm tra vị trí ban đầu của nút
             const slotRect = slot.getBoundingClientRect();
 
-            // Chỉ thu gọn khi vị trí gốc đã khuất
             const isPast =
                 slotRect.bottom <= headerY + 4;
 
-            // ====================================
-            // CUỘN XUỐNG: THU GỌN NÚT
-            // ====================================
-
             if (isPast && !compact) {
+                slot.style.width = `${slotRect.width}px`;
+                slot.style.height = `${slotRect.height}px`;
 
-                // Giữ kích thước vị trí ban đầu
-                // để bố cục không bị nhảy.
-                slot.style.width =
-                    `${slotRect.width}px`;
-
-                slot.style.height =
-                    `${slotRect.height}px`;
-
-                /*
-                 * Chuyển CHÍNH nút quay lại vào body.
-                 * Không clone, không tạo nút mới.
-                 *
-                 * Nhờ vậy position: fixed sẽ
-                 * không bị ảnh hưởng bởi layout.
-                 */
                 document.body.appendChild(backButton);
-
-                backButton.classList.add(
-                    "ct-back-compact"
-                );
+                backButton.classList.add("ct-back-compact");
 
                 compact = true;
-            }
 
-            // ====================================
-            // CUỘN LÊN: PHỤC HỒI NÚT GỐC
-            // ====================================
+            } else if (!isPast && compact) {
+                backButton.classList.remove("ct-back-compact");
 
-            else if (!isPast && compact) {
-
-                backButton.classList.remove(
-                    "ct-back-compact"
-                );
-
-                // Đưa lại đúng vị trí ban đầu.
                 slot.appendChild(backButton);
 
                 slot.style.width = "";
@@ -658,12 +626,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 compact = false;
             }
 
-            // ====================================
-            // TÍNH VỊ TRÍ NÚT NỔI
-            // ====================================
-
             if (compact) {
-
                 const sidebar = document.querySelector(
                     ".reception-sidebar"
                 );
@@ -690,19 +653,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (framePending) return;
 
             framePending = true;
-
             requestAnimationFrame(update);
         }
 
-        /*
-         * Theo dõi cả thanh cuộn của cửa sổ
-         * và thanh cuộn bên trong layout.
-         */
-        document.addEventListener(
-            "scroll",
-            scheduleUpdate,
-            true
-        );
+        document.addEventListener("scroll", scheduleUpdate, true);
 
         window.addEventListener(
             "scroll",
@@ -710,16 +664,13 @@ document.addEventListener("DOMContentLoaded", () => {
             { passive: true }
         );
 
-        window.addEventListener(
-            "resize",
-            scheduleUpdate
-        );
+        window.addEventListener("resize", scheduleUpdate);
 
         scheduleUpdate();
     }
 
     // ============================================
-    // 8. XỬ LÝ NHẤN QUAY LẠI
+    // 9. XỬ LÝ NHẤN QUAY LẠI
     // ============================================
 
     backButton.addEventListener("click", event => {
@@ -728,7 +679,7 @@ document.addEventListener("DOMContentLoaded", () => {
         requestNavigation(backButton.href);
     });
 
-    // Bảo vệ liên kết menu sidebar và header
+    // Cảnh báo khi bấm liên kết nội bộ nếu chưa lưu
     document.addEventListener("click", event => {
         const link = event.target.closest("a[href]");
 
@@ -747,10 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
             event.altKey ||
             event.button !== 0 ||
             link.hasAttribute("download") ||
-            (
-                link.target &&
-                link.target !== "_self"
-            )
+            (link.target && link.target !== "_self")
         ) {
             return;
         }
@@ -764,10 +712,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        if (
-            !hasUnsavedChanges() ||
-            allowNavigation
-        ) {
+        if (!hasUnsavedChanges() || allowNavigation) {
             return;
         }
 
@@ -775,15 +720,10 @@ document.addEventListener("DOMContentLoaded", () => {
         event.stopPropagation();
 
         requestNavigation(url.href);
-
     }, true);
 
-    // Refresh, đóng tab hoặc Back trình duyệt
     window.addEventListener("beforeunload", event => {
-        if (
-            allowNavigation ||
-            !hasUnsavedChanges()
-        ) {
+        if (allowNavigation || !hasUnsavedChanges()) {
             return;
         }
 
@@ -792,7 +732,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ============================================
-    // 9. THAY ĐỔI CHỈ ĐỊNH
+    // 10. THAY ĐỔI CHỈ ĐỊNH
     // ============================================
 
     select.addEventListener("change", async () => {
@@ -805,11 +745,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hasUnsavedChanges()) {
             const confirmed = await showModal({
                 title: "Thay đổi chưa được lưu",
-
                 message:
                     "Nếu chuyển sang chỉ định khác, " +
                     "nội dung vừa nhập nhưng chưa lưu sẽ mất.",
-
                 confirmText: "Chuyển chỉ định",
                 warning: true
             });
@@ -825,40 +763,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ============================================
-    // 10. TẢI THÔNG TIN THẬT TỪ MYSQL
+    // 11. TẢI THÔNG TIN TỪ API
     // ============================================
 
     async function load() {
         try {
             const data = await api();
 
-            setText(
-                "patientName",
-                data.tenBenhNhan
-            );
+            setText("patientName", data.tenBenhNhan);
 
             setText(
                 "patientCode",
-                `Mã BN: ${data.maBenhNhan}`
+                `Mã BN: ${data.maBenhNhan ?? "—"}`
             );
 
             setText(
                 "patientInfo",
                 [
                     data.gioiTinh,
-                    formatDate(data.ngaySinh)
-                ].filter(Boolean).join(" · ")
+                    formatDate(data.ngaySinh) !== "—"
+                        ? formatDate(data.ngaySinh)
+                        : null
+                ].filter(Boolean).join(" · ") || "—"
             );
 
-            setText(
-                "appointmentCode",
-                data.maLichKham
-            );
-
-            setText(
-                "doctorName",
-                data.bacSiPhuTrach
-            );
+            setText("appointmentCode", data.maLichKham);
+            setText("doctorName", data.bacSiPhuTrach);
 
             setText(
                 "pageStatus",
@@ -867,52 +797,57 @@ document.addEventListener("DOMContentLoaded", () => {
                     : "Chờ bắt đầu CLS"
             );
 
-
             editable = data.trangThai === "DangCLS";
 
             orders = Array.isArray(data.chiDinh)
                 ? data.chiDinh
                 : [];
 
-            console.log("DANH SÁCH CHỈ ĐỊNH:", orders);
-            console.log("CHỈ ĐỊNH ĐẦU TIÊN:", orders[0]);
-
-
-            // Phân loại xét nghiệm và các dịch vụ khác
+            // Phân loại chỉ định xét nghiệm và dịch vụ khác
             labOrders = orders.filter(isLabOrder);
+
             normalOrders = orders.filter(
                 order => !isLabOrder(order)
             );
 
-            // Hiển thị nhóm xét nghiệm
             renderLabResults();
-            // Ẩn tiêu đề cũ nếu phiếu chỉ có xét nghiệm
+
             const normalHeading = $("normalResultHeading");
 
             if (normalHeading) {
                 normalHeading.hidden =
-                    labOrders.length > 0 && normalOrders.length === 0;
+                    labOrders.length > 0 &&
+                    normalOrders.length === 0;
             }
 
-            // Các dịch vụ khác giữ giao diện cũ
             const normalVisible = normalOrders.length > 0;
 
-            select.closest(".ct-form-group").hidden =
-                !normalVisible;
+            const selectGroup = select.closest(".ct-form-group");
+            const contentGroup = content.closest(".ct-form-group");
+            const conclusionGroup = conclusion.closest(".ct-form-group");
 
-            content.closest(".ct-form-group").hidden =
-                !normalVisible;
+            if (selectGroup) {
+                selectGroup.hidden = !normalVisible;
+            }
 
-            conclusion.closest(".ct-form-group").hidden =
-                !normalVisible;
+            if (contentGroup) {
+                contentGroup.hidden = !normalVisible;
+            }
+
+            if (conclusionGroup) {
+                conclusionGroup.hidden = !normalVisible;
+            }
 
             const fileBox = document.querySelector(
                 ".ct-file-placeholder"
             );
 
             if (fileBox) {
-                fileBox.closest(".ct-form-group").hidden =
-                    !normalVisible;
+                const fileGroup = fileBox.closest(".ct-form-group");
+
+                if (fileGroup) {
+                    fileGroup.hidden = !normalVisible;
+                }
             }
 
             saveBtn.hidden = !normalVisible;
@@ -928,8 +863,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     selectedOrderId || requestedId;
 
                 for (const order of normalOrders) {
-                    const option =
-                        document.createElement("option");
+                    const option = document.createElement("option");
 
                     option.value = String(order.maChiDinh);
                     option.textContent =
@@ -946,8 +880,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     : String(normalOrders[0].maChiDinh);
 
                 showOrder();
+
             } else {
                 selectedOrderId = "";
+
                 content.value = "";
                 conclusion.value = "";
 
@@ -963,17 +899,17 @@ document.addEventListener("DOMContentLoaded", () => {
                         : "Chưa có chỉ định"
                 );
 
-               const firstLab = labOrders[0];
+                const firstLab = labOrders[0];
 
-               setText(
-                   "roomName",
-                   firstLab?.maPhong ?? "Chưa phân phòng"
-               );
+                setText(
+                    "roomName",
+                    firstLab?.maPhong ?? "Chưa phân phòng"
+                );
 
-               setText(
-                   "orderDate",
-                   formatDate(firstLab?.ngayChiDinh)
-               );
+                setText(
+                    "orderDate",
+                    formatDate(firstLab?.ngayChiDinh)
+                );
             }
 
             if (!orders.length) {
@@ -981,7 +917,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Lượt khám chưa có chỉ định dịch vụ.",
                     true
                 );
-            } else {
+            } else if (notice) {
                 notice.hidden = true;
             }
 
@@ -1002,7 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 11. LƯU KẾT QUẢ
+    // 12. LƯU KẾT QUẢ THÔNG THƯỜNG
     // ============================================
 
     form.addEventListener("submit", async event => {
@@ -1011,7 +947,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (
             busy ||
             !editable ||
-            orders.length === 0
+            !selectedOrderId ||
+            normalOrders.length === 0
         ) {
             return;
         }
@@ -1021,8 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!noiDung || !ketLuan) {
             showNotice(
-                "Vui lòng nhập đầy đủ nội dung " +
-                "kết quả và kết luận.",
+                "Vui lòng nhập đầy đủ nội dung kết quả và kết luận.",
                 true
             );
             return;
@@ -1036,21 +972,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 "POST",
                 {
                     noiDungKetQua: noiDung,
-                    ketLuan
+                    ketLuan: ketLuan
                 }
             );
 
-            // Chỉ ghi nhận đã lưu sau khi API thành công
             savedValues = {
-                content: content.value,
-                conclusion: conclusion.value
+                content: noiDung,
+                conclusion: ketLuan
             };
 
             await load();
 
-            showNotice(
-                "Đã lưu kết quả thành công vào MySQL."
-            );
+            showNotice("Đã lưu kết quả thành công.");
 
         } catch (error) {
             showNotice(error.message, true);
@@ -1061,7 +994,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ============================================
-    // 12. HOÀN TẤT CLS
+    // 13. HOÀN TẤT CLS
     // ============================================
 
     finishBtn.addEventListener("click", async () => {
@@ -1073,15 +1006,12 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Bắt buộc lưu trước khi hoàn tất
         if (hasUnsavedChanges()) {
             await showModal({
                 title: "Bạn chưa lưu kết quả",
-
                 message:
                     "Vui lòng lưu tất cả kết quả vừa nhập " +
                     "trước khi hoàn tất CLS.",
-
                 confirmText: "Đã hiểu",
                 warning: true
             });
@@ -1091,12 +1021,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const confirmed = await showModal({
             title: "Xác nhận hoàn tất CLS",
-
             message:
-                "Bạn đã lưu đầy đủ các chỉ định " +
-                "và muốn chuyển bệnh nhân về trạng thái " +
-                "Chờ khám để bác sĩ tiếp tục xử lý?",
-
+                "Bạn đã lưu đầy đủ các chỉ định và muốn hoàn tất CLS " +
+                "để bác sĩ tiếp tục xử lý?",
             confirmText: "Hoàn tất CLS"
         });
 
@@ -1109,9 +1036,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             allowNavigation = true;
 
-            window.location.assign(
-                "/ChuyenTrach/dashboard"
-            );
+            window.location.assign("/ChuyenTrach/dashboard");
 
         } catch (error) {
             showNotice(error.message, true);
@@ -1120,17 +1045,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ============================================
-    // 13. KHỞI TẠO
+    // 14. KHỞI TẠO
     // ============================================
 
-    if (
-        !Number.isInteger(maLich) ||
-        maLich <= 0
-    ) {
-        showNotice(
-            "Mã lịch khám không hợp lệ.",
-            true
-        );
+    if (!Number.isInteger(maLich) || maLich <= 0) {
+        showNotice("Mã lịch khám không hợp lệ.", true);
         return;
     }
 

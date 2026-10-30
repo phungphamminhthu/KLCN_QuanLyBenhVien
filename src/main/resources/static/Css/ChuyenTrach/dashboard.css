@@ -122,9 +122,12 @@
 
 .ct-panel-title {
     margin: 0;
-    font-size: 18px;
-    font-weight: 800;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 700;
     color: #1E293B;
+    line-height: 1.5;
+    letter-spacing: -0.2px;
 }
 
 .ct-new-badge {

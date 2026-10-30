@@ -104,29 +104,25 @@ public class ChuyenTrachKetQuaController {
                 getChiDinh(maLich).stream().map(c -> {
                     Map<String, Object> row = new LinkedHashMap<>();
 
-
                     row.put("maChiDinh", c.getMaChiDinh());
-
                     row.put("tenDichVu",
                             c.getDichVuYTe().getTenDichVu());
 
-// Lấy loại chỉ định từ database
-                    row.put("loaiChiDinh",
-                            c.getLoaiChiDinh());
+                    // Loại chỉ định từ database
+                    row.put("loaiChiDinh", c.getLoaiChiDinh());
 
-// Lấy loại dịch vụ từ database
+                    // Loại dịch vụ từ database
                     row.put("loaiDichVu",
                             c.getDichVuYTe().getLoaiDichVu());
 
-// Lấy nhóm xét nghiệm từ database
+                    // Nhóm xét nghiệm từ database
                     row.put("nhomXetNghiem",
                             c.getDichVuYTe().getNhomXetNghiem());
 
-// Thông tin phòng và thời gian
+                    // Thông tin phòng và thời gian
                     row.put("maPhong", c.getMaPhong());
                     row.put("ngayChiDinh", c.getNgayChiDinh());
                     row.put("trangThai", c.getTrangThai());
-
 
                     KetQuaDichVu k = getKetQua(c.getMaChiDinh());
 
@@ -244,17 +240,16 @@ public class ChuyenTrachKetQuaController {
                     ZoneId.of("Asia/Ho_Chi_Minh")));
             chiDinh.setTrangThai("DaHoanThanh");
         }
+        em.flush();
 
-        // Sau khi hoàn tất CLS,
-// chuyển bệnh nhân về trạng thái đang khám
-// để bác sĩ tiếp tục đánh giá và kê đơn thuốc.
-
+        // Sau khi hoàn tất CLS, bệnh nhân quay lại bác sĩ
+        // để tiếp tục đánh giá và kê đơn thuốc.
         int updated = em.createQuery("""
-        UPDATE LichDangKyKham l
-        SET l.trangThai = 'DangKham'
-        WHERE l.maLichKham = :id
-          AND l.trangThai = 'DangCLS'
-        """)
+                UPDATE LichDangKyKham l
+                SET l.trangThai = 'DangKham'
+                WHERE l.maLichKham = :id
+                  AND l.trangThai = 'DangCLS'
+                """)
                 .setParameter("id", maLich)
                 .executeUpdate();
 
@@ -265,7 +260,7 @@ public class ChuyenTrachKetQuaController {
             );
         }
 
-// Đồng bộ EntityManager vì đã dùng JPQL UPDATE
+        // Đồng bộ EntityManager vì đã dùng JPQL UPDATE
         em.clear();
 
         return Map.of(

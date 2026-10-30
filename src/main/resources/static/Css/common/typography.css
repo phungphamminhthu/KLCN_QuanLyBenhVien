@@ -1,0 +1,76 @@
+/* =========================================
+   MEDCARE - TYPOGRAPHY DESIGN SYSTEM
+   Font chữ dùng chung toàn hệ thống
+   ========================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --font-family-base: 'Inter', sans-serif;
+
+    --font-size-xs: 12px;
+    --font-size-sm: 13px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-2xl: 22px;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-extrabold: 800;
+
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
+}
+
+/* Font mặc định toàn trang */
+html,
+body,
+button,
+input,
+select,
+textarea,
+option,
+table {
+    font-family: var(--font-family-base);
+}
+
+/* Nội dung */
+body {
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+}
+
+/* Tiêu đề */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-family-base);
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+/* Form */
+input,
+select,
+textarea,
+button {
+    font-size: inherit;
+}
+
+/* Bảng */
+table th {
+    font-weight: var(--font-weight-semibold);
+}
+
+table td {
+    font-weight: var(--font-weight-normal);
+}

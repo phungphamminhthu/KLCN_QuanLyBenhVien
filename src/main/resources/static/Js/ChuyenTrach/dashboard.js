@@ -67,7 +67,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
     // 4. GỌI API THẬT
     // ============================================
-
     async function apiRequest(path, method = "GET") {
         const token = getToken();
 
@@ -78,38 +77,41 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const response = await fetch(API + path, {
-            method: method,
+            method,
             headers: {
-                "Accept": "application/json",
-                "Authorization": `Bearer ${token}`
+                Accept: "application/json",
+                Authorization: `Bearer ${token}`
             },
             cache: "no-store"
         });
 
+        const raw = await response.text();
+        let data = null;
+
+        try {
+            data = raw ? JSON.parse(raw) : null;
+        } catch {
+            data = { message: raw };
+        }
+
         if (!response.ok) {
-            if (response.status === 401 || response.status === 403) {
-                throw new Error(
-                    "Phiên đăng nhập không hợp lệ hoặc không có quyền truy cập."
-                );
-            }
-
-            if (response.status === 404) {
-                throw new Error("Không tìm thấy API hoặc lượt khám.");
-            }
-
-            if (response.status === 409) {
-                throw new Error(
-                    "Trạng thái lượt khám đã thay đổi. Vui lòng tải lại."
-                );
-            }
+            console.error("API chuyên trách lỗi:", {
+                url: API + path,
+                status: response.status,
+                response: data
+            });
 
             throw new Error(
+                data?.message ||
+                data?.detail ||
+                data?.error ||
                 `Không thể xử lý yêu cầu (HTTP ${response.status}).`
             );
         }
 
-        return response.json();
+        return data;
     }
+
 
     // ============================================
     // 5. TẠO PHẦN TỬ HTML AN TOÀN
