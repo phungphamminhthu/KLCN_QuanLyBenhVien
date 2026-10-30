@@ -155,6 +155,10 @@ public class SecurityConfig {
                                 "/api/phan-cong-tiep-nhan/**"
                         ).hasRole("ADMIN")
 
+                        // API đăng ký thiết bị nhận thông báo FCM
+                        .requestMatchers("/api/thiet-bi/**")
+                        .hasRole("BENHNHAN")
+
                         // Những request còn lại cần đăng nhập
                         .anyRequest().authenticated()
                 )

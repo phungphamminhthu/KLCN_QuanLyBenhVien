@@ -6,8 +6,11 @@ import QuanLyBenhVien.Entity.LichDangKyKham;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -165,6 +168,51 @@ public interface LichDangKyKhamRepository
             Integer maBacSi,
             LocalDate ngayKham,
             List<String> trangThai
+    );
+
+    // =====================================================
+    // Lấy lịch chưa thanh toán đến thời điểm nhắc 12 giờ
+    // =====================================================
+    List<LichDangKyKham>
+    findByTrangThaiThanhToanAndTrangThaiAndNgayTaoLessThanEqualAndHanThanhToanGreaterThanAndDaNhacThanhToan12hFalse(
+            String trangThaiThanhToan,
+            String trangThai,
+            LocalDateTime mocNhac,
+            LocalDateTime hienTai
+    );
+
+    // ====================================================
+    // Lấy lịch chưa thanh toán đến thời điểm nhắc 23 giờ
+    // ====================================================
+    List<LichDangKyKham>
+    findByTrangThaiThanhToanAndTrangThaiAndNgayTaoLessThanEqualAndHanThanhToanGreaterThanAndDaNhacThanhToan23hFalse(
+            String trangThaiThanhToan,
+            String trangThai,
+            LocalDateTime mocNhac,
+            LocalDateTime hienTai
+    );
+
+    // =========================================================
+    // Lấy lịch đã quá hạn thanh toán
+    // =========================================================
+    List<LichDangKyKham>
+    findByTrangThaiThanhToanAndTrangThaiAndHanThanhToanLessThanEqual(
+            String trangThaiThanhToan,
+            String trangThai,
+            LocalDateTime thoiDiem
+    );
+
+    // ==========================================================
+    // Khóa lịch khám khi xử lý thanh toán hoặc hủy lịch
+    // ==========================================================
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT l
+    FROM LichDangKyKham l
+    WHERE l.maLichKham = :maLichKham
+    """)
+    Optional<LichDangKyKham> findByIdForUpdate(
+            @Param("maLichKham") Integer maLichKham
     );
 
 

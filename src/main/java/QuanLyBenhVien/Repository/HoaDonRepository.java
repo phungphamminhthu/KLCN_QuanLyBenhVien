@@ -2,7 +2,9 @@
 package QuanLyBenhVien.Repository;
 
 import QuanLyBenhVien.Entity.HoaDon;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -57,5 +59,18 @@ public interface HoaDonRepository
     List<HoaDon> timHoaDonTheoLichVaBenhNhan(
             @Param("maLichKham") Integer maLichKham,
             @Param("tenDangNhap") String tenDangNhap
+    );
+
+    // ====================================================
+    // Khóa hóa đơn khi xử lý thanh toán
+    // ====================================================
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT h
+    FROM HoaDon h
+    WHERE h.maHoaDon = :maHoaDon
+    """)
+    Optional<HoaDon> findByIdForUpdate(
+            @Param("maHoaDon") Integer maHoaDon
     );
 }

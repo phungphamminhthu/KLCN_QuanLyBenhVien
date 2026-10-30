@@ -116,5 +116,4 @@ public interface NguoiDungRepository
             @Param("tenVaiTro") List<String> tenVaiTro
     );
 
-
 }

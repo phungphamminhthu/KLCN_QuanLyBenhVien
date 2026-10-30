@@ -192,16 +192,48 @@ public class LichDangKyKhamService {
         soThuTu = soThuTuRepository.saveAndFlush(soThuTu);
 
         // 10. Tạo lịch khám
+        //        LichDangKyKham lich = new LichDangKyKham();
+        //        lich.setBenhNhan(benhNhan);
+        //        lich.setBacSi(bacSi);
+        //        lich.setKhoa(khoa);
+        //        lich.setSoThuTu(soThuTu);
+        //        lich.setNgayKham(ngayKham);
+        //        lich.setGioKham(gioKham);
+        //        lich.setLyDoKham(request.getLyDoKham().trim());
+        //        lich.setNgayTao(LocalDateTime.now());
+        //        lich.setTrangThai("ChoGoi");
+        //
+        //        lich = lichRepository.saveAndFlush(lich);
+        // 10. Tạo lịch khám
+        LocalDateTime ngayTao = LocalDateTime.now();
+
         LichDangKyKham lich = new LichDangKyKham();
+
         lich.setBenhNhan(benhNhan);
         lich.setBacSi(bacSi);
         lich.setKhoa(khoa);
         lich.setSoThuTu(soThuTu);
+
         lich.setNgayKham(ngayKham);
         lich.setGioKham(gioKham);
         lich.setLyDoKham(request.getLyDoKham().trim());
-        lich.setNgayTao(LocalDateTime.now());
+
+        // Thời gian tạo lịch
+        lich.setNgayTao(ngayTao);
+
+            // Hạn thanh toán sau 24 giờ
+        lich.setHanThanhToan(ngayTao.plusHours(24));
+
+        // Trạng thái lịch khám
+        // Giữ nguyên trạng thái đang sử dụng trong project
         lich.setTrangThai("ChoGoi");
+
+        // Trạng thái thanh toán
+        lich.setTrangThaiThanhToan("ChuaThanhToan");
+
+        // Chưa gửi thông báo nhắc
+        lich.setDaNhacThanhToan12h(false);
+        lich.setDaNhacThanhToan23h(false);
 
         lich = lichRepository.saveAndFlush(lich);
 

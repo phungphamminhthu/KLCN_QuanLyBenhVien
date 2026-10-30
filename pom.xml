@@ -160,6 +160,13 @@
 			<version>2.0.3</version>
 		</dependency>
 
+		<!-- Firebase Admin SDK - gửi thông báo FCM -->
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+			<version>9.11.0</version>
+		</dependency>
+
 
 	</dependencies>
 

@@ -6,11 +6,15 @@ import QuanLyBenhVien.Entity.ThongBao;
 import QuanLyBenhVien.Repository.NguoiDungRepository;
 import QuanLyBenhVien.Repository.ThongBaoRepository;
 
+import QuanLyBenhVien.Repository.ThongKeBaoCaoRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.Map;
@@ -21,14 +25,21 @@ public class ThongBaoService {
     private final ThongBaoRepository thongBaoRepository;
     private final NguoiDungRepository nguoiDungRepository;
     private final ThongBaoWebSocketService thongBaoWebSocketService;
+    private final FcmPushService fcmPushService;
+    private final ThongBaoService thongBaoService;
 
     public ThongBaoService(
             ThongBaoRepository thongBaoRepository,
             NguoiDungRepository nguoiDungRepository,
-            ThongBaoWebSocketService thongBaoWebSocketService) {
+            ThongBaoWebSocketService thongBaoWebSocketService,
+            FcmPushService fcmPushService,
+            ThongBaoService thongBaoService
+    ) {
         this.thongBaoRepository = thongBaoRepository;
         this.nguoiDungRepository = nguoiDungRepository;
         this.thongBaoWebSocketService = thongBaoWebSocketService;
+        this.fcmPushService = fcmPushService;
+        this.thongBaoService = thongBaoService;
     }
 
     @Transactional(readOnly = true)
@@ -44,7 +55,8 @@ public class ThongBaoService {
                 .stream()
                 .map(t -> Map.<String, Object>of(
                         "id", t.getMaThongBao(),
-                        "title", t.getTieuDe(),
+                        "title", t.getTieuDe() == null
+                                ? "Thông báo bệnh viện" : t.getTieuDe(),
                         "message", t.getNoiDung() == null
                                 ? "" : t.getNoiDung(),
                         "type", t.getLoaiThongBao() == null
@@ -135,7 +147,10 @@ public class ThongBaoService {
         thongBao.setTrangThai("MOI");
 
         ThongBao saved = thongBaoRepository.save(thongBao);
+
         guiCapNhatSauCommit(nguoiDung);
+        guiFcmSauCommit(saved);
+
         return saved;
     }
 
@@ -192,6 +207,8 @@ public class ThongBaoService {
 
         ThongBao saved = thongBaoRepository.save(thongBao);
 
+        guiFcmSauCommit(saved);
+
         Runnable gui = () -> {
             long count = thongBaoRepository
                     .countByNguoiDung_MaNguoiDungAndDaDocFalse(
@@ -228,6 +245,77 @@ public class ThongBaoService {
         }
 
         return saved;
+    }
+
+    // ===============================================
+    //  gửi thông báo
+    // ===============================================
+    private void guiFcmSauCommit(ThongBao thongBao) {
+
+        Integer maNguoiDung = thongBao.getNguoiDung().getMaNguoiDung();
+        Integer maThongBao = thongBao.getMaThongBao();
+        String tieuDe = thongBao.getTieuDe();
+        String noiDung = thongBao.getNoiDung();
+        String loaiThongBao = thongBao.getLoaiThongBao();
+
+        Runnable gui = () -> {
+            try {
+                fcmPushService.guiThongBao(
+                        maNguoiDung,
+                        maThongBao,
+                        tieuDe,
+                        noiDung,
+                        loaiThongBao
+                );
+            } catch (Exception e) {
+                System.err.println(
+                        "Lỗi gửi Push Notification: " + e.getMessage()
+                );
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            gui.run();
+                        }
+                    }
+            );
+        } else {
+            gui.run();
+        }
+    }
+
+    // ===========================================
+    // test fcm
+    // ===========================================
+    @PostMapping("/test-fcm")
+    public ResponseEntity<?> testFcm(
+            @RequestBody Map<String, Integer> request
+    ) {
+        Integer maNguoiDung = request.get("maNguoiDung");
+
+        if (maNguoiDung == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Thiếu maNguoiDung"));
+        }
+
+        ThongBao thongBao = thongBaoService.taoThongBao(
+                maNguoiDung,
+                "Kiểm tra thông báo",
+                "Đây là thông báo thử nghiệm từ hệ thống bệnh viện.",
+                "TEST"
+        );
+
+        return ResponseEntity.ok(
+                Map.of(
+                        "success", true,
+                        "message", "Đã tạo thông báo thử nghiệm",
+                        "id", thongBao.getMaThongBao()
+                )
+        );
     }
 
 

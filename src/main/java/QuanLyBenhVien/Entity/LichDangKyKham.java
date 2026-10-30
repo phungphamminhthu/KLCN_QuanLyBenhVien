@@ -48,6 +48,22 @@ public class LichDangKyKham {
     @Column(name = "TrangThai", nullable = false, length = 50)
     private String trangThai;
 
+    // ============== trang thai lich kham
+    @Column(name = "HanThanhToan")
+    private LocalDateTime hanThanhToan;
+
+    @Column(name = "TrangThaiThanhToan",
+            nullable = false, length = 30)
+    private String trangThaiThanhToan = "ChuaThanhToan";
+
+    @Column(name = "DaNhacThanhToan12h",
+            nullable = false)
+    private Boolean daNhacThanhToan12h = false;
+
+    @Column(name = "DaNhacThanhToan23h",
+            nullable = false)
+    private Boolean daNhacThanhToan23h = false;
+
 
 
     // ==========================================
@@ -132,5 +148,38 @@ public class LichDangKyKham {
 
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
+    }
+
+    // ============ trang thai lich kham
+    public LocalDateTime getHanThanhToan() {
+        return hanThanhToan;
+    }
+
+    public void setHanThanhToan(LocalDateTime hanThanhToan) {
+        this.hanThanhToan = hanThanhToan;
+    }
+
+    public String getTrangThaiThanhToan() {
+        return trangThaiThanhToan;
+    }
+
+    public void setTrangThaiThanhToan(String trangThaiThanhToan) {
+        this.trangThaiThanhToan = trangThaiThanhToan;
+    }
+
+    public Boolean getDaNhacThanhToan12h() {
+        return daNhacThanhToan12h;
+    }
+
+    public void setDaNhacThanhToan12h(Boolean daNhacThanhToan12h) {
+        this.daNhacThanhToan12h = daNhacThanhToan12h;
+    }
+
+    public Boolean getDaNhacThanhToan23h() {
+        return daNhacThanhToan23h;
+    }
+
+    public void setDaNhacThanhToan23h(Boolean daNhacThanhToan23h) {
+        this.daNhacThanhToan23h = daNhacThanhToan23h;
     }
 }
