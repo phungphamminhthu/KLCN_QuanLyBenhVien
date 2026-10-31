@@ -36,6 +36,12 @@ public class AdminPageController {
         return "Admin/danh-muc-tin-tuc";
     }
 
+    // phân quền
+    @GetMapping("/phan-quyen")
+    public String phanQuyen(){
+        return "Admin/phan-quyen";
+    }
+
     // trang danh sách tin tức của quản lý tin tức
     @GetMapping("/danh-sach-tin-tuc")
     public String danhSachTinTuc(){

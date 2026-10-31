@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+  <title>Quản lý phân quyền</title>
+
+  <th:block layout:fragment="css">
+    <link rel="stylesheet" th:href="@{/Css/Admin/phan-quyen.css}">
+  </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="permission-page">
+
+  <div class="permission-page-header">
+    <div>
+      <h1>Quản lý phân quyền</h1>
+      <p>Thiết lập quyền truy cập chức năng theo vai trò người dùng.</p>
+    </div>
+  </div>
+
+  <div class="permission-layout">
+
+    <!-- Danh sách vai trò -->
+    <section class="permission-card role-panel">
+      <div class="card-heading">
+        <h2>Vai trò</h2>
+        <p>Chọn vai trò cần thiết lập quyền.</p>
+      </div>
+
+      <div id="roleList" class="role-list">
+        <div class="empty-state">Đang tải danh sách vai trò...</div>
+      </div>
+    </section>
+
+    <!-- Bảng phân quyền -->
+    <section class="permission-card permission-panel">
+
+      <div class="permission-toolbar">
+        <div>
+          <h2 id="roleTitle">Chọn vai trò</h2>
+          <p>Đánh dấu quyền được phép sử dụng.</p>
+        </div>
+
+        <div class="permission-search">
+          <input type="text"
+                 id="searchPermission"
+                 placeholder="Tìm chức năng..."
+                 oninput="locChucNang()">
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="permission-table">
+          <thead>
+          <tr>
+            <th>Chức năng</th>
+            <th>Xem</th>
+            <th>Thêm</th>
+            <th>Sửa</th>
+            <th>Xóa</th>
+          </tr>
+          </thead>
+
+          <tbody id="permissionBody">
+          <tr>
+            <td colspan="5" class="empty-state">
+              Vui lòng chọn vai trò để xem quyền.
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="permission-footer">
+        <label class="select-all">
+          <input type="checkbox"
+                 id="selectAll"
+                 onchange="chonTatCa(this.checked)">
+          <span>Chọn tất cả quyền</span>
+        </label>
+
+        <div class="permission-footer-right">
+          <span id="message" class="message"></span>
+
+          <button type="button"
+                  id="saveButton"
+                  class="btn-primary"
+                  onclick="luuPhanQuyen()"
+                  disabled>
+            Lưu phân quyền
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<th:block layout:fragment="js">
+  <script th:src="@{/Js/Admin/phan-quyen.js}"></script>
+</th:block>
+</body>
+</html>
