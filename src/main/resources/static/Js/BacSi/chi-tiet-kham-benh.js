@@ -1207,15 +1207,72 @@ async function hoanTatKham() {
         );
         return;
     }
-    const confirmed = window.confirm(
-        "Bạn có chắc muốn hoàn tất lần khám này?\n\n"
-        + "Sau khi hoàn tất, hồ sơ sẽ chuyển sang trạng thái chỉ đọc."
-    );
+   // =========================================================
+   // POPUP XÁC NHẬN HOÀN TẤT KHÁM
+   // =========================================================
 
+   const result = await Swal.fire({
+       title: "Xác nhận hoàn tất khám",
 
-    if (!confirmed) {
-        return;
-    }
+       html: `
+           <p style="font-size:15px; color:#64748b;">
+               Bạn có chắc chắn muốn hoàn tất lần khám này không?
+           </p>
+
+           <div style="
+               background:#f8fafc;
+               border:1px solid #e2e8f0;
+               border-radius:10px;
+               padding:18px;
+               margin-top:18px;
+               text-align:left;
+               font-size:14px;
+               color:#475569;
+           ">
+               <p>
+                   <strong>Chẩn đoán:</strong>
+                   ${escapeHtml(getElement("diagnosis")?.value.trim() || "---")}
+               </p>
+
+               <p>
+                   <strong>Kết luận:</strong>
+                   ${escapeHtml(getElement("conclusion")?.value.trim() || "---")}
+               </p>
+
+               <p>
+                   <strong>Hướng điều trị:</strong>
+                   ${escapeHtml(getElement("treatment")?.value.trim() || "---")}
+               </p>
+           </div>
+
+           <p style="
+               color:#dc2626;
+               font-size:13px;
+               margin-top:16px;
+           ">
+               Sau khi hoàn tất, hồ sơ bệnh án sẽ không thể chỉnh sửa.
+           </p>
+       `,
+
+       icon: "question",
+       width: "600px",
+
+       showCancelButton: true,
+       confirmButtonText: "Xác nhận hoàn tất",
+       cancelButtonText: "Quay lại",
+
+       confirmButtonColor: "#2563eb",
+       cancelButtonColor: "#64748b",
+
+       reverseButtons: true,
+       allowOutsideClick: false,
+       focusCancel: true
+   });
+
+   // Bác sĩ nhấn Quay lại thì không hoàn tất
+   if (!result.isConfirmed) {
+       return;
+   }
 
 
     const btn =
@@ -2459,12 +2516,30 @@ function resetFormThuoc() {
     anGoiYThuoc();
 }
 
+// =========================================================
+// KIỂM TRA THUỐC VỚI BACKEND
+// =========================================================
 
+async function kiemTraThuocTruocKhiKe(maThuoc, soLuong) {
+
+    const params = new URLSearchParams({
+        maThuoc: String(maThuoc),
+        soLuong: String(soLuong)
+    });
+
+    return await goiApi(
+        `${API_BASE}/thuoc/kiem-tra?${params}`,
+        {
+            method: "GET",
+            headers: taoHeaders()
+        }
+    );
+}
 // =========================================================
 // THÊM THUỐC VÀO ĐƠN
 // =========================================================
 
-function themThuocVaoDon() {
+async function themThuocVaoDon() {
 
     const maThuoc =
         Number(
@@ -2610,6 +2685,32 @@ function themThuocVaoDon() {
             ]
         );
 
+    // Kiểm tra trước khi thêm thuốc vào đơn
+    try {
+
+        const ketQua = await kiemTraThuocTruocKhiKe(
+            maThuoc,
+            soLuong
+        );
+
+        if (!ketQua.duocPhep) {
+            hienThiThongBao(
+                ketQua.thongBao,
+                "error"
+            );
+            return;
+        }
+
+    } catch (error) {
+
+        hienThiThongBao(
+            error.message || "Không kiểm tra được thuốc.",
+            "error"
+        );
+
+        return;
+    }
+
 
     danhSachThuocDaKe.push({
 
@@ -2667,6 +2768,55 @@ function xoaThuocKhoiDon(maThuoc) {
     renderThuocDaKe();
 }
 
+
+function hienThiTrangThaiTonKho(qty, ketQua, loi = null) {
+    const wrapper = qty.closest(".medicine-quantity-wrapper");
+    const message = wrapper?.querySelector(".medicine-stock-message");
+
+    if (!message) return;
+
+    qty.classList.remove(
+        "stock-valid",
+        "stock-invalid",
+        "stock-expired"
+    );
+
+    message.className = "medicine-stock-message";
+    message.textContent = "";
+
+    if (loi) {
+        qty.classList.add("stock-invalid");
+        message.classList.add("stock-error");
+        message.textContent = loi;
+        return;
+    }
+
+    if (!ketQua) return;
+
+    if (ketQua.duocPhep) {
+        qty.classList.add("stock-valid");
+        message.classList.add("stock-success");
+
+        message.textContent =
+            `Đủ thuốc — Kho còn ${ketQua.soLuongKhaDung} ${qty.closest("tr")?.querySelector("td:nth-child(3)")?.textContent.trim() || ""}`;
+
+    } else {
+        const hetHangHoacHetHan =
+            ketQua.dangHoatDong &&
+            Number(ketQua.soLuongKhaDung) === 0;
+
+        qty.classList.add(
+            hetHangHoacHetHan ? "stock-expired" : "stock-invalid"
+        );
+
+        message.classList.add(
+            hetHangHoacHetHan ? "stock-warning" : "stock-error"
+        );
+
+        message.textContent =
+            ketQua.thongBao || "Thuốc không hợp lệ.";
+    }
+}
 
 // =========================================================
 // RENDER DANH SÁCH THUỐC ĐÃ KÊ
@@ -2731,10 +2881,16 @@ function renderThuocDaKe() {
             <td>${escapeHtml(item.donViTinh || "---")}</td>
 
             <td>
-                <input type="number"
-                       class="medicine-table-input qty-input"
-                       min="1" step="1" required
-                       placeholder="SL">
+                <div class="medicine-quantity-wrapper">
+                    <input type="number"
+                           class="medicine-table-input qty-input"
+                           min="1"
+                           step="1"
+                           required
+                           placeholder="SL">
+
+                    <div class="medicine-stock-message"></div>
+                </div>
             </td>
 
             <td>
@@ -2779,6 +2935,23 @@ function renderThuocDaKe() {
         guide.value = item.huongDanSuDung || "";
 
         qty.addEventListener("input", () => {
+
+            // Xóa trạng thái kiểm tra cũ khi thay đổi số lượng
+            qty.classList.remove(
+                "stock-valid",
+                "stock-invalid",
+                "stock-expired"
+            );
+
+            const stockMessage = qty
+                .closest(".medicine-quantity-wrapper")
+                ?.querySelector(".medicine-stock-message");
+
+            if (stockMessage) {
+                stockMessage.textContent = "";
+                stockMessage.className = "medicine-stock-message";
+            }
+
             const value = Number(qty.value);
 
             if (
@@ -2793,6 +2966,61 @@ function renderThuocDaKe() {
             } else {
                 qty.setCustomValidity("");
                 item.soLuong = value;
+            }
+        });
+        qty.addEventListener("change", async () => {
+            const soLuong = Number(qty.value);
+
+            if (
+                !qty.value.trim() ||
+                !Number.isInteger(soLuong) ||
+                soLuong <= 0
+            ) {
+                qty.setCustomValidity("Số lượng phải là số nguyên dương.");
+
+                hienThiTrangThaiTonKho(
+                    qty,
+                    null,
+                    "Số lượng phải lớn hơn 0."
+                );
+                return;
+            }
+
+            const soLuongDaKiemTra = soLuong;
+
+            try {
+                const ketQua = await kiemTraThuocTruocKhiKe(
+                    item.maThuoc,
+                    soLuongDaKiemTra
+                );
+
+                // Không sử dụng kết quả cũ nếu bác sĩ đã đổi số lượng
+                if (Number(qty.value) !== soLuongDaKiemTra || !qty.isConnected) {
+                    return;
+                }
+
+                qty.setCustomValidity(
+                    ketQua.duocPhep
+                        ? ""
+                        : ketQua.thongBao || "Thuốc không hợp lệ."
+                );
+
+                hienThiTrangThaiTonKho(qty, ketQua);
+
+            } catch (error) {
+                if (Number(qty.value) !== soLuongDaKiemTra || !qty.isConnected) {
+                    return;
+                }
+
+                qty.setCustomValidity(
+                    "Không kiểm tra được tồn kho thuốc."
+                );
+
+                hienThiTrangThaiTonKho(
+                    qty,
+                    null,
+                    error.message || "Không thể kiểm tra thuốc."
+                );
             }
         });
 
@@ -3274,6 +3502,40 @@ async function luuDonThuoc() {
         );
         return;
     }
+    // Kiểm tra tất cả thuốc trước khi gửi đơn
+    try {
+
+        for (const item of danhSachThuocDaKe) {
+
+            const ketQua = await kiemTraThuocTruocKhiKe(
+                item.maThuoc,
+                item.soLuong
+            );
+
+            if (!ketQua.duocPhep) {
+
+                hienThiThongBao(
+                    ketQua.thongBao ||
+                    `Thuốc ${item.tenThuoc} không hợp lệ.`,
+                    "error"
+                );
+
+                return;
+            }
+        }
+
+    } catch (error) {
+
+        hienThiThongBao(
+            error.message ||
+            "Không kiểm tra được tồn kho thuốc.",
+            "error"
+        );
+
+        return;
+    }
+
+
 
     // 5. Kiểm tra chẩn đoán
     const chanDoan = getElement("diagnosis")?.value.trim();
@@ -3286,6 +3548,114 @@ async function luuDonThuoc() {
 
         chuyenTab("medical");
         getElement("diagnosis")?.focus();
+        return;
+    }
+    // =========================================================
+    // POPUP XÁC NHẬN ĐƠN THUỐC TRƯỚC KHI LƯU
+    // =========================================================
+
+    const danhSachHtml = danhSachThuocDaKe.map((thuoc, index) => `
+        <tr>
+            <td style="padding:12px 8px; text-align:center;">
+                ${index + 1}
+            </td>
+
+            <td style="padding:12px 8px;">
+                <strong>${escapeHtml(thuoc.tenThuoc)}</strong>
+            </td>
+
+            <td style="padding:12px 8px;">
+                ${escapeHtml(thuoc.soLuong)} ${escapeHtml(thuoc.donViTinh || "")}
+            </td>
+
+            <td style="padding:12px 8px;">
+                ${escapeHtml(thuoc.lieuDung || "---")}
+            </td>
+
+            <td style="padding:12px 8px;">
+                ${thuoc.thoiGianDung
+                    ? escapeHtml(thuoc.thoiGianDung) + " ngày"
+                    : "---"}
+            </td>
+
+            <td style="padding:12px 8px;">
+                ${escapeHtml(thuoc.huongDanSuDung || "---")}
+            </td>
+        </tr>
+    `).join("");
+
+    const ghiChu = getElement("prescriptionNote")?.value.trim();
+
+    const result = await Swal.fire({
+        title: "Xác nhận lưu đơn thuốc",
+
+        html: `
+            <p style="color:#64748b; font-size:14px; margin-bottom:20px;">
+                Vui lòng kiểm tra lại ${danhSachThuocDaKe.length}
+                thuốc trước khi xác nhận lưu đơn.
+            </p>
+
+            <div style="
+                max-height:350px;
+                overflow:auto;
+                border:1px solid #e2e8f0;
+                border-radius:10px;
+            ">
+                <table style="
+                    width:100%;
+                    border-collapse:collapse;
+                    font-size:13px;
+                    text-align:left;
+                    color:#334155;
+                ">
+                    <thead style="background:#f1f5f9;">
+                        <tr>
+                            <th style="padding:12px 8px;">STT</th>
+                            <th style="padding:12px 8px;">Tên thuốc</th>
+                            <th style="padding:12px 8px;">Số lượng</th>
+                            <th style="padding:12px 8px;">Liều dùng</th>
+                            <th style="padding:12px 8px;">Thời gian</th>
+                            <th style="padding:12px 8px;">Cách dùng</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${danhSachHtml}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="
+                margin-top:18px;
+                text-align:left;
+                font-size:14px;
+                color:#475569;
+            ">
+                <strong>Chẩn đoán:</strong>
+                ${escapeHtml(chanDoan)}
+
+                ${ghiChu ? `
+                    <p style="margin-top:10px;">
+                        <strong>Ghi chú:</strong>
+                        ${escapeHtml(ghiChu)}
+                    </p>
+                ` : ""}
+            </div>
+        `,
+
+        width: "950px",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Xác nhận lưu đơn",
+        cancelButtonText: "Quay lại",
+        confirmButtonColor: "#2563eb",
+        cancelButtonColor: "#64748b",
+        reverseButtons: true,
+        allowOutsideClick: false,
+        focusCancel: true
+    });
+
+    // Nếu bác sĩ chưa xác nhận thì không lưu
+    if (!result.isConfirmed) {
         return;
     }
 
@@ -4713,51 +5083,77 @@ function ganSuKien() {
         );
 
 
-    getElement("btnGoClinical")
-        ?.addEventListener("click", async () => {
+// =========================================================
+// ĐI ĐẾN CẬN LÂM SÀNG - XÁC NHẬN TRƯỚC KHI CHUYỂN
+// =========================================================
 
-            if (!maLichKham) {
-                hienThiThongBao(
-                    "Không tìm thấy mã lịch khám.",
-                    "error"
-                );
-                return;
-            }
+getElement("btnGoClinical")
+    ?.addEventListener("click", async () => {
 
-            const button = getElement("btnGoClinical");
+        if (!maLichKham) {
+            hienThiThongBao(
+                "Không tìm thấy mã lịch khám.",
+                "error"
+            );
+            return;
+        }
 
-            try {
-                if (button) button.disabled = true;
-
-                // Lưu thông tin khám trước khi chuyển trang
-                const body = layDuLieuHoSoTuForm();
-
-                await goiApi(
-                    `${API_BASE}/${maLichKham}/ho-so`,
-                    {
-                        method: "PUT",
-                        headers: taoHeaders(true),
-                        body: JSON.stringify(body)
-                    }
-                );
-
-                // Chuyển sang trang cận lâm sàng riêng
-                window.location.href =
-                    `/auth/bac-si/kham-benh/${maLichKham}/can-lam-sang`;
-
-            } catch (error) {
-                console.error(error);
-
-                hienThiThongBao(
-                    error.message ||
-                    "Không thể lưu hồ sơ trước khi chuyển trang.",
-                    "error"
-                );
-
-                if (button) button.disabled = false;
-            }
+        // Hiển thị popup xác nhận
+        const result = await Swal.fire({
+            title: "Xác nhận chuyển đến cận lâm sàng",
+            text: "Bạn có muốn chuyển đến trang cận lâm sàng không?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Đi đến cận lâm sàng",
+            cancelButtonText: "Hủy",
+            confirmButtonColor: "#2563eb",
+            cancelButtonColor: "#64748b",
+            reverseButtons: true,
+            allowOutsideClick: false
         });
 
+        // Bấm Hủy thì giữ nguyên trang, không lưu hay chuyển trang
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        const button = getElement("btnGoClinical");
+
+        try {
+            if (button) {
+                button.disabled = true;
+            }
+
+            // Lưu thông tin khám trước khi chuyển trang
+            const body = layDuLieuHoSoTuForm();
+
+            await goiApi(
+                `${API_BASE}/${maLichKham}/ho-so`,
+                {
+                    method: "PUT",
+                    headers: taoHeaders(true),
+                    body: JSON.stringify(body)
+                }
+            );
+
+            // Chuyển đến trang cận lâm sàng
+            window.location.href =
+                `/auth/bac-si/kham-benh/${maLichKham}/can-lam-sang`;
+
+        } catch (error) {
+            console.error(error);
+
+            hienThiThongBao(
+                error.message ||
+                "Không thể lưu hồ sơ trước khi chuyển trang.",
+                "error"
+            );
+
+            if (button) {
+                button.disabled = false;
+            }
+        }
+    });
 
     getElement("medicineSearch")
         ?.addEventListener("input", timKiemThuoc);

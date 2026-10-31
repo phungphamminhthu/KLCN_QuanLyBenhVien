@@ -2047,32 +2047,69 @@ if (btnCreateOrder) {
 }
 
 
+// =====================================================
+// ĐI ĐẾN CẬN LÂM SÀNG - CÓ POPUP XÁC NHẬN
+// =====================================================
 
-if (btnRefreshOrders) {
+if (btnCreateOrder) {
+    btnCreateOrder.addEventListener("click", async function () {
 
-    btnRefreshOrders.addEventListener(
-        "click",
-        function () {
-
-            if (!lichKhamDangChon) {
-
-                showToast(
-                    "Lỗi",
-                    "Chưa chọn lịch khám.",
-                    true
-                );
-
-                return;
-            }
-
-            loadDanhSachChiDinh(
-                lichKhamDangChon
-            );
+        if (!lichKhamDangChon) {
+            showToast("Lỗi", "Chưa chọn lượt khám.", true);
+            return;
         }
-    );
+
+        if (hoSoDangKhoa) {
+            showToast(
+                "Không thể chuyển trang",
+                "Hồ sơ đã hoàn tất.",
+                true
+            );
+            return;
+        }
+
+        if (typeof Swal === "undefined") {
+            showToast(
+                "Lỗi",
+                "Chưa tải thư viện SweetAlert2.",
+                true
+            );
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: "Xác nhận chuyển đến cận lâm sàng",
+            text: "Bạn có muốn chuyển đến trang cận lâm sàng không?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonText: "Đi đến cận lâm sàng",
+            cancelButtonText: "Hủy",
+            confirmButtonColor: "#2563eb",
+            cancelButtonColor: "#64748b",
+            reverseButtons: true,
+            allowOutsideClick: false
+        });
+
+        // Nhấn Hủy thì giữ nguyên trang
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        try {
+            btnCreateOrder.disabled = true;
+
+            // Lưu thông tin khám trước khi chuyển trang
+            await guiYeuCauLuuHoSo();
+
+            window.location.href =
+                `/auth/bac-si/tao-chi-dinh?maLichKham=${lichKhamDangChon}`;
+
+        } catch (error) {
+            showToast("Lỗi", error.message, true);
+            btnCreateOrder.disabled = false;
+        }
+    });
 }
-
-
 /* =====================================================
    CLICK RA NGOÀI MODAL
 ===================================================== */
