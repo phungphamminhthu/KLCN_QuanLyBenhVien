@@ -16,92 +16,114 @@ import java.util.*;
 @Service
 public class PhanQuyenService {
 
-    private final VaiTroRepository VaiTroRepository;
-    private final QuyenRepository QuyenRepository;
-    private final CTQuyenRepository CTQuyenRepository;
+    private final VaiTroRepository vaiTroRepository;
+    private final QuyenRepository quyenRepository;
+    private final CTQuyenRepository ctQuyenRepository;
 
     public PhanQuyenService(
-            VaiTroRepository VaiTroRepository,
-            QuyenRepository QuyenRepository,
-            CTQuyenRepository CTQuyenRepository
+            VaiTroRepository vaiTroRepository,
+            QuyenRepository quyenRepository,
+            CTQuyenRepository ctQuyenRepository
     ) {
-        this.VaiTroRepository = VaiTroRepository;
-        this.QuyenRepository = QuyenRepository;
-        this.CTQuyenRepository = CTQuyenRepository;
+        this.vaiTroRepository = vaiTroRepository;
+        this.quyenRepository = quyenRepository;
+        this.ctQuyenRepository = ctQuyenRepository;
     }
 
+    // Lấy danh sách vai trò
     public List<VaiTro> layDanhSachVaiTro() {
-        return VaiTroRepository.findAll();
+        return vaiTroRepository.findAll();
     }
 
-    public List<QuyenItemDTO> layQuyenTheoVaiTro(Integer MaVaiTro) {
-        VaiTro VaiTro = VaiTroRepository.findById(MaVaiTro)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
+    // Lấy danh sách tất cả quyền
+    public List<Quyen> layDanhSachQuyen() {
+        return quyenRepository.findAllByOrderByTenQuyenAsc();
+    }
 
-        List<Quyen> DanhSachQuyen =
-                QuyenRepository.findAllByOrderByTenQuyenAsc();
+    // Lấy danh sách quyền kèm trạng thái phân quyền của vai trò
+    public List<QuyenItemDTO> layQuyenTheoVaiTro(Integer maVaiTro) {
 
-        List<CTQuyen> DanhSachCTQuyen =
-                CTQuyenRepository.findByVaiTro_MaVaiTro(MaVaiTro);
+        VaiTro vaiTro = vaiTroRepository.findById(maVaiTro)
+                .orElseThrow(() ->
+                        new RuntimeException("Không tìm thấy vai trò"));
 
-        Map<Integer, CTQuyen> MapQuyen = new HashMap<>();
+        List<Quyen> danhSachQuyen =
+                quyenRepository.findAllByOrderByTenQuyenAsc();
 
-        for (CTQuyen CT : DanhSachCTQuyen) {
-            MapQuyen.put(CT.getQuyen().getMaQuyen(), CT);
+        List<CTQuyen> danhSachCTQuyen =
+                ctQuyenRepository.layTheoVaiTro(maVaiTro);
+
+        Map<Integer, CTQuyen> mapQuyen = new HashMap<>();
+
+        for (CTQuyen ct : danhSachCTQuyen) {
+            mapQuyen.put(ct.getQuyen().getMaQuyen(), ct);
         }
 
-        List<QuyenItemDTO> KetQua = new ArrayList<>();
+        List<QuyenItemDTO> ketQua = new ArrayList<>();
 
-        for (Quyen Quyen : DanhSachQuyen) {
-            QuyenItemDTO DTO = new QuyenItemDTO();
+        for (Quyen quyen : danhSachQuyen) {
+            QuyenItemDTO dto = new QuyenItemDTO();
 
-            DTO.setMaQuyen(Quyen.getMaQuyen());
-            DTO.setTenQuyen(Quyen.getTenQuyen());
-            DTO.setNhomQuyen("Chức năng");
-            DTO.setMoTa(Quyen.getMoTa());
+            dto.setMaQuyen(quyen.getMaQuyen());
+            dto.setTenQuyen(quyen.getTenQuyen());
+            dto.setNhomQuyen("Chức năng");
+            dto.setMoTa(quyen.getMoTa());
 
-            CTQuyen CT = MapQuyen.get(Quyen.getMaQuyen());
+            CTQuyen ct = mapQuyen.get(quyen.getMaQuyen());
 
-            if (CT != null) {
-                DTO.setQuyenXem(Boolean.TRUE.equals(CT.getQuyenXem()));
-                DTO.setQuyenThem(Boolean.TRUE.equals(CT.getQuyenThem()));
-                DTO.setQuyenSua(Boolean.TRUE.equals(CT.getQuyenSua()));
-                DTO.setQuyenXoa(Boolean.TRUE.equals(CT.getQuyenXoa()));
+            if (ct != null) {
+                dto.setQuyenXem(Boolean.TRUE.equals(ct.getQuyenXem()));
+                dto.setQuyenThem(Boolean.TRUE.equals(ct.getQuyenThem()));
+                dto.setQuyenSua(Boolean.TRUE.equals(ct.getQuyenSua()));
+                dto.setQuyenXoa(Boolean.TRUE.equals(ct.getQuyenXoa()));
+            } else {
+                dto.setQuyenXem(false);
+                dto.setQuyenThem(false);
+                dto.setQuyenSua(false);
+                dto.setQuyenXoa(false);
             }
 
-            KetQua.add(DTO);
+            ketQua.add(dto);
         }
 
-        return KetQua;
+        return ketQua;
     }
 
+    // Lưu phân quyền
     @Transactional
     public void capNhatPhanQuyen(
-            Integer MaVaiTro,
-            List<QuyenItemDTO> DanhSachQuyen
+            Integer maVaiTro,
+            List<QuyenItemDTO> danhSachQuyen
     ) {
-        VaiTro VaiTro = VaiTroRepository.findById(MaVaiTro)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy vai trò"));
+        VaiTro vaiTro = vaiTroRepository.findById(maVaiTro)
+                .orElseThrow(() ->
+                        new RuntimeException("Không tìm thấy vai trò"));
 
-        for (QuyenItemDTO DTO : DanhSachQuyen) {
-            Quyen Quyen = QuyenRepository.findById(DTO.getMaQuyen())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy chức năng"));
+        if (danhSachQuyen == null) {
+            throw new RuntimeException("Danh sách quyền không được để trống");
+        }
 
-            CTQuyen CT = CTQuyenRepository
+        for (QuyenItemDTO dto : danhSachQuyen) {
+
+            Quyen quyen = quyenRepository.findById(dto.getMaQuyen())
+                    .orElseThrow(() ->
+                            new RuntimeException("Không tìm thấy chức năng"));
+
+            CTQuyen ct = ctQuyenRepository
                     .findByVaiTro_MaVaiTroAndQuyen_MaQuyen(
-                            MaVaiTro,
-                            DTO.getMaQuyen()
+                            maVaiTro,
+                            dto.getMaQuyen()
                     )
                     .orElseGet(CTQuyen::new);
 
-            CT.setVaiTro(VaiTro);
-            CT.setQuyen(Quyen);
-            CT.setQuyenXem(DTO.isQuyenXem());
-            CT.setQuyenThem(DTO.isQuyenThem());
-            CT.setQuyenSua(DTO.isQuyenSua());
-            CT.setQuyenXoa(DTO.isQuyenXoa());
+            ct.setVaiTro(vaiTro);
+            ct.setQuyen(quyen);
+            ct.setQuyenXem(dto.isQuyenXem());
+            ct.setQuyenThem(dto.isQuyenThem());
+            ct.setQuyenSua(dto.isQuyenSua());
+            ct.setQuyenXoa(dto.isQuyenXoa());
 
-            CTQuyenRepository.save(CT);
+            ctQuyenRepository.save(ct);
         }
     }
 }

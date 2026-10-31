@@ -4,13 +4,13 @@ import java.util.List;
 
 public class CapNhatPhanQuyenRequest {
 
-    private List<QuyenItemDTO> DanhSachQuyen;
+    private List<QuyenItemDTO> danhSachQuyen;
 
     public List<QuyenItemDTO> getDanhSachQuyen() {
-        return DanhSachQuyen;
+        return danhSachQuyen;
     }
 
-    public void setDanhSachQuyen(List<QuyenItemDTO> DanhSachQuyen) {
-        this.DanhSachQuyen = DanhSachQuyen;
+    public void setDanhSachQuyen(List<QuyenItemDTO> danhSachQuyen) {
+        this.danhSachQuyen = danhSachQuyen;
     }
 }

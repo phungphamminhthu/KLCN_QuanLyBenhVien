@@ -7,42 +7,61 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
+
 @Controller
 @RequestMapping("/api/phan-quyen")
 public class PhanQuyenController {
 
-    private final PhanQuyenService PhanQuyenService;
+    private final PhanQuyenService phanQuyenService;
 
-    public PhanQuyenController(PhanQuyenService PhanQuyenService) {
-        this.PhanQuyenService = PhanQuyenService;
+    public PhanQuyenController(PhanQuyenService phanQuyenService) {
+        this.phanQuyenService = phanQuyenService;
     }
 
+    // Lấy danh sách vai trò
+    @GetMapping("/vai-tro")
+    @ResponseBody
+    public ResponseEntity<?> layDanhSachVaiTro() {
+        return ResponseEntity.ok(
+                phanQuyenService.layDanhSachVaiTro()
+        );
+    }
+
+    // Lấy danh sách tất cả quyền
+    @GetMapping("/quyen")
+    @ResponseBody
+    public ResponseEntity<?> layDanhSachQuyen() {
+        return ResponseEntity.ok(
+                phanQuyenService.layDanhSachQuyen()
+        );
+    }
+
+    // Lấy quyền của một vai trò
     @GetMapping("/{MaVaiTro}/quyen")
     @ResponseBody
     public ResponseEntity<?> layQuyenTheoVaiTro(
             @PathVariable Integer MaVaiTro
     ) {
         return ResponseEntity.ok(
-                PhanQuyenService.layQuyenTheoVaiTro(MaVaiTro)
+                phanQuyenService.layQuyenTheoVaiTro(MaVaiTro)
         );
     }
 
+    // Cập nhật phân quyền
     @PostMapping("/{MaVaiTro}/luu")
     @ResponseBody
     public ResponseEntity<?> luuPhanQuyen(
             @PathVariable Integer MaVaiTro,
-            @RequestBody CapNhatPhanQuyenRequest Request
+            @RequestBody CapNhatPhanQuyenRequest request
     ) {
-        PhanQuyenService.capNhatPhanQuyen(
+        phanQuyenService.capNhatPhanQuyen(
                 MaVaiTro,
-                Request.getDanhSachQuyen()
+                request.getDanhSachQuyen()
         );
 
         return ResponseEntity.ok(
-                java.util.Map.of(
-                        "message",
-                        "Lưu phân quyền thành công"
-                )
+                Map.of("message", "Lưu phân quyền thành công")
         );
     }
 }

@@ -2,10 +2,10 @@ package QuanLyBenhVien.Config;
 
 import QuanLyBenhVien.Security.CustomUserDetailsService;
 import QuanLyBenhVien.Security.JwtAuthenticationFilter;
-import org.springframework.http.HttpMethod;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -14,6 +14,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
+    // ============================================
+    // cấu hình chính, JWT và thứ tự áp dụng rule.
+    // ============================================
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -26,88 +29,65 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http
+    ) throws Exception {
 
         http
-                // Tắt CSRF
+                // JWT API: tắt CSRF theo cấu hình hiện tại
                 .csrf(csrf -> csrf.disable())
 
                 // User details service
                 .userDetailsService(customUserDetailsService)
 
-                // JWT, không dùng session
+                // Không sử dụng session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // Phân quyền API và trang
-
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoint xử lý lỗi của Spring
+
+                        // Endpoint xử lý lỗi
                         .requestMatchers("/error").permitAll()
 
-                        // Chrome DevTools: tránh log 403 không liên quan
+                        // Chrome DevTools
                         .requestMatchers(
                                 "/.well-known/appspecific/com.chrome.devtools.json"
                         ).permitAll()
 
-                        // Webhook SePay: cho phép nhận callback không có JWT
+                        // Webhook SePay
                         .requestMatchers(
                                 HttpMethod.POST,
                                 "/api/sepay/webhook"
                         ).permitAll()
 
-                        // Tài nguyên công khai
+                        // Public routes
                         .requestMatchers(
-                                "/",
-                                "/home",
-                                "/home/**",
-                                "/news",
-                                "/news/**",
-                                "/services",
-                                "/services/**",
-                                "/about",
-                                "/Css/Public/**",
-                                "/auth/**",
-                                "/favicon.ico",
-                                "/Css/**",
-                                "/Js/**",
-                                "/Images/**",
-                                "/medical-records/qr",
-                                "/ws",
-                                "/ws/**",
-                                "/api/auth/**",
-                                "/api/test-email",
-                                "/api/images/**",
-                                "/home"
+                                SecurityRouteConfig.PUBLIC_ROUTES
                         ).permitAll()
 
-                        // Giao diện hiện tại
+                        // Các trang Thymeleaf hiện tại
                         .requestMatchers(
-                                "/Admin/**",
-                                "/DuocSi/**",
-                                "/TiepNhan/**",
-                                "/ChuyenTrach/**"
+                                SecurityRouteConfig.WEB_PAGES
                         ).permitAll()
 
-                        // API xem tin tức công khai cho ứng dụng Flutter
+                        // API tin tức công khai
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/tin-tuc",
                                 "/api/tin-tuc/**"
                         ).permitAll()
 
-                        // API xem danh sách dịch vụ y tế công khai cho ứng dụng Flutter
+                        // API dịch vụ y tế công khai
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/dich-vu-y-te",
                                 "/api/dich-vu-y-te/**"
                         ).permitAll()
 
-
-                        // Trang chủ bệnh nhân - tạm công khai để thử giao diện
+                        // Trang và API bệnh nhân đang tạm công khai
                         .requestMatchers(
                                 "/benh-nhan/trang-chu",
                                 "/benh-nhan/dat-lich",
@@ -117,49 +97,37 @@ public class SecurityConfig {
                                 "/api/thanh-toan/lich-kham/*/hoa-don"
                         ).permitAll()
 
-                        // API cấp thuốc và thanh toán dành riêng cho Dược sĩ
+                        // API phân quyền và phân công tiếp nhận: Admin
                         .requestMatchers(
-                                "/api/duocsi",
-                                "/api/duocsi/**"
-                        ).hasRole("DUOCSI")
-
-                        // API xem hồ sơ bệnh án: bắt buộc đăng nhập
-                        .requestMatchers(
-                                "/api/medical-records",
-                                "/api/medical-records/**"
-                        ).hasAnyRole("BENHNHAN", "BACSI", "ADMIN")
-
-                        // API kho thuốc: chỉ Dược sĩ
-                        .requestMatchers(
-                                "/api/kho-thuoc",
-                                "/api/kho-thuoc/**"
-                        ).hasRole("DUOCSI")
-
-                        // API thông báo cần đăng nhập
-                        .requestMatchers("/api/thong-bao/**").authenticated()
-
-                        // API hồ sơ cá nhân nhân viên tiếp nhận
-                        .requestMatchers(
-                                "/api/tiep-nhan/ho-so-ca-nhan",
-                                "/api/tiep-nhan/ho-so-ca-nhan/**"
-                        ).hasRole("TIEPNHAN")
-
-                        // API đổi mật khẩu nhân viên tiếp nhận
-                        .requestMatchers(
-                                        "/api/tiep-nhan/doi-mat-khau"
-                        ).hasRole("TIEPNHAN")
-
-                        // API phân công tiếp nhận: chỉ Admin
-                        .requestMatchers(
-                                "/api/phan-cong-tiep-nhan",
-                                "/api/phan-cong-tiep-nhan/**"
+                                SecurityRoleConfig.ADMIN_APIS
                         ).hasRole("ADMIN")
 
-                        // API đăng ký thiết bị nhận thông báo FCM
-                        .requestMatchers("/api/thiet-bi/**")
-                        .hasRole("BENHNHAN")
+                        // API Dược sĩ
+                        .requestMatchers(
+                                SecurityRoleConfig.DUOCSI_APIS
+                        ).hasRole("DUOCSI")
 
-                        // Những request còn lại cần đăng nhập
+                        // API Tiếp nhận
+                        .requestMatchers(
+                                SecurityRoleConfig.TIEPNHAN_APIS
+                        ).hasRole("TIEPNHAN")
+
+                        // API hồ sơ bệnh án
+                        .requestMatchers(
+                                SecurityRoleConfig.MEDICAL_RECORD_APIS
+                        ).hasAnyRole("BENHNHAN", "BACSI", "ADMIN")
+
+                        // API đăng ký thiết bị FCM: Bệnh nhân
+                        .requestMatchers(
+                                SecurityRoleConfig.PATIENT_APIS
+                        ).hasRole("BENHNHAN")
+
+                        // API thông báo: yêu cầu đăng nhập
+                        .requestMatchers(
+                                SecurityRoleConfig.AUTHENTICATED_APIS
+                        ).authenticated()
+
+                        // Các request còn lại cần đăng nhập
                         .anyRequest().authenticated()
                 )
 
