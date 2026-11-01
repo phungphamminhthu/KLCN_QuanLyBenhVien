@@ -12,13 +12,32 @@ import java.util.Optional;
 @Repository
 public interface CTQuyenRepository extends JpaRepository<CTQuyen, Integer> {
 
-    @Query("SELECT ct FROM CTQuyen ct WHERE ct.VaiTro.MaVaiTro = :maVaiTro")
-    List<CTQuyen> layTheoVaiTro(@Param("maVaiTro") Integer maVaiTro);
-
-    Optional<CTQuyen> findByVaiTro_MaVaiTroAndQuyen_MaQuyen(
-            Integer MaVaiTro,
-            Integer MaQuyen
+    @Query("""
+        SELECT ct
+        FROM CTQuyen ct
+        WHERE ct.VaiTro.MaVaiTro = :maVaiTro
+    """)
+    List<CTQuyen> layTheoVaiTro(
+            @Param("maVaiTro") Integer maVaiTro
     );
 
-    void deleteByVaiTro_MaVaiTro(Integer MaVaiTro);
+    @Query("""
+        SELECT ct
+        FROM CTQuyen ct
+        WHERE ct.VaiTro.MaVaiTro = :maVaiTro
+          AND ct.Quyen.MaQuyen = :maQuyen
+    """)
+    Optional<CTQuyen> timTheoVaiTroVaQuyen(
+            @Param("maVaiTro") Integer maVaiTro,
+            @Param("maQuyen") Integer maQuyen
+    );
+
+    @Query("""
+        DELETE FROM CTQuyen ct
+        WHERE ct.VaiTro.MaVaiTro = :maVaiTro
+    """)
+    @org.springframework.data.jpa.repository.Modifying
+    void xoaTheoVaiTro(
+            @Param("maVaiTro") Integer maVaiTro
+    );
 }

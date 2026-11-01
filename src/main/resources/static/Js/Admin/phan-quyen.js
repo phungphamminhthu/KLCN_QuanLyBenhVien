@@ -10,17 +10,33 @@ document.addEventListener("DOMContentLoaded", () => {
     let danhSachVaiTro = [];
     let danhSachQuyen = [];
     let maVaiTroDangChon = null;
+    let taiQuyenThanhCong = false;
+
+    const VAI_TRO_HIEN_THI = {
+        ADMIN: "Quản trị viên",
+        TIEPNHAN: "Nhân viên tiếp nhận",
+        BACSI: "Bác sĩ",
+        CHUYENTRACH: "Nhân viên chuyên trách",
+        DUOCSI: "Dược sĩ"
+    };
+
+    const VAI_TRO_CHO_PHEP = Object.keys(VAI_TRO_HIEN_THI);
+
+    const TEN_QUYEN = {
+        quyenXem: "Xem",
+        quyenThem: "Thêm",
+        quyenSua: "Sửa",
+        quyenXoa: "Xóa"
+    };
 
     // =====================================================
     // JWT và headers
     // =====================================================
 
     function getToken() {
-        return (
-            localStorage.getItem("Token") ||
-            sessionStorage.getItem("Token") ||
-            ""
-        );
+        return localStorage.getItem("Token")
+            || sessionStorage.getItem("Token")
+            || "";
     }
 
     function getHeaders(includeJson = false) {
@@ -64,9 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
             method,
             headers: {
                 ...getHeaders(
-                    method === "POST" ||
-                    method === "PUT" ||
-                    method === "PATCH"
+                    method === "POST"
+                    || method === "PUT"
+                    || method === "PATCH"
                 ),
                 ...(options.headers || {})
             }
@@ -95,10 +111,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     const errorData = await response.json();
 
                     errorMessage =
-                        errorData.message ||
-                        errorData.error ||
-                        errorData.detail ||
-                        errorMessage;
+                        errorData.message
+                        || errorData.error
+                        || errorData.detail
+                        || errorMessage;
                 } else {
                     const text = await response.text();
 
@@ -142,47 +158,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function layMaVaiTro(vaiTro) {
         return (
-            vaiTro.maVaiTro ??
-            vaiTro.MaVaiTro ??
-            vaiTro.id ??
-            vaiTro.ID
+            vaiTro.maVaiTro
+            ?? vaiTro.MaVaiTro
+            ?? vaiTro.id
+            ?? vaiTro.ID
         );
     }
 
     function layTenVaiTro(vaiTro) {
-        return (
-            vaiTro.tenVaiTro ??
-            vaiTro.TenVaiTro ??
-            vaiTro.name ??
-            "Vai trò"
-        );
+        return String(
+            vaiTro.tenVaiTro
+            ?? vaiTro.TenVaiTro
+            ?? vaiTro.name
+            ?? ""
+        ).trim().toUpperCase();
     }
 
     function layMaQuyen(quyen) {
         return (
-            quyen.maQuyen ??
-            quyen.MaQuyen ??
-            quyen.id ??
-            quyen.ID
+            quyen.maQuyen
+            ?? quyen.MaQuyen
+            ?? quyen.id
+            ?? quyen.ID
         );
     }
 
     function layTenQuyen(quyen) {
         return (
-            quyen.tenQuyen ??
-            quyen.TenQuyen ??
-            quyen.name ??
-            "Chức năng"
+            quyen.tenQuyen
+            ?? quyen.TenQuyen
+            ?? quyen.name
+            ?? "Chức năng"
         );
     }
 
     function layMoTaQuyen(quyen) {
         return (
-            quyen.moTa ??
-            quyen.MoTa ??
-            quyen.description ??
-            ""
+            quyen.moTa
+            ?? quyen.MoTa
+            ?? quyen.description
+            ?? ""
         );
+    }
+
+    function laDuocCapQuyen(value) {
+        return value === true
+            || value === 1
+            || value === "1";
     }
 
     function escapeHtml(value) {
@@ -205,13 +227,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         message.textContent = noiDung;
-        message.className = `alert alert-${loai}`;
-        message.classList.remove("d-none");
+        message.className = `message ${loai}`;
 
         clearTimeout(message._timeout);
 
         message._timeout = setTimeout(() => {
-            message.classList.add("d-none");
+            message.textContent = "";
+            message.className = "message";
         }, 4000);
     }
 
@@ -224,23 +246,31 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!roleList) return;
 
         roleList.innerHTML = `
-            <div class="text-center py-3">
-                <span class="spinner-border spinner-border-sm"></span>
-                Đang tải vai trò...
+            <div class="empty-state">
+                Đang tải danh sách vai trò...
             </div>
         `;
+
+        if (saveButton) {
+            saveButton.disabled = true;
+        }
 
         try {
             const data = await apiRequest(
                 "/api/phan-quyen/vai-tro"
             );
 
-            danhSachVaiTro = layDanhSach(data);
+            // Chỉ hiển thị 5 vai trò nhân viên, không hiển thị BENHNHAN
+            danhSachVaiTro = layDanhSach(data).filter(vaiTro => {
+                return VAI_TRO_CHO_PHEP.includes(
+                    layTenVaiTro(vaiTro)
+                );
+            });
 
             if (danhSachVaiTro.length === 0) {
                 roleList.innerHTML = `
-                    <div class="text-muted text-center py-3">
-                        Không có vai trò nào.
+                    <div class="empty-state">
+                        Không có vai trò nhân viên nào.
                     </div>
                 `;
 
@@ -251,23 +281,25 @@ document.addEventListener("DOMContentLoaded", () => {
             hienThiDanhSachVaiTro();
 
             const vaiTroDauTien = danhSachVaiTro[0];
+
             await chonVaiTro(layMaVaiTro(vaiTroDauTien));
 
         } catch (error) {
-            console.error(
-                "Lỗi tải danh sách vai trò:",
-                error
-            );
+            console.error("Lỗi tải danh sách vai trò:", error);
 
             roleList.innerHTML = `
-                <div class="text-danger p-2">
+                <div class="empty-state">
                     ${escapeHtml(error.message)}
                 </div>
             `;
 
-            hienThongBao(error.message, "danger");
+            hienThongBao(error.message, "error");
         }
     }
+
+    // =====================================================
+    // Hiển thị danh sách vai trò
+    // =====================================================
 
     function hienThiDanhSachVaiTro() {
         if (!roleList) return;
@@ -276,15 +308,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         danhSachVaiTro.forEach(vaiTro => {
             const maVaiTro = layMaVaiTro(vaiTro);
-            const tenVaiTro = layTenVaiTro(vaiTro);
+            const ma = layTenVaiTro(vaiTro);
+            const tenHienThi = VAI_TRO_HIEN_THI[ma] || ma;
 
             const item = document.createElement("button");
 
             item.type = "button";
-            item.className =
-                "list-group-item list-group-item-action";
+            item.className = "role-item";
             item.dataset.maVaiTro = maVaiTro;
-            item.textContent = tenVaiTro;
+
+            item.innerHTML = `
+                <span>
+                    <span class="role-item-name">
+                        ${escapeHtml(tenHienThi)}
+                    </span>
+                    <small>${escapeHtml(ma)}</small>
+                </span>
+            `;
 
             if (
                 String(maVaiTro) ===
@@ -308,16 +348,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function chonVaiTro(maVaiTro) {
         maVaiTroDangChon = maVaiTro;
+        taiQuyenThanhCong = false;
 
-        const vaiTro = danhSachVaiTro.find(
-            item =>
-                String(layMaVaiTro(item)) ===
-                String(maVaiTro)
+        const vaiTro = danhSachVaiTro.find(item =>
+            String(layMaVaiTro(item)) === String(maVaiTro)
         );
+
+        const ma = vaiTro ? layTenVaiTro(vaiTro) : "";
+        const tenHienThi = VAI_TRO_HIEN_THI[ma] || ma;
 
         if (roleTitle) {
             roleTitle.textContent = vaiTro
-                ? `Phân quyền: ${layTenVaiTro(vaiTro)}`
+                ? `Phân quyền: ${tenHienThi}`
                 : "Phân quyền";
         }
 
@@ -326,8 +368,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (permissionBody) {
             permissionBody.innerHTML = `
                 <tr>
-                    <td colspan="5" class="text-center py-3">
-                        <span class="spinner-border spinner-border-sm"></span>
+                    <td colspan="5" class="empty-state">
                         Đang tải quyền...
                     </td>
                 </tr>
@@ -350,43 +391,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
             danhSachQuyen = layDanhSach(data).map(quyen => ({
                 maQuyen: Number(layMaQuyen(quyen)),
-                tenQuyen: layTenQuyen(quyen),
+                tenQuyen: String(layTenQuyen(quyen)),
                 nhomQuyen: quyen.nhomQuyen ?? "Chức năng",
-                moTa: layMoTaQuyen(quyen),
-                quyenXem: quyen.quyenXem === true,
-                quyenThem: quyen.quyenThem === true,
-                quyenSua: quyen.quyenSua === true,
-                quyenXoa: quyen.quyenXoa === true
+                moTa: String(layMoTaQuyen(quyen)),
+                quyenXem: laDuocCapQuyen(
+                    quyen.quyenXem ?? quyen.QuyenXem
+                ),
+                quyenThem: laDuocCapQuyen(
+                    quyen.quyenThem ?? quyen.QuyenThem
+                ),
+                quyenSua: laDuocCapQuyen(
+                    quyen.quyenSua ?? quyen.QuyenSua
+                ),
+                quyenXoa: laDuocCapQuyen(
+                    quyen.quyenXoa ?? quyen.QuyenXoa
+                )
             }));
 
             hienThiDanhSachQuyen(danhSachQuyen);
             capNhatSelectAll();
 
+            taiQuyenThanhCong = true;
+
         } catch (error) {
             console.error("Lỗi tải quyền:", error);
+
+            danhSachQuyen = [];
 
             if (permissionBody) {
                 permissionBody.innerHTML = `
                     <tr>
-                        <td colspan="5"
-                            class="text-danger text-center py-3">
+                        <td colspan="5" class="empty-state">
                             ${escapeHtml(error.message)}
                         </td>
                     </tr>
                 `;
             }
 
-            hienThongBao(error.message, "danger");
+            hienThongBao(error.message, "error");
 
         } finally {
             if (saveButton) {
-                saveButton.disabled = false;
+                saveButton.disabled = !taiQuyenThanhCong;
             }
         }
     }
 
     // =====================================================
-    // Hiển thị quyền với 4 checkbox
+    // Tạo checkbox quyền
     // =====================================================
 
     function taoCheckbox(quyen, field) {
@@ -396,15 +448,19 @@ document.addEventListener("DOMContentLoaded", () => {
             <td class="text-center">
                 <input
                     type="checkbox"
-                    class="form-check-input permission-checkbox"
+                    class="permission-checkbox"
                     data-ma-quyen="${quyen.maQuyen}"
                     data-field="${field}"
                     ${checked ? "checked" : ""}
-                    aria-label="${escapeHtml(quyen.tenQuyen)} - ${field}"
+                    aria-label="${escapeHtml(quyen.tenQuyen)} - ${TEN_QUYEN[field]}"
                 >
             </td>
         `;
     }
+
+    // =====================================================
+    // Hiển thị bảng quyền
+    // =====================================================
 
     function hienThiDanhSachQuyen(danhSach) {
         if (!permissionBody) return;
@@ -419,21 +475,20 @@ document.addEventListener("DOMContentLoaded", () => {
             const ten = quyen.tenQuyen.toLowerCase();
             const moTa = quyen.moTa.toLowerCase();
 
-            return (
-                ten.includes(tuKhoa) ||
-                moTa.includes(tuKhoa)
-            );
+            return ten.includes(tuKhoa)
+                || moTa.includes(tuKhoa);
         });
 
         if (danhSachLoc.length === 0) {
             permissionBody.innerHTML = `
                 <tr>
-                    <td colspan="5"
-                        class="text-center text-muted py-3">
+                    <td colspan="5" class="empty-state">
                         Không có chức năng phù hợp.
                     </td>
                 </tr>
             `;
+
+            capNhatSelectAll();
             return;
         }
 
@@ -441,14 +496,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const row = document.createElement("tr");
 
             row.innerHTML = `
-                <td>
-                    ${index + 1}.
-                    ${escapeHtml(quyen.tenQuyen)}
+                <td class="permission-name">
+                    <strong>
+                        ${index + 1}. ${escapeHtml(quyen.tenQuyen)}
+                    </strong>
                     ${
                         quyen.moTa
-                            ? `<div class="small text-muted">
-                                   ${escapeHtml(quyen.moTa)}
-                               </div>`
+                            ? `<small>${escapeHtml(quyen.moTa)}</small>`
                             : ""
                     }
                 </td>
@@ -463,6 +517,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         ganSuKienCheckbox();
+        capNhatSelectAll();
     }
 
     // =====================================================
@@ -478,17 +533,14 @@ document.addEventListener("DOMContentLoaded", () => {
                         event.target.dataset.maQuyen
                     );
 
-                    const field =
-                        event.target.dataset.field;
+                    const field = event.target.dataset.field;
 
-                    const quyen = danhSachQuyen.find(
-                        item =>
-                            Number(item.maQuyen) === maQuyen
+                    const quyen = danhSachQuyen.find(item =>
+                        Number(item.maQuyen) === maQuyen
                     );
 
                     if (quyen && field in quyen) {
-                        quyen[field] =
-                            event.target.checked;
+                        quyen[field] = event.target.checked;
                     }
 
                     capNhatSelectAll();
@@ -498,45 +550,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =====================================================
     // Chọn tất cả quyền
+    // Áp dụng cho tất cả chức năng của vai trò đang chọn
     // =====================================================
+
+    function chonTatCaQuyen(checked) {
+        danhSachQuyen.forEach(quyen => {
+            quyen.quyenXem = checked;
+            quyen.quyenThem = checked;
+            quyen.quyenSua = checked;
+            quyen.quyenXoa = checked;
+        });
+
+        hienThiDanhSachQuyen(danhSachQuyen);
+    }
 
     function capNhatSelectAll() {
         if (!selectAll) return;
 
-        const checkboxes = permissionBody
-            ?.querySelectorAll(".permission-checkbox");
+        const tatCaCheckbox = danhSachQuyen.flatMap(quyen => [
+            quyen.quyenXem,
+            quyen.quyenThem,
+            quyen.quyenSua,
+            quyen.quyenXoa
+        ]);
 
-        if (!checkboxes || checkboxes.length === 0) {
+        if (tatCaCheckbox.length === 0) {
             selectAll.checked = false;
             selectAll.indeterminate = false;
             return;
         }
 
-        const checkedCount = Array.from(checkboxes)
-            .filter(checkbox => checkbox.checked)
-            .length;
+        const checkedCount = tatCaCheckbox.filter(Boolean).length;
 
         selectAll.checked =
-            checkedCount === checkboxes.length;
+            checkedCount === tatCaCheckbox.length;
 
         selectAll.indeterminate =
-            checkedCount > 0 &&
-            checkedCount < checkboxes.length;
+            checkedCount > 0
+            && checkedCount < tatCaCheckbox.length;
     }
 
     if (selectAll) {
         selectAll.addEventListener("change", () => {
-            const checked = selectAll.checked;
-
-            danhSachQuyen.forEach(quyen => {
-                quyen.quyenXem = checked;
-                quyen.quyenThem = checked;
-                quyen.quyenSua = checked;
-                quyen.quyenXoa = checked;
-            });
-
-            hienThiDanhSachQuyen(danhSachQuyen);
-            capNhatSelectAll();
+            chonTatCaQuyen(selectAll.checked);
         });
     }
 
@@ -547,7 +603,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (searchPermission) {
         searchPermission.addEventListener("input", () => {
             hienThiDanhSachQuyen(danhSachQuyen);
-            capNhatSelectAll();
         });
     }
 
@@ -558,12 +613,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function luuPhanQuyen() {
         if (
-            maVaiTroDangChon === null ||
-            maVaiTroDangChon === undefined
+            maVaiTroDangChon === null
+            || maVaiTroDangChon === undefined
         ) {
             hienThongBao(
                 "Vui lòng chọn vai trò cần phân quyền.",
-                "warning"
+                "error"
+            );
+            return;
+        }
+
+        if (!taiQuyenThanhCong) {
+            hienThongBao(
+                "Chưa tải được dữ liệu quyền. Vui lòng thử lại.",
+                "error"
             );
             return;
         }
@@ -571,8 +634,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (saveButton) {
             saveButton.disabled = true;
             saveButton.dataset.originalText =
-                saveButton.textContent ||
-                "Lưu phân quyền";
+                saveButton.textContent || "Lưu phân quyền";
             saveButton.textContent = "Đang lưu...";
         }
 
@@ -591,9 +653,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 `/api/phan-quyen/${encodeURIComponent(maVaiTroDangChon)}/luu`,
                 {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
                     body: JSON.stringify(payload)
                 }
             );
@@ -605,23 +664,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
             console.error("Lỗi lưu phân quyền:", error);
-            hienThongBao(error.message, "danger");
+            hienThongBao(error.message, "error");
 
         } finally {
             if (saveButton) {
-                saveButton.disabled = false;
+                saveButton.disabled = !taiQuyenThanhCong;
                 saveButton.textContent =
-                    saveButton.dataset.originalText ||
-                    "Lưu phân quyền";
+                    saveButton.dataset.originalText
+                    || "Lưu phân quyền";
             }
         }
     }
 
     if (saveButton) {
-        saveButton.addEventListener(
-            "click",
-            luuPhanQuyen
-        );
+        saveButton.addEventListener("click", luuPhanQuyen);
     }
 
     // =====================================================

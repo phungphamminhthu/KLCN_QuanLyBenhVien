@@ -32,7 +32,9 @@
       </div>
 
       <div id="roleList" class="role-list">
-        <div class="empty-state">Đang tải danh sách vai trò...</div>
+        <div class="empty-state">
+          Đang tải danh sách vai trò...
+        </div>
       </div>
     </section>
 
@@ -49,7 +51,7 @@
           <input type="text"
                  id="searchPermission"
                  placeholder="Tìm chức năng..."
-                 oninput="locChucNang()">
+                 autocomplete="off">
         </div>
       </div>
 
@@ -77,9 +79,7 @@
 
       <div class="permission-footer">
         <label class="select-all">
-          <input type="checkbox"
-                 id="selectAll"
-                 onchange="chonTatCa(this.checked)">
+          <input type="checkbox" id="selectAll">
           <span>Chọn tất cả quyền</span>
         </label>
 
@@ -89,12 +89,12 @@
           <button type="button"
                   id="saveButton"
                   class="btn-primary"
-                  onclick="luuPhanQuyen()"
                   disabled>
             Lưu phân quyền
           </button>
         </div>
       </div>
+
     </section>
   </div>
 </div>
@@ -102,5 +102,6 @@
 <th:block layout:fragment="js">
   <script th:src="@{/Js/Admin/phan-quyen.js}"></script>
 </th:block>
+
 </body>
 </html>

@@ -90,31 +90,46 @@ public class PhanQuyenService {
     }
 
     // Lưu phân quyền
+    // Lưu phân quyền
     @Transactional
     public void capNhatPhanQuyen(
             Integer maVaiTro,
             List<QuyenItemDTO> danhSachQuyen
     ) {
+        if (maVaiTro == null) {
+            throw new IllegalArgumentException("Mã vai trò không được để trống");
+        }
+
         VaiTro vaiTro = vaiTroRepository.findById(maVaiTro)
                 .orElseThrow(() ->
-                        new RuntimeException("Không tìm thấy vai trò"));
+                        new RuntimeException("Không tìm thấy vai trò: " + maVaiTro));
 
         if (danhSachQuyen == null) {
-            throw new RuntimeException("Danh sách quyền không được để trống");
+            throw new IllegalArgumentException("Danh sách quyền không được để trống");
         }
 
         for (QuyenItemDTO dto : danhSachQuyen) {
+            if (dto == null) {
+                throw new IllegalArgumentException("Phần tử quyền không hợp lệ");
+            }
 
-            Quyen quyen = quyenRepository.findById(dto.getMaQuyen())
+            Integer maQuyen = dto.getMaQuyen();
+
+            if (maQuyen == null) {
+                throw new IllegalArgumentException(
+                        "Mã quyền bị null. Kiểm tra DTO và dữ liệu gửi từ JavaScript."
+                );
+            }
+
+            Quyen quyen = quyenRepository.findById(maQuyen)
                     .orElseThrow(() ->
-                            new RuntimeException("Không tìm thấy chức năng"));
+                            new RuntimeException("Không tìm thấy quyền: " + maQuyen));
 
-            CTQuyen ct = ctQuyenRepository
-                    .findByVaiTro_MaVaiTroAndQuyen_MaQuyen(
-                            maVaiTro,
-                            dto.getMaQuyen()
-                    )
-                    .orElseGet(CTQuyen::new);
+            // Tìm bản ghi phân quyền hiện có, nếu chưa có thì tạo mới
+            CTQuyen ct = ctQuyenRepository.timTheoVaiTroVaQuyen(
+                    maVaiTro,
+                    maQuyen
+            ).orElseGet(CTQuyen::new);
 
             ct.setVaiTro(vaiTro);
             ct.setQuyen(quyen);
