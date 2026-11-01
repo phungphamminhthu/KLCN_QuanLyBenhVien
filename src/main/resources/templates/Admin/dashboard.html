@@ -5,565 +5,398 @@
       layout:decorate="~{Admin/fragments/layout}">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-  <title>Tổng quan</title>
+    <title>Tổng quan</title>
 
-  <th:block layout:fragment="css">
-
-    <link
-            rel="stylesheet"
-            href="/Css/Admin/dashboard.css">
-
-  </th:block>
-
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              href="/Css/Admin/dashboard.css">
+    </th:block>
 </head>
-
 
 <body>
 
 <div layout:fragment="content">
 
-  <!-- ========================================
-       HEADER TRANG
-  ========================================= -->
-
-  <div class="dashboard-header">
-
-    <div>
-
-      <h1>
-        Tổng quan
-      </h1>
-
-      <p>
-        Tình hình hoạt động của bệnh viện
-      </p>
-
-    </div>
-
-
-    <!-- ================================== -->
-    <!-- TÙY CHỌN ĐỂ COI HOẠT ĐỘNG-->
-    <!-- ================================== -->
-    <div class="dashboard-filter">
-
-      <!-- HÔM NAY -->
-      <button
-              type="button"
-              class="filter-btn active"
-              data-period="today">
-        Hôm nay
-      </button>
-
-      <!-- 7 NGÀY -->
-      <button
-              type="button"
-              class="filter-btn"
-              data-period="7days">
-        7 ngày qua
-      </button>
-
-      <!-- 30 NGÀY -->
-      <button
-              type="button"
-              class="filter-btn"
-              data-period="30days">
-        30 ngày qua
-      </button>
-
-      <!-- TÙY CHỌN -->
-      <div class="custom-date-wrapper">
-
-        <button
-                type="button"
-                class="filter-btn custom-date-btn"
-                id="customDateBtn"
-                data-period="custom">
-
-            <span id="customDateText">
-                Tùy chọn
-            </span>
-
-          <span class="calendar-icon">
-                📅
-            </span>
-
-        </button>
-
-        <input
-                type="date"
-                id="customDate"
-                class="custom-date-input">
-
-      </div>
-
-    </div>
-
-
-  </div>
-
-
-  <!-- ========================================
-       CARDS
-  ========================================= -->
-
-  <div class="statistics-grid">
-
-
-    <!-- BỆNH NHÂN -->
-
-    <div class="stat-card">
-
-      <div class="stat-top">
+    <!-- ========================================
+         HEADER TRANG
+    ========================================= -->
+    <div class="dashboard-header">
 
         <div>
+            <h1>Tổng quan</h1>
+            <p>Tình hình hoạt động của bệnh viện</p>
+        </div>
 
+        <!-- BỘ LỌC THỜI GIAN -->
+        <div class="dashboard-filter">
+
+            <button type="button"
+                    class="filter-btn active"
+                    data-period="today">
+                Hôm nay
+            </button>
+
+            <button type="button"
+                    class="filter-btn"
+                    data-period="7days">
+                7 ngày qua
+            </button>
+
+            <button type="button"
+                    class="filter-btn"
+                    data-period="30days">
+                30 ngày qua
+            </button>
+
+            <!-- TÙY CHỌN NGÀY -->
+            <div class="custom-date-wrapper">
+
+                <button type="button"
+                        class="filter-btn custom-date-btn"
+                        id="customDateBtn"
+                        data-period="custom">
+
+                    <span id="customDateText">
+                        Tùy chọn
+                    </span>
+
+                    <span class="calendar-icon">
+                        📅
+                    </span>
+
+                </button>
+
+                <input type="date"
+                       id="customDate"
+                       class="custom-date-input">
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================
+         CARDS THỐNG KÊ
+    ========================================= -->
+    <div class="statistics-grid">
+
+        <!-- TỔNG BỆNH NHÂN -->
+        <div class="stat-card">
+
+            <div class="stat-top">
+                <div>
                     <span class="stat-title">
                         Tổng bệnh nhân
                     </span>
 
-          <strong
-                  id="tongBenhNhan">
+                    <strong id="tongBenhNhan">
+                        0
+                    </strong>
+                </div>
 
-            0
+                <div class="stat-icon blue">
+                    👥
+                </div>
+            </div>
 
-          </strong>
-
-        </div>
-
-        <div class="stat-icon blue">
-          👥
-        </div>
-
-      </div>
-
-      <div class="stat-bottom">
+            <div class="stat-bottom">
                 <span class="neutral">
                     Tổng số bệnh nhân
                 </span>
-      </div>
-
-    </div>
-
-
-    <!-- LỊCH KHÁM -->
-
-    <div class="stat-card">
-      <div class="stat-top">
-
-        <div>
-
-<!--                    <span class="stat-title">-->
-<!--                        Lịch khám hôm nay-->
-<!--                    </span>-->
-
-          <span class="stat-title"
-                id="lichKhamTitle">
-              Lịch khám hôm nay
-          </span>
-
-          <strong
-                  id="lichKhamHomNay">
-            0
-          </strong>
+            </div>
 
         </div>
 
-        <div class="stat-icon cyan">
-          📅
-        </div>
 
-      </div>
+        <!-- LỊCH KHÁM -->
+        <div class="stat-card">
 
-      <div class="stat-bottom">
+            <div class="stat-top">
+                <div>
+                    <span class="stat-title"
+                          id="lichKhamTitle">
+                        Lịch khám hôm nay
+                    </span>
+
+                    <strong id="lichKhamHomNay">
+                        0
+                    </strong>
+                </div>
+
+                <div class="stat-icon cyan">
+                    📅
+                </div>
+            </div>
+
+            <div class="stat-bottom">
                 <span class="neutral"
                       id="lichKhamDescription">
                     Lịch khám trong ngày
                 </span>
-      </div>
+            </div>
 
-    </div>
+        </div>
 
 
-    <!-- BÁC SĨ -->
+        <!-- TỔNG BÁC SĨ -->
+        <div class="stat-card">
 
-    <div class="stat-card">
-
-      <div class="stat-top">
-
-        <div>
-
+            <div class="stat-top">
+                <div>
                     <span class="stat-title">
                         Tổng bác sĩ
                     </span>
 
-          <strong
-                  id="tongBacSi">
+                    <strong id="tongBacSi">
+                        0
+                    </strong>
+                </div>
 
-            0
+                <div class="stat-icon purple">
+                    👨‍⚕️
+                </div>
+            </div>
 
-          </strong>
-
-        </div>
-
-        <div class="stat-icon purple">
-          👨‍⚕️
-        </div>
-
-      </div>
-
-      <div class="stat-bottom">
+            <div class="stat-bottom">
                 <span class="neutral">
                     Đang hoạt động
                 </span>
-      </div>
+            </div>
 
-    </div>
+        </div>
 
 
-    <!-- NHÂN VIÊN -->
+        <!-- TỔNG NHÂN VIÊN -->
+        <div class="stat-card">
 
-    <div class="stat-card">
-
-      <div class="stat-top">
-
-        <div>
-
+            <div class="stat-top">
+                <div>
                     <span class="stat-title">
                         Tổng nhân viên
                     </span>
 
-          <strong
-                  id="tongNhanVien">
+                    <strong id="tongNhanVien">
+                        0
+                    </strong>
+                </div>
 
-            0
+                <div class="stat-icon teal">
+                    👨‍💼
+                </div>
+            </div>
 
-          </strong>
-
-        </div>
-
-        <div class="stat-icon teal">
-          👨‍💼
-        </div>
-
-      </div>
-
-      <div class="stat-bottom">
+            <div class="stat-bottom">
                 <span class="neutral">
                     Tài khoản nhân viên
                 </span>
-      </div>
+            </div>
 
-    </div>
+        </div>
 
 
-    <!-- DOANH THU -->
+        <!-- DOANH THU -->
+        <div class="stat-card">
 
-    <div class="stat-card">
-
-      <div class="stat-top">
-
-        <div>
-
+            <div class="stat-top">
+                <div>
                     <span class="stat-title">
                         Doanh thu
                     </span>
 
-          <strong
-                  id="doanhThu">
+                    <strong id="doanhThu">
+                        0 ₫
+                    </strong>
+                </div>
 
-            0 ₫
+                <div class="stat-icon green">
+                    💰
+                </div>
+            </div>
 
-          </strong>
+            <div class="stat-bottom">
+                <span class="neutral"
+                      id="doanhThuDescription">
+                    Tổng tiền đã thanh toán hôm nay
+                </span>
+            </div>
 
         </div>
 
-        <div class="stat-icon green">
-          💰
-        </div>
 
-      </div>
+        <!-- TỔNG SỐ LOẠI THUỐC -->
+        <div class="stat-card">
 
-<!--      <div class="stat-bottom">-->
-<!--                <span class="neutral">-->
-<!--                    Tổng tiền đã thanh toán-->
-<!--                </span>-->
-<!--      </div>-->
-        <div class="stat-bottom">
-            <span
-                    class="neutral"
-                    id="doanhThuDescription">
-                Tổng tiền đã thanh toán hôm nay
-            </span>
-        </div>
-
-    </div>
-
-
-    <!-- THUỐC -->
-
-    <div class="stat-card">
-
-      <div class="stat-top">
-
-        <div>
-
+            <div class="stat-top">
+                <div>
                     <span class="stat-title">
                         Tổng số loại thuốc
                     </span>
 
-          <strong
-                  id="tongLoaiThuoc">
+                    <strong id="tongLoaiThuoc">
+                        0
+                    </strong>
+                </div>
 
-            0
+                <div class="stat-icon red">
+                    💊
+                </div>
+            </div>
 
-          </strong>
-
-        </div>
-
-        <div class="stat-icon red">
-          💊
-        </div>
-
-      </div>
-
-      <div class="stat-bottom">
+            <div class="stat-bottom">
                 <span class="neutral">
                     Thuốc đang sử dụng
                 </span>
-      </div>
+            </div>
 
-    </div>
-
-  </div>
-
-
-  <!-- ========================================
-       CHARTS
-  ========================================= -->
-
-  <div class="charts-grid">
-
-
-    <!-- LƯỢT KHÁM THEO NGÀY -->
-
-    <div class="chart-card">
-
-      <div class="section-header">
-
-<!--        <div>-->
-
-<!--          <h2>-->
-<!--            Lượt khám theo thời gian-->
-<!--          </h2>-->
-
-<!--          <span>-->
-<!--                        7 ngày gần nhất-->
-<!--                    </span>-->
-
-<!--        </div>-->
-          <div>
-
-              <h2>
-                  Lượt khám theo thời gian
-              </h2>
-
-              <span id="appointmentChartPeriod">
-        Hôm nay
-    </span>
-
-          </div>
-
-      </div>
-
-
-      <div class="chart-container">
-
-        <canvas
-                id="appointmentChart">
-        </canvas>
-
-      </div>
+        </div>
 
     </div>
 
 
-    <!-- LƯỢT KHÁM THEO KHOA -->
+    <!-- ========================================
+         BIỂU ĐỒ
+    ========================================= -->
+    <div class="charts-grid">
 
-    <div class="chart-card">
+        <!-- LƯỢT KHÁM THEO THỜI GIAN -->
+        <div class="chart-card">
 
-      <div class="section-header">
+            <div class="section-header">
+                <div>
+                    <h2>
+                        Lượt khám theo thời gian
+                    </h2>
 
-        <div>
-
-          <h2>
-            Lượt khám theo khoa
-          </h2>
-
-          <span>
+                    <span id="appointmentChartPeriod">
                         Hôm nay
                     </span>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="appointmentChart"></canvas>
+            </div>
 
         </div>
 
-      </div>
 
+        <!-- DOANH THU THEO THỜI GIAN -->
+        <div class="chart-card">
 
-      <div class="chart-container">
+            <div class="section-header">
+                <div>
+                    <h2>
+                        Doanh thu theo thời gian
+                    </h2>
 
-        <canvas
-                id="departmentChart">
-        </canvas>
+                    <span id="revenueChartPeriod">
+                        Hôm nay
+                    </span>
+                </div>
+            </div>
 
-      </div>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+
+        </div>
 
     </div>
 
-  </div>
 
+    <!-- ========================================
+         BOTTOM GRID
+    ========================================= -->
+    <div class="bottom-grid">
 
-  <!-- ========================================
-       BOTTOM GRID
-  ========================================= -->
+        <!-- ĐƠN THUỐC CHỜ CẤP -->
+        <div class="table-card">
 
-  <div class="bottom-grid">
+            <div class="section-header">
+                <h2>
+                    Đơn thuốc chờ cấp
+                </h2>
+            </div>
 
+            <div class="prescription-list">
 
-    <!-- ====================================
-         ĐƠN THUỐC
-    ===================================== -->
+                <div class="table-wrapper">
 
-    <div class="table-card">
-      <div class="section-header">
-        <h2>
-          Đơn thuốc chờ cấp
-        </h2>
-            <!--        <a-->
-            <!--                href="/DuocSi/don-thuoc">-->
+                    <table>
 
-            <!--          Xem tất cả-->
+                        <thead>
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Bệnh nhân</th>
+                            <th>Bác sĩ</th>
+                            <th>Ngày kê</th>
+                            <th>Số loại thuốc</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                        </thead>
 
-            <!--        </a>-->
-      </div>
+                        <tbody id="prescriptionTable">
 
-        <div class="prescription-list">
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                    <tr>
-
-                        <th>
-                            Mã đơn
-                        </th>
-
-                        <th>
-                            Bệnh nhân
-                        </th>
-
-                        <th>
-                            Bác sĩ
-                        </th>
-
-                        <th>
-                            Ngày kê
-                        </th>
-
-                        <th>
-                            Số loại thuốc
-                        </th>
-
-                        <th>
-                            Trạng thái
-                        </th>
-
-                        <th>
-                            Thao tác
-                        </th>
-
-                    </tr>
-
-                    </thead>
-
-
-                    <tbody id="prescriptionTable">
-
-                    <tr>
-
-                        <td
-                                colspan="7"
+                        <tr>
+                            <td colspan="7"
                                 class="empty-row">
+                                Đang tải dữ liệu...
+                            </td>
+                        </tr>
 
-                            Đang tải dữ liệu...
+                        </tbody>
 
-                        </td>
+                    </table>
 
-                    </tr>
-
-                    </tbody>
-
-                </table>
+                </div>
 
             </div>
+
         </div>
 
 
+        <!-- HOẠT ĐỘNG GẦN ĐÂY -->
+        <div class="activity-card">
 
-    </div>
+            <div class="section-header">
+                <h2>
+                    Hoạt động gần đây
+                </h2>
+            </div>
 
+            <div id="activityList"
+                 class="activity-list">
 
-    <!-- ====================================
-         HOẠT ĐỘNG
-    ===================================== -->
+                <div class="activity-empty">
+                    Đang tải dữ liệu...
+                </div>
 
-    <div class="activity-card">
+            </div>
 
-      <div class="section-header">
-
-        <h2>
-          Hoạt động gần đây
-        </h2>
-
-        <!--        <span>-->
-        <!--            Trực tiếp-->
-        <!--        </span>-->
-
-      </div>
-
-
-      <div
-              id="activityList"
-              class="activity-list">
-
-        <div class="activity-empty">
-          Đang tải dữ liệu...
         </div>
 
-      </div>
-
     </div>
-
-  </div>
 
 </div>
 
 
+<!-- ========================================
+     JAVASCRIPT
+========================================= -->
 <th:block layout:fragment="js">
 
-  <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script
-          src="https://cdn.jsdelivr.net/npm/chart.js">
-  </script>
-
-  <script
-          src="/Js/Admin/dashboard.js">
-  </script>
+    <script src="/Js/Admin/dashboard.js"></script>
 
 </th:block>
 
 </body>
-
 </html>

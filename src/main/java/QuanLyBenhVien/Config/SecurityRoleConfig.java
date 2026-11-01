@@ -6,10 +6,13 @@ public final class SecurityRoleConfig {
     // nhóm api theo vai trò
     // ==============================================
     private SecurityRoleConfig() {
+        //SecurityRoleConfig liệt kê API nào thuộc role
     }
 
     // Admin
     public static final String[] ADMIN_APIS = {
+            "/api/thong-ke-bao-cao",
+            "/api/thong-ke-bao-cao/**",
             "/api/phan-quyen/**",
             "/api/phan-cong-tiep-nhan",
             "/api/phan-cong-tiep-nhan/**"

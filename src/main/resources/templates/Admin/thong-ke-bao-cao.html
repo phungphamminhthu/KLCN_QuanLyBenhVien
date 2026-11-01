@@ -5,385 +5,256 @@
       layout:decorate="~{Admin/fragments/layout}">
 
 <head>
-
-  <title>Thống kê & báo cáo</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thống kê &amp; báo cáo</title>
 
   <th:block layout:fragment="css">
-
-    <link
-            rel="stylesheet"
-            href="/Css/Admin/thong-ke-bao-cao.css">
-
+    <link rel="stylesheet" href="/Css/Admin/thong-ke-bao-cao.css">
   </th:block>
-
 </head>
 
-
 <body>
-
-<div layout:fragment="content"
-     class="report-content">
+<div layout:fragment="content" class="report-content">
 
   <!-- HEADER -->
-
   <div class="report-header">
-
-    <div>
-
-      <h1>
-        Thống kê & báo cáo
-      </h1>
-
-      <p>
-        Tổng hợp số liệu và báo cáo quản trị
-      </p>
-
+    <div class="report-title">
+      <h1>Thống kê &amp; báo cáo</h1>
+      <p>Tổng hợp số liệu và báo cáo quản trị</p>
     </div>
 
-
-<!--    <div class="report-actions">-->
-
-<!--      &lt;!&ndash; THỜI GIAN &ndash;&gt;-->
-
-<!--      <div class="filter-group">-->
-
-<!--        <label>-->
-<!--          Thời gian-->
-<!--        </label>-->
-
-<!--        <select id="periodSelect">-->
-
-<!--          <option value="today">-->
-<!--            Hôm nay-->
-<!--          </option>-->
-
-<!--          <option value="7days">-->
-<!--            7 ngày qua-->
-<!--          </option>-->
-
-<!--          <option value="30days" selected>-->
-<!--            30 ngày qua-->
-<!--          </option>-->
-
-<!--          <option value="custom">-->
-<!--            Tùy chọn-->
-<!--          </option>-->
-
-<!--        </select>-->
-
-<!--      </div>-->
-
-
-<!--      &lt;!&ndash; KHOA &ndash;&gt;-->
-
-<!--      <div class="filter-group">-->
-
-<!--        <label>-->
-<!--          Khoa-->
-<!--        </label>-->
-
-<!--        <select id="khoaSelect">-->
-
-<!--          <option value="">-->
-<!--            Tất cả-->
-<!--          </option>-->
-
-<!--        </select>-->
-
-<!--      </div>-->
-
-
-<!--      &lt;!&ndash; NGÀY TÙY CHỌN &ndash;&gt;-->
-
-<!--      <input-->
-<!--              type="date"-->
-<!--              id="customDate"-->
-<!--              class="custom-date-input">-->
-
-
-<!--      &lt;!&ndash; XUẤT &ndash;&gt;-->
-
-<!--      <button-->
-<!--              type="button"-->
-<!--              class="btn-export"-->
-<!--              id="btnExport">-->
-
-<!--                <span>-->
-<!--                    📄-->
-<!--                </span>-->
-
-<!--        Xuất báo cáo-->
-
-<!--      </button>-->
-
-<!--    </div>-->
+    <!-- FILTER -->
     <div class="report-actions">
 
-      <!-- THỜI GIAN -->
       <div class="filter-group">
-
-        <label for="periodSelect">
-          Thời gian
-        </label>
-
-        <select id="periodSelect">
-
-          <option value="today">
-            Hôm nay
-          </option>
-
-          <option value="7days">
-            7 ngày qua
-          </option>
-
-          <option value="30days" selected>
-            30 ngày qua
-          </option>
-
-          <option value="custom">
-            Tùy chọn
-          </option>
-
+        <label for="filterType">Kiểu thống kê</label>
+        <select id="filterType">
+          <option value="day" selected>Theo ngày</option>
+          <option value="range">Theo khoảng thời gian</option>
         </select>
-
       </div>
 
+      <!-- Theo ngày -->
+      <div class="filter-group date-filter" id="singleDateGroup">
+        <label for="reportDate">Ngày thống kê</label>
+        <input type="date" id="reportDate" class="date-input">
+      </div>
 
-      <!-- KHOA -->
+      <!-- Theo khoảng thời gian -->
+      <div class="filter-group date-filter" id="fromDateGroup" hidden>
+        <label for="fromDate">Từ ngày</label>
+        <input type="date" id="fromDate" class="date-input">
+      </div>
+
+      <div class="filter-group date-filter" id="toDateGroup" hidden>
+        <label for="toDate">Đến ngày</label>
+        <input type="date" id="toDate" class="date-input">
+      </div>
+
+      <!-- Khoa -->
       <div class="filter-group">
-
-        <label for="khoaSelect">
-          Khoa
-        </label>
-
+        <label for="khoaSelect">Khoa</label>
         <select id="khoaSelect">
-
-          <option value="">
-            Tất cả
-          </option>
-
+          <option value="">Tất cả khoa</option>
         </select>
-
       </div>
 
+      <!-- Buttons -->
+      <div class="filter-buttons">
+        <button type="button" class="btn-filter" id="btnFilter">
+          <svg class="search-icon"
+               viewBox="0 0 24 24"
+               aria-hidden="true">
+            <circle cx="10.8" cy="10.8" r="6.5"></circle>
+            <path d="m16 16 4.5 4.5"></path>
+          </svg>
+          <span>Thống kê</span>
+        </button>
 
-      <!-- NGÀY -->
-      <input
-              type="date"
-              id="customDate"
-              class="custom-date-input">
-
-
-      <!-- XUẤT -->
-      <button
-              type="button"
-              class="btn-export"
-              id="btnExport">
-
-        <span>📄</span>
-
-        Xuất báo cáo
-
-      </button>
-
+        <button type="button" class="btn-export" id="btnExport">
+          <span aria-hidden="true">📄</span>
+          <span>Xuất báo cáo</span>
+        </button>
+      </div>
     </div>
-
   </div>
 
+  <!-- REPORT PERIOD -->
+  <div class="report-period-info">
+    <span id="reportPeriodText">Đang tải dữ liệu thống kê...</span>
+  </div>
 
-  <!-- STATISTICS -->
-
+  <!-- SUMMARY CARDS -->
   <div class="statistics-grid">
 
-    <!-- LƯỢT KHÁM -->
-
     <div class="stat-card">
-
       <div class="stat-card-top">
-
-        <div>
-
-                    <span>
-                        TỔNG LƯỢT KHÁM
-                    </span>
-
-          <strong id="tongLuotKham">
-            0
-          </strong>
-
-          <small>
-            Theo khoảng thời gian đã chọn
-          </small>
-
+        <div class="stat-info">
+          <span class="stat-label">TỔNG LƯỢT KHÁM</span>
+          <strong id="tongLuotKham">0</strong>
+          <small id="luotKhamDescription">Tổng lượt khám</small>
         </div>
-
-        <div class="stat-icon blue">
-          📅
-        </div>
-
+        <div class="stat-icon blue">📅</div>
       </div>
-
     </div>
 
-
-    <!-- DOANH THU -->
-
     <div class="stat-card">
-
       <div class="stat-card-top">
-
-        <div>
-
-                    <span>
-                        TỔNG DOANH THU
-                    </span>
-
-          <strong id="tongDoanhThu">
-            0 ₫
-          </strong>
-
-          <small>
-            Tổng tiền đã thanh toán
-          </small>
-
+        <div class="stat-info">
+          <span class="stat-label">TỔNG DOANH THU</span>
+          <strong id="tongDoanhThu">0 đ</strong>
+          <small id="doanhThuDescription">Tổng tiền đã thanh toán</small>
         </div>
-
-        <div class="stat-icon green">
-          💰
-        </div>
-
+        <div class="stat-icon green">💰</div>
       </div>
-
     </div>
 
-
-    <!-- BỆNH NHÂN -->
-
     <div class="stat-card">
-
       <div class="stat-card-top">
-
-        <div>
-
-                    <span>
-                        TỔNG BỆNH NHÂN
-                    </span>
-
-          <strong id="tongBenhNhan">
-            0
-          </strong>
-
-          <small>
-            Tổng số bệnh nhân trong hệ thống
-          </small>
-
+        <div class="stat-info">
+          <span class="stat-label">TỔNG BỆNH NHÂN</span>
+          <strong id="tongBenhNhan">0</strong>
+          <small>Số bệnh nhân trong hệ thống</small>
         </div>
-
-        <div class="stat-icon purple">
-          👥
-        </div>
-
+        <div class="stat-icon purple">👥</div>
       </div>
-
     </div>
 
   </div>
 
+  <!-- REPORT TABLES -->
+  <div class="report-tables-grid">
 
-  <!-- CHARTS -->
-
-  <div class="charts-grid">
-
-    <!-- LƯỢT KHÁM -->
-
-    <div class="chart-card">
-
-      <div class="chart-header">
-
+    <!-- APPOINTMENT REPORT -->
+    <section class="report-section">
+      <div class="section-header">
         <div>
-
           <h2>
-            <span class="dot blue"></span>
-            Lượt khám theo thời gian
+            <span class="section-dot blue"></span>
+            Báo cáo lượt khám
           </h2>
-
-          <span>
-                        Đơn vị: Lượt
-                    </span>
-
+          <p>Tổng hợp tình hình khám chữa bệnh</p>
         </div>
-
       </div>
 
+      <!-- Cuộn riêng bảng lượt khám -->
+      <div class="table-responsive report-table-scroll">
+        <table class="report-table">
+          <thead>
+          <tr>
+            <th>Ngày khám</th>
+            <th>Tổng lượt</th>
+            <th>Hoàn thành</th>
+            <th>Đang khám</th>
+            <th>Đã hủy</th>
+            <th>Không đến</th>
+          </tr>
+          </thead>
 
-      <div class="chart-container">
+          <tbody id="appointmentReportBody">
+          <tr>
+            <td colspan="6" class="empty-state">Đang tải dữ liệu...</td>
+          </tr>
+          </tbody>
 
-        <div class="chart-scroll">
-
-          <div class="chart-inner">
-            <canvas id="appointmentChart"></canvas>
-          </div>
-
-        </div>
-
+          <tfoot>
+          <tr>
+            <th>Tổng cộng</th>
+            <th id="appointmentTotal">0</th>
+            <th id="appointmentCompleted">0</th>
+            <th id="appointmentInProgress">0</th>
+            <th id="appointmentCancelled">0</th>
+            <th id="appointmentNoShow">0</th>
+          </tr>
+          </tfoot>
+        </table>
       </div>
+    </section>
 
-    </div>
-
-
-    <!-- DOANH THU -->
-
-    <div class="chart-card">
-
-      <div class="chart-header">
-
+    <!-- REVENUE REPORT -->
+    <section class="report-section">
+      <div class="section-header">
         <div>
-
           <h2>
-            <span class="dot green"></span>
-            Doanh thu theo thời gian
+            <span class="section-dot green"></span>
+            Báo cáo doanh thu
           </h2>
-
-          <span>
-                        Đơn vị: VNĐ
-                    </span>
-
+          <p>Tổng hợp các khoản đã thanh toán</p>
         </div>
-
       </div>
 
+      <!-- Cuộn riêng bảng doanh thu -->
+      <div class="table-responsive report-table-scroll">
+        <table class="report-table">
+          <thead>
+          <tr>
+            <th>Ngày</th>
+            <th>Tiền khám</th>
+            <th>Tiền thuốc</th>
+            <th>Tiền dịch vụ</th>
+            <th>Tổng doanh thu</th>
+          </tr>
+          </thead>
 
-      <div class="chart-container">
+          <tbody id="revenueReportBody">
+          <tr>
+            <td colspan="5" class="empty-state">Đang tải dữ liệu...</td>
+          </tr>
+          </tbody>
 
-        <div class="chart-scroll">
+          <tfoot>
+          <tr>
+            <th>Tổng cộng</th>
+            <th id="revenueExaminationTotal">0 đ</th>
+            <th id="revenueMedicineTotal">0 đ</th>
+            <th id="revenueServiceTotal">0 đ</th>
+            <th id="revenueGrandTotal">0 đ</th>
+          </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
 
-          <div class="chart-inner">
-            <canvas id="revenueChart"></canvas>
-          </div>
-
+    <!-- DEPARTMENT REPORT -->
+    <section class="report-section department-report">
+      <div class="section-header">
+        <div>
+          <h2>
+            <span class="section-dot purple"></span>
+            Báo cáo theo khoa
+          </h2>
+          <p>Tổng hợp hoạt động khám chữa bệnh của từng khoa</p>
         </div>
-
       </div>
 
-    </div>
+      <!-- Cuộn riêng bảng khoa -->
+      <div class="table-responsive report-table-scroll">
+        <table class="report-table">
+          <thead>
+          <tr>
+            <th>STT</th>
+            <th>Khoa</th>
+            <th>Số bệnh nhân</th>
+            <th>Tổng lượt khám</th>
+            <th>Doanh thu</th>
+          </tr>
+          </thead>
+
+          <tbody id="departmentReportBody">
+          <tr>
+            <td colspan="5" class="empty-state">Đang tải dữ liệu...</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
   </div>
-
 </div>
 
-
 <th:block layout:fragment="js">
-
-  <script
-          src="https://cdn.jsdelivr.net/npm/chart.js">
-  </script>
-
-  <script
-          src="/Js/Admin/thong-ke-bao-cao.js">
-  </script>
-
+  <script src="/Js/Admin/thong-ke-bao-cao.js"></script>
 </th:block>
-
 </body>
-
 </html>

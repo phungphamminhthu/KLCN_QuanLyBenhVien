@@ -1,653 +1,829 @@
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
+(() => {
+    "use strict";
 
-        const API_URL =
-            "/api/thong-ke-bao-cao";
+    const API_URL = "/api/thong-ke-bao-cao";
+    const EXPORT_URL = `${API_URL}/export`;
+
+    const $ = (id) => document.getElementById(id);
+
+    // =====================================================
+    // DOM ELEMENTS
+    // =====================================================
+
+    const filterType = $("filterType");
+    const reportDate = $("reportDate");
+    const fromDate = $("fromDate");
+    const toDate = $("toDate");
+    const khoaSelect = $("khoaSelect");
+
+    const singleDateGroup = $("singleDateGroup");
+    const fromDateGroup = $("fromDateGroup");
+    const toDateGroup = $("toDateGroup");
+
+    const btnFilter = $("btnFilter");
+    const btnExport = $("btnExport");
+
+    let isLoading = false;
+    let isExporting = false;
 
 
-        let appointmentChart = null;
+    function renderDanhSachKhoa(danhSachKhoa = []) {
+        if (!khoaSelect) return;
 
-        let revenueChart = null;
+        // Giữ lại khoa đang chọn
+        const selectedMaKhoa = khoaSelect.value;
 
+        khoaSelect.innerHTML = `
+            <option value="">Tất cả khoa</option>
+        `;
 
-        // =========================================
-        // TOKEN
-        // =========================================
+        danhSachKhoa.forEach(khoa => {
+            const option = document.createElement("option");
+            option.value = khoa.maKhoa;
+            option.textContent = khoa.tenKhoa;
+            khoaSelect.appendChild(option);
+        });
 
-        function getToken() {
+        // Khôi phục khoa đã chọn nếu còn trong danh sách
+        if (
+            selectedMaKhoa &&
+            [...khoaSelect.options].some(
+                option => option.value === selectedMaKhoa
+            )
+        ) {
+            khoaSelect.value = selectedMaKhoa;
+        }
+    }
+    if (khoaSelect) {
+        khoaSelect.addEventListener("change", () => {
+            loadReport();
+        });
+    }
 
-            return (
-                localStorage.getItem("Token") ||
-                sessionStorage.getItem("Token") ||
-                ""
-            );
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    function getTodayString() {
+        const now = new Date();
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    function getToken() {
+        return localStorage.getItem("Token")
+            || sessionStorage.getItem("Token")
+            || "";
+    }
+
+    function formatDate(value) {
+        if (!value) return "—";
+
+        const text = String(value);
+
+        // YYYY-MM-DD -> DD/MM/YYYY
+        const match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+
+        if (match) {
+            return `${match[3]}/${match[2]}/${match[1]}`;
         }
 
+        // Backend có thể trả sẵn DD/MM hoặc DD/MM/YYYY
+        return text;
+    }
 
-        function getHeaders() {
+    function formatNumber(value) {
+        const number = Number(value ?? 0);
 
-            const headers = {
-                "Content-Type":
-                    "application/json"
+        return Number.isFinite(number)
+            ? number.toLocaleString("vi-VN")
+            : "0";
+    }
+
+    function formatCurrency(value) {
+        return `${formatNumber(value)} đ`;
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function getValue(object, keys, fallback = 0) {
+        if (!object) return fallback;
+
+        for (const key of keys) {
+            if (object[key] !== undefined && object[key] !== null) {
+                return object[key];
+            }
+        }
+
+        return fallback;
+    }
+
+    function getArray(data, keys) {
+        const value = getValue(data, keys, []);
+        return Array.isArray(value) ? value : [];
+    }
+
+    function setText(id, value) {
+        const element = $(id);
+
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    function showTableMessage(element, colspan, message) {
+        if (!element) return;
+
+        element.innerHTML = `
+            <tr>
+                <td colspan="${colspan}" class="empty-state">
+                    ${escapeHtml(message)}
+                </td>
+            </tr>
+        `;
+    }
+
+    function setButtonLoading(button, loading, loadingText, normalText) {
+        if (!button) return;
+
+        button.disabled = loading;
+        button.textContent = loading ? loadingText : normalText;
+    }
+
+    // =====================================================
+    // DATE FILTER
+    // =====================================================
+
+    function toggleDateFilter() {
+        const isRange = filterType.value === "range";
+
+        if (singleDateGroup) {
+            singleDateGroup.hidden = isRange;
+        }
+
+        if (fromDateGroup) {
+            fromDateGroup.hidden = !isRange;
+        }
+
+        if (toDateGroup) {
+            toDateGroup.hidden = !isRange;
+        }
+    }
+
+    function getSelectedDates() {
+        if (filterType.value === "range") {
+            return {
+                from: fromDate.value,
+                to: toDate.value
             };
-
-
-            const token =
-                getToken();
-
-
-            if (token) {
-
-                headers["Authorization"] =
-                    "Bearer " + token;
-            }
-
-
-            return headers;
         }
 
+        return {
+            from: reportDate.value,
+            to: reportDate.value
+        };
+    }
 
-        // =========================================
-        // FORMAT
-        // =========================================
+    function validateDates(from, to) {
+        if (!from || !to) {
+            alert(
+                filterType.value === "range"
+                    ? "Vui lòng chọn đầy đủ từ ngày và đến ngày."
+                    : "Vui lòng chọn ngày thống kê."
+            );
 
-        function formatNumber(value) {
+            return false;
+        }
 
-            return new Intl.NumberFormat(
-                "vi-VN"
-            ).format(
-                Number(value || 0)
+        if (from > to) {
+            alert("Từ ngày không được lớn hơn đến ngày.");
+            return false;
+        }
+
+        return true;
+    }
+
+    // =====================================================
+    // BUILD API PARAMS
+    // =====================================================
+
+    function buildParams() {
+        const { from, to } = getSelectedDates();
+
+        if (!validateDates(from, to)) {
+            return null;
+        }
+
+        const params = new URLSearchParams();
+
+        // Theo ngày: dùng ngày do người dùng chọn
+        if (filterType.value === "day") {
+            params.set("period", "custom");
+            params.set("date", from);
+        }
+
+        // Theo khoảng thời gian
+        else {
+            params.set("period", "custom");
+            params.set("fromDate", from);
+            params.set("toDate", to);
+        }
+
+        // Lọc theo khoa nếu có chọn
+        if (khoaSelect && khoaSelect.value) {
+            params.set("maKhoa", khoaSelect.value);
+        }
+
+        return params;
+    }
+
+    function updatePeriodText(from, to) {
+        const periodText = from === to
+            ? `ngày ${formatDate(from)}`
+            : `từ ${formatDate(from)} đến ${formatDate(to)}`;
+
+        setText(
+            "reportPeriodText",
+            from === to
+                ? `Thống kê ${periodText}`
+                : `Thống kê ${periodText}`
+        );
+
+        setText(
+            "luotKhamDescription",
+            `Tổng lượt khám ${periodText}`
+        );
+
+        setText(
+            "doanhThuDescription",
+            `Tổng tiền đã thanh toán ${periodText}`
+        );
+    }
+
+    // =====================================================
+    // API REQUEST
+    // =====================================================
+
+    async function requestJson(url) {
+        const token = getToken();
+
+        if (!token) {
+            throw new Error(
+                "Không tìm thấy token đăng nhập. Vui lòng đăng nhập lại."
             );
         }
 
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Accept": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+            credentials: "same-origin"
+        });
 
-        function formatCurrency(value) {
+        const responseText = await response.text();
 
-            return new Intl.NumberFormat(
-                "vi-VN",
-                {
-                    style: "currency",
-                    currency: "VND",
-                    maximumFractionDigits: 0
-                }
-            ).format(
-                Number(value || 0)
+        if (!response.ok) {
+            console.error(
+                "API thống kê lỗi:",
+                response.status,
+                responseText
+            );
+
+            throw new Error(
+                `HTTP ${response.status}: ${responseText || response.statusText}`
             );
         }
 
-
-        // =========================================
-        // LOAD
-        // =========================================
-
-        async function loadReport() {
-
-            const period =
-                document.getElementById(
-                    "periodSelect"
-                ).value;
-
-
-            const maKhoa =
-                document.getElementById(
-                    "khoaSelect"
-                ).value;
-
-
-            const customDate =
-                document.getElementById(
-                    "customDate"
-                ).value;
-
-
-            let url =
-                `${API_URL}?period=${encodeURIComponent(period)}`;
-
-
-            if (maKhoa) {
-
-                url +=
-                    `&maKhoa=${encodeURIComponent(maKhoa)}`;
-            }
-
-
-            if (
-                period === "custom"
-                && customDate
-            ) {
-
-                url +=
-                    `&date=${encodeURIComponent(customDate)}`;
-            }
-
-
-            console.log(
-                "Report API:",
-                url
-            );
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        url,
-                        {
-                            method: "GET",
-                            headers: getHeaders()
-                        }
-                    );
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        "Không thể tải thống kê"
-                    );
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                renderStatistics(data);
-
-                renderAppointmentChart(
-                    data.luotKhamTheoNgay || []
-                );
-
-                renderRevenueChart(
-                    data.doanhThuTheoNgay || []
-                );
-
-            }
-            catch (error) {
-
-                console.error(
-                    "Report error:",
-                    error
-                );
-
-                alert(
-                    "Không thể tải dữ liệu thống kê."
-                );
-            }
+        try {
+            return responseText ? JSON.parse(responseText) : {};
+        } catch {
+            throw new Error("Dữ liệu API trả về không phải JSON hợp lệ.");
         }
-
-
-        // =========================================
-        // STATISTICS
-        // =========================================
-
-        function renderStatistics(data) {
-
-            document.getElementById(
-                "tongLuotKham"
-            ).textContent =
-                formatNumber(
-                    data.tongLuotKham
-                );
-
-
-            document.getElementById(
-                "tongDoanhThu"
-            ).textContent =
-                formatCurrency(
-                    data.tongDoanhThu
-                );
-
-
-            document.getElementById(
-                "tongBenhNhan"
-            ).textContent =
-                formatNumber(
-                    data.tongBenhNhan
-                );
-        }
-
-
-        // =========================================
-        // APPOINTMENT CHART
-        // =========================================
-
-        function renderAppointmentChart(data) {
-
-            const canvas =
-                document.getElementById(
-                    "appointmentChart"
-                );
-
-
-            const labels =
-                data.map(
-                    item => item.label
-                );
-
-
-            const values =
-                data.map(
-                    item => item.luotKham
-                );
-
-
-            if (appointmentChart) {
-
-                appointmentChart.destroy();
-            }
-
-
-            appointmentChart =
-                new Chart(
-                    canvas,
-                    {
-                        type: "line",
-
-                        data: {
-
-                            labels: labels,
-
-                            datasets: [
-                                {
-                                    label:
-                                        "Lượt khám",
-
-                                    data:
-                                        values,
-
-                                    borderWidth: 3,
-
-                                    tension: 0.35,
-
-                                    fill: true,
-
-                                    pointRadius: 4,
-
-                                    pointHoverRadius: 6
-                                }
-                            ]
-                        },
-
-                        options: {
-
-                            responsive: true,
-
-                            maintainAspectRatio:
-                                false,
-
-                            plugins: {
-
-                                legend: {
-                                    display: false
-                                }
-                            },
-
-                            scales: {
-
-                                y: {
-
-                                    beginAtZero:
-                                        true,
-
-                                    ticks: {
-                                        precision: 0
-                                    }
-                                },
-
-                                x: {
-
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    }
-                );
-        }
-
-
-        // =========================================
-        // REVENUE CHART
-        // =========================================
-
-        function renderRevenueChart(data) {
-
-            const canvas =
-                document.getElementById(
-                    "revenueChart"
-                );
-
-
-            const labels =
-                data.map(
-                    item => item.label
-                );
-
-
-            const values =
-                data.map(
-                    item =>
-                        Number(
-                            item.doanhThu || 0
-                        )
-                );
-
-
-            if (revenueChart) {
-
-                revenueChart.destroy();
-            }
-
-
-            revenueChart =
-                new Chart(
-                    canvas,
-                    {
-                        type: "bar",
-
-                        data: {
-
-                            labels: labels,
-
-                            datasets: [
-                                {
-                                    label:
-                                        "Doanh thu",
-
-                                    data:
-                                        values,
-
-                                    borderRadius:
-                                        7,
-
-                                    borderSkipped:
-                                        false
-                                }
-                            ]
-                        },
-
-                        options: {
-
-                            responsive: true,
-
-                            maintainAspectRatio:
-                                false,
-
-                            plugins: {
-
-                                legend: {
-                                    display: false
-                                },
-
-                                tooltip: {
-
-                                    callbacks: {
-
-                                        label:
-                                            function (
-                                                context
-                                            ) {
-
-                                                return formatCurrency(
-                                                    context.raw
-                                                );
-                                            }
-                                    }
-                                }
-                            },
-
-                            scales: {
-
-                                y: {
-
-                                    beginAtZero: true,
-
-                                    ticks: {
-
-                                        callback: function(value) {
-
-                                            return new Intl.NumberFormat(
-                                                "vi-VN"
-                                            ).format(value) + " ₫";
-
-                                        }
-
-                                    }
-
-                                },
-
-                                x: {
-
-                                    grid: {
-                                        display: false
-                                    }
-                                }
-                            }
-                        }
-                    }
-                );
-        }
-
-
-        // =========================================
-        // LOAD KHOA
-        // =========================================
-
-        async function loadKhoa() {
-
-            try {
-
-                const response =
-                    await fetch(
-                        API_URL,
-                        {
-                            headers:
-                                getHeaders()
-                        }
-                    );
-
-
-                if (!response.ok) {
-                    return;
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                const select =
-                    document.getElementById(
-                        "khoaSelect"
-                    );
-
-
-                if (
-                    !select
-                    || !data.danhSachKhoa
-                ) {
-                    return;
-                }
-
-
-                data.danhSachKhoa
-                    .forEach(khoa => {
-
-                        const option =
-                            document.createElement(
-                                "option"
-                            );
-
-
-                        option.value =
-                            khoa.maKhoa;
-
-
-                        option.textContent =
-                            khoa.tenKhoa;
-
-
-                        select.appendChild(
-                            option
-                        );
-
-                    });
-
-            }
-            catch (error) {
-
-                console.error(
-                    "Không thể tải khoa:",
-                    error
-                );
-            }
-        }
-
-
-        // =========================================
-        // PERIOD
-        // =========================================
-
-        document
-            .getElementById(
-                "periodSelect"
+    }
+
+    // =====================================================
+    // SUMMARY CARDS
+    // =====================================================
+
+    function renderSummary(data) {
+        setText(
+            "tongLuotKham",
+            formatNumber(
+                getValue(data, [
+                    "tongLuotKham",
+                    "totalAppointments",
+                    "tongLichKham",
+                    "total"
+                ])
             )
-            .addEventListener(
-                "change",
-                function () {
+        );
 
-                    const customDate =
-                        document.getElementById(
-                            "customDate"
-                        );
-
-
-                    if (
-                        this.value ===
-                        "custom"
-                    ) {
-
-                        customDate.classList.add(
-                            "show"
-                        );
-
-                    }
-                    else {
-
-                        customDate.classList.remove(
-                            "show"
-                        );
-
-                        loadReport();
-                    }
-                }
-            );
-
-
-        // =========================================
-        // CUSTOM DATE
-        // =========================================
-
-        document
-            .getElementById(
-                "customDate"
+        setText(
+            "tongDoanhThu",
+            formatCurrency(
+                getValue(data, [
+                    "tongDoanhThu",
+                    "totalRevenue",
+                    "doanhThu"
+                ])
             )
-            .addEventListener(
-                "change",
-                function () {
+        );
 
-                    if (
-                        this.value
-                    ) {
-
-                        loadReport();
-                    }
-                }
-            );
-
-
-        // =========================================
-        // KHOA
-        // =========================================
-
-        document
-            .getElementById(
-                "khoaSelect"
+        setText(
+            "tongBenhNhan",
+            formatNumber(
+                getValue(data, [
+                    "tongBenhNhan",
+                    "totalPatients",
+                    "soBenhNhan"
+                ])
             )
-            .addEventListener(
-                "change",
-                function () {
+        );
+    }
 
-                    loadReport();
-                }
+    // =====================================================
+    // APPOINTMENT REPORT
+    // =====================================================
+
+    const appointmentKeys = {
+        total: [
+            "tongLuotKham",
+            "luotKham",
+            "total",
+            "tong"
+        ],
+        completed: [
+            "hoanThanh",
+            "soLuotHoanThanh",
+            "completed"
+        ],
+        inProgress: [
+            "dangKham",
+            "soLuotDangKham",
+            "inProgress"
+        ],
+        cancelled: [
+            "daHuy",
+            "soLuotDaHuy",
+            "cancelled"
+        ],
+        noShow: [
+            "khongDen",
+            "soLuotKhongDen",
+            "noShow"
+        ]
+    };
+
+    function sumRows(rows, keys) {
+        return rows.reduce((sum, row) => {
+            return sum + Number(getValue(row, keys, 0));
+        }, 0);
+    }
+
+    function renderAppointmentReport(data) {
+        const body = $("appointmentReportBody");
+
+        const rows = getArray(data, [
+            "luotKhamTheoNgay",
+            "appointmentReport",
+            "appointmentsByDate"
+        ]);
+
+        if (!rows.length) {
+            showTableMessage(body, 6, "Không có dữ liệu");
+        } else {
+            body.innerHTML = rows.map((row) => {
+                const date = getValue(row, [
+                    "ngay",
+                    "ngayKham",
+                    "date",
+                    "label"
+                ], "");
+
+                return `
+                    <tr>
+                        <td>${escapeHtml(formatDate(date))}</td>
+                        <td>${formatNumber(getValue(row, appointmentKeys.total))}</td>
+                        <td>${formatNumber(getValue(row, appointmentKeys.completed))}</td>
+                        <td>${formatNumber(getValue(row, appointmentKeys.inProgress))}</td>
+                        <td>${formatNumber(getValue(row, appointmentKeys.cancelled))}</td>
+                        <td>${formatNumber(getValue(row, appointmentKeys.noShow))}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        setText(
+            "appointmentTotal",
+            formatNumber(sumRows(rows, appointmentKeys.total))
+        );
+
+        setText(
+            "appointmentCompleted",
+            formatNumber(sumRows(rows, appointmentKeys.completed))
+        );
+
+        setText(
+            "appointmentInProgress",
+            formatNumber(sumRows(rows, appointmentKeys.inProgress))
+        );
+
+        setText(
+            "appointmentCancelled",
+            formatNumber(sumRows(rows, appointmentKeys.cancelled))
+        );
+
+        setText(
+            "appointmentNoShow",
+            formatNumber(sumRows(rows, appointmentKeys.noShow))
+        );
+    }
+
+    // =====================================================
+    // REVENUE REPORT
+    // =====================================================
+
+    const revenueKeys = {
+        examination: [
+            "tienKham",
+            "doanhThuKham",
+            "revenueExamination"
+        ],
+        medicine: [
+            "tienThuoc",
+            "doanhThuThuoc",
+            "revenueMedicine"
+        ],
+        service: [
+            "tienDichVu",
+            "doanhThuDichVu",
+            "revenueService"
+        ],
+        total: [
+            "tongDoanhThu",
+            "doanhThu",
+            "tongTien",
+            "total"
+        ]
+    };
+
+    function renderRevenueReport(data) {
+        const body = $("revenueReportBody");
+
+        const rows = getArray(data, [
+            "doanhThuTheoNgay",
+            "revenueReport",
+            "revenueByDate"
+        ]);
+
+        if (!rows.length) {
+            showTableMessage(body, 5, "Không có dữ liệu");
+        } else {
+            body.innerHTML = rows.map((row) => {
+                const date = getValue(row, [
+                    "ngay",
+                    "ngayThanhToan",
+                    "date",
+                    "label"
+                ], "");
+
+                const examination = Number(
+                    getValue(row, revenueKeys.examination, 0)
+                );
+
+                const medicine = Number(
+                    getValue(row, revenueKeys.medicine, 0)
+                );
+
+                const service = Number(
+                    getValue(row, revenueKeys.service, 0)
+                );
+
+                const total = Number(
+                    getValue(
+                        row,
+                        revenueKeys.total,
+                        examination + medicine + service
+                    )
+                );
+
+                return `
+                    <tr>
+                        <td>${escapeHtml(formatDate(date))}</td>
+                        <td>${formatCurrency(examination)}</td>
+                        <td>${formatCurrency(medicine)}</td>
+                        <td>${formatCurrency(service)}</td>
+                        <td>${formatCurrency(total)}</td>
+                    </tr>
+                `;
+            }).join("");
+        }
+
+        setText(
+            "revenueExaminationTotal",
+            formatCurrency(sumRows(rows, revenueKeys.examination))
+        );
+
+        setText(
+            "revenueMedicineTotal",
+            formatCurrency(sumRows(rows, revenueKeys.medicine))
+        );
+
+        setText(
+            "revenueServiceTotal",
+            formatCurrency(sumRows(rows, revenueKeys.service))
+        );
+
+        setText(
+            "revenueGrandTotal",
+            formatCurrency(sumRows(rows, revenueKeys.total))
+        );
+    }
+
+    // =====================================================
+    // DEPARTMENT REPORT
+    // =====================================================
+
+    function renderDepartmentReport(data) {
+        const body = $("departmentReportBody");
+
+        const rows = getArray(data, [
+            "thongKeTheoKhoa",
+            "baoCaoTheoKhoa",
+            "departmentReport",
+            "departments"
+        ]);
+
+        if (!rows.length) {
+            showTableMessage(body, 5, "Không có dữ liệu");
+            return;
+        }
+
+        body.innerHTML = rows.map((row, index) => {
+            const name = getValue(row, [
+                "tenKhoa",
+                "khoa",
+                "tenPhong",
+                "departmentName"
+            ], "Chưa xác định");
+
+            const patients = getValue(row, [
+                "soBenhNhan",
+                "tongBenhNhan",
+                "patients",
+                "totalPatients"
+            ]);
+
+            const appointments = getValue(row, [
+                "tongLuotKham",
+                "luotKham",
+                "appointments",
+                "totalAppointments"
+            ]);
+
+            const revenue = getValue(row, [
+                "tongDoanhThu",
+                "doanhThu",
+                "revenue"
+            ]);
+
+            return `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${escapeHtml(name)}</td>
+                    <td>${formatNumber(patients)}</td>
+                    <td>${formatNumber(appointments)}</td>
+                    <td>${formatCurrency(revenue)}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    // =====================================================
+    // LOAD REPORT
+    // =====================================================
+
+    async function loadReport() {
+        if (isLoading || isExporting) return;
+
+        const { from, to } = getSelectedDates();
+
+        if (!validateDates(from, to)) return;
+
+        const params = buildParams();
+
+        if (!params) return;
+
+        isLoading = true;
+
+        setButtonLoading(
+            btnFilter,
+            true,
+            "Đang tải...",
+            "Thống kê"
+        );
+
+        try {
+            const url = `${API_URL}?${params.toString()}`;
+
+            console.log("Request thống kê:", url);
+
+            const data = await requestJson(url);
+
+            console.log("Response thống kê:", data);
+
+            if (Array.isArray(data.danhSachKhoa)) {
+                renderDanhSachKhoa(data.danhSachKhoa);
+            }
+
+            renderSummary(data);
+            renderAppointmentReport(data);
+            renderRevenueReport(data);
+            renderDepartmentReport(data);
+
+            updatePeriodText(from, to);
+
+        } catch (error) {
+            console.error("Lỗi thống kê:", error);
+
+            setText("tongLuotKham", "—");
+            setText("tongDoanhThu", "—");
+            setText("tongBenhNhan", "—");
+
+            showTableMessage(
+                $("appointmentReportBody"),
+                6,
+                "Không thể tải dữ liệu lượt khám"
             );
 
-
-        // =========================================
-        // EXPORT
-        // =========================================
-
-        document
-            .getElementById(
-                "btnExport"
-            )
-            .addEventListener(
-                "click",
-                function () {
-
-                    alert(
-                        "Chức năng xuất báo cáo sẽ được kết nối ở bước tiếp theo."
-                    );
-
-                }
+            showTableMessage(
+                $("revenueReportBody"),
+                5,
+                "Không thể tải dữ liệu doanh thu"
             );
 
+            showTableMessage(
+                $("departmentReportBody"),
+                5,
+                "Không thể tải dữ liệu theo khoa"
+            );
 
-        // =========================================
-        // INIT
-        // =========================================
+            alert(
+                `Không thể tải dữ liệu thống kê.\n${error.message}`
+            );
 
-        loadKhoa();
+        } finally {
+            isLoading = false;
 
-        loadReport();
+            setButtonLoading(
+                btnFilter,
+                false,
+                "Đang tải...",
+                "Thống kê"
+            );
+        }
+    }
 
-        // ===========================================
-        //
-        // ===========================================
-        document
-            .getElementById("btnExport")
-            .addEventListener("click", function () {
+    // =====================================================
+    // EXPORT EXCEL
+    // =====================================================
 
-                const period =
-                    document.getElementById("periodSelect").value;
+    async function exportReport() {
+        if (isExporting || isLoading) return;
 
-                const khoa =
-                    document.getElementById("khoaSelect").value;
+        const { from, to } = getSelectedDates();
 
-                const customDate =
-                    document.getElementById("customDate").value;
+        if (!validateDates(from, to)) return;
 
-                let url =
-                    `/api/thong-ke-bao-cao/export?period=${encodeURIComponent(period)}`;
+        const params = buildParams();
+        if (!params) return;
 
-                if (khoa) {
-                    url += `&khoa=${encodeURIComponent(khoa)}`;
-                }
+        const token = getToken();
 
-                if (period === "custom") {
+        if (!token) {
+            alert("Không tìm thấy token đăng nhập. Vui lòng đăng nhập lại.");
+            return;
+        }
 
-                    if (!customDate) {
-                        alert("Vui lòng chọn ngày cần xuất báo cáo.");
-                        return;
-                    }
+        isExporting = true;
 
-                    url += `&date=${encodeURIComponent(customDate)}`;
-                }
+        setButtonLoading(
+            btnExport,
+            true,
+            "Đang xuất...",
+            "Xuất báo cáo"
+        );
 
-                window.location.href = url;
+        try {
+            const url = `${EXPORT_URL}?${params.toString()}`;
+
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Accept": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                },
+                credentials: "same-origin"
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                    `HTTP ${response.status}: ${errorText || response.statusText}`
+                );
+            }
+
+            const blob = await response.blob();
+
+            if (!blob.size) {
+                throw new Error("File Excel được tạo nhưng không có dữ liệu.");
+            }
+
+            const objectUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = objectUrl;
+            link.download = `BaoCaoThongKe_${from}_${to}.xlsx`;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            setTimeout(() => {
+                URL.revokeObjectURL(objectUrl);
+            }, 1000);
+
+        } catch (error) {
+            console.error("Lỗi xuất báo cáo:", error);
+
+            alert(`Không thể xuất báo cáo.\n${error.message}`);
+        } finally {
+            isExporting = false;
+
+            setButtonLoading(
+                btnExport,
+                false,
+                "Đang xuất...",
+                "Xuất báo cáo"
+            );
+        }
     }
-);
+
+    // =====================================================
+    // INITIALIZE
+    // =====================================================
+
+    function initialize() {
+        if (!filterType || !reportDate || !fromDate || !toDate
+            || !btnFilter || !btnExport) {
+            console.error(
+                "Không tìm thấy các thành phần bộ lọc thống kê trong HTML."
+            );
+            return;
+        }
+
+        const today = getTodayString();
+
+        if (!reportDate.value) {
+            reportDate.value = today;
+        }
+
+        if (!fromDate.value) {
+            fromDate.value = today;
+        }
+
+        if (!toDate.value) {
+            toDate.value = today;
+        }
+
+        toggleDateFilter();
+
+        filterType.addEventListener("change", toggleDateFilter);
+
+        btnFilter.addEventListener("click", loadReport);
+
+        btnExport.addEventListener("click", exportReport);
+
+        // Tự tải thống kê theo ngày hiện tại khi mở trang
+        loadReport();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialize);
+    } else {
+        initialize();
+    }
+})();

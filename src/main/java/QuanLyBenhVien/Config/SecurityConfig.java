@@ -29,6 +29,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http
     ) throws Exception {
+        //SecurityConfig quy định role đó được phép hay bị chặn
 
         http
                 .csrf(csrf -> csrf.disable())
@@ -79,6 +80,13 @@ public class SecurityConfig {
                                 HttpMethod.GET,
                                 "/api/dich-vu-y-te",
                                 "/api/dich-vu-y-te/**"
+                        ).permitAll()
+
+                        // API danh sách khoa công khai cho app đặt lịch
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/khoa",
+                                "/api/khoa/**"
                         ).permitAll()
 
                         // Trang và API bệnh nhân tạm công khai

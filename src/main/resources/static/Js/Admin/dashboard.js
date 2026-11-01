@@ -5,12 +5,14 @@ document.addEventListener(
         const API_URL =
             "/api/dashboard";
 
+        const REPORT_API_URL = "/api/thong-ke-bao-cao";
+
 
         let appointmentChart = null;
+        let revenueChart = null;
 
-        let departmentChart = null;
 
-
+        // ==========================================
         // ==========================================
         // LẤY TOKEN
         // ==========================================
@@ -46,6 +48,115 @@ document.addEventListener(
             }
 
             return headers;
+        }
+
+        // ==========================================
+        // LOAD BIỂU ĐỒ TỪ API THỐNG KÊ BÁO CÁO
+        // ==========================================
+
+        async function loadReportCharts(
+            period = "today",
+            selectedDate = null
+        ) {
+            const revenueChartPeriod =
+                document.getElementById("revenueChartPeriod");
+
+            if (revenueChartPeriod) {
+                switch (period) {
+                    case "today":
+                        revenueChartPeriod.textContent = "Hôm nay";
+                        break;
+
+                    case "7days":
+                        revenueChartPeriod.textContent = "7 ngày qua";
+                        break;
+
+                    case "30days":
+                        revenueChartPeriod.textContent = "30 ngày qua";
+                        break;
+
+                    case "custom":
+                        revenueChartPeriod.textContent = "Ngày đã chọn";
+                        break;
+                }
+            }
+
+            let url =
+                `${REPORT_API_URL}?period=${encodeURIComponent(period)}`;
+
+            if (period === "custom" && selectedDate) {
+                url += `&date=${encodeURIComponent(selectedDate)}`;
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: getHeaders()
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    console.error("Không có quyền truy cập thống kê báo cáo");
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("Không thể tải dữ liệu biểu đồ báo cáo");
+                }
+
+                const data = await response.json();
+
+                console.log("API thống kê báo cáo:", data);
+                console.log("Dữ liệu doanh thu:", data.doanhThuTheoNgay);
+
+                // ==========================================
+                // CẬP NHẬT THẺ DOANH THU THEO THỜI GIAN
+                // ==========================================
+
+                const revenueData = data.doanhThuTheoNgay || [];
+
+                const totalRevenue = revenueData.reduce(
+                    (total, item) => total + Number(item.doanhThu || 0),
+                    0
+                );
+
+                const doanhThuElement = document.getElementById("doanhThu");
+
+                if (doanhThuElement) {
+                    doanhThuElement.textContent =
+                        new Intl.NumberFormat("vi-VN").format(totalRevenue) + " ₫";
+                }
+
+                const doanhThuDescription =
+                    document.getElementById("doanhThuDescription");
+
+                if (doanhThuDescription) {
+                    const descriptions = {
+                        today: "Tổng tiền đã thanh toán hôm nay",
+                        "7days": "Tổng tiền đã thanh toán 7 ngày qua",
+                        "30days": "Tổng tiền đã thanh toán 30 ngày qua",
+                        custom: "Tổng tiền đã thanh toán ngày đã chọn"
+                    };
+
+                    doanhThuDescription.textContent =
+                        descriptions[period] || "Tổng tiền đã thanh toán";
+                }
+
+                // Lượt khám theo thời gian
+                renderAppointmentChart(
+                    (data.luotKhamTheoNgay || []).map(item => ({
+                        label: item.label,
+                        value: Number(item.luotKham || 0)
+                    }))
+                );
+
+                // Doanh thu theo thời gian
+                renderRevenueChart(
+                    data.doanhThuTheoNgay || []
+                );
+
+            } catch (error) {
+                console.error("Report chart error:", error);
+            }
         }
 
 
@@ -126,13 +237,6 @@ document.addEventListener(
 
                 renderStatistics(data);
 
-                renderAppointmentChart(
-                    data.luotKhamTheoNgay || []
-                );
-
-                renderDepartmentChart(
-                    data.luotKhamTheoKhoa || []
-                );
 
                 renderPrescriptions(
                     data.donThuocChoCap || []
@@ -141,6 +245,9 @@ document.addEventListener(
                 renderActivities(
                     data.hoatDongGanDay || []
                 );
+
+                // Tải 2 biểu đồ từ API thống kê báo cáo
+                loadReportCharts("today");
 
 
             } catch (error) {
@@ -478,111 +585,200 @@ document.addEventListener(
         // CHART THEO KHOA
         // ==========================================
 
-        function renderDepartmentChart(
-            data
-        ) {
+        //        function renderDepartmentChart(
+        //            data
+        //        ) {
+        //
+        //            const canvas =
+        //                document.getElementById(
+        //                    "departmentChart"
+        //                );
+        //
+        //
+        //            if (!canvas) {
+        //                return;
+        //            }
+        //
+        //
+        //            const labels =
+        //                data.map(
+        //                    item => shortenText(
+        //                        item.label,
+        //                        12
+        //                    )
+        //                );
+        //
+        //
+        //            const values =
+        //                data.map(
+        //                    item => item.value
+        //                );
+        //
+        //
+        //            if (departmentChart) {
+        //
+        //                departmentChart.destroy();
+        //            }
+        //
+        //
+        //            departmentChart =
+        //                new Chart(
+        //                    canvas,
+        //                    {
+        //                        type: "bar",
+        //
+        //                        data: {
+        //
+        //                            labels: labels,
+        //
+        //                            datasets: [
+        //                                {
+        //                                    label:
+        //                                        "Lượt khám",
+        //
+        //                                    data:
+        //                                        values,
+        //
+        //                                    borderRadius:
+        //                                        7,
+        //
+        //                                    borderSkipped:
+        //                                        false
+        //                                }
+        //                            ]
+        //                        },
+        //
+        //                        options: {
+        //
+        //                            responsive: true,
+        //
+        //                            maintainAspectRatio:
+        //                                false,
+        //
+        //                            plugins: {
+        //
+        //                                legend: {
+        //                                    display: false
+        //                                }
+        //                            },
+        //
+        //                            scales: {
+        //
+        //                                y: {
+        //
+        //                                    beginAtZero:
+        //                                        true,
+        //
+        //                                    ticks: {
+        //                                        precision: 0
+        //                                    },
+        //
+        //                                    grid: {
+        //                                        color:
+        //                                            "#e2e8f0"
+        //                                    }
+        //                                },
+        //
+        //                                x: {
+        //
+        //                                    grid: {
+        //                                        display:
+        //                                            false
+        //                                    }
+        //                                }
+        //                            }
+        //                        }
+        //                    }
+        //                );
+        //        }
+        // ==========================================
+        // CHART DOANH THU THEO THỜI GIAN
+        // ==========================================
 
+        function renderRevenueChart(data) {
             const canvas =
-                document.getElementById(
-                    "departmentChart"
-                );
-
+                document.getElementById("revenueChart");
 
             if (!canvas) {
                 return;
             }
 
+            const labels = data.map(
+                item => item.label
+            );
 
-            const labels =
-                data.map(
-                    item => shortenText(
-                        item.label,
-                        12
-                    )
-                );
+            const values = data.map(
+                item => Number(item.doanhThu || 0)
+            );
 
-
-            const values =
-                data.map(
-                    item => item.value
-                );
-
-
-            if (departmentChart) {
-
-                departmentChart.destroy();
+            if (revenueChart) {
+                revenueChart.destroy();
             }
 
+            revenueChart = new Chart(canvas, {
+                type: "bar",
 
-            departmentChart =
-                new Chart(
-                    canvas,
-                    {
-                        type: "bar",
+                data: {
+                    labels: labels,
 
-                        data: {
+                    datasets: [{
+                        label: "Doanh thu (VNĐ)",
+                        data: values,
+                        borderRadius: 7,
+                        borderSkipped: false
+                    }]
+                },
 
-                            labels: labels,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
 
-                            datasets: [
-                                {
-                                    label:
-                                        "Lượt khám",
-
-                                    data:
-                                        values,
-
-                                    borderRadius:
-                                        7,
-
-                                    borderSkipped:
-                                        false
-                                }
-                            ]
+                    plugins: {
+                        legend: {
+                            display: false
                         },
 
-                        options: {
-
-                            responsive: true,
-
-                            maintainAspectRatio:
-                                false,
-
-                            plugins: {
-
-                                legend: {
-                                    display: false
-                                }
-                            },
-
-                            scales: {
-
-                                y: {
-
-                                    beginAtZero:
-                                        true,
-
-                                    ticks: {
-                                        precision: 0
-                                    },
-
-                                    grid: {
-                                        color:
-                                            "#e2e8f0"
-                                    }
-                                },
-
-                                x: {
-
-                                    grid: {
-                                        display:
-                                            false
-                                    }
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return new Intl.NumberFormat(
+                                        "vi-VN",
+                                        {
+                                            style: "currency",
+                                            currency: "VND",
+                                            maximumFractionDigits: 0
+                                        }
+                                    ).format(context.raw || 0);
                                 }
                             }
                         }
+                    },
+
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat(
+                                        "vi-VN"
+                                    ).format(value);
+                                }
+                            },
+
+                            grid: {
+                                color: "#e2e8f0"
+                            }
+                        },
+
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
                     }
-                );
+                }
+            });
         }
 
         // ==========================================
@@ -1160,13 +1356,8 @@ document.addEventListener(
                 // Render lại toàn bộ dashboard
                 renderStatistics(data);
 
-                renderAppointmentChart(
-                    data.luotKhamTheoNgay || []
-                );
-
-                renderDepartmentChart(
-                    data.luotKhamTheoKhoa || []
-                );
+                // Tải lại 2 biểu đồ theo bộ lọc thời gian
+                await loadReportCharts(period, selectedDate);
 
                 renderPrescriptions(
                     data.donThuocChoCap || []

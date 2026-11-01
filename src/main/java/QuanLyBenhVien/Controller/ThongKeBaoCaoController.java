@@ -2,6 +2,7 @@ package QuanLyBenhVien.Controller;
 
 import QuanLyBenhVien.DTO.ThongKeBaoCaoResponse;
 import QuanLyBenhVien.Service.ThongKeBaoCaoService;
+
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -16,46 +17,51 @@ public class ThongKeBaoCaoController {
 
     private final ThongKeBaoCaoService service;
 
-
     public ThongKeBaoCaoController(
             ThongKeBaoCaoService service
     ) {
         this.service = service;
     }
 
-
+    // =====================================================
+    // THỐNG KÊ
+    // =====================================================
     @GetMapping
     public ResponseEntity<ThongKeBaoCaoResponse> getThongKe(
 
-            @RequestParam(
-                    defaultValue = "30days"
-            )
+            @RequestParam(defaultValue = "30days")
             String period,
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date,
 
-            @RequestParam(
-                    required = false
-            )
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate,
+
+            @RequestParam(required = false)
             Integer maKhoa
 
     ) {
-
         return ResponseEntity.ok(
                 service.getThongKe(
                         period,
                         date,
+                        fromDate,
+                        toDate,
                         maKhoa
                 )
         );
     }
 
-    // ============================================
+    // =====================================================
     // EXPORT XLSX
-    // ============================================
+    // =====================================================
     @GetMapping("/export")
     public ResponseEntity<byte[]> exportReport(
 
@@ -67,14 +73,24 @@ public class ThongKeBaoCaoController {
 
             @RequestParam(required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate date
+            LocalDate date,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate fromDate,
+
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate toDate
 
     ) throws Exception {
 
         byte[] file = service.exportExcel(
                 period,
                 maKhoa,
-                date
+                date,
+                fromDate,
+                toDate
         );
 
         return ResponseEntity.ok()
@@ -89,5 +105,4 @@ public class ThongKeBaoCaoController {
                 )
                 .body(file);
     }
-
 }
