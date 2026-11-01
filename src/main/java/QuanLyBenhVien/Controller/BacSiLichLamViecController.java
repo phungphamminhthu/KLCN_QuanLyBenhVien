@@ -106,23 +106,67 @@ public class BacSiLichLamViecController {
             List<Map<String, Object>> result = new ArrayList<>();
 
             for (LichLamViec lich : danhSach) {
-                long soBenhNhanDaDat =
-                        lichDangKyKhamRepository.countLuotDatTrongKhungGio(
-                                bacSi.getMaBacSi(),
-                                lich.getNgayLamViec(),
-                                lich.getGioBatDau(),
-                                lich.getGioKetThuc()
-                        );
+                LocalTime batDauCa = lich.getGioBatDau();
+                LocalTime ketThucCa = lich.getGioKetThuc();
+
+                long tongBenhNhanDaDat = 0;
+                int tongSoSlot = 0;
+                List<Map<String, Object>> chiTietKhungGio = new ArrayList<>();
+
+                LocalTime batDauKhung = batDauCa;
+
+                while (!batDauKhung.plusMinutes(30).isAfter(ketThucCa)) {
+                    LocalTime ketThucKhung = batDauKhung.plusMinutes(30);
+
+                    long daDat = lichDangKyKhamRepository.countLuotDatTrongKhungGio(
+                            bacSi.getMaBacSi(),
+                            lich.getNgayLamViec(),
+                            batDauKhung,
+                            ketThucKhung
+                    );
+
+                    int soBenhNhan = (int) daDat;
+                    int conTrong = Math.max(0, 10 - soBenhNhan);
+
+                    Map<String, Object> slot = new LinkedHashMap<>();
+                    slot.put("gioBatDau", batDauKhung.toString());
+                    slot.put("gioKetThuc", ketThucKhung.toString());
+                    slot.put("daDat", soBenhNhan);
+                    slot.put("tongSoSlot", 10);
+                    slot.put("conTrong", conTrong);
+                    slot.put("hetCho", soBenhNhan >= 10);
+
+                    chiTietKhungGio.add(slot);
+
+                    tongBenhNhanDaDat += daDat;
+                    tongSoSlot += 10;
+
+                    batDauKhung = ketThucKhung;
+                }
+
+                int soSlotConTrong = Math.max(
+                        0,
+                        tongSoSlot - (int) tongBenhNhanDaDat
+                );
 
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("maLichLamViec", lich.getMaLichLamViec());
                 item.put("ngayLamViec", lich.getNgayLamViec());
                 item.put("gioBatDau", lich.getGioBatDau());
                 item.put("gioKetThuc", lich.getGioKetThuc());
-                item.put("maPhong", lich.getPhong() != null
-                        ? lich.getPhong().getMaPhong() : null);
-                item.put("soBenhNhanDaDat", soBenhNhanDaDat);
-                item.put("hetCho", soBenhNhanDaDat >= 10);
+
+                item.put(
+                        "maPhong",
+                        lich.getPhong() != null
+                                ? lich.getPhong().getMaPhong()
+                                : null
+                );
+
+                item.put("soBenhNhanDaDat", tongBenhNhanDaDat);
+                item.put("tongSoSlot", tongSoSlot);
+                item.put("soSlotConTrong", soSlotConTrong);
+                item.put("hetCho", tongSoSlot > 0 && soSlotConTrong == 0);
+                item.put("chiTietKhungGio", chiTietKhungGio);
                 item.put("trangThai", lich.getTrangThai());
 
                 result.add(item);
@@ -398,6 +442,8 @@ public class BacSiLichLamViecController {
                         );
 
                 Map<String, Object> item = new LinkedHashMap<>();
+
+                item.put("maLichLamViec", lich.getMaLichLamViec());
                 item.put("gioBatDau", batDau.toString());
                 item.put("gioKetThuc", gioKetThucKhung.toString());
                 item.put("daDat", daDat);
