@@ -1,13 +1,29 @@
+/* =========================
+   Permission Page
+========================= */
+
 .permission-page {
     padding: 28px;
     color: #1e293b;
     min-width: 0;
+    box-sizing: border-box;
 }
+
+.permission-page *,
+.permission-page *::before,
+.permission-page *::after {
+    box-sizing: border-box;
+}
+
+/* =========================
+   Page Header
+========================= */
 
 .permission-page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
     margin-bottom: 24px;
 }
 
@@ -22,7 +38,12 @@
     margin: 0;
     color: #64748b;
     font-size: 14px;
+    line-height: 1.5;
 }
+
+/* =========================
+   Main Layout
+========================= */
 
 .permission-layout {
     display: grid;
@@ -38,6 +59,10 @@
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.025);
 }
+
+/* =========================
+   Role Panel
+========================= */
 
 .role-panel {
     padding: 18px;
@@ -60,6 +85,7 @@
     margin: 0;
     color: #64748b;
     font-size: 13px;
+    line-height: 1.5;
 }
 
 .role-list {
@@ -72,6 +98,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 12px;
     width: 100%;
     padding: 12px 14px;
     border: 1px solid #e2e8f0;
@@ -80,7 +107,10 @@
     color: #334155;
     text-align: left;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        color 0.15s ease;
 }
 
 .role-item:hover {
@@ -90,7 +120,7 @@
 
 .role-item.active {
     background: #eff6ff;
-    border-color: #bfdbfe;
+    border-color: #93c5fd;
     color: #2563eb;
 }
 
@@ -106,8 +136,13 @@
     font-size: 12px;
 }
 
+/* =========================
+   Permission Panel
+========================= */
+
 .permission-panel {
     padding: 20px;
+    min-width: 0;
 }
 
 .permission-toolbar {
@@ -121,6 +156,7 @@
 .permission-search {
     width: 260px;
     max-width: 100%;
+    flex-shrink: 0;
 }
 
 #searchPermission {
@@ -133,6 +169,13 @@
     color: #334155;
     font-size: 13px;
     outline: none;
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+#searchPermission::placeholder {
+    color: #94a3b8;
 }
 
 #searchPermission:focus {
@@ -140,31 +183,74 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
 }
 
+/* =========================
+   Permission Table Scroll
+========================= */
+
 .table-wrapper {
     width: 100%;
+    max-height: 520px;
+    overflow-y: auto;
     overflow-x: auto;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
 }
+
+/* Scrollbar - Chrome / Edge */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* =========================
+   Permission Table
+========================= */
 
 .permission-table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 680px;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 13px;
 }
 
 .permission-table th,
 .permission-table td {
-    padding: 14px 12px;
+    padding: 13px 12px;
     border-bottom: 1px solid #e2e8f0;
     text-align: center;
     vertical-align: middle;
+    background-clip: padding-box;
 }
 
+/* Sticky table header */
 .permission-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
     background: #f8fafc;
     color: #475569;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
+    box-shadow: 0 1px 0 #e2e8f0;
 }
 
 .permission-table th:first-child,
@@ -174,15 +260,21 @@
     text-align: left;
 }
 
+.permission-table tbody tr {
+    transition: background 0.12s ease;
+}
+
 .permission-table tbody tr:hover:not(.group-row) {
     background: #fafcff;
 }
 
+/* Permission name */
 .permission-name strong {
     display: block;
     color: #1e293b;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1.45;
 }
 
 .permission-name small {
@@ -190,22 +282,49 @@
     margin-top: 4px;
     color: #64748b;
     font-size: 12px;
+    line-height: 1.4;
 }
 
+/* Group row */
 .group-row td {
     background: #eff6ff;
     color: #1d4ed8;
     font-weight: 700;
     text-align: left !important;
+    padding: 11px 14px;
 }
 
+/* Checkbox */
 .permission-checkbox,
 #selectAll {
     width: 16px;
     height: 16px;
+    margin: 0;
     accent-color: #2563eb;
     cursor: pointer;
+    vertical-align: middle;
 }
+
+.permission-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+/* Remove bottom border from last row */
+.permission-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Empty state */
+.empty-state {
+    padding: 28px 12px !important;
+    color: #64748b;
+    text-align: center !important;
+}
+
+/* =========================
+   Permission Footer
+========================= */
 
 .permission-footer {
     display: flex;
@@ -223,16 +342,19 @@
     color: #475569;
     font-size: 13px;
     cursor: pointer;
+    user-select: none;
 }
 
 .permission-footer-right {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 14px;
 }
 
 .message {
     font-size: 13px;
+    line-height: 1.4;
 }
 
 .message.success {
@@ -243,7 +365,11 @@
     color: #dc2626;
 }
 
+/* Save button */
 .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 38px;
     padding: 0 18px;
     border: 0;
@@ -252,11 +378,20 @@
     color: #fff;
     font-size: 13px;
     font-weight: 600;
+    white-space: nowrap;
     cursor: pointer;
+    transition:
+        background 0.15s ease,
+        box-shadow 0.15s ease;
 }
 
 .btn-primary:hover {
     background: #1d4ed8;
+}
+
+.btn-primary:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .btn-primary:disabled {
@@ -264,39 +399,85 @@
     cursor: not-allowed;
 }
 
-.empty-state {
-    padding: 28px 12px !important;
-    color: #64748b;
-    text-align: center !important;
-}
+/* =========================
+   Responsive: Tablet
+========================= */
 
 @media (max-width: 1100px) {
     .permission-layout {
         grid-template-columns: 220px minmax(0, 1fr);
+        gap: 16px;
+    }
+
+    .permission-panel {
+        padding: 16px;
     }
 
     .permission-toolbar {
         align-items: stretch;
         flex-direction: column;
+        gap: 14px;
     }
 
     .permission-search {
         width: 100%;
     }
+
+    .table-wrapper {
+        max-height: 480px;
+    }
 }
+
+/* =========================
+   Responsive: Mobile
+========================= */
 
 @media (max-width: 768px) {
     .permission-page {
         padding: 16px;
     }
 
+    .permission-page-header {
+        align-items: flex-start;
+        flex-direction: column;
+        margin-bottom: 18px;
+    }
+
+    .permission-page-header h1 {
+        font-size: 22px;
+    }
+
     .permission-layout {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .role-panel,
+    .permission-panel {
+        padding: 16px;
+    }
+
+    .role-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .role-item {
+        padding: 10px 12px;
+    }
+
+    .table-wrapper {
+        max-height: 420px;
+    }
+
+    .permission-table {
+        min-width: 650px;
     }
 
     .permission-footer {
         align-items: stretch;
         flex-direction: column;
+        gap: 14px;
     }
 
     .permission-footer-right {
@@ -306,5 +487,42 @@
 
     .btn-primary {
         width: 100%;
+    }
+}
+
+/* =========================
+   Responsive: Small Mobile
+========================= */
+
+@media (max-width: 480px) {
+    .permission-page {
+        padding: 12px;
+    }
+
+    .permission-page-header h1 {
+        font-size: 20px;
+    }
+
+    .role-list {
+        grid-template-columns: 1fr;
+    }
+
+    .permission-panel,
+    .role-panel {
+        padding: 12px;
+    }
+
+    .permission-toolbar h2,
+    .card-heading h2 {
+        font-size: 16px;
+    }
+
+    .permission-footer-right {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .message {
+        min-height: 18px;
     }
 }

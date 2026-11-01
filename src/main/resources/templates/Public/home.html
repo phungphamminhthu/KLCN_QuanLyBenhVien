@@ -20,33 +20,34 @@
 <body>
 
 <!-- HEADER -->
-<header class="header">
+<!--<header class="header">-->
 
-    <div class="logo">
-        <span>✚</span>
+<!--    <div class="logo">-->
+<!--        <span>✚</span>-->
 
-        <div>
-            <strong>MedCare Hospital</strong>
-            <small>Hệ thống quản lý bệnh viện</small>
-        </div>
-    </div>
-
-
-    <nav>
-        <a th:href="@{/home}">Trang chủ</a>
-        <a th:href="@{/news}">Tin tức</a>
-        <a th:href="@{/services}">Dịch vụ</a>
-        <a th:href="@{/about}">Giới thiệu</a>
-    </nav>
+<!--        <div>-->
+<!--            <strong>MedCare Hospital</strong>-->
+<!--            <small>Hệ thống quản lý bệnh viện</small>-->
+<!--        </div>-->
+<!--    </div>-->
 
 
-    <div class="auth-buttons">
-        <a href="/auth/login" class="btn-login">
-            Đăng nhập
-        </a>
-    </div>
+<!--    <nav>-->
+<!--        <a th:href="@{/home}">Trang chủ</a>-->
+<!--        <a th:href="@{/news}">Tin tức</a>-->
+<!--        <a th:href="@{/services}">Dịch vụ</a>-->
+<!--        <a th:href="@{/about}">Giới thiệu</a>-->
+<!--    </nav>-->
 
-</header>
+
+<!--    <div class="auth-buttons">-->
+<!--        <a href="/auth/login" class="btn-login">-->
+<!--            Đăng nhập-->
+<!--        </a>-->
+<!--    </div>-->
+
+<!--</header>-->
+<div th:replace="~{Public/fragments/header :: publicHeader}"></div>
 
 <!-- HERO -->
 <section class="hero">

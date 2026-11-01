@@ -183,7 +183,7 @@ public class AuthController {
 
         return ResponseEntity
                 .badRequest()
-                .body("Đăng nhập thất bại. Kiểm tra log Backend.");
+                .body("Đăng nhập thất bại.");
     }
     }
 
