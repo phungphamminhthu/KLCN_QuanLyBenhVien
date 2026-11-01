@@ -116,6 +116,13 @@ public class SecurityConfig {
                                 SecurityRoleConfig.PATIENT_APIS
                         ).hasRole("BENHNHAN")
 
+                        // Bệnh nhân và bác sĩ được xem lịch làm việc / khung giờ
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/bac-si/lich-lam-viec/danh-sach",
+                                "/api/bac-si/lich-lam-viec/khung-gio"
+                        ).hasAnyRole("BENHNHAN", "BACSI")
+
                         // API Bác sĩ
                         .requestMatchers(
                                 SecurityRoleConfig.BACSI_APIS

@@ -178,6 +178,16 @@ public class JwtAuthenticationFilter
 
         System.out.println("======================================");
 
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        System.out.println("===== SECURITY DEBUG =====");
+        System.out.println("URI: " + Request.getRequestURI());
+        System.out.println("Authenticated: " +
+                (auth != null && auth.isAuthenticated()));
+        System.out.println("Authorities: " +
+                (auth != null ? auth.getAuthorities() : null));
+        System.out.println("==========================");
+
         FilterChain.doFilter(
                 Request,
                 Response

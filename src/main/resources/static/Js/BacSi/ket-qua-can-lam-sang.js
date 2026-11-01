@@ -1,6 +1,16 @@
 
 const API_BASE = "/api/bac-si/kham-benh";
 
+function layHeadersAuth() {
+    const token =
+        localStorage.getItem("Token") ||
+        sessionStorage.getItem("Token");
+
+    return token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
+}
+
 let danhSachKetQua = [];
 
 let boLocHienTai = "all";
@@ -205,11 +215,12 @@ async function taiDanhSachKetQua() {
 
     try {
 
-        const response =
-            await fetch(
-                API_BASE +
-                "/ket-qua-can-lam-sang"
-            );
+        const response = await fetch(
+            API_BASE + "/ket-qua-can-lam-sang",
+            {
+                headers: layHeadersAuth()
+            }
+        );
 
 
         if (!response.ok) {
@@ -622,8 +633,9 @@ async function xemChiTietKetQua(
             + "/ket-qua";
 
 
-        const response =
-            await fetch(url);
+        const response = await fetch(url, {
+            headers: layHeadersAuth()
+        });
 
 
         const data =
