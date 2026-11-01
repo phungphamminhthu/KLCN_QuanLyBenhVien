@@ -45,4 +45,9 @@ public final class SecurityRoleConfig {
     public static final String[] AUTHENTICATED_APIS = {
             "/api/thong-bao/**"
     };
+
+    // Bác sĩ
+    public static final String[] BACSI_APIS = {
+            "/api/bac-si/**"
+    };
 }

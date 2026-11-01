@@ -14,9 +14,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-    // ============================================
-    // cấu hình chính, JWT và thứ tự áp dụng rule.
-    // ============================================
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
@@ -34,13 +31,10 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                // JWT API: tắt CSRF theo cấu hình hiện tại
                 .csrf(csrf -> csrf.disable())
 
-                // User details service
                 .userDetailsService(customUserDetailsService)
 
-                // Không sử dụng session
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
@@ -68,7 +62,7 @@ public class SecurityConfig {
                                 SecurityRouteConfig.PUBLIC_ROUTES
                         ).permitAll()
 
-                        // Các trang Thymeleaf hiện tại
+                        // Các trang Thymeleaf
                         .requestMatchers(
                                 SecurityRouteConfig.WEB_PAGES
                         ).permitAll()
@@ -87,7 +81,7 @@ public class SecurityConfig {
                                 "/api/dich-vu-y-te/**"
                         ).permitAll()
 
-                        // Trang và API bệnh nhân đang tạm công khai
+                        // Trang và API bệnh nhân tạm công khai
                         .requestMatchers(
                                 "/benh-nhan/trang-chu",
                                 "/benh-nhan/dat-lich",
@@ -97,7 +91,7 @@ public class SecurityConfig {
                                 "/api/thanh-toan/lich-kham/*/hoa-don"
                         ).permitAll()
 
-                        // API phân quyền và phân công tiếp nhận: Admin
+                        // API Admin
                         .requestMatchers(
                                 SecurityRoleConfig.ADMIN_APIS
                         ).hasRole("ADMIN")
@@ -117,10 +111,15 @@ public class SecurityConfig {
                                 SecurityRoleConfig.MEDICAL_RECORD_APIS
                         ).hasAnyRole("BENHNHAN", "BACSI", "ADMIN")
 
-                        // API đăng ký thiết bị FCM: Bệnh nhân
+                        // API thiết bị FCM: Bệnh nhân
                         .requestMatchers(
                                 SecurityRoleConfig.PATIENT_APIS
                         ).hasRole("BENHNHAN")
+
+                        // API Bác sĩ
+                        .requestMatchers(
+                                SecurityRoleConfig.BACSI_APIS
+                        ).hasRole("BACSI")
 
                         // API thông báo: yêu cầu đăng nhập
                         .requestMatchers(
@@ -131,10 +130,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // Tắt form login mặc định
                 .formLogin(form -> form.disable())
 
-                // JWT filter
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
