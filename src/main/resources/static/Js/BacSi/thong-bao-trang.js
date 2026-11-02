@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const icons = {
         BENH_NHAN_MOI: "fa-user-plus",
+        KetQuaDichVu: "fa-flask",
         KET_QUA_DICH_VU_MOI: "fa-flask",
         LICH_KHAM_BI_HUY: "fa-calendar-xmark",
         LICH_KHAM_THAY_DOI: "fa-calendar-days"
@@ -41,13 +42,28 @@ document.addEventListener("DOMContentLoaded", () => {
         return response.json();
     }
 
-    function duongDanTheoLoai(type) {
+    function duongDanTheoLoai(tb) {
+        const type = tb.type;
+        const message = tb.message || "";
+
         switch (type) {
             case "BENH_NHAN_MOI":
                 return "/auth/bac-si/kham-benh";
 
-            case "KET_QUA_DICH_VU_MOI":
+            case "KetQuaDichVu":
+            case "KET_QUA_DICH_VU_MOI": {
+                // Lấy mã lịch khám từ nội dung thông báo
+                const match = message.match(/\[MaLichKham:(\d+)\]/);
+
+                if (match) {
+                    const maLichKham = Number(match[1]);
+
+                    return `/auth/bac-si/kham-benh/${maLichKham}/can-lam-sang`;
+                }
+
+                // Thông báo cũ chưa có mã lịch khám
                 return "/auth/bac-si/ket-qua-can-lam-sang";
+            }
 
             case "LICH_KHAM_BI_HUY":
             case "LICH_KHAM_THAY_DOI":
@@ -57,7 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return null;
         }
     }
-
     function render(data) {
         list.replaceChildren();
 
@@ -94,7 +109,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const message = document.createElement("p");
             message.className = "notification-item-message";
-            message.textContent = tb.message || "";
+            message.textContent = (tb.message || "")
+                .replace(/\s*\[MaLichKham:\d+\]/g, "")
+                .trim();
 
             const time = document.createElement("small");
             time.className = "notification-item-time";
@@ -128,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         );
                     }
 
-                    const url = duongDanTheoLoai(tb.type);
+                    const url = duongDanTheoLoai(tb);
 
                     if (url) {
                         window.location.href = url;

@@ -401,7 +401,7 @@ public class TiepNhanDangKyKhamService {
         result.setSoThuTu(soThuTu);
         result.setNgayKham(ngayKham);
         result.setGioKham(gioKham);
-        result.setTrangThai("ChoKham");
+        result.setTrangThai("ChoGoi");
 
         return result;
     }
@@ -467,7 +467,7 @@ public class TiepNhanDangKyKhamService {
                         LyDoKham,
                         TrangThai
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'ChoKham')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'ChoGoi')
                     """,
                     Statement.RETURN_GENERATED_KEYS
             );

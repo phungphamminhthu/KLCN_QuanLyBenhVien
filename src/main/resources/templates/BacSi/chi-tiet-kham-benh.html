@@ -382,86 +382,87 @@
             </div>
         </div>
     </div>
-</div>
+    <div class="history-overlay hidden" id="historyOverlay">
+        <div class="history-modal" id="historyDrawer">
 
-<!-- MODAL LỊCH SỬ KHÁM -->
-<div class="history-overlay hidden" id="historyOverlay">
-    <div class="history-modal" id="historyDrawer">
-
-        <div class="history-modal-header">
-            <div>
-                <h2>
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    Lịch sử khám
-                </h2>
-                <p>Các lần khám trước của bệnh nhân</p>
-            </div>
-
-            <button type="button"
-                    class="history-close"
-                    id="btnCloseHistory"
-                    aria-label="Đóng lịch sử khám">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-
-        <div class="history-modal-body">
-
-            <!-- DANH SÁCH LỊCH SỬ -->
-            <div class="history-view" id="historyListView">
-
-                <div class="history-loading hidden" id="historyLoading">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Đang tải lịch sử khám...</span>
+            <div class="history-modal-header">
+                <div>
+                    <h2>
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        Lịch sử khám
+                    </h2>
+                    <p>Các lần khám trước của bệnh nhân</p>
                 </div>
-
-                <div class="history-empty hidden" id="historyEmpty">
-                    <i class="fa-regular fa-folder-open"></i>
-                    <h3>Chưa có lịch sử khám</h3>
-                    <p>Bệnh nhân chưa có lần khám hoàn tất trước đây.</p>
-                </div>
-
-                <div class="history-list" id="historyList"></div>
-
-                <div class="history-pagination hidden" id="historyPagination">
-                    <button type="button"
-                            class="history-page-btn"
-                            id="btnHistoryPrev"
-                            aria-label="Trang trước">
-                        <i class="fa-solid fa-chevron-left"></i>
-                    </button>
-
-                    <div class="history-page-numbers" id="historyPageNumbers"></div>
-
-                    <button type="button"
-                            class="history-page-btn"
-                            id="btnHistoryNext"
-                            aria-label="Trang sau">
-                        <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- CHI TIẾT MỘT LẦN KHÁM -->
-            <div class="history-view hidden" id="historyDetailView">
 
                 <button type="button"
-                        class="history-back"
-                        id="btnBackHistory">
-                    <i class="fa-solid fa-arrow-left"></i>
-                    <span>Quay lại lịch sử</span>
+                        class="history-close"
+                        id="btnCloseHistory"
+                        aria-label="Đóng lịch sử khám">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
+            </div>
 
-                <div class="history-loading hidden" id="historyDetailLoading">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Đang tải hồ sơ khám...</span>
+            <div class="history-modal-body">
+
+                <!-- DANH SÁCH LỊCH SỬ -->
+                <div class="history-view" id="historyListView">
+
+                    <div class="history-loading hidden" id="historyLoading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Đang tải lịch sử khám...</span>
+                    </div>
+
+                    <div class="history-empty hidden" id="historyEmpty">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <h3>Chưa có lịch sử khám</h3>
+                        <p>Bệnh nhân chưa có lần khám hoàn tất trước đây.</p>
+                    </div>
+
+                    <div class="history-list" id="historyList"></div>
+
+                    <div class="history-pagination hidden" id="historyPagination">
+                        <button type="button"
+                                class="history-page-btn"
+                                id="btnHistoryPrev"
+                                aria-label="Trang trước">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+
+                        <div class="history-page-numbers" id="historyPageNumbers"></div>
+
+                        <button type="button"
+                                class="history-page-btn"
+                                id="btnHistoryNext"
+                                aria-label="Trang sau">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="history-detail" id="historyDetail"></div>
+                <!-- CHI TIẾT MỘT LẦN KHÁM -->
+                <div class="history-view hidden" id="historyDetailView">
+
+                    <button type="button"
+                            class="history-back"
+                            id="btnBackHistory">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Quay lại lịch sử</span>
+                    </button>
+
+                    <div class="history-loading hidden" id="historyDetailLoading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Đang tải hồ sơ khám...</span>
+                    </div>
+
+                    <div class="history-detail" id="historyDetail"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+
+
 
 <!-- LOADING TOÀN TRANG -->
 <div class="page-loading hidden" id="pageLoading">

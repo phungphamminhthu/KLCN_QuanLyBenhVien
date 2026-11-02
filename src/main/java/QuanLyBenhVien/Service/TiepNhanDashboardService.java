@@ -468,83 +468,83 @@ public class TiepNhanDashboardService {
     // ChoGoi -> DaGoi; cho phép gọi lại khi đang DaGoi.
     // =========================================================
 
-        //    @Transactional
-        //    public boolean updateTrangThaiHangDoi(
-        //            String maLichKham,
-        //            String trangThaiMoi
-        //    ) {
-        //        if (!"DaGoi".equals(trangThaiMoi)) {
-        //            return false;
-        //        }
-        //
-        //        Integer id = docMaLichKham(maLichKham);
-        //
-        //        if (id == null) {
-        //            return false;
-        //        }
-        //
-        //        CaTrucHienTai caTruc =
-        //                layCaTrucChoLichKham(id);
-        //
-        //        LocalDateTime hienTai =
-        //                LocalDateTime.now(MUI_GIO);
-        //
-        //        LocalDate homNay =
-        //                hienTai.toLocalDate();
-        //
-        //        String sql = """
-        //                UPDATE lichdangkykham
-        //                SET TrangThai = 'DaGoi'
-        //                WHERE MaLichKham = ?
-        //                  AND NgayKham = ?
-        //                  AND MaKhoa = ?
-        //                  AND TrangThai IN ('ChoGoi', 'DaGoi')
-        //                """ + DIEU_KIEN_CA_TRUC;
-        //
-        //        int soDongCapNhat = jdbcTemplate.update(
-        //                sql,
-        //                id,
-        //                homNay,
-        //                caTruc.maKhoa(),
-        //                caTruc.maPhanCong(),
-        //                caTruc.maNhanVienTiepNhan(),
-        //                hienTai,
-        //                hienTai
-        //        );
-        //
-        //        if (soDongCapNhat > 0) {
-        //            return true;
-        //        }
-        //
-        //        /*
-        //         * Một số cấu hình JDBC trả về 0 khi gọi lại
-        //         * vì giá trị DaGoi không thay đổi.
-        //         */
-        //        String sqlKiemTra = """
-        //                SELECT MaLichKham
-        //                FROM lichdangkykham
-        //                WHERE MaLichKham = ?
-        //                  AND NgayKham = ?
-        //                  AND MaKhoa = ?
-        //                  AND TrangThai = 'DaGoi'
-        //                """
-        //                + DIEU_KIEN_CA_TRUC
-        //                + " FOR UPDATE";
-        //
-        //        List<Integer> lichDaGoi = jdbcTemplate.query(
-        //                sqlKiemTra,
-        //                (rs, rowNum) -> rs.getInt("MaLichKham"),
-        //                id,
-        //                homNay,
-        //                caTruc.maKhoa(),
-        //                caTruc.maPhanCong(),
-        //                caTruc.maNhanVienTiepNhan(),
-        //                hienTai,
-        //                hienTai
-        //        );
-        //
-        //        return !lichDaGoi.isEmpty();
-        //    }
+    //    @Transactional
+    //    public boolean updateTrangThaiHangDoi(
+    //            String maLichKham,
+    //            String trangThaiMoi
+    //    ) {
+    //        if (!"DaGoi".equals(trangThaiMoi)) {
+    //            return false;
+    //        }
+    //
+    //        Integer id = docMaLichKham(maLichKham);
+    //
+    //        if (id == null) {
+    //            return false;
+    //        }
+    //
+    //        CaTrucHienTai caTruc =
+    //                layCaTrucChoLichKham(id);
+    //
+    //        LocalDateTime hienTai =
+    //                LocalDateTime.now(MUI_GIO);
+    //
+    //        LocalDate homNay =
+    //                hienTai.toLocalDate();
+    //
+    //        String sql = """
+    //                UPDATE lichdangkykham
+    //                SET TrangThai = 'DaGoi'
+    //                WHERE MaLichKham = ?
+    //                  AND NgayKham = ?
+    //                  AND MaKhoa = ?
+    //                  AND TrangThai IN ('ChoGoi', 'DaGoi')
+    //                """ + DIEU_KIEN_CA_TRUC;
+    //
+    //        int soDongCapNhat = jdbcTemplate.update(
+    //                sql,
+    //                id,
+    //                homNay,
+    //                caTruc.maKhoa(),
+    //                caTruc.maPhanCong(),
+    //                caTruc.maNhanVienTiepNhan(),
+    //                hienTai,
+    //                hienTai
+    //        );
+    //
+    //        if (soDongCapNhat > 0) {
+    //            return true;
+    //        }
+    //
+    //        /*
+    //         * Một số cấu hình JDBC trả về 0 khi gọi lại
+    //         * vì giá trị DaGoi không thay đổi.
+    //         */
+    //        String sqlKiemTra = """
+    //                SELECT MaLichKham
+    //                FROM lichdangkykham
+    //                WHERE MaLichKham = ?
+    //                  AND NgayKham = ?
+    //                  AND MaKhoa = ?
+    //                  AND TrangThai = 'DaGoi'
+    //                """
+    //                + DIEU_KIEN_CA_TRUC
+    //                + " FOR UPDATE";
+    //
+    //        List<Integer> lichDaGoi = jdbcTemplate.query(
+    //                sqlKiemTra,
+    //                (rs, rowNum) -> rs.getInt("MaLichKham"),
+    //                id,
+    //                homNay,
+    //                caTruc.maKhoa(),
+    //                caTruc.maPhanCong(),
+    //                caTruc.maNhanVienTiepNhan(),
+    //                hienTai,
+    //                hienTai
+    //        );
+    //
+    //        return !lichDaGoi.isEmpty();
+    //    }
     // =========================================================
     // GỌI BỆNH NHÂN
     // ChoGoi -> DaGoi
@@ -786,6 +786,7 @@ public class TiepNhanDashboardService {
         // Chỉ gửi thông báo sau khi đã cập nhật trạng thái
         // và ghi nhận tiếp nhận thành công.
         guiThongBaoTiepNhan(id);
+        guiThongBaoBacSiCoBenhNhanMoi(id);
 
         return true;
     }
@@ -816,6 +817,43 @@ public class TiepNhanDashboardService {
                 "Tiếp nhận thành công",
                 "Bạn đã hoàn tất thủ tục tiếp nhận và vui lòng chờ gọi vào phòng.",
                 "TIEP_NHAN"
+        );
+    }
+    private void guiThongBaoBacSiCoBenhNhanMoi(Integer maLichKham) {
+        String sql = """
+        SELECT
+            bs.MaNguoiDung AS maNguoiDungBacSi,
+            nd.HoTen AS tenBenhNhan
+        FROM lichdangkykham lk
+        JOIN bacsi bs ON bs.MaBacSi = lk.MaBacSi
+        JOIN benhnhan bn ON bn.MaBenhNhan = lk.MaBenhNhan
+        JOIN nguoidung nd ON nd.MaNguoiDung = bn.MaNguoiDung
+        WHERE lk.MaLichKham = ?
+          AND lk.TrangThai = 'DaTiepNhan'
+        """;
+
+        List<Map<String, Object>> rows =
+                jdbcTemplate.queryForList(sql, maLichKham);
+
+        if (rows.isEmpty()) {
+            return;
+        }
+
+        Map<String, Object> row = rows.get(0);
+
+        if (!(row.get("maNguoiDungBacSi") instanceof Number maNguoiDung)) {
+            return;
+        }
+
+        String tenBenhNhan =
+                String.valueOf(row.get("tenBenhNhan"));
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
+                maNguoiDung.intValue(),
+                "Có bệnh nhân mới chờ khám",
+                "Bệnh nhân " + tenBenhNhan
+                        + " đã được tiếp nhận và đang chờ khám.",
+                "BENH_NHAN_MOI"
         );
     }
 }

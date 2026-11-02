@@ -34,6 +34,11 @@ document.addEventListener("DOMContentLoaded", () => {
             color: "#16a34a",
             bg: "#dcfce7"
         },
+        KetQuaDichVu: {
+            icon: "fa-flask",
+            color: "#16a34a",
+            bg: "#dcfce7"
+        },
         LICH_KHAM_BI_HUY: {
             icon: "fa-calendar-xmark",
             color: "#dc2626",
@@ -216,7 +221,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const message = document.createElement("p");
             message.className = "notification-item-message";
-            message.textContent = tb.message || "";
+            message.textContent = (tb.message || "")
+                .replace(/\s*\[MaLichKham:\d+\]/g, "")
+                .trim();
 
             const time = document.createElement("small");
             time.className = "notification-item-time";
@@ -234,43 +241,66 @@ document.addEventListener("DOMContentLoaded", () => {
             // Bấm vào thông báo để đánh dấu đã đọc
 
         item.addEventListener("click", async () => {
+            if (item.disabled) return;
 
-            // Đánh dấu đã đọc nếu thông báo chưa đọc
-            if (tb.unread && tb.id) {
-                try {
-                    await goiApi(
-                        `${API}/${tb.id}/da-doc`,
-                        { method: "PATCH" }
-                    );
-                } catch (error) {
-                    console.error("Lỗi đánh dấu đã đọc:", error);
+            item.disabled = true;
+
+            try {
+                // Đánh dấu đã đọc
+                if (tb.unread && tb.id) {
+                    try {
+                        await goiApi(
+                            `${API}/${tb.id}/da-doc`,
+                            { method: "PATCH" }
+                        );
+                    } catch (error) {
+                        console.error("Lỗi đánh dấu đã đọc:", error);
+                    }
                 }
-            }
 
-            // Chuyển trang theo loại thông báo
-            let url = "";
+                let url = null;
 
-            switch (tb.type) {
+                switch (tb.type) {
+                    case "BENH_NHAN_MOI":
+                        url = "/auth/bac-si/kham-benh";
+                        break;
 
-                case "BENH_NHAN_MOI":
-                    url = "/auth/bac-si/kham-benh";
-                    break;
+                    case "KetQuaDichVu":
+                    case "KET_QUA_DICH_VU_MOI": {
+                        const noiDung = tb.message || "";
 
-                case "KET_QUA_DICH_VU_MOI":
-                    url = "/auth/bac-si/ket-qua-can-lam-sang";
-                    break;
+                        const match = noiDung.match(
+                            /\[MaLichKham:(\d+)\]/
+                        );
 
-                case "LICH_KHAM_BI_HUY":
-                case "LICH_KHAM_THAY_DOI":
-                    url = "/auth/bac-si/kham-benh";
-                    break;
+                        if (match) {
+                            const maLichKham = Number(match[1]);
 
-                default:
+                            url = `/auth/bac-si/kham-benh/${maLichKham}/can-lam-sang`;
+                        } else {
+                            url = "/auth/bac-si/ket-qua-can-lam-sang";
+                        }
+
+                        break;
+                    }
+
+                    case "LICH_KHAM_BI_HUY":
+                    case "LICH_KHAM_THAY_DOI":
+                        url = "/auth/bac-si/kham-benh";
+                        break;
+                }
+
+                if (url) {
+                    window.location.href = url;
+                } else {
                     await taiThongBao();
-                    return;
-            }
+                }
 
-            window.location.href = url;
+            } catch (error) {
+                console.error("Lỗi xử lý thông báo:", error);
+            } finally {
+                item.disabled = false;
+            }
         });
 
 

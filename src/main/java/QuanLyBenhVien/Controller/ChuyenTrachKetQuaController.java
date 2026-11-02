@@ -18,7 +18,6 @@ import QuanLyBenhVien.Repository.TiepNhanBenhNhanRepository;
 import QuanLyBenhVien.Repository.HoSoBenhAnRepository;
 import QuanLyBenhVien.Entity.HoSoBenhAn;
 import QuanLyBenhVien.Service.ThongBaoService;
-import QuanLyBenhVien.Service.ThongBaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDate;
@@ -36,12 +35,9 @@ public class ChuyenTrachKetQuaController {
 
     @PersistenceContext
     private EntityManager em;
-    @Autowired
-    private ThongBaoService thongBaoService;
-
     private final TiepNhanBenhNhanRepository tiepNhanBenhNhanRepository;
     private final HoSoBenhAnRepository hoSoBenhAnRepository;
-    //private final ThongBaoService thongBaoService;
+    private final ThongBaoService thongBaoService;
 
     public ChuyenTrachKetQuaController(
             TiepNhanBenhNhanRepository tiepNhanBenhNhanRepository,
@@ -425,6 +421,27 @@ public class ChuyenTrachKetQuaController {
                 "Đã có kết quả cận lâm sàng",
                 noiDung,
                 "KET_QUA_CLS"
+        );
+        // 7. Gửi thông báo WebSocket cho bác sĩ phụ trách
+        Integer maNguoiDungBacSi = lich.getBacSi()
+                .getNguoiDung()
+                .getMaNguoiDung();
+
+        String tenBenhNhan = lich.getBenhNhan()
+                .getNguoiDung()
+                .getHoTen();
+
+        String noiDungBacSi =
+                "Bệnh nhân " + tenBenhNhan
+                        + " đã có kết quả cận lâm sàng"
+                        + (tenDichVu.isBlank() ? "." : ": " + tenDichVu + ".")
+                        + " Vui lòng kiểm tra để tiếp tục khám.";
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
+                maNguoiDungBacSi,
+                "Có kết quả cận lâm sàng mới",
+                noiDungBacSi + " [MaLichKham:" + maLich + "]",
+                "KetQuaDichVu"
         );
 
         // Đồng bộ EntityManager
