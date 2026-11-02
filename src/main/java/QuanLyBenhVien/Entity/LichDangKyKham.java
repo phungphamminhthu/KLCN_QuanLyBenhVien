@@ -1,9 +1,7 @@
-
 package QuanLyBenhVien.Entity;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -45,14 +43,36 @@ public class LichDangKyKham {
     @Column(name = "NgayTao", nullable = false)
     private LocalDateTime ngayTao;
 
+    // =====================================================
+    // TRẠNG THÁI QUY TRÌNH KHÁM BỆNH
+    //
+    // Ví dụ:
+    // ChoGoi, DaGoi, DaTiepNhan, DangKham,
+    // ChoThanhToan, ChoCLS, HoanTat...
+    //
+    // Không dùng trường này để lưu trạng thái thanh toán.
+    // =====================================================
+
     @Column(name = "TrangThai", nullable = false, length = 50)
     private String trangThai;
 
+    // =====================================================
+    // TRẠNG THÁI THANH TOÁN CỦA LỊCH KHÁM
+    //
+    // Theo quy định chung của nhóm:
+    // ChuaThanhToan
+    // DaThanhToan
+    //
+    // Khi tạo lịch khám mới, mặc định chưa thanh toán.
+    // Không tự chuyển sang DaThanhToan khi chỉ tạo QR.
+    // =====================================================
 
+    @Column(name = "TrangThaiThanhToan", length = 30)
+    private String trangThaiThanhToan = "ChuaThanhToan";
 
-    // ==========================================
-    // GETTER / SETTER CŨ
-    // ==========================================
+    // =====================================================
+    // GETTER / SETTER
+    // =====================================================
 
     public Integer getMaLichKham() {
         return maLichKham;
@@ -126,11 +146,27 @@ public class LichDangKyKham {
         this.ngayTao = ngayTao;
     }
 
+    // =====================================================
+    // TRẠNG THÁI LỊCH KHÁM
+    // =====================================================
+
     public String getTrangThai() {
         return trangThai;
     }
 
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
+    }
+
+    // =====================================================
+    // TRẠNG THÁI THANH TOÁN
+    // =====================================================
+
+    public String getTrangThaiThanhToan() {
+        return trangThaiThanhToan;
+    }
+
+    public void setTrangThaiThanhToan(String trangThaiThanhToan) {
+        this.trangThaiThanhToan = trangThaiThanhToan;
     }
 }

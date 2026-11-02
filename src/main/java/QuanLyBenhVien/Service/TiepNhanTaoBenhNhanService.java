@@ -20,12 +20,20 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 public class TiepNhanTaoBenhNhanService {
 
     private static final ZoneId MUI_GIO =
             ZoneId.of("Asia/Ho_Chi_Minh");
+
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9_%+-]+(?:\\.[A-Za-z0-9_%+-]+)*@[A-Za-z0-9]"
+                    + "(?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?"
+                    + "(?:\\.[A-Za-z0-9]"
+                    + "(?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$"
+    );
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -100,6 +108,49 @@ public class TiepNhanTaoBenhNhanService {
     }
 
     // =====================================================
+    // KIỂM TRA EMAIL ĐÃ CÓ TRONG HỆ THỐNG HAY CHƯA
+    // Lưu ý: không xác minh hộp thư thực sự nhận được thư.
+    // =====================================================
+
+    @Transactional(readOnly = true)
+    public boolean emailDaTonTai(String email) {
+        String emailDaChuanHoa = chuanHoaEmail(email);
+
+        if (emailDaChuanHoa == null) {
+            throw loiDuLieu("Vui lòng nhập email để kiểm tra.");
+        }
+
+        return tonTaiEmailDaChuanHoa(emailDaChuanHoa);
+    }
+
+    private boolean tonTaiEmailDaChuanHoa(String email) {
+        Long soLuong = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM nguoidung WHERE Email = ?",
+                Long.class,
+                email
+        );
+
+        return soLuong != null && soLuong > 0;
+    }
+
+    private String chuanHoaEmail(String email) {
+        String ketQua = chuanHoa(email);
+
+        if (ketQua == null) {
+            return null;
+        }
+
+        ketQua = ketQua.toLowerCase(Locale.ROOT);
+        kiemTraDoDai(ketQua, 255, "Email");
+
+        if (!EMAIL_PATTERN.matcher(ketQua).matches()) {
+            throw loiDuLieu("Email không đúng định dạng.");
+        }
+
+        return ketQua;
+    }
+
+    // =====================================================
     // TẠO HỒ SƠ BỆNH NHÂN TẠI QUẦY
     // Không yêu cầu bệnh nhân có tài khoản app trước.
     // Hai bản ghi được tạo trong cùng một transaction.
@@ -115,7 +166,7 @@ public class TiepNhanTaoBenhNhanService {
 
         String hoTen = chuanHoa(dto.getHoTen());
         String gioiTinh = chuanHoa(dto.getGioiTinh());
-        String email = chuanHoa(dto.getEmail());
+        String email = chuanHoaEmail(dto.getEmail());
         String diaChi = chuanHoa(dto.getDiaChi());
         String tienSuBenh = chuanHoa(dto.getTienSuBenh());
 
@@ -164,36 +215,13 @@ public class TiepNhanTaoBenhNhanService {
         kiemTraDoDai(diaChi, 255, "Địa chỉ");
         kiemTraDoDai(tienSuBenh, 5000, "Tiền sử bệnh");
 
-        if (email != null) {
-            email = email.toLowerCase(Locale.ROOT);
-
-            kiemTraDoDai(email, 255, "Email");
-
-            if (!email.matches(
-                    "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
-            )) {
-                throw loiDuLieu("Email không hợp lệ.");
-            }
-
-            Long soLuong = jdbcTemplate.queryForObject(
-                    """
-                    SELECT COUNT(*)
-                    FROM nguoidung
-                    WHERE Email = ?
-                    """,
-                    Long.class,
-                    email
+        if (email != null && tonTaiEmailDaChuanHoa(email)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Email này đã được sử dụng trong hệ thống. "
+                            + "Vui lòng sử dụng email khác "
+                            + "hoặc chọn hồ sơ bệnh nhân đã có."
             );
-
-            if (soLuong != null && soLuong > 0) {
-                throw new ResponseStatusException(
-                        HttpStatus.CONFLICT,
-                        "Email đã được sử dụng. "
-                                + "Vui lòng kiểm tra hồ sơ hiện có "
-                                + "hoặc để trống email nếu bệnh nhân "
-                                + "không có email riêng."
-                );
-            }
         }
 
         List<Integer> vaiTroBenhNhan =
@@ -244,6 +272,20 @@ public class TiepNhanTaoBenhNhanService {
                     tienSuBenh
             );
         } catch (DuplicateKeyException exception) {
+            // Hai nhân viên lưu cùng email gần như đồng thời.
+            // UNIQUE của nguoidung.Email là lớp bảo vệ cuối cùng.
+            String chiTietTrung = String.valueOf(
+                    exception.getMostSpecificCause().getMessage()
+            ).toLowerCase(Locale.ROOT);
+
+            if (email != null && chiTietTrung.contains("email")) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Email này đã được sử dụng trong hệ thống. "
+                                + "Vui lòng sử dụng email khác."
+                );
+            }
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Thông tin đã tồn tại. "
@@ -356,6 +398,7 @@ public class TiepNhanTaoBenhNhanService {
         }
 
         String ketQua = giaTri.trim();
+
         return ketQua.isEmpty() ? null : ketQua;
     }
 

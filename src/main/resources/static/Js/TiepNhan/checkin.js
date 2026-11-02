@@ -382,10 +382,12 @@
     function fillRegistrationSuccess(data) {
         hideRegistrationToast();
 
-        setText(
-            "success-ticket-number",
-            `#${String(data.number).padStart(3, "0")}`
-        );
+
+setText(
+    "success-ticket-number",
+    String(data.number)
+);
+
 
         setText("success-ticket-patient", data.patient);
         setText("success-ticket-department", data.department);
@@ -1795,66 +1797,122 @@
         updateControls();
     }
 
-    function renderPhoneMatches(matches) {
-        phoneMatches = matches;
 
-        const list = $("phone-matches");
-        list.replaceChildren();
+function renderPhoneMatches(matches) {
+    phoneMatches = matches;
 
-        $("phone-matches-panel").hidden = matches.length === 0;
+    const list = $("phone-matches");
+    list.replaceChildren();
 
-        matches.forEach(patient => {
-            const button = document.createElement("button");
+    $("phone-matches-panel").hidden = matches.length === 0;
 
-            button.type = "button";
-            button.className =
-                "list-group-item list-group-item-action text-start";
+    matches.forEach(patient => {
+        const button = document.createElement("button");
 
-            const name = document.createElement("div");
-            name.className = "fw-semibold";
-            name.textContent = patient.hoTen || "Bệnh nhân";
+        button.type = "button";
+        button.className =
+            "list-group-item list-group-item-action text-start";
 
-            const details = document.createElement("div");
-            details.className = "small text-secondary";
+        const name = document.createElement("div");
+        name.className = "fw-semibold";
+        name.textContent = patient.hoTen || "Bệnh nhân";
 
-            details.textContent = [
-                `Mã BN: ${patient.maBenhNhan}`,
-                formatDate(patient.ngaySinh),
-                patient.gioiTinh,
-                patient.soDienThoai,
-                patient.diaChi
-            ].filter(Boolean).join(" · ");
+        const details = document.createElement("div");
+        details.className = "small text-secondary";
 
-            button.append(name, details);
+        details.textContent = [
+            `Mã BN: ${patient.maBenhNhan}`,
+            formatDate(patient.ngaySinh),
+            patient.gioiTinh,
+            patient.soDienThoai,
+            patient.diaChi
+        ].filter(Boolean).join(" · ");
 
-            button.addEventListener("click", () => {
-                if (savingPatient
-                    || searching
-                    || registering
-                    || phoneLookupBusy
-                    || checkedPhone !== normalizePhone($("new-phone").value)) {
+        button.append(name, details);
+
+        button.addEventListener("click", async () => {
+            if (savingPatient
+                || searching
+                || registering
+                || phoneLookupBusy
+                || checkedPhone !== normalizePhone($("new-phone").value)) {
+                return;
+            }
+
+            const maBenhNhan = positiveId(
+                patient.maBenhNhan ?? patient.MaBenhNhan
+            );
+
+            if (!maBenhNhan) {
+                showMessage(
+                    "create-patient-message",
+                    "Mã bệnh nhân không hợp lệ. Vui lòng tra cứu lại."
+                );
+                return;
+            }
+
+            const version = phoneLookupVersion;
+            const soDienThoaiDaTraCuu = checkedPhone;
+
+            phoneLookupBusy = true;
+            updateControls();
+
+            showMessage("create-patient-message", "");
+
+            try {
+                // Lấy hồ sơ đầy đủ từ database,
+                // không dùng thông tin tóm tắt khi chọn bệnh nhân.
+                const hoSoDayDu = await requestApi(
+                    `/api/tiepnhan/ho-so-benh-nhan/${maBenhNhan}`
+                );
+
+                // Không tiếp tục nếu số điện thoại đã thay đổi.
+                if (version !== phoneLookupVersion
+                    || soDienThoaiDaTraCuu !==
+                        normalizePhone($("new-phone").value)) {
                     return;
                 }
 
-                try {
-                    selectPatient(patient);
-
-                    $("patient-search-input").value =
-                        checkedPhone;
-
-                    openRegistrationAfterCreate = true;
-                    createModal.hide();
-                } catch (error) {
-                    showMessage(
-                        "create-patient-message",
-                        error.message
+                // Kiểm tra đúng bệnh nhân được chọn.
+                if (
+                    positiveId(
+                        hoSoDayDu.maBenhNhan ??
+                        hoSoDayDu.MaBenhNhan
+                    ) !== maBenhNhan
+                ) {
+                    throw new Error(
+                        "API trả về sai hồ sơ bệnh nhân."
                     );
                 }
-            });
 
-            list.appendChild(button);
+                // Dữ liệu hiển thị lấy từ hồ sơ đầy đủ.
+                // Bao gồm địa chỉ đã lưu trong BenhNhan.DiaChi.
+                selectPatient(hoSoDayDu);
+
+                $("patient-search-input").value =
+                    soDienThoaiDaTraCuu;
+
+                openRegistrationAfterCreate = true;
+
+                createModal.hide();
+
+            } catch (error) {
+                showMessage(
+                    "create-patient-message",
+                    "Không tải được hồ sơ đầy đủ: "
+                    + error.message
+                );
+
+            } finally {
+                phoneLookupBusy = false;
+                updateControls();
+            }
         });
-    }
+
+        list.appendChild(button);
+    });
+}
+
 
     async function lookupPhone() {
         if (savingPatient || searching || registering) return;
@@ -2359,20 +2417,28 @@
             $("new-name").focus();
         });
 
-        createElement.addEventListener("hide.bs.modal", event => {
-            if (savingPatient) {
-                event.preventDefault();
-            }
-        });
 
-        createElement.addEventListener("hidden.bs.modal", () => {
-            invalidatePhoneLookup();
+createElement.addEventListener("hide.bs.modal", event => {
+    // Chặn đóng popup khi đang lưu hồ sơ.
+    // Nhưng cho phép đóng nếu đã lưu thành công
+    // và đang chuyển sang đăng ký lịch khám.
+    if (savingPatient && !openRegistrationAfterCreate) {
+        event.preventDefault();
+    }
+});
 
-            if (openRegistrationAfterCreate) {
-                openRegistrationAfterCreate = false;
-                registrationModal.show();
-            }
-        });
+createElement.addEventListener("hidden.bs.modal", () => {
+    invalidatePhoneLookup();
+
+    // Chỉ mở đăng ký khám sau khi popup
+    // tạo hồ sơ đã đóng hoàn toàn.
+    if (openRegistrationAfterCreate) {
+        openRegistrationAfterCreate = false;
+
+        registrationModal.show();
+    }
+});
+
 
         registrationElement.addEventListener("hide.bs.modal", event => {
             if (registering) {
