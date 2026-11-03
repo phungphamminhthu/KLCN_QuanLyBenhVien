@@ -286,52 +286,35 @@ document.addEventListener("DOMContentLoaded", () => {
     // 7. TRẠNG THÁI CHỈ ĐỊNH VÀ LƯỢT KHÁM
     // =====================================================
 
-    function getClsStatus(data) {
-        const trangThaiLuotKham =
-            data.trangThaiLuotKham;
+   function getClsStatus(data) {
+       const status = data.trangThaiChiDinh;
 
-        const trangThaiChiDinh =
-            data.trangThaiChiDinh;
+       switch (status) {
+           case "ChoThucHien":
+               return {
+                   label: "Chờ thực hiện",
+                   className: "waiting"
+               };
 
-        // Chỉ định đã hoàn thành được ưu tiên
-        // khi hiển thị trạng thái của chỉ định này.
-        if (trangThaiChiDinh === "DaHoanThanh") {
-            return {
-                label: "Đã hoàn thành",
-                className: "done"
-            };
-        }
+           case "DangThucHien":
+               return {
+                   label: "Đang thực hiện",
+                   className: "doing"
+               };
 
-        if (trangThaiLuotKham === "ChoCLS") {
-            return {
-                label: "Chờ thực hiện",
-                className: "waiting"
-            };
-        }
+           case "DaHoanThanh":
+               return {
+                   label: "Đã hoàn thành",
+                   className: "done"
+               };
 
-        if (trangThaiLuotKham === "DangCLS") {
-            return {
-                label: "Đang thực hiện",
-                className: "doing"
-            };
-        }
-
-        if (trangThaiLuotKham === "ChoKham") {
-            return {
-                label: "Chờ bác sĩ",
-                className: "other"
-            };
-        }
-
-        return {
-            label:
-                trangThaiLuotKham ||
-                trangThaiChiDinh ||
-                "Chưa xác định",
-            className: "other"
-        };
-    }
-
+           default:
+               return {
+                   label: status || "Chưa xác định",
+                   className: "other"
+               };
+       }
+   }
     function getResultUrl(data) {
         const params = new URLSearchParams({
             maChiDinh: String(data.maChiDinh)
@@ -483,25 +466,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     function renderOrder(data) {
-        setText(
-            "ctciOrderCode",
-            formatCode("CD", data.maChiDinh)
-        );
+       setText(
+           "ctciOrderCode",
+           data.maPhieuChiDinh ||
+           formatCode("CD", data.maChiDinh)
+       );
 
         setText(
             "ctciDoctor",
             data.bacSiChiDinh
         );
 
-        setText(
-            "ctciServiceName",
-            data.dichVu
-        );
 
-        setText(
-            "ctciServiceCode",
-            data.maDichVu
-        );
 
         setText(
             "ctciRoom",
@@ -527,6 +503,193 @@ document.addEventListener("DOMContentLoaded", () => {
                   "trong dữ liệu chỉ định."
         );
     }
+
+    // =====================================================
+    // DANH SÁCH XÉT NGHIỆM THUỘC PHIẾU
+    // =====================================================
+
+    async function layXetNghiemTrongPhieu(data) {
+        const maPhieu = data.maPhieuChiDinh;
+
+        // Không có mã phiếu thì chỉ hiển thị chỉ định hiện tại.
+        if (!maPhieu) {
+            return [data];
+        }
+
+        // Dùng ngày chỉ định để tìm các dịch vụ cùng phiếu.
+        const ngay = String(data.ngayChiDinh || "")
+            .slice(0, 10);
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(ngay)) {
+            throw new Error("Ngày chỉ định không hợp lệ.");
+        }
+
+        const ketQua = [];
+        const pageSize = 50;
+
+        for (let soTrang = 1; soTrang <= 100; soTrang++) {
+            const params = new URLSearchParams({
+                tuNgay: ngay,
+                denNgay: ngay,
+                q: "",
+                phong: "",
+                trangThai: "",
+                page: String(soTrang),
+                pageSize: String(pageSize)
+            });
+
+            const response = await apiRequest(
+                `${API_CHI_TIET}?${params.toString()}`
+            );
+
+            if (!Array.isArray(response.items)) {
+                throw new Error("API không trả danh sách hợp lệ.");
+            }
+
+            ketQua.push(
+                ...response.items.filter(item =>
+                    String(item.maPhieuChiDinh || "") ===
+                    String(maPhieu)
+                )
+            );
+
+            const tongTrang = Number(response.totalPages) || 1;
+
+            if (soTrang >= tongTrang) {
+                if (ketQua.length === 0) {
+                    throw new Error(
+                        "Không tìm thấy xét nghiệm của phiếu " +
+                        maPhieu
+                    );
+                }
+
+                return ketQua;
+            }
+        }
+
+        throw new Error(
+            "Danh sách quá nhiều trang, cần API lấy theo mã phiếu."
+        );
+    }
+
+    function hienThiXetNghiemTrongPhieu(danhSach) {
+        const tbody = $("ctciServiceTableBody");
+
+        if (!tbody) return;
+
+        tbody.replaceChildren();
+
+        setText(
+            "ctciServiceCount",
+            `${danhSach.length} xét nghiệm`
+        );
+
+        const soHoanThanh = danhSach.filter(
+            item => item.trangThaiChiDinh === "DaHoanThanh"
+        ).length;
+
+        if (statusElement) {
+            if (soHoanThanh === danhSach.length) {
+                statusElement.textContent = "Đã hoàn thành";
+                statusElement.className = "ctci-cls-status done";
+
+            } else if (soHoanThanh === 0 &&
+                danhSach.every(item =>
+                    item.trangThaiChiDinh === "ChoThucHien"
+                )) {
+                statusElement.textContent = "Chờ thực hiện";
+                statusElement.className = "ctci-cls-status waiting";
+
+            } else {
+                statusElement.textContent =
+                    `${soHoanThanh}/${danhSach.length} hoàn thành`;
+
+                statusElement.className = "ctci-cls-status doing";
+            }
+        }
+
+        // Thao tác chuyển sang từng xét nghiệm trong bảng.
+        if (startClsButton) startClsButton.hidden = true;
+        if (resultLink) resultLink.hidden = true;
+
+        danhSach.forEach((item, index) => {
+            const tr = document.createElement("tr");
+
+            function themCot(value) {
+                const td = document.createElement("td");
+                td.textContent = String(value ?? "—");
+                tr.appendChild(td);
+                return td;
+            }
+
+            themCot(index + 1);
+            themCot(formatCode("CD", item.maChiDinh));
+            themCot(item.dichVu || "Chưa có dịch vụ");
+
+            const trangThai = getClsStatus(item);
+            const statusTd = themCot(trangThai.label);
+            statusTd.className = trangThai.className;
+
+            const actionTd = document.createElement("td");
+
+            if (item.trangThaiChiDinh === "DaHoanThanh") {
+                actionTd.textContent = "Đã hoàn thành";
+
+            } else if (item.trangThaiLuotKham === "DangCLS") {
+                const link = document.createElement("a");
+
+                link.textContent = "Nhập kết quả";
+                link.href = getResultUrl(item);
+                link.className = "ctci-btn ctci-btn-primary";
+
+                actionTd.appendChild(link);
+
+            } else if (item.trangThaiLuotKham === "ChoCLS") {
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.textContent = "Thực hiện";
+                button.className = "ctci-btn ctci-btn-primary";
+
+                button.addEventListener("click", async () => {
+                    try {
+                        clearError();
+                        button.disabled = true;
+
+                        // Lấy chi tiết đúng chỉ định được chọn.
+                        const chiTiet = await apiRequest(
+                            `${API_CHI_TIET}/${encodeURIComponent(
+                                item.maChiDinh
+                            )}`
+                        );
+
+                        currentDetail = chiTiet;
+                        openStartConfirm();
+
+                    } catch (error) {
+                        showError(error.message);
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+
+                actionTd.appendChild(button);
+
+            } else {
+                actionTd.textContent = "Không khả dụng";
+            }
+
+            tr.appendChild(actionTd);
+            tbody.appendChild(tr);
+        });
+    }
+
+    async function taiDanhSachXetNghiem(data) {
+        const danhSach = await layXetNghiemTrongPhieu(data);
+
+        hienThiXetNghiemTrongPhieu(danhSach);
+    }
+
 
     // =====================================================
     // 12. HIỂN THỊ TOÀN BỘ DỮ LIỆU
@@ -578,9 +741,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             }
 
-            renderDetail(data);
+           renderDetail(data);
 
-            clearError();
+           // Tải tất cả xét nghiệm trong cùng một phiếu.
+           await taiDanhSachXetNghiem(data);
+
+           clearError();
 
         } catch (error) {
             currentDetail = null;
@@ -849,12 +1015,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Xác nhận";
             }
 
-            if (
-                startClsButton &&
-                currentDetail
-            ) {
-                updateClsActions(currentDetail);
-            }
+           // Nút thao tác được quản lý theo từng xét nghiệm trong bảng.
+           if (startClsButton) {
+               startClsButton.hidden = true;
+           }
+
+           if (resultLink) {
+               resultLink.hidden = true;
+           }
         }
     }
 

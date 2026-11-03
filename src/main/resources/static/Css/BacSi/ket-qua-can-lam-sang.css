@@ -674,3 +674,30 @@ tbody tr:last-child td {
         grid-template-columns: 1fr;
     }
 }
+/* CĂN GIỮA POPUP DANH SÁCH KẾT QUẢ */
+#groupModal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.5);
+}
+
+/* GIỮ POPUP GỌN VÀ KHÔNG TRÀN MÀN HÌNH */
+#groupModal .modal {
+    width: 100%;
+    max-width: 920px;
+    max-height: 90vh;
+    margin: 0;
+    overflow-y: auto;
+}
+
+/* ĐẢM BẢO POPUP ẨN KHI CHƯA MỞ */
+#groupModal.hidden {
+    display: none !important;
+}

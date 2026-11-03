@@ -1659,3 +1659,35 @@ body.reception-layout {
         grid-template-columns: 1fr;
     }
 }
+.ct-notification-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5eaf1;
+}
+
+.ct-notification-item strong {
+    display: block;
+    color: #1e293b;
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.ct-notification-item p {
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 10px;
+}
+
+.ct-notification-view {
+    background: #eff6ff;
+    color: #2563eb;
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.ct-notification-view:hover {
+    background: #dbeafe;
+}

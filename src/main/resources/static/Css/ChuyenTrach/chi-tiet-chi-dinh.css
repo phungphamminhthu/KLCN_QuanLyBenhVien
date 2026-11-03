@@ -603,3 +603,144 @@
         grid-template-columns: 38% minmax(0, 1fr);
     }
 }
+
+/* ============================================
+   BẢNG DANH SÁCH XÉT NGHIỆM TRONG PHIẾU
+   ============================================ */
+
+.ctci-service-table-wrapper {
+    width: 100%;
+    margin-top: 16px;
+    overflow-x: auto;
+    border: 1px solid #e5eaf1;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.ctci-service-table {
+    width: 100%;
+    min-width: 650px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: 13px;
+}
+
+.ctci-service-table th,
+.ctci-service-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #e9eef5;
+    text-align: left;
+    vertical-align: middle;
+    line-height: 1.5;
+    overflow-wrap: break-word;
+}
+
+/* Tiêu đề */
+.ctci-service-table thead th {
+    background: #f3f6fc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+/* Độ rộng từng cột */
+.ctci-service-table th:nth-child(1),
+.ctci-service-table td:nth-child(1) {
+    width: 7%;
+    text-align: center;
+}
+
+.ctci-service-table th:nth-child(2),
+.ctci-service-table td:nth-child(2) {
+    width: 16%;
+    white-space: nowrap;
+}
+
+.ctci-service-table th:nth-child(3),
+.ctci-service-table td:nth-child(3) {
+    width: 35%;
+}
+
+.ctci-service-table th:nth-child(4),
+.ctci-service-table td:nth-child(4) {
+    width: 21%;
+    text-align: center;
+}
+
+.ctci-service-table th:nth-child(5),
+.ctci-service-table td:nth-child(5) {
+    width: 21%;
+    text-align: center;
+}
+
+/* Dòng dữ liệu */
+.ctci-service-table tbody tr {
+    transition: background-color 0.2s;
+}
+
+.ctci-service-table tbody tr:hover {
+    background: #f8faff;
+}
+
+.ctci-service-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Mã chỉ định */
+.ctci-service-table td:nth-child(2) {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+/* Tên dịch vụ */
+.ctci-service-table td:nth-child(3) {
+    color: #334155;
+    font-weight: 500;
+}
+
+/* Trạng thái */
+.ctci-service-table td.waiting {
+    color: #d97706;
+    font-weight: 600;
+}
+
+.ctci-service-table td.doing {
+    color: #2563eb;
+    font-weight: 600;
+}
+
+.ctci-service-table td.done {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+/* Nút thao tác trong bảng */
+.ctci-service-table .ctci-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 112px;
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 768px) {
+    .ctci-service-table {
+        min-width: 650px;
+    }
+
+    .ctci-service-table th,
+    .ctci-service-table td {
+        padding: 12px 10px;
+    }
+}
+

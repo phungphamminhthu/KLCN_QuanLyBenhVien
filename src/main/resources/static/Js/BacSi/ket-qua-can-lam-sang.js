@@ -1,6 +1,12 @@
 
 const API_BASE = "/api/bac-si/kham-benh";
 
+let danhSachKetQua = [];
+let danhSachNhomDangHienThi = [];
+let boLocHienTai = "all";
+let tuKhoaTimKiem = "";
+let dangXemChiTietTuNhom = false;
+
 function layHeadersAuth() {
     const token =
         localStorage.getItem("Token") ||
@@ -11,1114 +17,747 @@ function layHeadersAuth() {
         : {};
 }
 
-let danhSachKetQua = [];
+// =========================================
+// KHỞI TẠO
+// =========================================
 
-let boLocHienTai = "all";
-
-let tuKhoaTimKiem = "";
-
-
-/* =====================================================
-   KHỞI TẠO
-===================================================== */
-
-document.addEventListener("DOMContentLoaded", function () {
-
+document.addEventListener("DOMContentLoaded", () => {
     khoiTaoBoLoc();
-
     khoiTaoTimKiem();
-
     khoiTaoModal();
-
-    //khoiTaoDangXuat();
-
     taiDanhSachKetQua();
-
 });
 
-
-/* =====================================================
-   BỘ LỌC
-===================================================== */
+// =========================================
+// BỘ LỌC
+// =========================================
 
 function khoiTaoBoLoc() {
+    const buttons = document.querySelectorAll(".filter-btn");
 
-    const buttons =
-        document.querySelectorAll(".filter-btn");
-
-    buttons.forEach(function (button) {
-
-        button.addEventListener("click", function () {
-
-            buttons.forEach(function (item) {
-
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            buttons.forEach(item => {
                 item.classList.remove("active");
-
             });
 
             button.classList.add("active");
-
-            boLocHienTai =
-                button.dataset.filter;
+            boLocHienTai = button.dataset.filter;
 
             hienThiDanhSach();
-
         });
-
     });
-
 }
 
-
-/* =====================================================
-   TÌM KIẾM
-===================================================== */
+// =========================================
+// TÌM KIẾM
+// =========================================
 
 function khoiTaoTimKiem() {
+    const searchInput = document.getElementById("searchInput");
+    const headerSearch = document.getElementById("headerSearch");
 
-    const searchInput =
-        document.getElementById("searchInput");
+    function capNhatTimKiem(value, otherInput) {
+        tuKhoaTimKiem = chuanHoa(value);
 
-    const headerSearch =
-        document.getElementById("headerSearch");
+        if (otherInput) {
+            otherInput.value = value;
+        }
 
-
-    if (searchInput) {
-
-        searchInput.addEventListener(
-            "input",
-            function () {
-
-                tuKhoaTimKiem =
-                    chuanHoa(searchInput.value);
-
-                if (headerSearch) {
-                    headerSearch.value =
-                        searchInput.value;
-                }
-
-                hienThiDanhSach();
-
-            }
-        );
-
+        hienThiDanhSach();
     }
 
+    searchInput?.addEventListener("input", () => {
+        capNhatTimKiem(searchInput.value, headerSearch);
+    });
 
-    if (headerSearch) {
-
-        headerSearch.addEventListener(
-            "input",
-            function () {
-
-                tuKhoaTimKiem =
-                    chuanHoa(headerSearch.value);
-
-                if (searchInput) {
-                    searchInput.value =
-                        headerSearch.value;
-                }
-
-                hienThiDanhSach();
-
-            }
-        );
-
-    }
-
+    headerSearch?.addEventListener("input", () => {
+        capNhatTimKiem(headerSearch.value, searchInput);
+    });
 }
 
-
-/* =====================================================
-   MODAL
-===================================================== */
+// =========================================
+// KHỞI TẠO MODAL
+// =========================================
 
 function khoiTaoModal() {
+    const groupModal = document.getElementById("groupModal");
+    const detailModal = document.getElementById("detailModal");
 
-    const modal =
-        document.getElementById("detailModal");
+    document.getElementById("closeGroupModal")
+        ?.addEventListener("click", dongGroupModal);
 
-    const closeButton =
-        document.getElementById("closeModal");
+    document.getElementById("closeModal")
+        ?.addEventListener("click", dongModal);
 
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            dongModal
-        );
-
-    }
-
-
-    if (modal) {
-
-        modal.addEventListener(
-            "click",
-            function (event) {
-
-                if (event.target === modal) {
-
-                    dongModal();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    document.addEventListener(
-        "keydown",
-        function (event) {
-
-            if (event.key === "Escape") {
-
-                dongModal();
-
-            }
-
+    groupModal?.addEventListener("click", event => {
+        if (event.target === groupModal) {
+            dongGroupModal();
         }
-    );
+    });
 
+    detailModal?.addEventListener("click", event => {
+        if (event.target === detailModal) {
+            dongModal();
+        }
+    });
+
+    document.addEventListener("keydown", event => {
+        if (event.key !== "Escape") return;
+
+        if (!detailModal?.classList.contains("hidden")) {
+            dongModal();
+        } else if (!groupModal?.classList.contains("hidden")) {
+            dongGroupModal();
+        }
+    });
 }
 
-
-/* =====================================================
-   LOAD DANH SÁCH
-===================================================== */
+// =========================================
+// LOAD DANH SÁCH TỪ API
+// =========================================
 
 async function taiDanhSachKetQua() {
+    const tbody = document.getElementById("resultTableBody");
 
-    const tbody =
-        document.getElementById(
-            "resultTableBody"
-        );
-
-
-    if (!tbody) {
-        return;
-    }
-
+    if (!tbody) return;
 
     tbody.innerHTML = `
         <tr>
-            <td colspan="7"
-                class="empty">
+            <td colspan="7" class="empty">
                 Đang tải dữ liệu...
             </td>
         </tr>
     `;
 
-
     try {
-
         const response = await fetch(
-            API_BASE + "/ket-qua-can-lam-sang",
+            `${API_BASE}/ket-qua-can-lam-sang`,
             {
                 headers: layHeadersAuth()
             }
         );
 
-
         if (!response.ok) {
-
-            const error =
-                await docJson(response);
+            const error = await docJson(response);
 
             throw new Error(
                 error?.message ||
                 "Không thể tải kết quả cận lâm sàng."
             );
-
         }
 
+        const data = await response.json();
 
-        const data =
-            await response.json();
-
-
-        if (Array.isArray(data)) {
-
-            danhSachKetQua = data;
-
-        } else {
-
-            danhSachKetQua = [];
-
-        }
-
+        danhSachKetQua = Array.isArray(data) ? data : [];
 
         capNhatThongKe();
-
         hienThiDanhSach();
 
-
     } catch (error) {
-
         console.error(error);
 
         tbody.innerHTML = `
             <tr>
-                <td colspan="7"
-                    class="empty">
+                <td colspan="7" class="empty">
                     ${escapeHtml(error.message)}
                 </td>
             </tr>
         `;
-
     }
-
 }
 
-
-/* =====================================================
-   KIỂM TRA CÓ KẾT QUẢ
-===================================================== */
+// =========================================
+// KIỂM TRA CÓ KẾT QUẢ
+// =========================================
 
 function coKetQua(item) {
-
-    if (
-        typeof item.coKetQua === "boolean"
-    ) {
-
+    if (typeof item.coKetQua === "boolean") {
         return item.coKetQua;
-
     }
 
-
-    if (item.maKetQua != null) {
-
-        return true;
-
-    }
-
-
-    return false;
-
+    return item.maKetQua != null;
 }
 
-
-/* =====================================================
-   THỐNG KÊ
-===================================================== */
+// =========================================
+// THỐNG KÊ THEO TỪNG XÉT NGHIỆM
+// =========================================
 
 function capNhatThongKe() {
+    const tong = danhSachKetQua.length;
 
-    const tong =
-        danhSachKetQua.length;
+    const daCoKetQua = danhSachKetQua.filter(
+        item => coKetQua(item)
+    ).length;
 
+    const dangCho = tong - daCoKetQua;
 
-    const daCoKetQua =
-        danhSachKetQua.filter(
-            function (item) {
-
-                return coKetQua(item);
-
-            }
-        ).length;
-
-
-    const dangCho =
-        tong - daCoKetQua;
-
-
-    const totalCount =
-        document.getElementById("totalCount");
-
-    const resultCount =
-        document.getElementById("resultCount");
-
-    const waitingCount =
-        document.getElementById("waitingCount");
-
-
-    if (totalCount) {
-        totalCount.textContent = tong;
-    }
-
-    if (resultCount) {
-        resultCount.textContent = daCoKetQua;
-    }
-
-    if (waitingCount) {
-        waitingCount.textContent = dangCho;
-    }
-
+    document.getElementById("totalCount").textContent = tong;
+    document.getElementById("resultCount").textContent = daCoKetQua;
+    document.getElementById("waitingCount").textContent = dangCho;
 }
 
+// =========================================
+// GOM NHÓM THEO PHIẾU CHỈ ĐỊNH
+// =========================================
 
-/* =====================================================
-   HIỂN THỊ DANH SÁCH
-===================================================== */
+function gomNhomKetQua(danhSach) {
+    const nhomMap = new Map();
+
+    danhSach.forEach((item, index) => {
+        const maLich = item.maLichKham;
+        const maPhieu = item.maPhieuChiDinh;
+
+        const coMaPhieu =
+            maPhieu !== null &&
+            maPhieu !== undefined &&
+            String(maPhieu).trim() !== "";
+
+        // Không có mã phiếu thì không gom tùy tiện.
+        // Mỗi chỉ định sẽ thành một nhóm riêng.
+        const khoa = coMaPhieu
+            ? `lich:${maLich}|phieu:${maPhieu}`
+            : `lich:${maLich}|chi-dinh:${item.maChiDinh ?? index}`;
+
+        if (!nhomMap.has(khoa)) {
+            nhomMap.set(khoa, {
+                maLichKham: maLich,
+                maPhieuChiDinh: maPhieu,
+                hoTen: item.hoTen || "—",
+                ngayChiDinh: item.ngayChiDinh,
+                dichVu: []
+            });
+        }
+
+        const nhom = nhomMap.get(khoa);
+        nhom.dichVu.push(item);
+
+        // Lấy ngày chỉ định sớm nhất trong phiếu.
+        if (
+            item.ngayChiDinh &&
+            (
+                !nhom.ngayChiDinh ||
+                String(item.ngayChiDinh) <
+                    String(nhom.ngayChiDinh)
+            )
+        ) {
+            nhom.ngayChiDinh = item.ngayChiDinh;
+        }
+    });
+
+    return Array.from(nhomMap.values()).sort(
+        (a, b) => String(b.ngayChiDinh || "")
+            .localeCompare(String(a.ngayChiDinh || ""))
+    );
+}
+
+// =========================================
+// HIỂN THỊ DANH SÁCH NHÓM
+// =========================================
 
 function hienThiDanhSach() {
+    const tbody = document.getElementById("resultTableBody");
 
-    const tbody =
-        document.getElementById(
-            "resultTableBody"
+    if (!tbody) return;
+
+    const tatCaNhom = gomNhomKetQua(danhSachKetQua);
+
+    danhSachNhomDangHienThi = tatCaNhom.filter(nhom => {
+        const soCoKetQua = nhom.dichVu.filter(coKetQua).length;
+        const tong = nhom.dichVu.length;
+
+        const coDaCo = soCoKetQua > 0;
+        const coDangCho = soCoKetQua < tong;
+
+        // Phiếu có ít nhất một xét nghiệm có kết quả.
+        if (boLocHienTai === "done" && !coDaCo) {
+            return false;
+        }
+
+        // Phiếu còn ít nhất một xét nghiệm đang chờ.
+        if (boLocHienTai === "waiting" && !coDangCho) {
+            return false;
+        }
+
+        if (!tuKhoaTimKiem) return true;
+
+        const tenBenhNhan = chuanHoa(nhom.hoTen);
+        const maPhieu = chuanHoa(nhom.maPhieuChiDinh);
+
+        const khopDichVu = nhom.dichVu.some(item => {
+            return chuanHoa(item.tenDichVu)
+                .includes(tuKhoaTimKiem);
+        });
+
+        return (
+            tenBenhNhan.includes(tuKhoaTimKiem) ||
+            maPhieu.includes(tuKhoaTimKiem) ||
+            khopDichVu
         );
+    });
 
-
-    if (!tbody) {
-        return;
-    }
-
-
-    const danhSach =
-        danhSachKetQua.filter(
-            function (item) {
-
-                const daCoKetQua =
-                    coKetQua(item);
-
-
-                /* FILTER */
-
-                if (
-                    boLocHienTai === "done" &&
-                    !daCoKetQua
-                ) {
-
-                    return false;
-
-                }
-
-
-                if (
-                    boLocHienTai === "waiting" &&
-                    daCoKetQua
-                ) {
-
-                    return false;
-
-                }
-
-
-                /* SEARCH */
-
-                if (!tuKhoaTimKiem) {
-
-                    return true;
-
-                }
-
-
-                const benhNhan =
-                    chuanHoa(
-                        item.hoTen
-                    );
-
-
-                const dichVu =
-                    chuanHoa(
-                        item.tenDichVu
-                    );
-
-
-                return (
-                    benhNhan.includes(
-                        tuKhoaTimKiem
-                    )
-                    ||
-                    dichVu.includes(
-                        tuKhoaTimKiem
-                    )
-                );
-
-            }
-        );
-
-
-    if (danhSach.length === 0) {
-
+    if (danhSachNhomDangHienThi.length === 0) {
         tbody.innerHTML = `
             <tr>
-                <td colspan="7"
-                    class="empty">
-
+                <td colspan="7" class="empty">
                     Không có dữ liệu phù hợp.
-
                 </td>
             </tr>
         `;
-
         return;
-
     }
 
+    tbody.innerHTML = danhSachNhomDangHienThi.map(
+        (nhom, index) => {
 
-    tbody.innerHTML =
-        danhSach.map(
-            function (item, index) {
+            const tong = nhom.dichVu.length;
+            const soCo = nhom.dichVu.filter(coKetQua).length;
 
-                const daCoKetQua =
-                    coKetQua(item);
+            const daDayDu = soCo === tong;
 
+            const nhan = daDayDu
+                ? "Đã đủ kết quả"
+                : soCo > 0
+                    ? "Có kết quả một phần"
+                    : "Chờ kết quả";
 
-                return `
-                    <tr>
+            const maPhieu =
+                nhom.maPhieuChiDinh != null &&
+                String(nhom.maPhieuChiDinh).trim() !== ""
+                    ? `#${nhom.maPhieuChiDinh}`
+                    : `Chỉ định #${nhom.dichVu[0]?.maChiDinh ?? "—"}`;
 
-                        <td>
-                            ${index + 1}
-                        </td>
+            const tenDichVu = nhom.dichVu.map(
+                item => item.tenDichVu || "Dịch vụ"
+            ).join(", ");
 
+            return `
+                <tr>
+                    <td>${index + 1}</td>
 
-                        <td>
-                            ${escapeHtml(
-                                item.hoTen || "—"
-                            )}
-                        </td>
+                    <td>
+                        <strong>${escapeHtml(nhom.hoTen)}</strong>
+                    </td>
 
+                    <td>
+                        ${escapeHtml(maPhieu)}
+                    </td>
 
-                        <td>
-                            ${escapeHtml(
-                                item.tenDichVu || "—"
-                            )}
-                        </td>
+                    <td>
+                        <strong>${tong} xét nghiệm</strong>
 
+                        <div style="
+                            font-size:12px;
+                            color:#64748b;
+                            max-width:280px;
+                            white-space:normal;
+                            margin-top:5px;
+                        ">
+                            ${escapeHtml(tenDichVu)}
+                        </div>
+                    </td>
 
-                        <td>
-                            ${dinhDangNgay(
-                                item.ngayChiDinh
-                            )}
-                        </td>
+                    <td>
+                        ${escapeHtml(
+                            dinhDangNgay(nhom.ngayChiDinh)
+                        )}
+                    </td>
 
+                    <td>
+                        <span class="status ${
+                            daDayDu ? "done" : "waiting"
+                        }">
+                            ${soCo}/${tong} · ${nhan}
+                        </span>
+                    </td>
 
-                        <td>
-                            ${
-                                daCoKetQua
-                                    ? dinhDangNgay(
-                                        item.ngayCoKetQua
-                                    )
-                                    : "—"
-                            }
-                        </td>
-
-
-                        <td>
-
-                            <span class="
-                                status
-                                ${
-                                    daCoKetQua
-                                        ? "done"
-                                        : "waiting"
-                                }
-                            ">
-
-                                ${
-                                    daCoKetQua
-                                        ? "Có kết quả"
-                                        : "Chờ kết quả"
-                                }
-
-                            </span>
-
-                        </td>
-
-
-                        <td>
-
-                            <button
-                                type="button"
-
-                                class="view-btn"
-
-                                data-lich="${
-                                    item.maLichKham || ""
-                                }"
-
-                                data-chi-dinh="${
-                                    item.maChiDinh || ""
-                                }"
-
-                                ${
-                                    daCoKetQua
-                                        ? ""
-                                        : "disabled"
-                                }
-                            >
-
-                                Xem
-
-                            </button>
-
-                        </td>
-
-                    </tr>
-                `;
-
-            }
-        )
-        .join("");
-
-
-    ganSuKienNutXem();
-
-}
-
-
-/* =====================================================
-   NÚT XEM
-===================================================== */
-
-function ganSuKienNutXem() {
-
-    const buttons =
-        document.querySelectorAll(
-            ".view-btn:not(:disabled)"
-        );
-
-
-    buttons.forEach(
-        function (button) {
-
-            button.addEventListener(
-                "click",
-                function () {
-
-                    const maLichKham =
-                        button.dataset.lich;
-
-
-                    const maChiDinh =
-                        button.dataset.chiDinh;
-
-
-                    xemChiTietKetQua(
-                        maLichKham,
-                        maChiDinh
-                    );
-
-                }
-            );
-
+                    <td>
+                        <button
+                            type="button"
+                            class="view-btn group-view-btn"
+                            data-index="${index}">
+                            Xem
+                        </button>
+                    </td>
+                </tr>
+            `;
         }
-    );
+    ).join("");
 
+    ganSuKienNutXemNhom();
 }
 
+// =========================================
+// NÚT XEM NHÓM
+// =========================================
 
-/* =====================================================
-   XEM CHI TIẾT KẾT QUẢ
-===================================================== */
+function ganSuKienNutXemNhom() {
+    const buttons = document.querySelectorAll(".group-view-btn");
+
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            const index = Number(button.dataset.index);
+            const nhom = danhSachNhomDangHienThi[index];
+
+            if (!nhom) return;
+
+            moGroupModal(nhom);
+        });
+    });
+}
+
+// =========================================
+// MỞ POPUP DANH SÁCH XÉT NGHIỆM
+// =========================================
+
+function moGroupModal(nhom) {
+    const modal = document.getElementById("groupModal");
+    const tbody = document.getElementById("groupResultBody");
+    const patientInfo = document.getElementById("groupPatientInfo");
+
+    if (!modal || !tbody || !patientInfo) {
+        console.error("Thiếu HTML của popup groupModal.");
+        return;
+    }
+
+    dangXemChiTietTuNhom = false;
+
+    const maPhieu =
+        nhom.maPhieuChiDinh != null &&
+        String(nhom.maPhieuChiDinh).trim() !== ""
+            ? `Phiếu #${nhom.maPhieuChiDinh}`
+            : "Chỉ định riêng";
+
+    patientInfo.textContent =
+        `${nhom.hoTen} · ${maPhieu} · ${nhom.dichVu.length} xét nghiệm`;
+
+    tbody.innerHTML = nhom.dichVu.map((item, index) => {
+        const daCo = coKetQua(item);
+
+        return `
+            <tr>
+                <td>${index + 1}</td>
+
+                <td>
+                    ${escapeHtml(item.tenDichVu || "—")}
+                </td>
+
+                <td>
+                    ${
+                        daCo
+                            ? escapeHtml(
+                                dinhDangNgay(item.ngayCoKetQua)
+                            )
+                            : "—"
+                    }
+                </td>
+
+                <td>
+                    <span class="status ${
+                        daCo ? "done" : "waiting"
+                    }">
+                        ${
+                            daCo
+                                ? "Có kết quả"
+                                : "Chờ kết quả"
+                        }
+                    </span>
+                </td>
+
+                <td>
+                    <button
+                        type="button"
+                        class="view-btn group-detail-btn"
+                        data-index="${index}"
+                        ${daCo ? "" : "disabled"}>
+                        Xem kết quả
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+
+    // Gắn sự kiện xem từng xét nghiệm.
+    tbody.querySelectorAll(
+        ".group-detail-btn:not(:disabled)"
+    ).forEach(button => {
+        button.addEventListener("click", () => {
+            const index = Number(button.dataset.index);
+            const item = nhom.dichVu[index];
+
+            if (!item) return;
+
+            xemChiTietKetQua(
+                item.maLichKham,
+                item.maChiDinh,
+                true
+            );
+        });
+    });
+
+    modal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+}
+
+// =========================================
+// ĐÓNG POPUP DANH SÁCH
+// =========================================
+
+function dongGroupModal() {
+    document.getElementById("groupModal")
+        ?.classList.add("hidden");
+
+    dangXemChiTietTuNhom = false;
+    document.body.style.overflow = "";
+}
+
+// =========================================
+// XEM CHI TIẾT KẾT QUẢ XÉT NGHIỆM
+// =========================================
 
 async function xemChiTietKetQua(
     maLichKham,
-    maChiDinh
+    maChiDinh,
+    tuNhom = false
 ) {
-
     if (!maLichKham || !maChiDinh) {
-
-        alert(
-            "Không xác định được lịch khám hoặc chỉ định."
-        );
-
+        alert("Không xác định được lịch khám hoặc chỉ định.");
         return;
-
     }
 
-
     try {
-
         const url =
-            API_BASE
-            + "/"
-            + maLichKham
-            + "/chi-dinh/"
-            + maChiDinh
-            + "/ket-qua";
-
+            `${API_BASE}/${maLichKham}/chi-dinh/${maChiDinh}/ket-qua`;
 
         const response = await fetch(url, {
             headers: layHeadersAuth()
         });
 
-
-        const data =
-            await docJson(response);
-
+        const data = await docJson(response);
 
         if (!response.ok) {
-
             throw new Error(
                 data?.message ||
                 "Không thể tải chi tiết kết quả."
             );
-
         }
 
-
-        if (!data.coKetQua) {
-
+        if (!data?.coKetQua) {
             alert(
-                data.message ||
+                data?.message ||
                 "Chỉ định chưa có kết quả."
             );
-
             return;
-
         }
 
+        // Tìm thông tin dịch vụ tương ứng.
+        const item = danhSachKetQua.find(value => {
+            return (
+                String(value.maLichKham) === String(maLichKham) &&
+                String(value.maChiDinh) === String(maChiDinh)
+            );
+        }) || {};
 
-        const item =
-            danhSachKetQua.find(
-                function (value) {
-
-                    return (
-                        String(
-                            value.maLichKham
-                        )
-                        ===
-                        String(
-                            maLichKham
-                        )
-                        &&
-                        String(
-                            value.maChiDinh
-                        )
-                        ===
-                        String(
-                            maChiDinh
-                        )
-                    );
-
-                }
-            ) || {};
-
-
-        document.getElementById(
-            "detailPatient"
-        ).textContent =
+        document.getElementById("detailPatient").textContent =
             item.hoTen || "—";
 
-
-        document.getElementById(
-            "detailService"
-        ).textContent =
+        document.getElementById("detailService").textContent =
             item.tenDichVu || "—";
 
+        document.getElementById("detailOrderDate").textContent =
+            dinhDangNgay(item.ngayChiDinh);
 
-        document.getElementById(
-            "detailOrderDate"
-        ).textContent =
-            dinhDangNgay(
-                item.ngayChiDinh
-            );
+        document.getElementById("detailResultDate").textContent =
+            dinhDangNgay(data.ngayCoKetQua);
 
-
-        document.getElementById(
-            "detailResultDate"
-        ).textContent =
-            dinhDangNgay(
-                data.ngayCoKetQua
-            );
-
-
-        document.getElementById(
-            "detailContent"
-        ).textContent =
+        document.getElementById("detailContent").textContent =
             data.noiDungKetQua || "—";
 
-
-        document.getElementById(
-            "detailConclusion"
-        ).textContent =
+        document.getElementById("detailConclusion").textContent =
             data.ketLuan || "—";
 
+        hienThiFile(data.fileURL);
+        hienThiChiTietChiSo(data.chiTiet);
 
-        hienThiFile(
-            data.fileURL
-        );
-
-
-        hienThiChiTietChiSo(
-            data.chiTiet
-        );
-
-
+        dangXemChiTietTuNhom = tuNhom;
         moModal();
 
-
     } catch (error) {
-
         console.error(error);
-
         alert(error.message);
-
     }
-
 }
 
-
-/* =====================================================
-   FILE KẾT QUẢ
-===================================================== */
+// =========================================
+// HIỂN THỊ FILE KẾT QUẢ
+// =========================================
 
 function hienThiFile(fileURL) {
+    const section = document.getElementById("fileSection");
+    const link = document.getElementById("resultFile");
 
-    const section =
-        document.getElementById(
-            "fileSection"
-        );
-
-
-    const link =
-        document.getElementById(
-            "resultFile"
-        );
-
-
-    if (!section || !link) {
-        return;
-    }
-
+    if (!section || !link) return;
 
     if (!fileURL) {
-
-        section.classList.add(
-            "hidden"
-        );
-
-        link.removeAttribute(
-            "href"
-        );
-
+        section.classList.add("hidden");
+        link.removeAttribute("href");
         return;
-
     }
 
+    // Chỉ cho phép URL HTTP/HTTPS hoặc đường dẫn nội bộ.
+    const url = String(fileURL).trim();
+    const hopLe =
+        /^https?:\/\//i.test(url) ||
+        (url.startsWith("/") && !url.startsWith("//"));
 
-    link.href =
-        fileURL;
+    if (!hopLe) {
+        section.classList.add("hidden");
+        link.removeAttribute("href");
+        return;
+    }
 
-
-    section.classList.remove(
-        "hidden"
-    );
-
+    link.href = url;
+    section.classList.remove("hidden");
 }
 
+// =========================================
+// HIỂN THỊ CHI TIẾT CHỈ SỐ
+// =========================================
 
-/* =====================================================
-   CHI TIẾT CHỈ SỐ
-===================================================== */
+function hienThiChiTietChiSo(danhSach) {
+    const tbody = document.getElementById("detailTableBody");
 
-function hienThiChiTietChiSo(
-    danhSach
-) {
+    if (!tbody) return;
 
-    const tbody =
-        document.getElementById(
-            "detailTableBody"
-        );
-
-
-    if (!tbody) {
-        return;
-    }
-
-
-    if (
-        !Array.isArray(danhSach)
-        ||
-        danhSach.length === 0
-    ) {
-
+    if (!Array.isArray(danhSach) || danhSach.length === 0) {
         tbody.innerHTML = `
             <tr>
-
-                <td colspan="5"
-                    class="empty">
-
+                <td colspan="5" class="empty">
                     Không có chi tiết chỉ số.
-
                 </td>
-
             </tr>
         `;
-
         return;
-
     }
 
-
-    tbody.innerHTML =
-        danhSach.map(
-            function (item) {
-
-                return `
-                    <tr>
-
-                        <td>
-                            ${escapeHtml(
-                                item.tenChiSo || "—"
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.giaTri ?? "—"
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.donVi || "—"
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.giaTriThamChieu || "—"
-                            )}
-                        </td>
-
-                        <td>
-                            ${escapeHtml(
-                                item.trangThai || "—"
-                            )}
-                        </td>
-
-                    </tr>
-                `;
-
-            }
-        )
-        .join("");
-
+    tbody.innerHTML = danhSach.map(item => {
+        return `
+            <tr>
+                <td>${escapeHtml(item.tenChiSo || "—")}</td>
+                <td>${escapeHtml(item.giaTri ?? "—")}</td>
+                <td>${escapeHtml(item.donVi || "—")}</td>
+                <td>${escapeHtml(item.giaTriThamChieu || "—")}</td>
+                <td>${escapeHtml(item.trangThai || "—")}</td>
+            </tr>
+        `;
+    }).join("");
 }
 
-
-/* =====================================================
-   MỞ MODAL
-===================================================== */
+// =========================================
+// MỞ POPUP CHI TIẾT
+// =========================================
 
 function moModal() {
+    const detailModal = document.getElementById("detailModal");
+    const groupModal = document.getElementById("groupModal");
 
-    const modal =
-        document.getElementById(
-            "detailModal"
-        );
+    if (!detailModal) return;
 
-
-    if (!modal) {
-        return;
+    // Ẩn popup danh sách khi mở chi tiết.
+    if (dangXemChiTietTuNhom) {
+        groupModal?.classList.add("hidden");
     }
 
-
-    modal.classList.remove(
-        "hidden"
-    );
-
-
-    document.body.style.overflow =
-        "hidden";
-
+    detailModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
 }
 
-
-/* =====================================================
-   ĐÓNG MODAL
-===================================================== */
+// =========================================
+// ĐÓNG POPUP CHI TIẾT
+// =========================================
 
 function dongModal() {
+    const detailModal = document.getElementById("detailModal");
+    const groupModal = document.getElementById("groupModal");
 
-    const modal =
-        document.getElementById(
-            "detailModal"
-        );
+    detailModal?.classList.add("hidden");
 
-
-    if (modal) {
-
-        modal.classList.add(
-            "hidden"
-        );
-
+    if (dangXemChiTietTuNhom && groupModal) {
+        // Quay lại danh sách xét nghiệm của phiếu.
+        groupModal.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+    } else {
+        document.body.style.overflow = "";
     }
 
-
-    document.body.style.overflow =
-        "";
-
+    dangXemChiTietTuNhom = false;
 }
 
-
-///* =====================================================
-//   ĐĂNG XUẤT
-//===================================================== */
-//
-//function khoiTaoDangXuat() {
-//
-//    const button =
-//        document.getElementById(
-//            "btnLogout"
-//        );
-//
-//
-//    if (!button) {
-//        return;
-//    }
-//
-//
-//    button.addEventListener(
-//        "click",
-//        function () {
-//
-//            window.location.href =
-//                "/logout";
-//
-//        }
-//    );
-//
-//}
-
-
-/* =====================================================
-   FORMAT NGÀY
-===================================================== */
+// =========================================
+// ĐỊNH DẠNG NGÀY
+// =========================================
 
 function dinhDangNgay(value) {
+    if (!value) return "—";
 
-    if (!value) {
+    const text = String(value);
 
-        return "—";
-
+    // Ngày dạng yyyy-MM-dd.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+        const parts = text.split("-");
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
     }
 
+    const date = new Date(text);
 
-    const text =
-        String(value);
-
-
-    /*
-        LocalDate:
-        2026-10-04
-    */
-
-    if (
-        /^\d{4}-\d{2}-\d{2}$/.test(text)
-    ) {
-
-        const parts =
-            text.split("-");
-
-
-        return (
-            parts[2]
-            + "/"
-            + parts[1]
-            + "/"
-            + parts[0]
-        );
-
-    }
-
-
-    /*
-        LocalDateTime
-    */
-
-    const date =
-        new Date(text);
-
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
-
+    if (Number.isNaN(date.getTime())) {
         return text;
-
     }
 
-
-    return new Intl.DateTimeFormat(
-        "vi-VN",
-        {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        }
-    ).format(date);
-
+    return new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(date);
 }
 
-
-/* =====================================================
-   CHUẨN HÓA CHUỖI
-===================================================== */
+// =========================================
+// CHUẨN HÓA CHUỖI TÌM KIẾM
+// =========================================
 
 function chuanHoa(value) {
-
-    return String(
-        value || ""
-    )
+    return String(value ?? "")
         .normalize("NFD")
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        )
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/đ/g, "d")
+        .replace(/Đ/g, "d")
         .toLowerCase()
         .trim();
-
 }
 
-
-/* =====================================================
-   ESCAPE HTML
-===================================================== */
+// =========================================
+// ESCAPE HTML
+// =========================================
 
 function escapeHtml(value) {
-
-    return String(
-        value ?? ""
-    )
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
-
-/* =====================================================
-   ĐỌC JSON AN TOÀN
-===================================================== */
+// =========================================
+// ĐỌC JSON AN TOÀN
+// =========================================
 
 async function docJson(response) {
-
     try {
-
         return await response.json();
-
     } catch (error) {
-
         return null;
-
     }
-
 }

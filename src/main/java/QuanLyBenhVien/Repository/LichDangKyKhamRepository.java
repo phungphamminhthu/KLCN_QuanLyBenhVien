@@ -25,6 +25,19 @@ public interface LichDangKyKhamRepository
             Integer maBacSi,
             LocalDate ngayKham
     );
+    List<LichDangKyKham>
+    findByBacSi_MaBacSiAndTrangThaiInOrderByNgayKhamDescGioKhamDesc(
+            Integer maBacSi,
+            List<String> trangThai
+    );
+
+    List<LichDangKyKham>
+    findByBacSi_MaBacSiAndTrangThaiInAndNgayKhamBetweenOrderByNgayKhamDescGioKhamDesc(
+            Integer maBacSi,
+            List<String> trangThai,
+            LocalDate tuNgay,
+            LocalDate denNgay
+    );
 
 
     // =========================================================

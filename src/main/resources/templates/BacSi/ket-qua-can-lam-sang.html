@@ -91,16 +91,16 @@
             </div>
         </div>
 
-        <!-- BẢNG KẾT QUẢ -->
+        <!-- BẢNG KẾT QUẢ GOM NHÓM -->
         <div class="table-wrapper">
             <table>
                 <thead>
                 <tr>
                     <th>STT</th>
                     <th>BỆNH NHÂN</th>
-                    <th>DỊCH VỤ</th>
+                    <th>PHIẾU CHỈ ĐỊNH</th>
+                    <th>SỐ XÉT NGHIỆM</th>
                     <th>NGÀY CHỈ ĐỊNH</th>
-                    <th>NGÀY CÓ KQ</th>
                     <th>TRẠNG THÁI</th>
                     <th>THAO TÁC</th>
                 </tr>
@@ -114,6 +114,46 @@
                 </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+    <!-- MODAL DANH SÁCH XÉT NGHIỆM THEO PHIẾU -->
+    <div id="groupModal" class="modal-overlay hidden">
+        <div class="modal">
+
+            <div class="modal-header">
+                <div>
+                    <h2>Danh sách kết quả theo phiếu</h2>
+                    <p id="groupPatientInfo">
+                        Thông tin bệnh nhân
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="closeGroupModal"
+                        class="close-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>STT</th>
+                            <th>DỊCH VỤ</th>
+                            <th>NGÀY CÓ KQ</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>THAO TÁC</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="groupResultBody"></tbody>
+                    </table>
+                </div>
+
+            </div>
         </div>
     </div>
 

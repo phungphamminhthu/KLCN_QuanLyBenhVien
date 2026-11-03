@@ -301,11 +301,16 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             // Mã chỉ định
-            cell(
-                tr,
-                orderCode(item.maChiDinh),
-                "ctcd-order-code"
-            );
+            const isLabSheet =
+                Boolean(item.laPhieuXetNghiem) &&
+                item.maPhieuChiDinh != null &&
+                String(item.maPhieuChiDinh).trim() !== "";
+
+            const maHienThi = isLabSheet
+                ? String(item.maPhieuChiDinh)
+                : orderCode(item.maChiDinh);
+
+            cell(tr, maHienThi, "ctcd-order-code");
 
             // Bệnh nhân
             const patientTd = document.createElement("td");
@@ -406,12 +411,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             button.type = "button";
 
-            button.addEventListener("click", () => {
-                window.location.assign(
-                    "/ChuyenTrach/chi-dinh/" +
-                    encodeURIComponent(item.maChiDinh)
-                );
-            });
+           button.addEventListener("click", () => {
+               const maChiDinh = Number(item.maChiDinh);
+
+               if (!Number.isInteger(maChiDinh) || maChiDinh <= 0) {
+                   console.error("Phiếu không có mã chỉ định đại diện:", item);
+                   alert("Không tìm thấy mã chỉ định để mở chi tiết phiếu.");
+                   return;
+               }
+
+               window.location.assign(
+                   "/ChuyenTrach/chi-dinh/" +
+                   encodeURIComponent(maChiDinh)
+               );
+           });
 
 
             actionTd.appendChild(button);
@@ -474,13 +487,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams({
             tuNgay: fromDate.value,
             denNgay: toDate.value,
+            gomPhieu: "true",
             q: search.value.trim(),
             phong: roomFilter.value,
             trangThai: statusFilter.value,
             page: String(page),
             pageSize: String(PAGE_SIZE)
         });
-
         try {
             const data = await apiRequest(
                 `${API}?${params.toString()}`

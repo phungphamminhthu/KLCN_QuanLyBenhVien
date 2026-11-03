@@ -1892,6 +1892,17 @@ public class KhamBenhService {
 
         // Gửi thông báo cho bệnh nhân sau khi tạo chỉ định thành công
         guiThongBaoChiDinhCLS(lichKham, dichVu);
+        // Thông báo cho chuyên trách khi có chỉ định mới
+        thongBaoService.taoThongBaoTheoVaiTro(
+                List.of("CHUYENTRACH"),
+                "Có chỉ định cận lâm sàng mới",
+                "Bác sĩ vừa tạo chỉ định "
+                        + dichVu.getTenDichVu()
+                        + " cho lượt khám #"
+                        + maLichKham
+                        + ". Vui lòng tiếp nhận thực hiện.",
+                "PHIEU_CHI_DINH_MOI"
+        );
 
         return daLuu;
     }

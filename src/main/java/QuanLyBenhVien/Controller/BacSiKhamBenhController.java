@@ -179,7 +179,7 @@ public class BacSiKhamBenhController {
                             .countByBacSi_MaBacSiAndNgayKhamAndTrangThai(
                                     maBacSi,
                                     homNay,
-                                    "DaKham"
+                                    "HoanTat"
                             );
 
             Map<String, Object> ketQua =
@@ -198,8 +198,8 @@ public class BacSiKhamBenhController {
 
 
     // =========================================================
-    // 4. LỊCH SỬ KHÁM
-    // =========================================================
+// 4. LỊCH SỬ KHÁM
+// =========================================================
     @GetMapping("/lich-su")
     public ResponseEntity<?> lichSuKham(
             @RequestParam(required = false) LocalDate tuNgay,
@@ -207,20 +207,21 @@ public class BacSiKhamBenhController {
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
         try {
-
             BacSi bacSi = layBacSiDangNhap(userDetails);
             Integer maBacSi = bacSi.getMaBacSi();
+
+            List<String> trangThaiHopLe =
+                    List.of("DaKham", "HoanTat");
 
             List<LichDangKyKham> danhSach;
 
             if (tuNgay == null && denNgay == null) {
 
-                danhSach =
-                        lichDangKyKhamRepository
-                                .findByBacSi_MaBacSiAndTrangThaiOrderByNgayKhamDescGioKhamDesc(
-                                        maBacSi,
-                                        "DaKham"
-                                );
+                danhSach = lichDangKyKhamRepository
+                        .findByBacSi_MaBacSiAndTrangThaiInOrderByNgayKhamDescGioKhamDesc(
+                                maBacSi,
+                                trangThaiHopLe
+                        );
 
             } else {
 
@@ -236,14 +237,13 @@ public class BacSiKhamBenhController {
                     );
                 }
 
-                danhSach =
-                        lichDangKyKhamRepository
-                                .findByBacSi_MaBacSiAndTrangThaiAndNgayKhamBetweenOrderByNgayKhamDescGioKhamDesc(
-                                        maBacSi,
-                                        "DaKham",
-                                        tuNgay,
-                                        denNgay
-                                );
+                danhSach = lichDangKyKhamRepository
+                        .findByBacSi_MaBacSiAndTrangThaiInAndNgayKhamBetweenOrderByNgayKhamDescGioKhamDesc(
+                                maBacSi,
+                                trangThaiHopLe,
+                                tuNgay,
+                                denNgay
+                        );
             }
 
             List<Map<String, Object>> ketQua =
@@ -262,6 +262,7 @@ public class BacSiKhamBenhController {
                                 return map;
                             })
                             .toList();
+
             return ResponseEntity.ok(ketQua);
 
         } catch (Exception e) {

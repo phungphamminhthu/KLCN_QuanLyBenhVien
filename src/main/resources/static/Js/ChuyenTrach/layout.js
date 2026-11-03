@@ -449,6 +449,241 @@
     }
 
     // =====================================================
+    // 10.1. WEBSOCKET THÔNG BÁO CHUYÊN TRÁCH
+    // =====================================================
+
+    let ctStompClient = null;
+    let ctThongBaoMoi = [];
+    function chuanHoaThongBao(item) {
+        return {
+            maThongBao: item.maThongBao ?? item.id ?? null,
+            tieuDe: item.tieuDe ?? item.title ?? "Thông báo",
+            noiDung: item.noiDung ?? item.message ?? "",
+            loaiThongBao: item.loaiThongBao ?? item.type ?? "",
+            daDoc: item.daDoc != null
+                ? Boolean(item.daDoc)
+                : item.unread != null
+                    ? !item.unread
+                    : false
+        };
+    }
+
+    async function taiThongBaoChuyenTrach() {
+        try {
+            const data = await apiFetch("/api/thong-bao?limit=50");
+
+            const danhSach = Array.isArray(data)
+                ? data
+                : Array.isArray(data?.content)
+                    ? data.content
+                    : [];
+
+            // API đã lấy thông báo theo tài khoản đăng nhập.
+            // Tạm thời hiển thị toàn bộ thông báo của chuyên trách.
+            ctThongBaoMoi = danhSach.map(chuanHoaThongBao);
+
+            capNhatChuôngChuyenTrach();
+
+            console.log(
+                "Đã tải thông báo chuyên trách:",
+                ctThongBaoMoi.length
+            );
+
+            console.table(ctThongBaoMoi);
+
+        } catch (error) {
+            console.error(
+                "Lỗi tải thông báo chuyên trách:",
+                error
+            );
+        }
+    }
+
+
+    function capNhatChuôngChuyenTrach() {
+        const badge = document.getElementById("notificationBadge");
+        const list = document.getElementById("notificationList");
+
+        if (!badge || !list) return;
+
+        const soChuaDoc = ctThongBaoMoi.filter(
+            item => !item.daDoc
+        ).length;
+
+        badge.hidden = soChuaDoc === 0;
+        badge.textContent = soChuaDoc > 99 ? "99+" : soChuaDoc;
+
+        list.replaceChildren();
+
+        if (ctThongBaoMoi.length === 0) {
+            list.textContent = "Chưa có thông báo.";
+            return;
+        }
+
+        ctThongBaoMoi.forEach(thongBao => {
+            const item = document.createElement("div");
+            item.className = "ct-notification-item";
+
+            const title = document.createElement("strong");
+            title.textContent =
+                thongBao.tieuDe || "Thông báo mới";
+
+            const content = document.createElement("p");
+            content.textContent =
+                thongBao.noiDung || "";
+
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "ct-notification-view";
+            button.textContent = "Xem chỉ định";
+
+            button.addEventListener("click", () => {
+                thongBao.daDoc = true;
+                capNhatChuôngChuyenTrach();
+
+                // Lấy đường dẫn trang chỉ định từ sidebar.
+                const link = Array.from(
+                    document.querySelectorAll(
+                        ".reception-sidebar a[href]"
+                    )
+                ).find(a => {
+                    try {
+                        return new URL(a.href).pathname
+                            .includes("/chi-dinh");
+                    } catch (_) {
+                        return false;
+                    }
+                });
+
+                if (link) {
+                    window.location.href = link.href;
+                } else {
+                    console.warn(
+                        "Chưa tìm thấy đường dẫn trang chỉ định."
+                    );
+                }
+            });
+
+            item.append(title, content, button);
+            list.appendChild(item);
+        });
+    }
+
+
+    function nhanThongBaoChuyenTrach(data) {
+        console.log("Thông báo WebSocket nhận được:", data);
+
+        const thongBao = chuanHoaThongBao(data);
+
+        // Tránh thêm trùng thông báo đã tải từ API.
+        const daTonTai = thongBao.maThongBao != null &&
+            ctThongBaoMoi.some(item =>
+                String(item.maThongBao) ===
+                String(thongBao.maThongBao)
+            );
+
+        if (daTonTai) return;
+
+        ctThongBaoMoi.unshift(thongBao);
+
+        capNhatChuôngChuyenTrach();
+
+        // Thông báo cho trang chỉ định tải dữ liệu mới.
+        if (
+            thongBao.loaiThongBao === "PHIEU_CHI_DINH_MOI" ||
+            thongBao.noiDung.toLowerCase().includes("chỉ định")
+        ) {
+            window.dispatchEvent(
+                new CustomEvent("ctPhieuChiDinhMoi", {
+                    detail: thongBao
+                })
+            );
+        }
+    }
+
+    function khoiTaoWebSocketChuyenTrach() {
+        const token = layToken();
+
+        if (!token) {
+            console.warn(
+                "Chưa có JWT để kết nối WebSocket chuyên trách."
+            );
+            return;
+        }
+
+        if (!window.StompJs) {
+            console.error(
+                "Chưa tải được thư viện STOMP."
+            );
+            return;
+        }
+
+        if (ctStompClient) return;
+
+        const protocol =
+            window.location.protocol === "https:"
+                ? "wss:"
+                : "ws:";
+
+        const brokerURL =
+            `${protocol}//${window.location.host}/ws`;
+
+        ctStompClient = new StompJs.Client({
+            brokerURL,
+
+            connectHeaders: {
+                Authorization: `Bearer ${token}`
+            },
+
+            reconnectDelay: 5000,
+
+            heartbeatIncoming: 10000,
+            heartbeatOutgoing: 10000,
+
+            onConnect: () => {
+                console.log(
+                    "WebSocket chuyên trách đã kết nối."
+                );
+
+                ctStompClient.subscribe(
+                    "/user/queue/thong-bao",
+                    message => {
+                        try {
+                            const thongBao = JSON.parse(
+                                message.body
+                            );
+
+                            nhanThongBaoChuyenTrach(thongBao);
+                        } catch (error) {
+                            console.error(
+                                "Lỗi xử lý thông báo:",
+                                error
+                            );
+                        }
+                    }
+                );
+            },
+
+            onStompError: frame => {
+                console.error(
+                    "STOMP Error:",
+                    frame.headers.message
+                );
+            },
+
+            onWebSocketError: error => {
+                console.error(
+                    "WebSocket Error:",
+                    error
+                );
+            }
+        });
+
+        ctStompClient.activate();
+    }
+
+
+    // =====================================================
     // 11. LÀM MỚI DỮ LIỆU
     // =====================================================
 
@@ -510,5 +745,8 @@
         initNotifications();
         initRefreshButton();
         initThongTinChuyenTrach();
+
+        taiThongBaoChuyenTrach();
+        khoiTaoWebSocketChuyenTrach();
     });
 })();
