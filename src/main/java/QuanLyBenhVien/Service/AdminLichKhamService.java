@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class AdminLichKhamService {
@@ -25,6 +26,9 @@ public class AdminLichKhamService {
 
     private static final List<String> TRANG_THAI_DUOC_DIEU_PHOI =
             List.of("DaDat", "DaXacNhan", "DaTiepNhan", "ChoGoi");
+
+    private static final DateTimeFormatter FORMAT_NGAY_THANG_NAM =
+            DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     private final LichDangKyKhamRepository lichDangKyKhamRepository;
     private final BacSiRepository bacSiRepository;
@@ -295,6 +299,8 @@ public class AdminLichKhamService {
             lichSu.setNgayDieuPhoi(LocalDateTime.now());
 
             lichSuRepository.save(lichSu);
+            String ngayKhamHienThi =
+                    lich.getNgayKham().format(FORMAT_NGAY_THANG_NAM);
 
             // Gửi thông báo cho bệnh nhân.
             if (lich.getBenhNhan() != null
@@ -308,8 +314,10 @@ public class AdminLichKhamService {
                 thongBao.setTieuDe(
                         "Lịch khám đã được điều phối");
 
+
+
                 String noiDung =
-                        "Lịch khám ngày " + lich.getNgayKham()
+                        "Lịch khám ngày " + ngayKhamHienThi
                                 + " lúc " + lich.getGioKham()
                                 + " đã được điều phối từ bác sĩ "
                                 + tenBacSiCu
@@ -340,7 +348,7 @@ public class AdminLichKhamService {
 
                 String noiDungBacSi =
                         "Bạn được điều phối tiếp nhận lịch khám ngày "
-                                + lich.getNgayKham()
+                                + ngayKhamHienThi
                                 + " lúc " + lich.getGioKham()
                                 + " từ bác sĩ " + tenBacSiCu + ".";
 

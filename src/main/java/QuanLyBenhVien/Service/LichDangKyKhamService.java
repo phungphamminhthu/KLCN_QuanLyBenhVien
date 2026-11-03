@@ -414,4 +414,122 @@ public class LichDangKyKhamService {
                 })
                 .toList();
     }
+
+    // ===================================
+    // huy lich
+    // ===================================
+    @Transactional
+    public void huyLichKham(
+            Integer maLichKham,
+            Authentication authentication) {
+
+        // 1. Kiểm tra đăng nhập
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            throw new IllegalArgumentException(
+                    "Vui lòng đăng nhập để hủy lịch khám."
+            );
+        }
+
+        if (maLichKham == null || maLichKham <= 0) {
+            throw new IllegalArgumentException(
+                    "Mã lịch khám không hợp lệ."
+            );
+        }
+
+        // 2. Lấy tài khoản đang đăng nhập
+        String tenDangNhap = authentication.getName();
+
+        NguoiDung nguoiDung = nguoiDungRepository
+                .findByTenDangNhap(tenDangNhap)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy tài khoản đăng nhập."
+                ));
+
+        // 3. Lấy hồ sơ bệnh nhân của tài khoản
+        BenhNhan benhNhan = benhNhanRepository
+                .findByNguoiDung_MaNguoiDung(
+                        nguoiDung.getMaNguoiDung()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Tài khoản chưa có hồ sơ bệnh nhân."
+                ));
+
+        // 4. Lấy lịch khám
+        LichDangKyKham lich = lichRepository
+                .findById(maLichKham)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy lịch khám."
+                ));
+
+        // 5. Đảm bảo lịch thuộc bệnh nhân đang đăng nhập
+        if (lich.getBenhNhan() == null
+                || !lich.getBenhNhan().getMaBenhNhan()
+                .equals(benhNhan.getMaBenhNhan())) {
+            throw new IllegalArgumentException(
+                    "Bạn không có quyền hủy lịch khám này."
+            );
+        }
+
+        // 6. Chỉ cho hủy ở các trạng thái được phép
+        String trangThai = lich.getTrangThai();
+
+        List<String> trangThaiChoPhepHuy = List.of(
+                "ChoGoi",
+                "DaXacNhan",
+                "DaTiepNhan"
+        );
+
+        if (!trangThaiChoPhepHuy.contains(trangThai)) {
+            throw new IllegalArgumentException(
+                    "Lịch khám hiện tại không thể hủy."
+            );
+        }
+
+        // 7. Cập nhật trạng thái lịch khám
+        lich.setTrangThai("DaHuy");
+        lichRepository.save(lich);
+
+        // 8. Cập nhật trạng thái số thứ tự nếu có
+        SoThuTu soThuTu = lich.getSoThuTu();
+
+        if (soThuTu != null) {
+            soThuTu.setTrangThai("DaHuy");
+            soThuTuRepository.save(soThuTu);
+        }
+
+        // 9. Thông báo cho bệnh nhân
+        thongBaoService.taoThongBao(
+                nguoiDung.getMaNguoiDung(),
+                "Hủy lịch khám thành công",
+                "Lịch khám ngày "
+                        + lich.getNgayKham()
+                        + " lúc "
+                        + lich.getGioKham()
+                        + " đã được hủy.",
+                "HUY_LICH"
+        );
+
+        // 10. Thông báo cho bác sĩ nếu có tài khoản
+        if (lich.getBacSi() != null
+                && lich.getBacSi().getNguoiDung() != null) {
+
+            Integer maNguoiDungBacSi =
+                    lich.getBacSi()
+                            .getNguoiDung()
+                            .getMaNguoiDung();
+
+            thongBaoService.taoThongBao(
+                    maNguoiDungBacSi,
+                    "Lịch khám đã bị hủy",
+                    "Bệnh nhân đã hủy lịch khám ngày "
+                            + lich.getNgayKham()
+                            + " lúc "
+                            + lich.getGioKham()
+                            + ".",
+                    "HUY_LICH"
+            );
+        }
+    }
 }

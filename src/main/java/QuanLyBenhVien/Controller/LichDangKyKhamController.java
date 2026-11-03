@@ -69,4 +69,37 @@ public class LichDangKyKhamController {
         }
     }
 
+    // ==========================================
+    // huy lich
+    // ==========================================
+    @PostMapping("/{maLichKham}/huy")
+    public ResponseEntity<?> huyLichKham(
+            @PathVariable Integer maLichKham,
+            Authentication authentication) {
+
+        try {
+            lichDangKyKhamService.huyLichKham(
+                    maLichKham,
+                    authentication
+            );
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "success", true,
+                            "message", "Hủy lịch khám thành công.",
+                            "maLichKham", maLichKham,
+                            "trangThai", "DaHuy"
+                    )
+            );
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "success", false,
+                            "message", e.getMessage()
+                    ));
+        }
+    }
+
 }
