@@ -1,277 +1,213 @@
 
+/* MedCare - Thong bao Dashboard va xac nhan tiep nhan */
 (() => {
     "use strict";
 
-    // =====================================================
-    // MEDCARE DASHBOARD - THÔNG BÁO & TIẾP NHẬN
-    // =====================================================
-
-    const PRIMARY = "#4f6ef7";
-    const DURATION = 5000;
-
+    const PRIMARY = "var(--primary, #6236ff)";
+    const TOAST_DURATION = 5000;
+    let receptionOpen = false;
     let toastTimer = null;
-    let modalActive = false;
-    let receiving = false;
 
     // =====================================================
-    // 1. CSS - MÀU TÍM CHỦ ĐẠO MEDCARE
+    // 1. CSS THONG BAO - DONG BO MAU MEDCARE
     // =====================================================
+
+    document.getElementById("medcare-reception-style")?.remove();
 
     const style = document.createElement("style");
-
-    style.id = "dashboard-notification-fix-style";
+    style.id = "medcare-reception-style";
 
     style.textContent = `
-        :root {
-            --medcare-primary: ${PRIMARY};
-            --medcare-primary-light: #eef4ff;
-            --medcare-primary-border: #cfe0ff;
-        }
-
         #dashboard-message {
             display: none !important;
         }
 
         #mc-dashboard-toast {
             position: fixed;
-            top: 18px;
+            z-index: 21000;
+            top: 16px;
             left: 50%;
-            z-index: 20050;
-
-            width: max-content;
-            max-width: min(92vw, 650px);
-
-            padding: 14px 19px;
-            border-radius: 12px;
-
+            transform: translateX(-50%);
+            max-width: min(600px, 92vw);
+            padding: 13px 18px;
+            border-radius: 11px;
             background: #eef4ff;
-            border: 1px solid #cfe0ff;
-            color: #23408e;
-
-            box-shadow:
-                0 15px 35px rgba(40, 72, 160, .16);
-
-            font-size: 14px;
+            border: 1px solid #cddfff;
+            color: #23418a;
+            font-size: 13px;
             font-weight: 600;
-            line-height: 1.5;
+            line-height: 1.6;
+            box-shadow: 0 12px 30px rgba(33, 40, 80, .16);
+        }
 
-            transform: translate(-50%, -40px);
-            opacity: 0;
-            pointer-events: none;
-
-            transition:
-                transform .3s ease,
-                opacity .3s ease;
+        #mc-dashboard-toast.mc-error {
+            background: #fff3f3;
+            border-color: #ffcaca;
+            color: #a32222;
         }
 
         #mc-dashboard-toast[hidden] {
             display: none !important;
         }
 
-        #mc-dashboard-toast.mc-show {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-
-        #mc-dashboard-toast.mc-success {
-            background: #eefbf3;
-            border-color: #bde8cc;
-            color: #1f7a45;
-        }
-
-        #mc-dashboard-toast.mc-error {
-            background: #fff4f4;
-            border-color: #f3c4c4;
-            color: #b42318;
-        }
-
-        #mc-dashboard-overlay {
+        #mc-reception-overlay {
             position: fixed;
+            z-index: 22000;
             inset: 0;
-            z-index: 20500;
-
-            background: rgba(20, 18, 45, .48);
-
             display: flex;
             align-items: center;
             justify-content: center;
-
-            padding: 20px;
-            overflow-y: auto;
+            padding: 18px;
+            background: rgba(24, 25, 51, .52);
         }
 
-        #mc-dashboard-overlay[hidden] {
+        #mc-reception-overlay .mc-reception-card {
+            width: 100%;
+            max-width: 510px;
+            max-height: calc(100vh - 36px);
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 24px 64px rgba(28, 30, 66, .24);
+            color: #2b3047;
+        }
+
+        .mc-reception-head {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 20px 23px;
+            border-bottom: 1px solid #e8ecf5;
+        }
+
+        .mc-reception-head-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            display: grid;
+            place-items: center;
+            background: #f0edff;
+            color: ${PRIMARY};
+            font-size: 19px;
+        }
+
+        .mc-reception-heading {
+            flex: 1;
+            margin: 0;
+            font-size: 17px;
+            font-weight: 750;
+            line-height: 1.4;
+            color: #292f47;
+        }
+
+        .mc-reception-x {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: #8190a7;
+            cursor: pointer;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .mc-reception-x:disabled {
+            opacity: .35;
+            cursor: wait;
+        }
+
+        .mc-reception-body {
+            padding: 22px 24px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        .mc-reception-message {
+            margin: 0;
+        }
+
+        .mc-reception-details {
+            margin-top: 15px;
+            padding: 15px 17px;
+            border-radius: 11px;
+            background: #f2f5ff;
+            border: 1px solid #dfe6ff;
+            color: #34466b;
+        }
+
+        .mc-reception-details.mc-error {
+            background: #fff4f4;
+            border-color: #ffcaca;
+            color: #9b2525;
+        }
+
+        .mc-reception-details[hidden] {
             display: none !important;
         }
 
-        .mc-dialog {
-            width: 100%;
-            max-width: 510px;
-
-            padding: 0;
-            border-radius: 16px;
-
-            background: #fff;
-            color: #252840;
-
-            box-shadow:
-                0 20px 70px rgba(24, 17, 73, .2);
-
-            overflow: hidden;
-            animation: mc-dialog-in .22s ease-out;
+        .mc-reception-details ul {
+            margin: 9px 0 0;
+            padding-left: 21px;
         }
 
-        @keyframes mc-dialog-in {
-            from {
-                opacity: 0;
-                transform: translateY(15px) scale(.98);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        .mc-reception-details li + li {
+            margin-top: 5px;
         }
 
-        .mc-dialog-header {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-
-            padding: 21px 23px;
-            border-bottom: 1px solid #e5edf9;
+        .mc-reception-room {
+            display: block;
+            color: ${PRIMARY};
+            font-size: 21px;
+            font-weight: 800;
+            margin: 3px 0 8px;
         }
 
-        .mc-dialog-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            width: 45px;
-            height: 45px;
-            flex: 0 0 45px;
-
-            border-radius: 12px;
-            background: var(--medcare-primary-light);
-            color: var(--medcare-primary);
-
-            font-size: 22px;
-        }
-
-        .mc-dialog-title {
-            flex: 1;
-            margin: 0;
-
-            color: #1f2a44;
-            font-size: 18px;
-            font-weight: 750;
-            line-height: 1.4;
-        }
-
-        .mc-dialog-close {
-            border: 0;
-            background: transparent;
-            color: #7e8aa8;
-
-            font-size: 25px;
-            cursor: pointer;
-        }
-
-        .mc-dialog-body {
-            padding: 21px 24px;
-            font-size: 14px;
-            line-height: 1.7;
-        }
-
-        .mc-dialog-message {
-            margin: 0 0 13px;
-            font-weight: 600;
-            color: #2f3f67;
-        }
-
-        .mc-dialog-reasons {
-            margin: 0;
-            padding: 14px 16px 14px 33px;
-
-            border: 1px solid #d7e6ff;
-            border-radius: 10px;
-
-            background: #f5f9ff;
-            color: #355189;
-        }
-
-        .mc-dialog-reasons li {
-            padding-left: 3px;
-            margin: 5px 0;
-        }
-
-        .mc-dialog-reasons li::marker {
-            color: var(--medcare-primary);
-        }
-
-        .mc-dialog-hint {
-            margin: 15px 0 0;
-            padding-top: 13px;
-            border-top: 1px solid #e9eef8;
-
-            color: #6c7895;
-            font-size: 13px;
-        }
-
-        .mc-dialog-actions {
+        .mc-reception-foot {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-
-            padding: 0 24px 23px;
+            gap: 9px;
+            padding: 15px 24px 20px;
+            border-top: 1px solid #e8ecf5;
         }
 
-        .mc-dialog-btn {
-            border: 1px solid #d9e3f5;
-            border-radius: 9px;
-            padding: 10px 17px;
-
+        .mc-reception-btn {
+            padding: 9px 16px;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: 700;
+            border: 1px solid #d7ddeb;
+            background: #fff;
+            color: #687388;
             cursor: pointer;
-
-            background: #f7faff;
-            color: #39507f;
         }
 
-        .mc-dialog-btn.primary {
-            background: var(--medcare-primary);
-            border-color: var(--medcare-primary);
-            color: #fff;
+        .mc-reception-btn.mc-primary {
+            background: ${PRIMARY};
+            border-color: ${PRIMARY};
+            color: white;
         }
 
-        .mc-dialog-btn:hover {
-            filter: brightness(.96);
+        .mc-reception-btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        .mc-reception-btn[hidden] {
+            display: none !important;
         }
 
         @media (max-width: 575px) {
-            .mc-dialog-header {
+            .mc-reception-head,
+            .mc-reception-body {
                 padding: 17px;
             }
 
-            .mc-dialog-title {
-                font-size: 16px;
-            }
-
-            .mc-dialog-body {
-                padding: 18px;
-            }
-
-            .mc-dialog-actions {
-                padding: 0 18px 18px;
-                flex-wrap: wrap;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            #mc-dashboard-toast,
-            .mc-dialog {
-                animation: none;
-                transition: none;
+            .mc-reception-foot {
+                padding: 13px 17px 17px;
             }
         }
     `;
@@ -279,354 +215,82 @@
     document.head.appendChild(style);
 
     // =====================================================
-    // 2. TOAST 5 GIÂY
+    // 2. THONG BAO THONG THUONG - TU DONG AN 5 GIAY
     // =====================================================
 
-    function getToast() {
-        let node = document.getElementById(
-            "mc-dashboard-toast"
-        );
+    function hideLegacyMessage() {
+        const old = document.getElementById("dashboard-message");
 
-        if (!node) {
-            node = document.createElement("div");
-
-            node.id = "mc-dashboard-toast";
-            node.hidden = true;
-
-            node.setAttribute("role", "status");
-            node.setAttribute("aria-live", "polite");
-
-            document.body.appendChild(node);
+        if (old) {
+            old.textContent = "";
+            old.hidden = true;
         }
-
-        return node;
     }
 
     function hideToast() {
-        clearTimeout(toastTimer);
+        window.clearTimeout(toastTimer);
 
         const toast = document.getElementById(
             "mc-dashboard-toast"
         );
 
-        if (!toast) return;
-
-        toast.classList.remove("mc-show");
-
-        setTimeout(() => {
-            if (!toast.classList.contains("mc-show")) {
-                toast.hidden = true;
-            }
-        }, 310);
+        if (toast) {
+            toast.hidden = true;
+        }
     }
 
     function showToast(message, type = "info") {
-        if (!message) return;
+        hideToast();
 
-        const toast = getToast();
+        if (!message || receptionOpen) {
+            return;
+        }
 
-        clearTimeout(toastTimer);
+        let toast = document.getElementById(
+            "mc-dashboard-toast"
+        );
+
+        if (!toast) {
+            toast = document.createElement("div");
+            toast.id = "mc-dashboard-toast";
+            toast.setAttribute("role", "status");
+            document.body.appendChild(toast);
+        }
 
         toast.textContent = String(message);
-        toast.className = `mc-${type}`;
+
+        toast.className =
+            type === "error" ? "mc-error" : "";
+
         toast.hidden = false;
 
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                toast.classList.add("mc-show");
-            });
-        });
-
-        toastTimer = setTimeout(
+        toastTimer = window.setTimeout(
             hideToast,
-            DURATION
+            TOAST_DURATION
         );
     }
 
-    // =====================================================
-    // 3. POPUP GIỮA MÀN HÌNH
-    // =====================================================
-
-    function showModal({
-        title = "Thông báo MedCare",
-        message = "",
-        reasons = [],
-        icon = "fa-clipboard-check",
-        confirmText = null,
-        closeText = "Đóng",
-        autoClose = 0
-    } = {}) {
-
-        return new Promise(resolve => {
-            if (modalActive) {
-                resolve(false);
-                return;
-            }
-
-            modalActive = true;
-
-            const oldFocus = document.activeElement;
-
-            const overlay =
-                document.createElement("div");
-
-            overlay.id = "mc-dashboard-overlay";
-
-            const dialog =
-                document.createElement("section");
-
-            dialog.className = "mc-dialog";
-            dialog.setAttribute("role", "dialog");
-            dialog.setAttribute("aria-modal", "true");
-            dialog.setAttribute(
-                "aria-labelledby",
-                "mc-dialog-title"
-            );
-
-            const header =
-                document.createElement("div");
-
-            header.className = "mc-dialog-header";
-
-            const iconBox =
-                document.createElement("div");
-
-            iconBox.className = "mc-dialog-icon";
-
-            const iconNode =
-                document.createElement("i");
-
-            iconNode.className = `fa-solid ${icon}`;
-
-            iconBox.appendChild(iconNode);
-
-            const heading =
-                document.createElement("h3");
-
-            heading.className = "mc-dialog-title";
-            heading.id = "mc-dialog-title";
-            heading.textContent = title;
-
-            const x =
-                document.createElement("button");
-
-            x.type = "button";
-            x.className = "mc-dialog-close";
-            x.textContent = "×";
-            x.setAttribute(
-                "aria-label",
-                "Đóng thông báo"
-            );
-
-            header.append(iconBox, heading, x);
-
-            const body =
-                document.createElement("div");
-
-            body.className = "mc-dialog-body";
-
-            if (message) {
-                const text =
-                    document.createElement("p");
-
-                text.className = "mc-dialog-message";
-                text.textContent = message;
-
-                body.appendChild(text);
-            }
-
-            if (Array.isArray(reasons) && reasons.length) {
-                const list =
-                    document.createElement("ul");
-
-                list.className = "mc-dialog-reasons";
-
-                for (const reason of reasons) {
-                    const li =
-                        document.createElement("li");
-
-                    li.textContent = String(reason);
-                    list.appendChild(li);
-                }
-
-                body.appendChild(list);
-
-                const hint =
-                    document.createElement("p");
-
-                hint.className = "mc-dialog-hint";
-                hint.textContent =
-                    "Vui lòng hoàn tất các điều kiện trên "
-                    + "trước khi tiếp nhận.";
-
-                body.appendChild(hint);
-            }
-
-            const actions =
-                document.createElement("div");
-
-            actions.className = "mc-dialog-actions";
-
-            const close =
-                document.createElement("button");
-
-            close.type = "button";
-            close.className = "mc-dialog-btn";
-            close.textContent = closeText;
-
-            actions.appendChild(close);
-
-            let confirm = null;
-
-            if (confirmText) {
-                confirm = document.createElement("button");
-
-                confirm.type = "button";
-                confirm.className =
-                    "mc-dialog-btn primary";
-
-                confirm.textContent = confirmText;
-                actions.appendChild(confirm);
-            }
-
-            dialog.append(header, body, actions);
-            overlay.appendChild(dialog);
-
-            document.body.appendChild(overlay);
-
-            let finished = false;
-            let timer = null;
-
-            function finish(accepted = false) {
-                if (finished) return;
-
-                finished = true;
-                modalActive = false;
-
-                clearTimeout(timer);
-
-                document.removeEventListener(
-                    "keydown",
-                    onKeyDown,
-                    true
-                );
-
-                overlay.remove();
-
-                if (oldFocus?.isConnected) {
-                    oldFocus.focus({
-                        preventScroll: true
-                    });
-                }
-
-                resolve(accepted);
-            }
-
-            function onKeyDown(event) {
-                if (event.key === "Escape") {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    finish(false);
-                }
-            }
-
-            x.addEventListener(
-                "click",
-                () => finish(false)
-            );
-
-            close.addEventListener(
-                "click",
-                () => finish(false)
-            );
-
-            confirm?.addEventListener(
-                "click",
-                () => finish(true)
-            );
-
-            document.addEventListener(
-                "keydown",
-                onKeyDown,
-                true
-            );
-
-            (confirm || close).focus();
-
-            if (autoClose > 0) {
-                timer = setTimeout(
-                    () => finish(false),
-                    autoClose
-                );
-            }
-        });
-    }
-
-    // =====================================================
-    // 4. KHÔNG HIỆN THÔNG BÁO TRÙNG KHI GỌI BỆNH NHÂN
-    // =====================================================
-
+    // Giu thong bao chung, khong lap lai khi goi benh nhan.
     window.showDashboardMessage = function (
         message = "",
         isError = false
     ) {
-        const old = document.getElementById(
-            "dashboard-message"
-        );
-
-        if (old) {
-            old.hidden = true;
-            old.textContent = "";
-        }
+        hideLegacyMessage();
 
         const text = String(message || "").trim();
 
-        if (!text) return;
-
-        // Đã có popup Gọi bệnh nhân ở giữa.
-        // Không hiện thông báo trùng trên đầu trang.
-        if (
-            !isError
-            && (
-                text.startsWith("Đang gọi bệnh nhân")
-                || text.startsWith("Đã gọi bệnh nhân")
-            )
-        ) {
+        if (!text) {
+            hideToast();
             return;
         }
 
-        // Gọi thất bại: thông báo giữa màn hình.
-        if (
-            isError
-            && typeof callingPatient !== "undefined"
-            && callingPatient
-        ) {
-            void showModal({
-                title: "Không thể gọi bệnh nhân",
-                message: text,
-                icon: "fa-triangle-exclamation"
-            });
-
+        if (!isError && (
+            text.startsWith("Đang gọi bệnh nhân") ||
+            text.startsWith("Đã gọi bệnh nhân")
+        )) {
             return;
         }
 
-        // Xác nhận tiếp nhận thành công:
-        // thông báo giữa màn hình trong 5 giây.
-        if (
-            !isError
-            && text.startsWith("Đã tiếp nhận bệnh nhân")
-        ) {
-            void showModal({
-                title: "Tiếp nhận thành công",
-                message: text,
-                icon: "fa-circle-check",
-                autoClose: DURATION
-            });
-
-            return;
-        }
-
-        // Các thông báo khác trượt từ trên xuống.
         showToast(
             text,
             isError ? "error" : "info"
@@ -634,172 +298,486 @@
     };
 
     // =====================================================
-    // 5. XÁC NHẬN TIẾP NHẬN THEO ĐÚNG ĐIỀU KIỆN
+    // 3. XAC NHAN TIEP NHAN
+    // Hoi xac nhan -> Kiem tra -> Thanh cong / That bai
     // =====================================================
 
-    window.handleConfirmReception =
-        async function (maLichKham) {
-
-        if (receiving || isBusy()) return;
+    window.handleConfirmReception = async function (
+        maLichKham
+    ) {
+        if (receptionOpen || isBusy()) {
+            return;
+        }
 
         const id = positiveId(maLichKham);
 
         const item = globalQueueData.find(
-            row =>
-                positiveId(row.maLichKham) === id
+            row => positiveId(row.maLichKham) === id
         );
 
-        if (
-            !id
-            || !item
-            || !canConfirmReception(item)
-        ) {
+        if (!id || !item || !canConfirmReception(item)) {
             return;
         }
 
-        receiving = true;
+        receptionOpen = true;
         confirmingReception = true;
+
+        hideLegacyMessage();
+        hideToast();
 
         updateBusyControls();
         renderDashboardTables();
 
-        let nextPage = null;
+        const oldFocus = document.activeElement;
 
-        try {
-            // API chỉ kiểm tra điều kiện.
-            // Không chuyển trạng thái bệnh nhân.
-            const validation = await requestApi(
-                `/api/tiepnhan/kiem-tra-tiep-nhan/${id}`
-            );
+        const overlay = document.createElement("div");
+        overlay.id = "mc-reception-overlay";
 
-            const reasons = Array.isArray(validation.lyDo)
-                ? validation.lyDo
-                : [];
+        overlay.innerHTML = `
+            <section class="mc-reception-card"
+                     role="dialog"
+                     aria-modal="true"
+                     aria-labelledby="mc-reception-title"
+                     aria-describedby="mc-reception-message">
 
-            // Có lỗi thì hiển thị đúng các mục còn thiếu.
-            if (
-                validation.duDieuKien !== true
-            ) {
-                const goToProfile = await showModal({
-                    title: "Chưa đủ điều kiện tiếp nhận",
-                    message:
-                        `Chưa thể xác nhận tiếp nhận bệnh nhân `
-                        + `${item.tenBenhNhan || ""}.`,
-                    reasons: reasons.length
-                        ? reasons
-                        : [
-                            "Hệ thống chưa xác nhận "
-                            + "đủ điều kiện tiếp nhận."
-                        ],
-                    icon: "fa-clipboard-list",
-                    confirmText: "Đi đến hồ sơ"
-                });
+                <div class="mc-reception-head">
+                    <span class="mc-reception-head-icon"
+                          aria-hidden="true">
+                        <i class="fa-solid fa-clipboard-check"
+                           data-part="icon"></i>
+                    </span>
 
-                if (goToProfile) {
-                    const patientId =
-                        positiveId(item.maBenhNhan);
+                    <h2 class="mc-reception-heading"
+                        id="mc-reception-title"></h2>
 
-                    if (patientId) {
-                        const params =
-                            new URLSearchParams({
-                                maLichKham: String(id),
-                                from: "dashboard"
-                            });
+                    <button class="mc-reception-x"
+                            type="button"
+                            data-action="close"
+                            aria-label="Đóng">×</button>
+                </div>
 
-                        nextPage =
-                            `/TiepNhan/ho-so-benh-nhan/`
-                            + patientId
-                            + `?${params}`;
-                    }
-                }
+                <div class="mc-reception-body">
+                    <p class="mc-reception-message"
+                       id="mc-reception-message"></p>
 
+                    <div class="mc-reception-details"
+                         data-part="details"
+                         hidden></div>
+
+                    <p data-part="note"
+                       style="
+                           font-size:12px;
+                           color:#a06b24;
+                           margin:12px 0 0;
+                       "
+                       hidden></p>
+                </div>
+
+                <div class="mc-reception-foot">
+                    <button class="mc-reception-btn"
+                            type="button"
+                            data-action="cancel">
+                        Hủy
+                    </button>
+
+                    <button class="mc-reception-btn mc-primary"
+                            type="button"
+                            data-action="confirm">
+                        Xác nhận tiếp nhận
+                    </button>
+
+                    <button class="mc-reception-btn"
+                            type="button"
+                            data-action="done"
+                            hidden>
+                        Đóng
+                    </button>
+                </div>
+            </section>
+        `;
+
+        const pick = selector =>
+            overlay.querySelector(selector);
+
+        const heading = pick("#mc-reception-title");
+        const message = pick("#mc-reception-message");
+        const details = pick('[data-part="details"]');
+        const note = pick('[data-part="note"]');
+        const icon = pick('[data-part="icon"]');
+
+        const closeButton = pick('[data-action="close"]');
+        const cancelButton = pick('[data-action="cancel"]');
+        const confirmButton = pick('[data-action="confirm"]');
+        const doneButton = pick('[data-action="done"]');
+
+        const patient = String(
+            item.tenBenhNhan || "bệnh nhân"
+        );
+
+        let processing = false;
+        let closed = false;
+
+        // =================================================
+        // 4. DONG POPUP
+        // =================================================
+
+        function close() {
+            if (processing || closed) {
                 return;
             }
 
-            // Đã đủ điều kiện:
-            // hiển thị hộp thoại tím MedCare.
-            const accepted = await showModal({
-                title: "Xác nhận tiếp nhận bệnh nhân",
-                message:
-                    `Xác nhận đã tiếp nhận bệnh nhân `
-                    + `${item.tenBenhNhan || ""}?`,
-                icon: "fa-clipboard-check",
-                confirmText: "Xác nhận tiếp nhận",
-                closeText: "Hủy"
-            });
+            closed = true;
 
-            if (!accepted) return;
-
-            // Backend mới là nơi quyết định chuyển
-            // TrangThai thành DaTiepNhan.
-            const result = await postJson(
-                "/api/tiepnhan/confirm-reception",
-                {
-                    maLichKham: id
-                }
+            document.removeEventListener(
+                "keydown",
+                onKeyDown,
+                true
             );
 
-            if (result.success !== true) {
-                throw new Error(
-                    result.message
-                    || "Không thể xác nhận tiếp nhận."
-                );
-            }
+            overlay.remove();
 
-            item.trangThai = "Đã tiếp nhận";
-
-            const refreshed =
-                await loadDashboardRealData(
-                    true,
-                    true
-                );
-
-            await showModal({
-                title: "Tiếp nhận thành công",
-                message:
-                    refreshed
-                        ? `Đã tiếp nhận bệnh nhân `
-                          + `${item.tenBenhNhan || ""}. `
-                          + `Bệnh nhân chờ bác sĩ bắt đầu khám.`
-                        : "Đã tiếp nhận thành công, "
-                          + "nhưng chưa tải lại được Dashboard.",
-                icon: "fa-circle-check",
-                autoClose: DURATION
-            });
-
-        } catch (error) {
-            // Lỗi thay đổi trạng thái hoặc lỗi mạng:
-            // không được tự sửa TrangThai.
-            await loadDashboardRealData(true, true);
-
-            await showModal({
-                title: "Không thể xác nhận tiếp nhận",
-                message:
-                    error.message
-                    || "Không thể xác nhận tiếp nhận.",
-                icon: "fa-triangle-exclamation"
-            });
-
-        } finally {
-            receiving = false;
+            receptionOpen = false;
             confirmingReception = false;
 
             updateBusyControls();
             renderDashboardTables();
 
-            if (nextPage) {
-                window.location.assign(nextPage);
+            if (
+                oldFocus?.isConnected &&
+                !oldFocus.disabled
+            ) {
+                oldFocus.focus({
+                    preventScroll: true
+                });
             }
         }
+
+        function onKeyDown(event) {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+
+                if (!processing) {
+                    close();
+                }
+            }
+        }
+
+        function finishPhase() {
+            cancelButton.hidden = true;
+            confirmButton.hidden = true;
+            doneButton.hidden = false;
+
+            closeButton.disabled = false;
+            doneButton.focus();
+        }
+
+        // =================================================
+        // 5. HIEN THI XAC NHAN KHONG THANH CONG
+        // =================================================
+
+        function showFailure(reasons, fallback) {
+            heading.textContent =
+                "Xác nhận không thành công";
+
+            icon.className =
+                "fa-solid fa-circle-exclamation";
+
+            icon.style.color = "#d52e36";
+
+            message.textContent =
+                `Không thể xác nhận tiếp nhận bệnh nhân ${patient}.`;
+
+            details.replaceChildren();
+            details.hidden = false;
+            details.classList.add("mc-error");
+
+            const label = document.createElement("strong");
+
+            label.textContent =
+                "Lý do không thể tiếp nhận";
+
+            const list = document.createElement("ul");
+
+            const unique = [
+                ...new Set(
+                    (Array.isArray(reasons) ? reasons : [])
+                        .filter(
+                            reason =>
+                                typeof reason === "string" &&
+                                reason.trim()
+                        )
+                )
+            ];
+
+            const messages = unique.length
+                ? unique
+                : [
+                    fallback ||
+                    "Không xác định được nguyên nhân."
+                ];
+
+            messages.forEach(reason => {
+                const li = document.createElement("li");
+                li.textContent = reason;
+                list.appendChild(li);
+            });
+
+            details.append(label, list);
+
+            note.hidden = true;
+
+            finishPhase();
+        }
+
+        // =================================================
+        // 6. HIEN THI TIEP NHAN THANH CONG
+        // KHONG TU DONG DONG POPUP
+        // =================================================
+
+        function showSuccess(refreshed) {
+            heading.textContent = "Tiếp nhận thành công";
+
+            icon.className =
+                "fa-solid fa-circle-check";
+
+            icon.style.color = "#16803d";
+
+            message.textContent =
+                `Đã tiếp nhận bệnh nhân ${patient} thành công.`;
+
+            details.replaceChildren();
+            details.classList.remove("mc-error");
+            details.hidden = false;
+
+            const label = document.createElement("div");
+            label.textContent = "Phòng khám";
+
+            const room = document.createElement("strong");
+            room.className = "mc-reception-room";
+
+            const newest = globalQueueData.find(
+                row => positiveId(row.maLichKham) === id
+            );
+
+            room.textContent = String(
+                newest?.phong || item.phong || ""
+            ).trim() || "Chưa cập nhật phòng khám";
+
+            const guide = document.createElement("div");
+
+            guide.textContent =
+                "Hướng dẫn bệnh nhân đến khu vực chờ trước "
+                + "phòng khám trên để đợi bác sĩ gọi vào khám.";
+
+            details.append(label, room, guide);
+
+            note.hidden = !!refreshed;
+
+            note.textContent = refreshed
+                ? ""
+                : "Đã tiếp nhận, nhưng chưa làm mới được danh sách. "
+                  + "Vui lòng nhấn Làm mới dữ liệu sau khi đóng thông báo.";
+
+            finishPhase();
+        }
+
+        // =================================================
+        // 7. SU KIEN POPUP
+        // =================================================
+
+        closeButton.addEventListener("click", close);
+        cancelButton.addEventListener("click", close);
+        doneButton.addEventListener("click", close);
+
+        document.addEventListener(
+            "keydown",
+            onKeyDown,
+            true
+        );
+
+        document.body.appendChild(overlay);
+
+        // Ban dau CHI hoi xac nhan.
+        heading.textContent =
+            "Xác nhận tiếp nhận bệnh nhân";
+
+        message.textContent =
+            `Bạn có chắc chắn muốn tiếp nhận bệnh nhân ${patient}?`;
+
+        confirmButton.focus();
+
+        // =================================================
+        // 8. CHI KIEM TRA KHI NHAN VIEN BAM XAC NHAN
+        // =================================================
+
+        confirmButton.addEventListener("click", async () => {
+            if (processing || closed) {
+                return;
+            }
+
+            processing = true;
+
+            closeButton.disabled = true;
+            cancelButton.disabled = true;
+            confirmButton.disabled = true;
+
+            heading.textContent =
+                "Đang kiểm tra tiếp nhận";
+
+            message.textContent =
+                "Hệ thống đang kiểm tra điều kiện "
+                + "và xác nhận tiếp nhận...";
+
+            let reasons = [];
+            let sentPost = false;
+            let confirmedOnServer = false;
+
+            try {
+                // -----------------------------------------
+                // 8.1. KIEM TRA CAC DIEU KIEN TIEP NHAN
+                // -----------------------------------------
+
+                const check = await requestApi(
+                    `/api/tiepnhan/kiem-tra-tiep-nhan/${id}`
+                );
+
+                if (
+                    positiveId(check.maLichKham) !== id ||
+                    typeof check.duDieuKien !== "boolean"
+                ) {
+                    throw new Error(
+                        "Dữ liệu kiểm tra tiếp nhận không hợp lệ."
+                    );
+                }
+
+                reasons = Array.isArray(check.lyDo)
+                    ? check.lyDo
+                    : [];
+
+                if (!check.duDieuKien) {
+                    showFailure(
+                        reasons,
+                        "Lịch khám chưa đủ điều kiện tiếp nhận."
+                    );
+                    return;
+                }
+
+                // -----------------------------------------
+                // 8.2. GOI API XAC NHAN TIEP NHAN
+                // -----------------------------------------
+
+                sentPost = true;
+
+                const result = await postJson(
+                    "/api/tiepnhan/confirm-reception",
+                    {
+                        maLichKham: id
+                    }
+                );
+
+                if (result.success !== true) {
+                    throw new Error(
+                        result.message ||
+                        "Máy chủ chưa xác nhận tiếp nhận."
+                    );
+                }
+
+                confirmedOnServer = true;
+
+                item.trangThai =
+                    STATUS_LABELS.DaTiepNhan;
+
+                // -----------------------------------------
+                // 8.3. LAM MOI DASHBOARD
+                // -----------------------------------------
+
+                const refreshed =
+                    await loadDashboardRealData(
+                        true,
+                        true
+                    );
+
+                showSuccess(refreshed);
+
+            } catch (error) {
+
+                // Neu backend da xac nhan thanh cong,
+                // khong bao that bai vi loi tai lai bang.
+                if (confirmedOnServer) {
+                    showSuccess(false);
+                    return;
+                }
+
+                // Neu POST co the da xu ly thanh cong
+                // nhung phan hoi bi gian doan,
+                // kiem tra lai trang thai truoc khi bao loi.
+                if (sentPost) {
+                    const refreshed =
+                        await loadDashboardRealData(
+                            true,
+                            true
+                        );
+
+                    const latest = globalQueueData.find(
+                        row =>
+                            positiveId(row.maLichKham) === id
+                    );
+
+                    if (
+                        refreshed &&
+                        getStatusCode(
+                            latest?.trangThai
+                        ) === "DaTiepNhan"
+                    ) {
+                        showSuccess(true);
+                        return;
+                    }
+
+                    // Lay ly do moi neu trang thai
+                    // da thay doi trong luc xac nhan.
+                    try {
+                        const currentCheck =
+                            await requestApi(
+                                `/api/tiepnhan/kiem-tra-tiep-nhan/${id}`
+                            );
+
+                        if (
+                            Array.isArray(currentCheck.lyDo) &&
+                            currentCheck.lyDo.length
+                        ) {
+                            reasons = currentCheck.lyDo;
+                        }
+                    } catch (checkError) {
+                        console.warn(
+                            "Không lấy được lý do mới:",
+                            checkError
+                        );
+                    }
+                }
+
+                // -----------------------------------------
+                // 8.4. HIEN THI LOI TRONG POPUP
+                // -----------------------------------------
+
+                showFailure(
+                    reasons,
+                    error.message
+                );
+
+            } finally {
+                processing = false;
+            }
+        });
     };
 
     // =====================================================
-    // 6. API DÙNG CHUNG CHO GIAO DIỆN
+    // 9. KIEM TRA PHIEN BAN SCRIPT
     // =====================================================
 
     window.MedCareDashboardNotice = Object.freeze({
+        version: "2.0",
         toast: showToast,
-        modal: showModal,
         hideToast
     });
 

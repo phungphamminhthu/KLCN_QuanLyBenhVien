@@ -19,6 +19,9 @@
     let selectedPatientName = "";
     let schedules = [];
     let appointments = [];
+    let appointmentKeyword = "";
+    let appointmentPage = 1;
+    let appointmentPageSize = 5;
     let loadedDate = null;
     let loadVersion = 0;
     let openRegistrationAfterCreate = false;
@@ -516,17 +519,51 @@ setText(
     }
 
     function populateDoctorFilter() {
-        const department = $("appointment-department-filter").value;
-
-        const doctors = appointments
-            .filter(item => !department || item.khoa === department)
-            .map(item => item.bacSi);
-
         populateFilter(
             "appointment-doctor-filter",
-            doctors,
+            appointments.map(item => item.bacSi),
             "Tất cả bác sĩ"
         );
+    }
+
+    function populateRoomFilter() {
+        populateFilter(
+            "appointment-room-filter",
+            appointments.map(item => item.phong)
+                .filter(room => room && room !== "Chưa phân công"),
+            "Tất cả phòng"
+        );
+    }
+
+    function normalizeAppointmentText(value) {
+        return String(value ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[đĐ]/g, "d")
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, " ");
+    }
+
+    function filteredAppointments() {
+        const doctor = $("appointment-doctor-filter").value;
+        const room = $("appointment-room-filter").value;
+        const word = normalizeAppointmentText(appointmentKeyword);
+        return appointments.filter(item => {
+            if (doctor && item.bacSi !== doctor) return false;
+            if (room && item.phong !== room) return false;
+            if (!word) return true;
+            const fields = [
+                item.maLichKham, `LK-${item.maLichKham}`,
+                item.maBenhNhan, item.maBn, `BN-${item.maBenhNhan}`,
+                item.tenBenhNhan, item.soDienThoai,
+                item.thongTinPhu, item.khoa, item.bacSi,
+                item.phong, item.gioHen, item.stt
+            ];
+            return fields.some(value =>
+                normalizeAppointmentText(value).includes(word)
+            );
+        });
     }
 
     function statusClass(status) {
@@ -572,20 +609,18 @@ setText(
     }
 
     function renderAppointments() {
-        const doctor = $("appointment-doctor-filter").value;
-        const department = $("appointment-department-filter").value;
-        const status = $("appointment-status-filter").value;
-
-        const filtered = appointments.filter(item =>
-            (!doctor || item.bacSi === doctor)
-            && (!department || item.khoa === department)
-            && (!status || item.trangThai === status)
-        );
+        const filtered = filteredAppointments();
+        const totalPages = Math.ceil(filtered.length / appointmentPageSize);
+        appointmentPage = totalPages
+            ? Math.max(1, Math.min(appointmentPage, totalPages))
+            : 1;
+        const firstIndex = (appointmentPage - 1) * appointmentPageSize;
+        const visible = filtered.slice(firstIndex, firstIndex + appointmentPageSize);
 
         const body = $("appointments-table-body");
         body.replaceChildren();
 
-        filtered.forEach(item => {
+        visible.forEach(item => {
             const row = document.createElement("tr");
 
             const sequenceCell = document.createElement("td");
@@ -653,7 +688,10 @@ setText(
             profileButton.type = "button";
             profileButton.className =
                 "btn btn-outline-primary btn-sm text-nowrap";
-            profileButton.textContent = "Hồ sơ";
+            const eyeIcon = document.createElement("i");
+            eyeIcon.className = "fa-regular fa-eye";
+            eyeIcon.setAttribute("aria-hidden", "true");
+            profileButton.append(eyeIcon, document.createTextNode(" Hồ sơ"));
             profileButton.dataset.patientId = item.maBenhNhan ?? "";
             profileButton.dataset.appointmentId = item.maLichKham ?? "";
             profileButton.dataset.action = "open-profile";
@@ -701,11 +739,19 @@ setText(
 
         $("appointments-empty-message").textContent =
             appointments.length === 0
-                ? "Chưa có lịch khám trong ngày."
-                : "Không có lịch khám phù hợp với bộ lọc.";
+                ? "Chưa có lịch khám trong ngày hôm nay."
+                : "Không tìm thấy lịch khám phù hợp với điều kiện đã chọn.";
 
-        $("appointments-record-count").textContent =
-            `Hiển thị ${filtered.length}/${appointments.length} lịch khám`;
+        $("appointments-record-count").textContent = filtered.length
+            ? `Hiển thị ${firstIndex + 1}–${firstIndex + visible.length} / ${filtered.length} lịch khám`
+            : "Hiển thị 0 lịch khám";
+        $("appointments-page-label").textContent =
+            `Trang ${totalPages ? appointmentPage : 0} / ${totalPages}`;
+        $("appointments-previous-page").disabled = appointmentPage <= 1;
+        $("appointments-next-page").disabled = !totalPages || appointmentPage >= totalPages;
+        $("appointments-page-size").value = String(appointmentPageSize);
+        $("appointments-loading").hidden = !loadingAppointments;
+        $("appointments-table-body").setAttribute("aria-busy", String(loadingAppointments));
     }
 
     // =====================================================
@@ -927,6 +973,8 @@ setText(
         if (loadingAppointments) return false;
 
         loadingAppointments = true;
+        $("appointments-loading").hidden = false;
+        $("appointments-empty").hidden = true;
         $("refresh-appointments-button").disabled = true;
 
         updateTodayDisplay();
@@ -960,19 +1008,8 @@ setText(
                     || Number(a.maLichKham) - Number(b.maLichKham);
             });
 
-            populateFilter(
-                "appointment-department-filter",
-                appointments.map(item => item.khoa),
-                "Tất cả khoa"
-            );
-
-            populateFilter(
-                "appointment-status-filter",
-                appointments.map(item => item.trangThai),
-                "Tất cả trạng thái"
-            );
-
             populateDoctorFilter();
+            populateRoomFilter();
             renderAppointments();
 
             return true;
@@ -995,6 +1032,12 @@ setText(
             return false;
         } finally {
             loadingAppointments = false;
+            $("appointments-loading").hidden = true;
+            if (appointments.length) {
+                renderAppointments();
+            } else if ($("appointments-record-count").textContent !== "Dữ liệu chưa được cập nhật.") {
+                renderAppointments();
+            }
 
             $("refresh-appointments-button").disabled =
                 callingAppointmentId !== null;
@@ -1743,9 +1786,10 @@ setText(
             );
 
             selectPatient(patient);
-            registrationModal.show();
+            openRegistrationAfterCreate = true;
+            createModal.hide();
         } catch (error) {
-            showMessage("page-message", error.message);
+            showMessage("create-patient-message", error.message);
         } finally {
             searching = false;
             updateControls();
@@ -2255,6 +2299,37 @@ function renderPhoneMatches(matches) {
             searchPatient
         );
 
+        // Lọc lịch khám tức thời trên dữ liệu đã tải, không gọi API mỗi phím.
+        $("appointment-list-search-form").addEventListener("submit", event => {
+            event.preventDefault();
+            appointmentKeyword = $("appointment-list-search-input").value.trim();
+            appointmentPage = 1;
+            renderAppointments();
+        });
+        $("appointment-list-search-input").addEventListener("input", () => {
+            appointmentKeyword = $("appointment-list-search-input").value.trim();
+            appointmentPage = 1;
+            renderAppointments();
+        });
+        $("appointments-page-size").addEventListener("change", () => {
+            appointmentPageSize = Number($("appointments-page-size").value) || 5;
+            appointmentPage = 1;
+            renderAppointments();
+        });
+        $("appointments-previous-page").addEventListener("click", () => {
+            if (appointmentPage > 1) {
+                appointmentPage--;
+                renderAppointments();
+            }
+        });
+        $("appointments-next-page").addEventListener("click", () => {
+            const pages = Math.ceil(filteredAppointments().length / appointmentPageSize);
+            if (appointmentPage < pages) {
+                appointmentPage++;
+                renderAppointments();
+            }
+        });
+
         $("create-patient-form").addEventListener(
             "submit",
             savePatient
@@ -2285,23 +2360,14 @@ function renderPhoneMatches(matches) {
             }
         });
 
-        $("appointment-department-filter").addEventListener(
-            "change",
-            () => {
-                populateDoctorFilter();
-                renderAppointments();
-            }
-        );
-
-        $("appointment-doctor-filter").addEventListener(
-            "change",
-            renderAppointments
-        );
-
-        $("appointment-status-filter").addEventListener(
-            "change",
-            renderAppointments
-        );
+        $("appointment-doctor-filter").addEventListener("change", () => {
+            appointmentPage = 1;
+            renderAppointments();
+        });
+        $("appointment-room-filter").addEventListener("change", () => {
+            appointmentPage = 1;
+            renderAppointments();
+        });
 
         $("refresh-appointments-button").addEventListener(
             "click",
@@ -2464,7 +2530,7 @@ createElement.addEventListener("hidden.bs.modal", () => {
 
         initRegistrationNotifications();
         initBirthDateInput();
-        initNotifications();
+//        initNotifications();
         updateTodayDisplay();
         updateControls();
 

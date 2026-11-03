@@ -84,6 +84,7 @@ public class TiepNhanDashboardDTO {
         private String stt;
         private String maBn;
         private String tenBenhNhan;
+        private String soDienThoai;
         private String thongTinPhu;
         private String khoa;
         private String bacSi;
@@ -134,6 +135,14 @@ public class TiepNhanDashboardDTO {
 
         public void setTenBenhNhan(String tenBenhNhan) {
             this.tenBenhNhan = tenBenhNhan;
+        }
+
+        public String getSoDienThoai() {
+            return soDienThoai;
+        }
+
+        public void setSoDienThoai(String soDienThoai) {
+            this.soDienThoai = soDienThoai;
         }
 
         public String getThongTinPhu() {

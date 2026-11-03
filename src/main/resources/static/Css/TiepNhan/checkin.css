@@ -656,3 +656,110 @@
         padding: 14px 16px;
     }
 }
+
+/* ==========================================================
+   LỊCH KHÁM TRONG NGÀY - ĐỒNG BỘ TRANG LỊCH SỬ LỊCH KHÁM
+   Các quy tắc bên dưới chỉ tác động đến bảng danh sách.
+   ========================================================== */
+.checkin-page #appointment-list-title {
+    margin: 0;
+    color: var(--text-title);
+    font-size: 15px;
+    font-weight: 700;
+}
+.checkin-page .history-card-heading {
+    margin-bottom: 16px;
+}
+.checkin-page .history-filter-bar {
+    margin-bottom: 16px;
+}
+.checkin-page .history-table-area {
+    flex: 1;
+    min-height: 0;
+}
+.checkin-page .history-table-scroll.appointment-table-region {
+    overflow: auto;
+}
+.checkin-page .history-table {
+    min-width: 1020px;
+    table-layout: fixed;
+}
+.checkin-page .checkin-col-index { width: 6%; }
+.checkin-page .checkin-col-code { width: 8%; }
+.checkin-page .checkin-col-patient { width: 20%; }
+.checkin-page .checkin-col-doctor { width: 19%; }
+.checkin-page .checkin-col-room { width: 14%; }
+.checkin-page .checkin-col-time { width: 9%; }
+.checkin-page .checkin-col-status { width: 11%; }
+.checkin-page .checkin-col-action { width: 13%; }
+.checkin-page .appointment-table th:last-child,
+.checkin-page .appointment-table td:last-child {
+    min-width: 0;
+    width: auto;
+    white-space: nowrap;
+}
+.checkin-page .appointment-row-actions {
+    justify-content: flex-end;
+    gap: 6px;
+}
+.checkin-page .appointment-row-actions .btn {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0 10px;
+    font-size: 11px;
+    border-radius: 7px;
+}
+.checkin-page .appointment-row-actions .btn:hover:not(:disabled) {
+    background: var(--primary-soft);
+    color: var(--primary);
+}
+.checkin-page .appointment-patient-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+.checkin-page .appointment-secondary-text {
+    font-size: 11px;
+}
+.checkin-page .history-table thead th {
+    border-top: 0;
+}
+.checkin-page .history-table tbody td {
+    padding: 12px;
+}
+.checkin-page .history-state {
+    background: #fff;
+}
+.checkin-page .history-pagination {
+    margin-top: 12px;
+}
+.checkin-page .checkin-quick-lookup {
+    padding: 0 0 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--border-color);
+}
+.checkin-page .checkin-quick-lookup .patient-search-form {
+    display: flex;
+    gap: 8px;
+    min-width: 0;
+    margin: 0;
+}
+.checkin-page .checkin-quick-lookup .patient-search-input {
+    width: 100%;
+    min-width: 0;
+}
+@media (max-width: 767px) {
+    .checkin-page .history-card { padding: 14px; }
+    .checkin-page .history-pagination { flex-wrap: wrap; gap: 8px; }
+}
+@media (max-width: 575px) {
+    .checkin-page .history-table-area { min-height: 300px; }
+    .checkin-page .history-select-group { flex: 1 1 100%; width: 100%; }
+}
+
+/* Ẩn ô tìm kiếm mới thêm trong popup Tạo hồ sơ bệnh nhân */
+.checkin-page .checkin-quick-lookup {
+    display: none !important;
+}

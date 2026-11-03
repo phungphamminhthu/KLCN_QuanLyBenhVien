@@ -11,6 +11,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -31,13 +34,18 @@ public class TiepNhanDangKyKhamService {
     private static final ZoneId VIETNAM =
             ZoneId.of("Asia/Ho_Chi_Minh");
 
+
     private final JdbcTemplate jdbcTemplate;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TiepNhanDangKyKhamService(
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            ApplicationEventPublisher eventPublisher
     ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventPublisher = eventPublisher;
     }
+
 
     // =====================================================
     // DANH SÁCH KHOA CÓ LỊCH KHÁM CÒN HIỆU LỰC HÔM NAY
@@ -462,9 +470,44 @@ public class TiepNhanDangKyKhamService {
         result.setSoThuTu(soThuTu);
         result.setNgayKham(ngayKham);
         result.setGioKham(gioKham);
+
         result.setTrangThai("ChoGoi");
 
+// =================================================
+// 9. PHÁT SỰ KIỆN THÔNG BÁO LỊCH KHÁM MỚI
+// =================================================
+
+// Lấy tài khoản đang thực hiện đăng ký khám.
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        String taiKhoanTao = "";
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName())) {
+
+            taiKhoanTao = authentication.getName();
+        }
+
+// Phát sự kiện sau khi tạo lịch khám,
+// cấp số thứ tự và tạo hóa đơn thành công.
+//
+// Listener sử dụng AFTER_COMMIT nên chỉ xử lý
+// khi toàn bộ transaction đã commit thành công.
+
+        eventPublisher.publishEvent(
+                new TiepNhanLichKhamThongBaoListener.LichKhamMoiEvent(
+                        maLichKham,
+                        taiKhoanTao
+                )
+        );
+
+// Trả kết quả đăng ký khám cho frontend.
         return result;
+
     }
 
     // =====================================================
