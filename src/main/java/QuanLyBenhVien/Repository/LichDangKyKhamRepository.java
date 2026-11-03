@@ -215,5 +215,76 @@ public interface LichDangKyKhamRepository
             @Param("maLichKham") Integer maLichKham
     );
 
+    // =========================================================
+    // THỐNG KÊ LƯỢT ĐẶT THEO GIỜ TRONG NGÀY
+    // Dùng để tránh COUNT lặp lại cho từng khung 30 phút
+    // =========================================================
+    @Query("""
+    SELECT l.gioKham, COUNT(l)
+    FROM LichDangKyKham l
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayKham = :ngayKham
+      AND l.trangThai <> 'DaHuy'
+    GROUP BY l.gioKham
+    """)
+    List<Object[]> thongKeLuotDatTheoGio(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham
+    );
+
+    //=========================================
+    //
+     //=========================================
+    @Query("""
+    SELECT l
+    FROM LichDangKyKham l
+    JOIN FETCH l.benhNhan bn
+    JOIN FETCH bn.nguoiDung nd
+    LEFT JOIN FETCH l.bacSi bs
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayKham = :ngayKham
+      AND l.trangThai IN :trangThai
+    ORDER BY l.gioKham ASC
+    """)
+    List<LichDangKyKham> findLichKhamCanDieuPhoi(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham,
+            @Param("trangThai") List<String> trangThai
+    );
+
+    // Lấy các lượt khám chưa hủy của bác sĩ trong ngày và khung giờ
+    @Query("""
+    SELECT l
+    FROM LichDangKyKham l
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayKham = :ngayKham
+      AND l.gioKham >= :gioBatDau
+      AND l.gioKham < :gioKetThuc
+      AND l.trangThai <> 'DaHuy'
+    ORDER BY l.gioKham ASC
+    """)
+    List<LichDangKyKham> findLichKhamTrongCa(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham,
+            @Param("gioBatDau") java.time.LocalTime gioBatDau,
+            @Param("gioKetThuc") java.time.LocalTime gioKetThuc
+    );
+
+    @Query("""
+    SELECT COUNT(l)
+    FROM LichDangKyKham l
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayKham = :ngayKham
+      AND l.gioKham >= :gioBatDau
+      AND l.gioKham < :gioKetThuc
+      AND l.trangThai <> 'DaHuy'
+    """)
+    long countLuotKhamTrongKhung30Phut(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham,
+            @Param("gioBatDau") java.time.LocalTime gioBatDau,
+            @Param("gioKetThuc") java.time.LocalTime gioKetThuc
+    );
+
 
 }

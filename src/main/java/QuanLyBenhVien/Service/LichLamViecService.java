@@ -8,6 +8,7 @@ import QuanLyBenhVien.Repository.BacSiRepository;
 import QuanLyBenhVien.Repository.LichLamViecRepository;
 import QuanLyBenhVien.Repository.PhongChuyenTrachRepository;
 
+import QuanLyBenhVien.Repository.YeuCauDieuChinhLichRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,19 +20,30 @@ import java.util.List;
 @Transactional
 public class LichLamViecService {
 
+    //  giờ test xuyên suốt
+
+    // ra hội đồng
+    //07:00 – 11:30 → hợp lệ
+    //13:00 – 17:30 → hợp lệ
+
     private final LichLamViecRepository lichLamViecRepository;
     private final BacSiRepository bacSiRepository;
     private final PhongChuyenTrachRepository phongRepository;
+    private  final YeuCauDieuChinhLichRepository yeuCauDieuChinhLichRepository;
+
+    //private static final LocalTime GIO_BAT_DAU_CHO_PHEP = LocalTime.of(7, 0);
+    //private static final LocalTime GIO_KET_THUC_CHO_PHEP = LocalTime.of(17, 30);
 
     public LichLamViecService(
             LichLamViecRepository lichLamViecRepository,
             BacSiRepository bacSiRepository,
-            PhongChuyenTrachRepository phongRepository) {
+            PhongChuyenTrachRepository phongRepository,
+            YeuCauDieuChinhLichRepository yeuCauDieuChinhLichRepository) {
         this.lichLamViecRepository = lichLamViecRepository;
         this.bacSiRepository = bacSiRepository;
         this.phongRepository = phongRepository;
+        this.yeuCauDieuChinhLichRepository = yeuCauDieuChinhLichRepository;
     }
-
     // ===============================
     // KIỂM TRA TRÙNG LỊCH
     // ===============================
@@ -160,6 +172,43 @@ public class LichLamViecService {
         return phong;
     }
 
+    // =======================================================
+    // kiểm tra du lieu dau vao
+    // =======================================================
+    //    private void kiemTraDuLieu(
+    //            LocalDate ngay,
+    //            LocalTime batDau,
+    //            LocalTime ketThuc) {
+    //
+    //        if (ngay == null || batDau == null || ketThuc == null) {
+    //            throw new IllegalArgumentException(
+    //                    "Vui lòng nhập đầy đủ ngày và giờ làm việc.");
+    //        }
+    //
+    //        if (ngay.isBefore(LocalDate.now())) {
+    //            throw new IllegalArgumentException(
+    //                    "Ngày làm việc không được ở trong quá khứ.");
+    //        }
+    //
+    //        // Giờ bắt đầu phải từ 07:00 trở đi
+    //        if (batDau.isBefore(GIO_BAT_DAU_CHO_PHEP)) {
+    //            throw new IllegalArgumentException(
+    //                    "Giờ bắt đầu làm việc không được trước 07:00.");
+    //        }
+    //
+    //        // Giờ kết thúc không được sau 17:30
+    //        if (ketThuc.isAfter(GIO_KET_THUC_CHO_PHEP)) {
+    //            throw new IllegalArgumentException(
+    //                    "Giờ kết thúc làm việc không được sau 17:30.");
+    //        }
+    //
+    //        // Giờ kết thúc phải sau giờ bắt đầu
+    //        if (!ketThuc.isAfter(batDau)) {
+    //            throw new IllegalArgumentException(
+    //                    "Giờ kết thúc phải sau giờ bắt đầu.");
+    //        }
+    //    }
+
     private void kiemTraDuLieu(
             LocalDate ngay,
             LocalTime batDau,
@@ -175,12 +224,12 @@ public class LichLamViecService {
                     "Ngày làm việc không được ở trong quá khứ.");
         }
 
+        // Giữ kiểm tra giờ kết thúc phải sau giờ bắt đầu
         if (!ketThuc.isAfter(batDau)) {
             throw new IllegalArgumentException(
                     "Giờ kết thúc phải sau giờ bắt đầu.");
         }
     }
-
     private void kiemTraCungKhoa(
             BacSi bacSi,
             PhongChuyenTrach phong) {
@@ -242,13 +291,6 @@ public class LichLamViecService {
             LocalDate tuNgay,
             LocalDate denNgay) {
 
-        long start = System.currentTimeMillis();
-
-        System.out.println("[LichLamViecService] Bắt đầu");
-        System.out.println("[LichLamViecService] maBacSi = " + maBacSi);
-        System.out.println("[LichLamViecService] tuNgay = " + tuNgay);
-        System.out.println("[LichLamViecService] denNgay = " + denNgay);
-
         if (maBacSi == null) {
             throw new IllegalArgumentException(
                     "Mã bác sĩ không được để trống.");
@@ -260,47 +302,29 @@ public class LichLamViecService {
                     "Ngày bắt đầu không được sau ngày kết thúc.");
         }
 
-        List<LichLamViec> danhSach;
-
-        long queryStart = System.currentTimeMillis();
-
-        System.out.println("[LichLamViecService] Bắt đầu truy vấn repository");
-
-        if (tuNgay != null && denNgay != null) {
-            danhSach = lichLamViecRepository
-                    .findByBacSi_MaBacSiAndNgayLamViecBetweenOrderByNgayLamViecAscGioBatDauAsc(
-                            maBacSi, tuNgay, denNgay);
-        } else {
-            danhSach = lichLamViecRepository
-                    .findByBacSi_MaBacSiOrderByNgayLamViecAscGioBatDauAsc(
-                            maBacSi);
-
-            if (tuNgay != null) {
-                danhSach = danhSach.stream()
-                        .filter(l -> l.getNgayLamViec() != null
-                                && !l.getNgayLamViec().isBefore(tuNgay))
-                        .toList();
-            }
-
-            if (denNgay != null) {
-                danhSach = danhSach.stream()
-                        .filter(l -> l.getNgayLamViec() != null
-                                && !l.getNgayLamViec().isAfter(denNgay))
-                        .toList();
-            }
-        }
+        long start = System.currentTimeMillis();
 
         System.out.println(
-                "[LichLamViecService] Repository hoàn tất sau "
-                        + (System.currentTimeMillis() - queryStart)
-                        + " ms");
+                "[LichLamViecService] Query lịch: bacSi="
+                        + maBacSi
+                        + ", tuNgay=" + tuNgay
+                        + ", denNgay=" + denNgay
+        );
+
+        List<LichLamViec> danhSach =
+                lichLamViecRepository.timLichLamViecTheoKhoangNgay(
+                        maBacSi,
+                        tuNgay,
+                        denNgay
+                );
 
         System.out.println(
-                "[LichLamViecService] Số lịch = " + danhSach.size());
-
-        System.out.println(
-                "[LichLamViecService] Tổng thời gian = "
-                        + (System.currentTimeMillis() - start) + " ms");
+                "[LichLamViecService] Query hoàn tất: "
+                        + danhSach.size()
+                        + " lịch, "
+                        + (System.currentTimeMillis() - start)
+                        + " ms"
+        );
 
         return danhSach;
     }
@@ -324,6 +348,108 @@ public class LichLamViecService {
                 maKhoa,
                 ngayKham
         );
+    }
+
+    // ====================================
+    // ADMIN: LẤY DANH SÁCH LỊCH
+    // ====================================
+    @Transactional(readOnly = true)
+    public List<LichLamViec> adminLayDanhSachLich(
+            LocalDate tuNgay,
+            LocalDate denNgay,
+            Integer maBacSi,
+            Integer maKhoa) {
+
+        if (tuNgay != null && denNgay != null
+                && tuNgay.isAfter(denNgay)) {
+            throw new IllegalArgumentException(
+                    "Ngày bắt đầu không được sau ngày kết thúc.");
+        }
+
+        return lichLamViecRepository.timLichLamViecAdmin(
+                tuNgay, denNgay, maBacSi, maKhoa);
+    }
+
+    // ====================================
+    // ADMIN: THÊM LỊCH
+    // ====================================
+    public LichLamViec adminThemLichLamViec(
+            Integer maBacSi,
+            Integer maPhong,
+            LocalDate ngay,
+            LocalTime batDau,
+            LocalTime ketThuc) {
+
+        BacSi bacSi = layBacSiHopLe(maBacSi);
+        PhongChuyenTrach phong = layPhongHopLe(maPhong);
+
+        kiemTraDuLieu(ngay, batDau, ketThuc);
+        kiemTraCungKhoa(bacSi, phong);
+        kiemTraTrungLich(
+                maBacSi, maPhong, ngay, batDau, ketThuc, null);
+
+        LichLamViec lich = new LichLamViec();
+        lich.setBacSi(bacSi);
+        lich.setPhong(phong);
+        lich.setNgayLamViec(ngay);
+        lich.setGioBatDau(batDau);
+        lich.setGioKetThuc(ketThuc);
+        lich.setTrangThai("DangLamViec");
+
+        return lichLamViecRepository.save(lich);
+    }
+
+    // ====================================
+    // ADMIN: CẬP NHẬT LỊCH
+    // ====================================
+    public LichLamViec adminCapNhatLichLamViec(
+            Integer maLich,
+            Integer maBacSi,
+            Integer maPhong,
+            LocalDate ngay,
+            LocalTime batDau,
+            LocalTime ketThuc) {
+
+        LichLamViec lich = lichLamViecRepository.findById(maLich)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy lịch làm việc."));
+
+        BacSi bacSi = layBacSiHopLe(maBacSi);
+        PhongChuyenTrach phong = layPhongHopLe(maPhong);
+
+        kiemTraDuLieu(ngay, batDau, ketThuc);
+        kiemTraCungKhoa(bacSi, phong);
+        kiemTraTrungLich(
+                maBacSi, maPhong, ngay, batDau, ketThuc, maLich);
+
+        lich.setBacSi(bacSi);
+        lich.setPhong(phong);
+        lich.setNgayLamViec(ngay);
+        lich.setGioBatDau(batDau);
+        lich.setGioKetThuc(ketThuc);
+
+        return lichLamViecRepository.save(lich);
+    }
+
+    // ====================================
+    // ADMIN: XÓA LỊCH
+    // ====================================
+    @Transactional
+    public void adminXoaLichLamViec(Integer maLich) {
+        LichLamViec lich = lichLamViecRepository.findById(maLich)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Không tìm thấy lịch làm việc."));
+
+        boolean coYeuCauDieuChinh =
+                yeuCauDieuChinhLichRepository.existsByLichLamViec_MaLichLamViec(maLich);
+
+        if (coYeuCauDieuChinh) {
+            throw new IllegalStateException(
+                    "Không thể xóa lịch làm việc vì đã có yêu cầu điều chỉnh lịch liên quan."
+            );
+        }
+
+        lichLamViecRepository.delete(lich);
     }
 
 

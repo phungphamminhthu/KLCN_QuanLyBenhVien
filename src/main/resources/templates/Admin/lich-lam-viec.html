@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý lịch làm việc</title>
+
+    <link rel="stylesheet" th:href="@{/Css/Admin/lich-lam-viec.css}">
+
+    <!-- FullCalendar -->
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
+</head>
+
+<body>
+<section layout:fragment="content" class="schedule-page">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <div>
+            <h1>Quản lý lịch làm việc</h1>
+            <p>Phân công và quản lý lịch làm việc của bác sĩ</p>
+        </div>
+
+        <button type="button" class="btn-primary" id="btnThemLich">
+            <span>＋</span>
+            Thêm lịch làm việc
+        </button>
+    </div>
+
+    <!-- FILTER -->
+    <div class="filter-card">
+        <div class="filter-grid">
+
+            <div class="form-group">
+                <label for="filterKhoa">Khoa</label>
+                <select id="filterKhoa">
+                    <option value="">Tất cả khoa</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="filterBacSi">Bác sĩ</label>
+                <select id="filterBacSi">
+                    <option value="">Tất cả bác sĩ</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="filterTuNgay">Từ ngày</label>
+                <input type="date" id="filterTuNgay">
+            </div>
+
+            <div class="form-group">
+                <label for="filterDenNgay">Đến ngày</label>
+                <input type="date" id="filterDenNgay">
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" class="btn-primary" id="btnLoc">
+                    Lọc
+                </button>
+
+                <button type="button" class="btn-outline" id="btnReset">
+                    Đặt lại
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- VIEW TABS -->
+    <div class="schedule-view-tabs"
+         role="tablist"
+         aria-label="Chế độ xem lịch làm việc">
+
+        <button type="button"
+                class="schedule-view-tab active"
+                id="btnViewList"
+                role="tab"
+                aria-selected="true"
+                aria-controls="scheduleListView">
+            <span aria-hidden="true">☷</span>
+            Danh sách lịch
+        </button>
+
+        <button type="button"
+                class="schedule-view-tab"
+                id="btnViewCalendar"
+                role="tab"
+                aria-selected="false"
+                aria-controls="scheduleCalendarView">
+            <span aria-hidden="true">▦</span>
+            Lịch Calendar
+        </button>
+    </div>
+
+    <!-- DANH SÁCH LỊCH -->
+    <div id="scheduleListView"
+         class="schedule-view-panel active"
+         role="tabpanel"
+         aria-labelledby="btnViewList">
+
+        <div class="table-card">
+
+            <div class="table-header">
+                <div>
+                    <h2>Danh sách lịch làm việc</h2>
+                    <p>Quản lý lịch phân công theo bác sĩ, khoa và phòng khám</p>
+                </div>
+
+                <span id="scheduleCount">0 lịch</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Bác sĩ</th>
+                        <th>Khoa</th>
+                        <th>Phòng</th>
+                        <th>Ngày làm</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
+                        <th>Thao tác</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="scheduleTableBody">
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            Đang tải dữ liệu...
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PHÂN TRANG -->
+            <div class="pagination-container">
+                <div id="schedulePaginationInfo" class="pagination-info">
+                    Hiển thị 0–0 / 0 lịch
+                </div>
+
+                <div id="schedulePagination" class="pagination"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- LỊCH CALENDAR -->
+    <div id="scheduleCalendarView"
+         class="schedule-view-panel"
+         role="tabpanel"
+         aria-labelledby="btnViewCalendar"
+         hidden>
+
+        <div class="table-card schedule-calendar-card">
+
+            <div class="table-header schedule-calendar-header">
+                <div>
+                    <h2>Lịch làm việc tổng quan</h2>
+                    <p>Xem lịch phân công của bác sĩ theo tháng, tuần hoặc ngày</p>
+                </div>
+
+                <span class="schedule-calendar-hint">
+                    Chọn một lịch để xem chi tiết
+                </span>
+            </div>
+
+            <div id="adminScheduleCalendar"
+                 class="admin-schedule-calendar"></div>
+
+            <div class="schedule-calendar-legend">
+                <span>
+                    <i class="legend-dot legend-upcoming"></i>
+                    Sắp diễn ra
+                </span>
+                <span>
+                    <i class="legend-dot legend-today"></i>
+                    Hôm nay
+                </span>
+                <span>
+                    <i class="legend-dot legend-past"></i>
+                    Đã qua
+                </span>
+                <span>
+                    <i class="legend-dot legend-cancelled"></i>
+                    Đã hủy
+                </span>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL THÊM / SỬA LỊCH -->
+    <div class="modal-overlay" id="scheduleModal">
+        <div class="modal-card">
+
+            <div class="modal-header">
+                <div>
+                    <h2 id="modalTitle">Thêm lịch làm việc</h2>
+                    <p>Nhập thông tin phân công lịch làm việc</p>
+                </div>
+
+                <button type="button"
+                        class="modal-close"
+                        id="btnCloseModal"
+                        aria-label="Đóng">
+                    ×
+                </button>
+            </div>
+
+            <form id="scheduleForm">
+                <input type="hidden" id="maLichLamViec">
+
+                <div class="form-group">
+                    <label for="formBacSi">
+                        Bác sĩ <span>*</span>
+                    </label>
+
+                    <select id="formBacSi" required>
+                        <option value="">-- Chọn bác sĩ --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="formKhoaDisplay">Khoa</label>
+
+                    <input type="text"
+                           id="formKhoaDisplay"
+                           readonly
+                           placeholder="Tự động theo bác sĩ">
+                </div>
+
+                <div class="form-group">
+                    <label for="formPhong">
+                        Phòng khám <span>*</span>
+                    </label>
+
+                    <select id="formPhong" required>
+                        <option value="">-- Chọn phòng --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="formNgay">
+                        Ngày làm việc <span>*</span>
+                    </label>
+
+                    <input type="date" id="formNgay" required>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label for="formGioBatDau">
+                            Giờ bắt đầu <span>*</span>
+                        </label>
+
+                        <input type="time"
+                               id="formGioBatDau"
+                               required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="formGioKetThuc">
+                            Giờ kết thúc <span>*</span>
+                        </label>
+
+                        <input type="time"
+                               id="formGioKetThuc"
+                               required>
+                    </div>
+                </div>
+
+                <div class="form-error" id="formError"></div>
+
+                <div class="modal-actions">
+                    <button type="button"
+                            class="btn-outline"
+                            id="btnCancelModal">
+                        Hủy
+                    </button>
+
+                    <button type="submit"
+                            class="btn-primary"
+                            id="btnSaveSchedule">
+                        Lưu lịch
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- MODAL ĐIỀU PHỐI LỊCH KHÁM -->
+    <div class="modal-overlay" id="dieuPhoiModal">
+        <div class="modal-card">
+
+            <div class="modal-header">
+                <div>
+                    <h2>Điều phối lịch khám</h2>
+                    <p>
+                        Chuyển các lượt khám đã đặt sang bác sĩ tiếp nhận khác
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="modal-close"
+                        id="btnCloseDieuPhoiModal"
+                        aria-label="Đóng">
+                    ×
+                </button>
+            </div>
+
+            <form id="dieuPhoiForm">
+
+                <input type="hidden" id="dieuPhoiMaLichLamViec">
+
+                <div class="form-group">
+                    <label for="dieuPhoiBacSiCu">Bác sĩ hiện tại</label>
+
+                    <input type="text"
+                           id="dieuPhoiBacSiCu"
+                           readonly
+                           placeholder="Bác sĩ của lịch làm việc">
+                </div>
+
+                <div class="form-group">
+                    <label for="dieuPhoiNgayKham">Ngày khám</label>
+
+                    <input type="date"
+                           id="dieuPhoiNgayKham"
+                           readonly>
+                </div>
+
+                <div class="form-group">
+                    <label for="dieuPhoiBacSiMoi">
+                        Bác sĩ tiếp nhận <span>*</span>
+                    </label>
+
+                    <select id="dieuPhoiBacSiMoi" required>
+                        <option value="">-- Chọn bác sĩ tiếp nhận --</option>
+                    </select>
+
+                    <small>
+                        Bác sĩ tiếp nhận cần cùng khoa và có lịch làm việc phù hợp.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="dieuPhoiLyDo">Lý do điều phối</label>
+
+                    <textarea id="dieuPhoiLyDo"
+                              rows="3"
+                              maxlength="500"
+                              placeholder="Nhập lý do điều phối lịch khám..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Danh sách lượt khám cần điều phối</label>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox"
+                                           id="checkAllLichKham"
+                                           aria-label="Chọn tất cả lượt khám">
+                                </th>
+                                <th>Mã lịch khám</th>
+                                <th>Bệnh nhân</th>
+                                <th>Giờ khám</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="dieuPhoiLichKhamBody">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    Chưa tải danh sách lượt khám
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-error" id="dieuPhoiError"></div>
+
+                <div class="modal-actions">
+                    <button type="button"
+                            class="btn-outline"
+                            id="btnCancelDieuPhoi">
+                        Hủy
+                    </button>
+
+                    <button type="submit"
+                            class="btn-primary"
+                            id="btnSubmitDieuPhoi">
+                        Xác nhận điều phối
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="scheduleToast"
+         class="schedule-toast"
+         role="status"
+         aria-live="polite">
+
+        <div class="schedule-toast-icon">✓</div>
+
+        <div class="schedule-toast-content">
+            <div id="scheduleToastTitle" class="schedule-toast-title">
+                Thành công
+            </div>
+
+            <div id="scheduleToastMessage" class="schedule-toast-message"></div>
+        </div>
+
+        <button type="button"
+                class="schedule-toast-close"
+                onclick="hideScheduleToast()"
+                aria-label="Đóng thông báo">
+            ×
+        </button>
+    </div>
+
+    <!-- POPUP CHI TIẾT LỊCH LÀM VIỆC -->
+    <div class="modal-overlay schedule-detail-overlay" id="scheduleDetailModal">
+        <div class="modal-card schedule-detail-card"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="scheduleDetailTitle">
+
+            <div class="modal-header">
+                <div>
+                    <h2 id="scheduleDetailTitle">Chi tiết lịch làm việc</h2>
+                    <p>Thông tin lịch phân công bác sĩ</p>
+                </div>
+
+                <button type="button"
+                        class="modal-close"
+                        id="btnCloseScheduleDetail"
+                        aria-label="Đóng popup">
+                    ×
+                </button>
+            </div>
+
+            <div class="schedule-detail-body">
+                <div class="schedule-detail-doctor">
+                    <div class="schedule-detail-avatar">BS</div>
+                    <div>
+                        <div class="schedule-detail-label">Bác sĩ phụ trách</div>
+                        <div class="schedule-detail-doctor-name" id="detailBacSi">
+                            —
+                        </div>
+                        <div class="schedule-detail-department" id="detailKhoa">
+                            —
+                        </div>
+                    </div>
+                </div>
+
+                <div class="schedule-detail-grid">
+                    <div class="schedule-detail-item">
+<!--                        <span class="schedule-detail-icon">📅</span>-->
+                        <div>
+                            <div class="schedule-detail-label">Ngày làm việc</div>
+                            <div class="schedule-detail-value" id="detailNgay">—</div>
+                        </div>
+                    </div>
+
+                    <div class="schedule-detail-item">
+<!--                        <span class="schedule-detail-icon">🕒</span>-->
+                        <div>
+                            <div class="schedule-detail-label">Thời gian</div>
+                            <div class="schedule-detail-value" id="detailGio">—</div>
+                        </div>
+                    </div>
+
+                    <div class="schedule-detail-item">
+<!--                        <span class="schedule-detail-icon">🏥</span>-->
+                        <div>
+                            <div class="schedule-detail-label">Phòng làm việc</div>
+                            <div class="schedule-detail-value" id="detailPhong">—</div>
+                        </div>
+                    </div>
+
+                    <div class="schedule-detail-item">
+<!--                        <span class="schedule-detail-icon">📌</span>-->
+                        <div>
+                            <div class="schedule-detail-label">Trạng thái</div>
+                            <div class="schedule-detail-value">
+                            <span id="detailTrangThai" class="schedule-detail-status">
+                                —
+                            </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions schedule-detail-actions">
+                <button type="button"
+                        class="btn-outline"
+                        id="btnCloseScheduleDetailFooter">
+                    Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalXacNhanXoa" class="confirm-modal">
+        <div class="confirm-modal-content">
+            <div class="confirm-modal-icon">!</div>
+
+            <h3>Xác nhận xóa lịch</h3>
+            <p>Bạn có chắc muốn xóa lịch làm việc này?</p>
+
+            <div class="confirm-modal-actions">
+                <button type="button" id="btnHuyXoaLich" class="btn-cancel">
+                    Hủy
+                </button>
+                <button type="button" id="btnXacNhanXoaLich" class="btn-confirm-delete">
+                    Xóa lịch
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FULLCALENDAR -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+    <!-- CHUYỂN TAB DANH SÁCH / CALENDAR -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const btnList = document.getElementById('btnViewList');
+            const btnCalendar = document.getElementById('btnViewCalendar');
+            const listView = document.getElementById('scheduleListView');
+            const calendarView = document.getElementById('scheduleCalendarView');
+
+            function switchScheduleView(showCalendar) {
+                btnList.classList.toggle('active', !showCalendar);
+                btnCalendar.classList.toggle('active', showCalendar);
+
+                btnList.setAttribute('aria-selected', String(!showCalendar));
+                btnCalendar.setAttribute('aria-selected', String(showCalendar));
+
+                listView.hidden = showCalendar;
+                calendarView.hidden = !showCalendar;
+
+                listView.classList.toggle('active', !showCalendar);
+                calendarView.classList.toggle('active', showCalendar);
+
+                // Cập nhật kích thước Calendar khi chuyển từ tab ẩn sang tab hiện.
+                if (showCalendar && window.adminScheduleCalendar) {
+                    window.adminScheduleCalendar.updateSize();
+                }
+            }
+
+            btnList.addEventListener('click', function () {
+                switchScheduleView(false);
+            });
+
+            btnCalendar.addEventListener('click', function () {
+                switchScheduleView(true);
+            });
+        });
+    </script>
+
+    <!-- JS QUẢN LÝ LỊCH -->
+    <script th:src="@{/Js/Admin/lich-lam-viec.js}"></script>
+
+</section>
+</body>
+</html>

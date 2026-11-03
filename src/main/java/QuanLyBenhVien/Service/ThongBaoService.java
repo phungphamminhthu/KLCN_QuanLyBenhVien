@@ -23,6 +23,7 @@ public class ThongBaoService {
     private final ThongBaoWebSocketService thongBaoWebSocketService;
     private final FcmPushService fcmPushService;
 
+
     public ThongBaoService(
             ThongBaoRepository thongBaoRepository,
             NguoiDungRepository nguoiDungRepository,

@@ -1,6 +1,6 @@
 package QuanLyBenhVien.Controller;
 
-import QuanLyBenhVien.DTO.YeuCauBaoBanRequest;
+import QuanLyBenhVien.DTO.YeuCauDieuChinhRequest;
 import QuanLyBenhVien.Entity.BacSi;
 import QuanLyBenhVien.Entity.YeuCauDieuChinhLich;
 import QuanLyBenhVien.Security.CustomUserDetails;
@@ -29,18 +29,15 @@ public class BacSiYeuCauBaoBanController {
         this.yeuCauService = yeuCauService;
     }
 
-    @PostMapping("/yeu-cau-bao-ban")
-    public ResponseEntity<?> guiYeuCauBaoBan(
+    @PostMapping("/{maLich}/yeu-cau")
+    public ResponseEntity<?> guiYeuCau(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody YeuCauBaoBanRequest request) {
+            @PathVariable Integer maLich,
+            @RequestBody YeuCauDieuChinhRequest request) {
 
-        if (userDetails == null
-                || userDetails.getNguoiDung() == null) {
+        if (userDetails == null || userDetails.getNguoiDung() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                            "message",
-                            "Vui lòng đăng nhập để gửi yêu cầu."
-                    ));
+                    .body(Map.of("message", "Vui lòng đăng nhập để gửi yêu cầu."));
         }
 
         try {
@@ -50,27 +47,26 @@ public class BacSiYeuCauBaoBanController {
             BacSi bacSi = bacSiService
                     .timBacSiTheoMaNguoiDung(maNguoiDung)
                     .orElseThrow(() -> new IllegalArgumentException(
-                            "Không tìm thấy hồ sơ bác sĩ."
-                    ));
+                            "Không tìm thấy hồ sơ bác sĩ."));
 
-            YeuCauDieuChinhLich yeuCau =
-                    yeuCauService.guiYeuCauBaoBan(
-                            bacSi.getMaBacSi(),
-                            request.getMaLichLamViec(),
-                            request.getLyDo()
-                    );
+            YeuCauDieuChinhLich yeuCau = yeuCauService.taoYeuCau(
+                    bacSi.getMaBacSi(),
+                    maLich,
+                    request
+            );
 
             Map<String, Object> response = new LinkedHashMap<>();
-            response.put("message",
-                    "Đã gửi yêu cầu báo bận. Vui lòng chờ admin xử lý.");
+            response.put("message", "Đã gửi yêu cầu. Vui lòng chờ Admin xử lý.");
             response.put("maYeuCau", yeuCau.getMaYeuCau());
             response.put("maLichLamViec",
-                    yeuCau.getLichLamViec().getMaLichLamViec());
+                    yeuCau.getLichLamViec() != null
+                            ? yeuCau.getLichLamViec().getMaLichLamViec()
+                            : null);
+            response.put("loaiYeuCau", yeuCau.getLoaiYeuCau());
             response.put("trangThai", yeuCau.getTrangThai());
             response.put("ngayTao", yeuCau.getNgayTao());
 
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(response);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest()

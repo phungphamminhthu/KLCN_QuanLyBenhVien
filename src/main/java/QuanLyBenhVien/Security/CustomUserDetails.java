@@ -26,11 +26,19 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
 
-        return List.of(
-                new SimpleGrantedAuthority(
-                        "ROLE_" + NguoiDung.getVaiTro().getTenVaiTro()
-                )
-        );
+    //        return List.of(
+    //                new SimpleGrantedAuthority(
+    //                        "ROLE_" + NguoiDung.getVaiTro().getTenVaiTro()
+    //                )
+    //        );
+        String role = "ROLE_" + NguoiDung.getVaiTro().getTenVaiTro();
+
+        System.out.println("[AUTH DEBUG] Username: " + getUsername());
+        System.out.println("[AUTH DEBUG] Role trong DB: "
+                + NguoiDung.getVaiTro().getTenVaiTro());
+        System.out.println("[AUTH DEBUG] Authority: " + role);
+
+        return List.of(new SimpleGrantedAuthority(role));
     }
 
     @Override

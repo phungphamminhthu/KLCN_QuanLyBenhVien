@@ -10,12 +10,28 @@ public final class SecurityRoleConfig {
     }
 
     // Admin
+    // Admin
     public static final String[] ADMIN_APIS = {
             "/api/thong-ke-bao-cao",
             "/api/thong-ke-bao-cao/**",
             "/api/phan-quyen/**",
             "/api/phan-cong-tiep-nhan",
-            "/api/phan-cong-tiep-nhan/**"
+            "/api/phan-cong-tiep-nhan/**",
+
+            // Quản lý lịch làm việc
+            "/api/admin/lich-lam-viec",
+            "/api/admin/lich-lam-viec/**",
+
+            // Quản lý yêu cầu điều chỉnh / hủy lịch
+            "/api/admin/yeu-cau-dieu-chinh-lich",
+            "/api/admin/yeu-cau-dieu-chinh-lich/**",
+
+            // Điều phối lịch khám (nếu endpoint thuộc nhóm này)
+            "/api/admin/lich-kham/**",
+
+            // Quản lý bác sĩ - dùng cho dropdown điều phối
+            "/api/admin/bac-si",
+            "/api/admin/bac-si/**",
     };
 
     // Dược sĩ

@@ -95,4 +95,60 @@ public interface LichLamViecRepository
             @Param("ngayKham") LocalDate ngayKham,
             @Param("gioKham") LocalTime gioKham
     );
+
+    @Query("""
+    SELECT l
+    FROM LichLamViec l
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND (:tuNgay IS NULL OR l.ngayLamViec >= :tuNgay)
+      AND (:denNgay IS NULL OR l.ngayLamViec <= :denNgay)
+      AND l.trangThai = 'DangLamViec'
+    ORDER BY l.ngayLamViec ASC, l.gioBatDau ASC
+""")
+    List<LichLamViec> timLichLamViecTheoKhoangNgay(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("tuNgay") LocalDate tuNgay,
+            @Param("denNgay") LocalDate denNgay
+    );
+
+    // ============================================
+    // tim lich lam viec admin
+    // ============================================
+    @Query("""
+    SELECT l
+    FROM LichLamViec l
+    JOIN FETCH l.bacSi b
+    JOIN FETCH b.nguoiDung nd
+    JOIN FETCH b.khoa k
+    JOIN FETCH l.phong p
+    JOIN FETCH p.khoa pk
+    WHERE (:tuNgay IS NULL OR l.ngayLamViec >= :tuNgay)
+      AND (:denNgay IS NULL OR l.ngayLamViec <= :denNgay)
+      AND (:maBacSi IS NULL OR b.maBacSi = :maBacSi)
+      AND (:maKhoa IS NULL OR k.maKhoa = :maKhoa)
+    ORDER BY l.ngayLamViec ASC, l.gioBatDau ASC
+""")
+    List<LichLamViec> timLichLamViecAdmin(
+            @Param("tuNgay") LocalDate tuNgay,
+            @Param("denNgay") LocalDate denNgay,
+            @Param("maBacSi") Integer maBacSi,
+            @Param("maKhoa") Integer maKhoa
+    );
+
+    // ============================================
+    // ============================================
+    @Query("""
+    SELECT COUNT(l)
+    FROM LichLamViec l
+    WHERE l.bacSi.maBacSi = :maBacSi
+      AND l.ngayLamViec = :ngayKham
+      AND l.trangThai = 'DangLamViec'
+      AND l.gioBatDau <= :gioKham
+      AND l.gioKetThuc > :gioKham
+    """)
+    long countLichLamViecPhuHopGioKham(
+            @Param("maBacSi") Integer maBacSi,
+            @Param("ngayKham") LocalDate ngayKham,
+            @Param("gioKham") LocalTime gioKham
+    );
 }

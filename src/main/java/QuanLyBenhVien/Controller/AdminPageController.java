@@ -115,4 +115,16 @@ public class AdminPageController {
     ) {
         model.addAttribute("currentUri", request.getRequestURI());
     }
+
+    // admin/lich lam viec
+    @GetMapping("/lich-lam-viec")
+    public String lichLamViec() {
+        return "Admin/lich-lam-viec";
+    }
+
+    // yeu cau dieu chinh
+    @GetMapping("/yeu-cau-lich")
+    public String yeuCauLich() {
+        return "Admin/yeu-cau-lich";
+    }
 }

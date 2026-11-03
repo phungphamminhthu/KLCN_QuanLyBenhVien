@@ -467,7 +467,7 @@ public class TiepNhanDangKyKhamService {
                         LyDoKham,
                         TrangThai
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, 'ChoKham')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, 'ChoGoi')
                     """,
                     Statement.RETURN_GENERATED_KEYS
             );

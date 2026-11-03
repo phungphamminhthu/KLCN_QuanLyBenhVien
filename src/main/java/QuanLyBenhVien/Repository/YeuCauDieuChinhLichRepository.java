@@ -2,22 +2,24 @@ package QuanLyBenhVien.Repository;
 
 import QuanLyBenhVien.Entity.YeuCauDieuChinhLich;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface YeuCauDieuChinhLichRepository
         extends JpaRepository<YeuCauDieuChinhLich, Integer> {
 
-    @Query("""
-        SELECT CASE WHEN COUNT(y) > 0 THEN true ELSE false END
-        FROM YeuCauDieuChinhLich y
-        WHERE y.lichLamViec.maLichLamViec = :maLichLamViec
-          AND y.trangThai = :trangThai
-    """)
-    boolean existsYeuCauTheoLichVaTrangThai(
-            @Param("maLichLamViec") Integer maLichLamViec,
-            @Param("trangThai") String trangThai
+    List<YeuCauDieuChinhLich>
+    findByTrangThaiOrderByNgayTaoDesc(String trangThai);
+
+    List<YeuCauDieuChinhLich>
+    findByBacSi_MaBacSiOrderByNgayTaoDesc(Integer maBacSi);
+
+    boolean existsByLichLamViec_MaLichLamViecAndTrangThai(
+            Integer maLichLamViec,
+            String trangThai
     );
+
+    boolean existsByLichLamViec_MaLichLamViec(Integer maLichLamViec);
 }

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yêu cầu điều chỉnh lịch</title>
+
+  <th:block layout:fragment="css">
+    <link rel="stylesheet"
+          th:href="@{/Css/Admin/yeu-cau-lich.css}">
+  </th:block>
+</head>
+
+<body>
+<section layout:fragment="content" class="request-page">
+
+  <div class="request-header">
+    <div>
+      <h1>Yêu cầu điều chỉnh lịch làm việc</h1>
+      <p>Tiếp nhận, xem xét và xử lý yêu cầu của bác sĩ</p>
+    </div>
+
+    <button class="btn-refresh" id="btnRefresh" type="button">
+      ↻ Làm mới
+    </button>
+  </div>
+
+  <div class="request-stats">
+    <div class="stat-card">
+      <span>Chờ xử lý</span>
+      <strong id="countPending">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>Đã duyệt</span>
+      <strong id="countApproved">0</strong>
+    </div>
+    <div class="stat-card">
+      <span>Đã từ chối</span>
+      <strong id="countRejected">0</strong>
+    </div>
+  </div>
+
+  <div class="request-filter">
+    <div class="form-group">
+      <label for="filterStatus">Trạng thái</label>
+      <select id="filterStatus">
+        <option value="">Tất cả yêu cầu</option>
+        <option value="CHO_XU_LY">Chờ xử lý</option>
+        <option value="DA_DUYET">Đã duyệt</option>
+        <option value="DA_TU_CHOI">Đã từ chối</option>
+      </select>
+    </div>
+
+    <div class="form-group search-group">
+      <label for="searchRequest">Tìm kiếm</label>
+      <input id="searchRequest"
+             type="text"
+             placeholder="Tên bác sĩ, loại yêu cầu...">
+    </div>
+  </div>
+
+  <div class="request-table-card">
+    <div class="table-responsive">
+      <table>
+        <thead>
+        <tr>
+          <th>Mã</th>
+          <th>Bác sĩ</th>
+          <th>Loại yêu cầu</th>
+          <th>Lịch làm việc</th>
+          <th>Lý do</th>
+          <th>Ngày gửi</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+        </thead>
+        <tbody id="requestTableBody">
+        <tr>
+          <td colspan="8" class="table-message">Đang tải dữ liệu...</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODAL CHI TIẾT / XỬ LÝ -->
+  <div class="request-modal-overlay" id="requestModal">
+    <div class="request-modal">
+      <div class="modal-header">
+        <div>
+          <h2>Chi tiết yêu cầu</h2>
+          <p>Xem thông tin và thực hiện xử lý</p>
+        </div>
+        <button type="button" class="modal-close" id="btnCloseModal">×</button>
+      </div>
+
+      <div id="requestDetail" class="request-detail">
+        Đang tải thông tin...
+      </div>
+
+      <div id="adminCoordinationFields"
+           class="form-group"
+           style="display:none; margin-top:16px;">
+
+        <label for="adminCoordinationDoctor">
+          Bác sĩ nhận điều phối
+        </label>
+
+        <select id="adminCoordinationDoctor">
+          <option value="">-- Chọn bác sĩ nhận điều phối --</option>
+        </select>
+
+        <small id="coordinationDoctorError"
+               style="display:block;color:#dc2626;margin-top:6px;">
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="adminNote">Ghi chú xử lý</label>
+        <textarea id="adminNote"
+                  rows="3"
+                  maxlength="500"
+                  placeholder="Nhập ghi chú xử lý hoặc lý do từ chối..."></textarea>
+      </div>
+
+      <div class="modal-error" id="modalError"></div>
+
+      <div class="modal-actions" id="modalActions">
+        <button type="button" class="btn-secondary" id="btnCloseBottom">
+          Đóng
+        </button>
+        <button type="button" class="btn-danger" id="btnReject">
+          Từ chối
+        </button>
+        <button type="button" class="btn-approve" id="btnApprove">
+          Duyệt yêu cầu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="request-toast" id="requestToast"></div>
+
+  <th:block layout:fragment="scripts">
+    <script th:src="@{/Js/Admin/yeu-cau-lich.js}"></script>
+  </th:block>
+
+</section>
+</body>
+</html>

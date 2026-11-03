@@ -2134,3 +2134,392 @@
         grid-template-columns: 1fr;
     }
 }
+.detail-modal-dialog {
+    width: min(760px, calc(100vw - 32px));
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.detail-modal-content {
+    padding: 20px 24px;
+}
+
+.detail-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.detail-info-card {
+    padding: 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    min-width: 0;
+}
+
+.detail-info-card > span {
+    display: block;
+    margin-bottom: 6px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.detail-info-card > strong {
+    display: block;
+    color: #1e293b;
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+.detail-slots-section {
+    margin-top: 24px;
+}
+
+.detail-slots-section h3 {
+    margin: 0 0 12px;
+    color: #1e293b;
+    font-size: 16px;
+}
+
+.detail-slots-list {
+    display: grid;
+    gap: 10px;
+}
+
+.detail-slot-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.detail-slot-time {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.detail-slot-count {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.detail-slot-status {
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.detail-slot-status.is-available {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.detail-slot-status.is-full {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.detail-empty-slots {
+    padding: 16px;
+    color: #64748b;
+    text-align: center;
+    background: #f8fafc;
+    border-radius: 8px;
+}
+
+@media (max-width: 600px) {
+    .detail-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-slot-item {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .detail-modal-content {
+        padding: 16px;
+    }
+}
+
+.doctor-request-modal-content {
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.doctor-request-modal-content,
+.doctor-request-modal-content * {
+    box-sizing: border-box;
+}
+
+.doctor-request-modal-content form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.doctor-request-schedule-info {
+    padding: 12px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.doctor-request-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.doctor-request-field label {
+    color: #334155;
+    font-weight: 600;
+}
+
+.doctor-request-field input,
+.doctor-request-field select,
+.doctor-request-field textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+    color: #1e293b;
+    background: #fff;
+}
+
+.doctor-request-field textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.doctor-request-error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 10px 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.doctor-request-error[hidden],
+#doctorRequestEditFields[hidden] {
+    display: none !important;
+}
+
+.doctor-request-modal {
+    width: min(600px, calc(100vw - 32px));
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+}
+
+.doctor-request-modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.doctor-request-schedule-info {
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #334155;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.doctor-request-modal textarea {
+    width: 100%;
+    min-height: 110px;
+    resize: vertical;
+    box-sizing: border-box;
+    font: inherit;
+}
+
+#doctorRequestEditFields[hidden],
+#doctorRequestError[hidden],
+#doctorScheduleRequestModal[hidden] {
+    display: none !important;
+}
+.request-disabled,
+.request-disabled:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+/* =========================================================
+   DOCTOR SCHEDULE - ACTION BUTTONS
+   Chỉ áp dụng cho danh sách lịch bên phải
+========================================================= */
+
+/* Mỗi lịch trong danh sách */
+.schedule-page .schedule-list-item {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 12px;
+
+    width: 100%;
+    min-width: 0;
+    padding: 14px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+}
+
+/* Nội dung lịch */
+.schedule-page .schedule-list-item .schedule-list-main {
+    min-width: 0;
+    width: 100%;
+}
+
+/* Khu vực chứa 3 nút */
+.schedule-page .schedule-list-item .doctor-request-actions,
+.schedule-page .schedule-list-item .calendar-event-actions {
+    grid-column: 2;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center;
+    justify-content: flex-start;
+
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin: 4px 0 0;
+    padding: 0;
+}
+
+/* Style chung cho cả 3 nút */
+.schedule-page .schedule-list-item .doctor-request-actions button,
+.schedule-page .schedule-list-item .calendar-event-actions button {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: center;
+
+    width: auto !important;
+    min-width: 72px !important;
+    max-width: none !important;
+    height: 34px;
+    min-height: 34px;
+
+    margin: 0 !important;
+    padding: 0 12px !important;
+
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+    cursor: pointer;
+    box-shadow: none;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease;
+}
+
+/* Nút 1 - Sửa lịch: xanh dương */
+.schedule-page .schedule-list-item .doctor-request-actions button:nth-child(1),
+.schedule-page .schedule-list-item .calendar-event-actions button:nth-child(1) {
+    color: #1d4ed8 !important;
+    background: #eff6ff !important;
+    border-color: #bfdbfe !important;
+}
+
+.schedule-page .schedule-list-item .doctor-request-actions button:nth-child(1):hover:not(:disabled),
+.schedule-page .schedule-list-item .calendar-event-actions button:nth-child(1):hover:not(:disabled) {
+    color: #1e40af !important;
+    background: #dbeafe !important;
+    border-color: #93c5fd !important;
+}
+
+/* Nút 2 - Hủy lịch: đỏ */
+.schedule-page .schedule-list-item .doctor-request-actions button:nth-child(2),
+.schedule-page .schedule-list-item .calendar-event-actions button:nth-child(2) {
+    color: #b91c1c !important;
+    background: #fef2f2 !important;
+    border-color: #fecaca !important;
+}
+
+.schedule-page .schedule-list-item .doctor-request-actions button:nth-child(2):hover:not(:disabled),
+.schedule-page .schedule-list-item .calendar-event-actions button:nth-child(2):hover:not(:disabled) {
+    color: #991b1b !important;
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+}
+
+/* Nút 3 - Điều phối: tím */
+.schedule-page .schedule-list-item .doctor-request-actions button:nth-child(3),
+.schedule-page .schedule-list-item .calendar-event-actions button:nth-child(3) {
+    color: #6d28d9 !important;
+    background: #f5f3ff !important;
+    border-color: #ddd6fe !important;
+}
+
+.schedule-page .schedule-list-item .doctor-request-actions button:nth-child(3):hover:not(:disabled),
+.schedule-page .schedule-list-item .calendar-event-actions button:nth-child(3):hover:not(:disabled) {
+    color: #5b21b6 !important;
+    background: #ede9fe !important;
+    border-color: #c4b5fd !important;
+}
+
+/* Nút bị khóa */
+.schedule-page .schedule-list-item .doctor-request-actions button:disabled,
+.schedule-page .schedule-list-item .calendar-event-actions button:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+    filter: grayscale(15%);
+}
+
+/* Responsive: màn hình nhỏ vẫn xếp ngang nếu đủ chỗ,
+   thiếu chỗ thì tự xuống hàng */
+@media (max-width: 600px) {
+    .schedule-page .schedule-list-item {
+        column-gap: 8px;
+        padding: 12px;
+    }
+
+    .schedule-page .schedule-list-item .doctor-request-actions,
+    .schedule-page .schedule-list-item .calendar-event-actions {
+        gap: 6px;
+    }
+
+    .schedule-page .schedule-list-item .doctor-request-actions button,
+    .schedule-page .schedule-list-item .calendar-event-actions button {
+        min-width: 68px !important;
+        height: 32px;
+        min-height: 32px;
+        padding: 0 9px !important;
+        font-size: 11px;
+    }
+}
