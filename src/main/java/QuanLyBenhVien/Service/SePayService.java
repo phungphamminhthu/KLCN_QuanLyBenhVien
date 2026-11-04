@@ -1,27 +1,28 @@
-
 package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.SePayWebhookRequest;
-import QuanLyBenhVien.Entity.HoaDon;
-import QuanLyBenhVien.Repository.HoaDonRepository;
 import QuanLyBenhVien.Entity.CTHoaDon;
 import QuanLyBenhVien.Entity.CTThanhToan;
+import QuanLyBenhVien.Entity.HoaDon;
+import QuanLyBenhVien.Entity.LichDangKyKham;
 import QuanLyBenhVien.Entity.ThanhToan;
 import QuanLyBenhVien.Repository.CTHoaDonRepository;
 import QuanLyBenhVien.Repository.CTThanhToanRepository;
-import QuanLyBenhVien.Repository.ThanhToanRepository;
-import java.time.LocalDateTime;
-import java.util.List;
-import QuanLyBenhVien.Entity.LichDangKyKham;
+import QuanLyBenhVien.Repository.HoaDonRepository;
 import QuanLyBenhVien.Repository.LichDangKyKhamRepository;
-
+import QuanLyBenhVien.Repository.ThanhToanRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,427 +34,294 @@ public class SePayService {
     private final ThanhToanRepository thanhToanRepository;
     private final CTThanhToanRepository ctThanhToanRepository;
     private final LichDangKyKhamRepository lichDangKyKhamRepository;
+    private final JdbcTemplate jdbcTemplate;
+
+    // Chấp nhận cả mã BV... cũ và MED... mới; phần số là MaHoaDon.
+    private static final Pattern MA_HOA_DON_PATTERN =
+            Pattern.compile("(?i)\\b(?:BV|MED)([0-9]+)\\b");
 
     @Value("${sepay.webhook-api-key:}")
     private String webhookApiKey;
 
-    private static final Pattern MA_HOA_DON_PATTERN =
-            Pattern.compile("(?i)\\bBV([0-9]+)\\b");
+    // Tài khoản nhận tiền dùng để đối chiếu webhook.
+    @Value("${sepay.bank-account-number:${sepay.account-number:}}")
+    private String bankAccountNumber;
 
     public SePayService(HoaDonRepository hoaDonRepository,
                         CTHoaDonRepository ctHoaDonRepository,
                         ThanhToanRepository thanhToanRepository,
                         CTThanhToanRepository ctThanhToanRepository,
-                        LichDangKyKhamRepository lichDangKyKhamRepository) {
+                        LichDangKyKhamRepository lichDangKyKhamRepository,
+                        JdbcTemplate jdbcTemplate) {
         this.hoaDonRepository = hoaDonRepository;
         this.ctHoaDonRepository = ctHoaDonRepository;
         this.thanhToanRepository = thanhToanRepository;
         this.ctThanhToanRepository = ctThanhToanRepository;
         this.lichDangKyKhamRepository = lichDangKyKhamRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-
-    /**
-     * Xác thực header Authorization: Apikey <key>
-     */
+    /** Xác thực header Authorization: Apikey <key>. */
     public boolean xacThucApiKey(String authorization) {
-
-        System.out.println(
-                "SePay API key configured: "
-                        + (webhookApiKey != null && !webhookApiKey.isBlank())
-        );
-
-        System.out.println(
-                "Authorization header received: "
-                        + (authorization != null
-                        && authorization.startsWith("Apikey "))
-        );
-
         if (webhookApiKey == null || webhookApiKey.isBlank()
                 || authorization == null) {
             return false;
         }
-
-        String expected = "Apikey " + webhookApiKey;
-
+        String expected = "Apikey " + webhookApiKey.trim();
         return MessageDigest.isEqual(
                 expected.getBytes(StandardCharsets.UTF_8),
-                authorization.getBytes(StandardCharsets.UTF_8)
-        );
+                authorization.trim().getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * Xử lý giao dịch và cập nhật trạng thái hóa đơn.
-     */
-//    @Transactional
-//    public String xuLyWebhook(SePayWebhookRequest request) {
-//
-//        if (request == null) {
-//            throw new IllegalArgumentException(
-//                    "Dữ liệu webhook không hợp lệ."
-//            );
-//        }
-//
-//        if (request.id() == null
-//                || request.transferAmount() == null
-//                || request.transferType() == null) {
-//            throw new IllegalArgumentException(
-//                    "Webhook thiếu mã giao dịch, số tiền hoặc loại giao dịch."
-//            );
-//        }
-//
-//        // Chỉ xử lý tiền vào
-//        if (!"in".equalsIgnoreCase(request.transferType())) {
-//            throw new IllegalArgumentException(
-//                    "Giao dịch không phải tiền vào."
-//            );
-//        }
-//
-//        if (request.transferAmount().compareTo(BigDecimal.ZERO) <= 0) {
-//            throw new IllegalArgumentException(
-//                    "Số tiền giao dịch phải lớn hơn 0."
-//            );
-//        }
-//
-//        // Ưu tiên trường code, sau đó tìm trong content.
-//        String noiDung = request.code();
-//
-//        if (noiDung == null || noiDung.isBlank()) {
-//            noiDung = request.content();
-//        }
-//
-//        if (noiDung == null || noiDung.isBlank()) {
-//            throw new IllegalArgumentException(
-//                    "Không có mã hóa đơn trong giao dịch."
-//            );
-//        }
-//
-//        Matcher matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
-//
-//        if (!matcher.find()) {
-//            throw new IllegalArgumentException(
-//                    "Không tìm thấy mã hóa đơn dạng BV5 trong giao dịch."
-//            );
-//        }
-//
-//        Integer maHoaDon;
-//
-//        try {
-//            maHoaDon = Integer.valueOf(matcher.group(1));
-//        } catch (NumberFormatException ex) {
-//            throw new IllegalArgumentException(
-//                    "Mã hóa đơn không hợp lệ."
-//            );
-//        }
-//
-//        HoaDon hoaDon = hoaDonRepository.findById(maHoaDon)
-//                .orElseThrow(() -> new IllegalArgumentException(
-//                        "Không tìm thấy hóa đơn có mã " + maHoaDon + "."
-//                ));
-//
-//        // Webhook có thể được SePay gửi lại.
-//        if ("DaThanhToan".equalsIgnoreCase(hoaDon.getTrangThai())) {
-//            return "Hóa đơn đã được thanh toán trước đó.";
-//        }
-//
-//        if (!"ChuaThanhToan".equalsIgnoreCase(hoaDon.getTrangThai())) {
-//            throw new IllegalArgumentException(
-//                    "Trạng thái hóa đơn không cho phép thanh toán."
-//            );
-//        }
-//
-//        if (hoaDon.getTongTien() == null
-//                || hoaDon.getTongTien().compareTo(
-//                request.transferAmount()) != 0) {
-//            throw new IllegalArgumentException(
-//                    "Số tiền giao dịch không khớp tổng tiền hóa đơn."
-//            );
-//        }
-//
-//        hoaDon.setTrangThai("DaThanhToan");
-//        hoaDonRepository.save(hoaDon);
-//
-//        return "Thanh toán hóa đơn BV" + maHoaDon + " thành công.";
-//    }
-
-    @Transactional
+    /** Xử lý webhook SePay trong một transaction duy nhất. */
+    @Transactional(rollbackFor = Exception.class, isolation = Isolation.READ_COMMITTED)
     public String xuLyWebhook(SePayWebhookRequest request) {
-
-        if (request == null
-                || request.id() == null
+        // 1. Kiểm tra payload và giao dịch tiền vào.
+        if (request == null || request.id() == null || request.id() <= 0
                 || request.transferAmount() == null
                 || request.transferType() == null) {
-            throw new IllegalArgumentException(
-                    "Webhook thiếu thông tin giao dịch.");
+            throw new IllegalArgumentException("Webhook thiếu thông tin giao dịch.");
         }
-
         if (!"in".equalsIgnoreCase(request.transferType())) {
-            throw new IllegalArgumentException(
-                    "Giao dịch không phải tiền vào.");
+            throw new IllegalArgumentException("Chỉ tiếp nhận giao dịch tiền vào.");
+        }
+        BigDecimal soTienChuyen = request.transferAmount();
+        if (soTienChuyen.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Số tiền giao dịch phải lớn hơn 0.");
         }
 
-        if (request.transferAmount().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException(
-                    "Số tiền giao dịch phải lớn hơn 0.");
+        // 2. Đối chiếu tài khoản nhận tiền.
+        if (bankAccountNumber == null || bankAccountNumber.isBlank()) {
+            throw new IllegalStateException("Chưa cấu hình tài khoản nhận tiền SePay.");
+        }
+        if (request.accountNumber() == null
+                || !bankAccountNumber.trim().equals(request.accountNumber().trim())) {
+            throw new IllegalArgumentException("Tài khoản nhận tiền không khớp.");
         }
 
-        //        String noiDung = request.code();
-        //
-        //        if (noiDung == null || noiDung.isBlank()) {
-        //            noiDung = request.content();
-        //        }
-        //
-        //        if (noiDung == null || noiDung.isBlank()) {
-        //            throw new IllegalArgumentException(
-        //                    "Không có mã hóa đơn trong giao dịch.");
-        //        }
-        //
-        //        Matcher matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
-        //
-        //        if (!matcher.find()) {
-        //            throw new IllegalArgumentException(
-        //                    "Không tìm thấy mã hóa đơn dạng BV5.");
-        //        }
-        //
-        //        Integer maHoaDon;
-        //
-        //        try {
-        //            maHoaDon = Integer.valueOf(matcher.group(1));
-        //        } catch (NumberFormatException ex) {
-        //            throw new IllegalArgumentException(
-        //                    "Mã hóa đơn không hợp lệ.");
-        //        }
-
-
-        String noiDung = request.code();
-        Matcher matcher = null;
-
-        // Tìm mã hóa đơn trong trường code trước
-        if (noiDung != null && !noiDung.isBlank()) {
-            matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
-        }
-
-        // Nếu code không chứa mã BV..., tìm tiếp trong content
-        if (matcher == null || !matcher.find()) {
-            noiDung = request.content();
-
-            if (noiDung == null || noiDung.isBlank()) {
-                throw new IllegalArgumentException(
-                        "Không có mã hóa đơn trong giao dịch."
-                );
-            }
-
-            matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
-
-            if (!matcher.find()) {
-                throw new IllegalArgumentException(
-                        "Không tìm thấy mã hóa đơn dạng BV trong giao dịch."
-                );
-            }
-        }
-
-        Integer maHoaDon;
-
-        try {
-            maHoaDon = Integer.valueOf(matcher.group(1));
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException(
-                    "Mã hóa đơn không hợp lệ."
-            );
-        }
-
-
-        // Kiểm tra hóa đơn
-        //        HoaDon hoaDon = hoaDonRepository.findById(maHoaDon)
-        //                .orElseThrow(() -> new IllegalArgumentException(
-        //                        "Không tìm thấy hóa đơn " + maHoaDon));
-        //
-        ////        if (!"Thuoc".equalsIgnoreCase(hoaDon.getLoaiHoaDon())) {
-        ////            throw new IllegalArgumentException(
-        ////                    "Mã hóa đơn này không phải hóa đơn thuốc."
-        ////            );
-        ////        }
-        //        // Chặn xử lý lại giao dịch đã lưu
-        //        String maGiaoDich = String.valueOf(request.id());
-        //
-        //        if (thanhToanRepository.existsByMaGiaoDich(maGiaoDich)) {
-        //            return "Giao dịch đã được xử lý trước đó.";
-        //        }
-        //
-        //        if ("DaThanhToan".equalsIgnoreCase(hoaDon.getTrangThai())) {
-        //            throw new IllegalArgumentException(
-        //                    "Hóa đơn đã được thanh toán.");
-        //        }
-        //
-        //        if (!"ChuaThanhToan".equalsIgnoreCase(hoaDon.getTrangThai())) {
-        //            throw new IllegalArgumentException(
-        //                    "Trạng thái hóa đơn không cho phép thanh toán.");
-        //        }
-        //
-        //        if (hoaDon.getTongTien() == null
-        //                || hoaDon.getTongTien().compareTo(
-        //                request.transferAmount()) != 0) {
-        //            throw new IllegalArgumentException(
-        //                    "Số tiền giao dịch không khớp hóa đơn.");
-        //        }
-        //
-        //        // Lấy chi tiết hóa đơn đã được lập trước đó
-        //        List<CTHoaDon> chiTiet =
-        //                ctHoaDonRepository.findByHoaDon_MaHoaDon(
-        //                        hoaDon.getMaHoaDon());
-        //
-        //        if (chiTiet.isEmpty()) {
-        //            throw new IllegalArgumentException(
-        //                    "Hóa đơn chưa có chi tiết để liên kết thanh toán.");
-        //        }
-        //
-        //        // 1. Tạo bản ghi ThanhToan
-        //        ThanhToan thanhToan = new ThanhToan();
-        //        thanhToan.setMaHoaDon(maHoaDon);
-        //        thanhToan.setNgayThanhToan(LocalDateTime.now());
-        //        thanhToan.setSoTien(request.transferAmount());
-        //        thanhToan.setPhuongThucThanhToan("Chuyển khoản");
-        //        thanhToan.setTrangThai("DaThanhToan");
-        //        thanhToan.setMaGiaoDich(maGiaoDich);
-        //
-        //        thanhToan = thanhToanRepository.saveAndFlush(thanhToan);
-        //
-        //        // 2. Tạo các liên kết CTThanhToan
-        //        for (CTHoaDon ct : chiTiet) {
-        //            CTThanhToan ctThanhToan = new CTThanhToan();
-        //
-        //            ctThanhToan.setMaThanhToan(
-        //                    thanhToan.getMaThanhToan());
-        //
-        //            ctThanhToan.setMaCTHoaDon(
-        //                    ct.getMaCTHoaDon());
-        //
-        //            ctThanhToanRepository.save(ctThanhToan);
-        //        }
-        //
-        //        // 3. Cập nhật hóa đơn
-        //        hoaDon.setTrangThai("DaThanhToan");
-        //        hoaDonRepository.save(hoaDon);
-        //
-        //        return "Thanh toán hóa đơn BV"
-        //                + maHoaDon + " thành công.";
-        // 1. Tìm hóa đơn ban đầu để lấy mã lịch khám
-        HoaDon hoaDonBanDau = hoaDonRepository.findById(maHoaDon)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy hóa đơn " + maHoaDon
-                ));
-
-        if (hoaDonBanDau.getLichDangKyKham() == null) {
-            throw new IllegalArgumentException(
-                    "Hóa đơn không liên kết với lịch khám."
-            );
-        }
-
-        Integer maLichKham =
-                hoaDonBanDau.getLichDangKyKham().getMaLichKham();
-
-        // 2. Khóa lịch khám trước
-        LichDangKyKham lich = lichDangKyKhamRepository
-                .findByIdForUpdate(maLichKham)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy lịch khám."
-                ));
-
-        // 3. Khóa hóa đơn sau khi đã khóa lịch khám
-        HoaDon hoaDon = hoaDonRepository
-                .findByIdForUpdate(maHoaDon)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Không tìm thấy hóa đơn."
-                ));
-
-        // 4. Chặn thanh toán nếu lịch đã bị hủy
-        if ("DaHuy".equalsIgnoreCase(lich.getTrangThai())
-                || "DaHuy".equalsIgnoreCase(lich.getTrangThaiThanhToan())
-                || "DaHuy".equalsIgnoreCase(hoaDon.getTrangThai())) {
-
-            throw new IllegalArgumentException(
-                    "Lịch khám đã bị hủy. Giao dịch cần được kiểm tra và xử lý riêng."
-            );
-        }
-
-        // 5. Kiểm tra webhook trùng
+        // 3. Lấy mã hóa đơn từ code trước, sau đó content; hỗ trợ BV và MED.
+        Integer maHoaDon = layMaHoaDon(request);
         String maGiaoDich = String.valueOf(request.id());
 
-        if (thanhToanRepository.existsByMaGiaoDich(maGiaoDich)) {
+        // 4. Lấy hóa đơn ban đầu để xác định lịch, sau đó khóa lịch trước hóa đơn.
+        HoaDon hoaDonBanDau = hoaDonRepository.findById(maHoaDon)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Không tìm thấy hóa đơn " + maHoaDon + "."));
+        if (hoaDonBanDau.getLichDangKyKham() == null) {
+            throw new IllegalArgumentException("Hóa đơn không liên kết với lịch khám.");
+        }
+        Integer maLichKham = hoaDonBanDau.getLichDangKyKham().getMaLichKham();
+        LichDangKyKham lich = lichDangKyKhamRepository.findByIdForUpdate(maLichKham)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy lịch khám."));
+        HoaDon hoaDon = hoaDonRepository.findByIdForUpdate(maHoaDon)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy hóa đơn."));
+
+        // 5. Idempotency: webhook gửi lại cùng mã giao dịch thì không ghi lần nữa.
+        Optional<ThanhToan> giaoDichCu = thanhToanRepository.findByMaGiaoDich(maGiaoDich);
+        if (giaoDichCu.isPresent()) {
+            ThanhToan daLuu = giaoDichCu.get();
+            if (!maHoaDon.equals(daLuu.getMaHoaDon())) {
+                throw new IllegalArgumentException("Mã giao dịch đã thuộc hóa đơn khác.");
+            }
             return "Giao dịch đã được xử lý trước đó.";
         }
 
-        // 6. Kiểm tra trạng thái hóa đơn
-        if ("DaThanhToan".equalsIgnoreCase(hoaDon.getTrangThai())) {
+        // 6. Chặn lịch/hóa đơn bị hủy và trạng thái không hợp lệ.
+        if (equalsStatus(lich.getTrangThai(), "DaHuy")
+                || equalsStatus(lich.getTrangThai(), "KhongDen")
+                || equalsStatus(lich.getTrangThaiThanhToan(), "DaHuy")
+                || equalsStatus(hoaDon.getTrangThai(), "DaHuy")) {
             throw new IllegalArgumentException(
-                    "Hóa đơn đã được thanh toán."
-            );
+                    "Lịch khám hoặc hóa đơn đã hủy/không đến; cần đối soát giao dịch riêng.");
+        }
+        if (equalsStatus(hoaDon.getTrangThai(), "DaThanhToan")) {
+            throw new IllegalArgumentException("Hóa đơn đã được thanh toán bằng giao dịch khác.");
+        }
+        if (!equalsStatus(hoaDon.getTrangThai(), "ChuaThanhToan")) {
+            throw new IllegalArgumentException("Trạng thái hóa đơn không cho phép thanh toán.");
         }
 
-        if (!"ChuaThanhToan".equalsIgnoreCase(hoaDon.getTrangThai())) {
-            throw new IllegalArgumentException(
-                    "Trạng thái hóa đơn không cho phép thanh toán."
-            );
+        // 7. Chỉ xử lý các loại hóa đơn đang được hỗ trợ.
+        String loaiHoaDon = hoaDon.getLoaiHoaDon();
+        if (!equalsStatus(loaiHoaDon, "PhiKham")
+                && !equalsStatus(loaiHoaDon, "CanLamSang")
+                && !equalsStatus(loaiHoaDon, "TienThuoc")) {
+            throw new IllegalArgumentException("Loại hóa đơn chưa được hỗ trợ thanh toán SePay.");
         }
 
-        // 8. Kiểm tra số tiền
-        if (hoaDon.getTongTien() == null
-                || hoaDon.getTongTien().compareTo(
-                request.transferAmount()) != 0) {
-
-            throw new IllegalArgumentException(
-                    "Số tiền giao dịch không khớp hóa đơn."
-            );
+        // 8. Kiểm tra lịch và bệnh nhân liên kết với hóa đơn.
+        ThongTinLichKham thongTinLich = jdbcTemplate.query(
+                "SELECT l.MaLichKham, l.MaBenhNhan, l.TrangThai, l.TrangThaiThanhToan " +
+                        "FROM LichDangKyKham l JOIN HoaDon h ON h.MaLichKham=l.MaLichKham " +
+                        "WHERE h.MaHoaDon=?",
+                rs -> rs.next() ? new ThongTinLichKham(
+                        rs.getInt("MaLichKham"), rs.getInt("MaBenhNhan"),
+                        rs.getString("TrangThai"), rs.getString("TrangThaiThanhToan")) : null,
+                maHoaDon);
+        if (thongTinLich == null) {
+            throw new IllegalArgumentException("Hóa đơn chưa liên kết với lịch khám.");
+        }
+        Integer maBenhNhanHoaDon = jdbcTemplate.queryForObject(
+                "SELECT MaBenhNhan FROM HoaDon WHERE MaHoaDon=?", Integer.class, maHoaDon);
+        if (maBenhNhanHoaDon == null
+                || !maBenhNhanHoaDon.equals(thongTinLich.maBenhNhan())) {
+            throw new IllegalArgumentException("Hóa đơn không khớp bệnh nhân của lịch khám.");
         }
 
-        // 9. Lấy chi tiết hóa đơn
-        List<CTHoaDon> chiTiet =
-                ctHoaDonRepository.findByHoaDon_MaHoaDon(maHoaDon);
+        // 9. Nghiệp vụ riêng từng loại hóa đơn.
+        // Phí khám: cho phép thanh toán online trước khi bệnh nhân đến bệnh viện.
+        // Không yêu cầu lịch phải ở trạng thái DaGoi.
+        if (equalsStatus(loaiHoaDon, "PhiKham")) {
 
-        if (chiTiet.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Hóa đơn chưa có chi tiết để liên kết thanh toán."
+            if (equalsStatus(lich.getTrangThaiThanhToan(), "DaThanhToan")) {
+                throw new IllegalArgumentException(
+                        "Lịch khám đã ghi nhận thanh toán phí khám.");
+            }
+
+            Integer soHoaDonPhiKham = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM HoaDon " +
+                            "WHERE MaLichKham=? " +
+                            "AND LoaiHoaDon='PhiKham' " +
+                            "AND (TrangThai IS NULL OR TrangThai<>'DaHuy')",
+                    Integer.class,
+                    maLichKham
             );
+
+            if (soHoaDonPhiKham == null || soHoaDonPhiKham != 1) {
+                throw new IllegalArgumentException(
+                        "Có nhiều hóa đơn phí khám hoặc dữ liệu hóa đơn chưa hợp lệ.");
+            }
+
+        } else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
+
+            // Thanh toán CLS theo luồng chỉ định hiện tại.
+            if (!equalsStatus(lich.getTrangThai(), "ChoThanhToan")) {
+                throw new IllegalArgumentException(
+                        "Chỉ thanh toán CLS khi lịch khám đang ChoThanhToan.");
+            }
         }
 
-        // 10. Tạo bản ghi thanh toán
+        // TienThuoc không yêu cầu lịch ở trạng thái DaGoi/ChoThanhToan.
+
+        // 10. Kiểm tra tổng tiền hóa đơn và chi tiết.
+        BigDecimal tongTien = hoaDon.getTongTien();
+        if (tongTien == null || tongTien.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Tổng tiền hóa đơn không hợp lệ.");
+        }
+        if (tongTien.compareTo(soTienChuyen) != 0) {
+            throw new IllegalArgumentException("Số tiền chuyển khoản không khớp hóa đơn.");
+        }
+        List<CTHoaDon> chiTiet = ctHoaDonRepository.findByHoaDon_MaHoaDon(maHoaDon);
+        if (chiTiet == null || chiTiet.isEmpty()) {
+            throw new IllegalArgumentException("Hóa đơn chưa có chi tiết để liên kết thanh toán.");
+        }
+        BigDecimal tongChiTiet = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(ThanhTien),0) FROM CTHoaDon WHERE MaHoaDon=?",
+                BigDecimal.class, maHoaDon);
+        if (tongChiTiet == null || tongChiTiet.compareTo(tongTien) != 0) {
+            throw new IllegalArgumentException("Tổng tiền chi tiết hóa đơn không khớp tổng hóa đơn.");
+        }
+
+        // 11. Chặn một hóa đơn được ghi nhận nhiều giao dịch thành công.
+        Integer soGiaoDich = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM ThanhToan WHERE MaHoaDon=? " +
+                        "AND (TrangThai IS NULL OR TrangThai<>'ThatBai')",
+                Integer.class, maHoaDon);
+        if (soGiaoDich != null && soGiaoDich > 0) {
+            throw new IllegalArgumentException(
+                    "Hóa đơn đã có giao dịch thanh toán; cần đối soát trước khi ghi nhận thêm.");
+        }
+
+        // 12. Lưu thanh toán và các liên kết chi tiết.
         ThanhToan thanhToan = new ThanhToan();
-
         thanhToan.setMaHoaDon(maHoaDon);
         thanhToan.setNgayThanhToan(LocalDateTime.now());
-        thanhToan.setSoTien(request.transferAmount());
+        thanhToan.setSoTien(soTienChuyen);
         thanhToan.setPhuongThucThanhToan("Chuyển khoản");
         thanhToan.setTrangThai("DaThanhToan");
         thanhToan.setMaGiaoDich(maGiaoDich);
-
+        thanhToan.setNguoiThu(null);
         thanhToan = thanhToanRepository.saveAndFlush(thanhToan);
 
-        // 11. Tạo liên kết chi tiết thanh toán
         for (CTHoaDon ct : chiTiet) {
-
             CTThanhToan ctThanhToan = new CTThanhToan();
-
-            ctThanhToan.setMaThanhToan(
-                    thanhToan.getMaThanhToan()
-            );
-
-            ctThanhToan.setMaCTHoaDon(
-                    ct.getMaCTHoaDon()
-            );
-
+            ctThanhToan.setMaThanhToan(thanhToan.getMaThanhToan());
+            ctThanhToan.setMaCTHoaDon(ct.getMaCTHoaDon());
             ctThanhToanRepository.save(ctThanhToan);
         }
 
-        // 12. Cập nhật hóa đơn
+        // 13. Cập nhật hóa đơn.
         hoaDon.setTrangThai("DaThanhToan");
-        hoaDonRepository.save(hoaDon);
+        hoaDonRepository.saveAndFlush(hoaDon);
 
-        // 13. Cập nhật lịch khám
-        lich.setTrangThaiThanhToan("DaThanhToan");
+        // 14. Cập nhật lịch theo đúng loại hóa đơn.
+        if (equalsStatus(loaiHoaDon, "PhiKham")) {
 
-        lichDangKyKhamRepository.save(lich);
+            int updated = jdbcTemplate.update(
+                    "UPDATE LichDangKyKham " +
+                            "SET TrangThaiThanhToan='DaThanhToan' " +
+                            "WHERE MaLichKham=? " +
+                            "AND (TrangThaiThanhToan IS NULL " +
+                            "OR TrangThaiThanhToan<>'DaThanhToan')",
+                    maLichKham
+            );
 
-        return "Thanh toán hóa đơn BV"
-                + maHoaDon + " thành công.";
+            if (updated != 1) {
+                throw new IllegalStateException(
+                        "Không cập nhật được trạng thái thanh toán lịch khám.");
+            }
+
+        } else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
+
+            int updated = jdbcTemplate.update(
+                    "UPDATE LichDangKyKham " +
+                            "SET TrangThai='ChoCLS' " +
+                            "WHERE MaLichKham=? AND TrangThai='ChoThanhToan'",
+                    maLichKham
+            );
+
+            if (updated != 1) {
+                throw new IllegalStateException(
+                        "Không cập nhật được trạng thái lịch khám sau thanh toán CLS.");
+            }
+        }
+
+        // TienThuoc: không tự thay đổi trạng thái lịch khám.
+
+        return "Thanh toán hóa đơn " + maHoaDon + " thành công.";
     }
+
+    private Integer layMaHoaDon(SePayWebhookRequest request) {
+        Integer maHoaDon = timMaHoaDonTrongChuoi(request.code());
+        if (maHoaDon == null) {
+            maHoaDon = timMaHoaDonTrongChuoi(request.content());
+        }
+        if (maHoaDon == null) {
+            throw new IllegalArgumentException("Không tìm thấy mã hóa đơn BV hoặc MED hợp lệ.");
+        }
+        return maHoaDon;
+    }
+
+    private Integer timMaHoaDonTrongChuoi(String noiDung) {
+        if (noiDung == null || noiDung.isBlank()) return null;
+        Matcher matcher = MA_HOA_DON_PATTERN.matcher(noiDung);
+        if (!matcher.find()) return null;
+        try {
+            long ma = Long.parseLong(matcher.group(1));
+            if (ma <= 0 || ma > Integer.MAX_VALUE) return null;
+            return (int) ma;
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private boolean equalsStatus(String actual, String expected) {
+        return actual != null && expected.equalsIgnoreCase(actual.trim());
+    }
+
+    private record ThongTinLichKham(
+            Integer maLichKham,
+            Integer maBenhNhan,
+            String trangThai,
+            String trangThaiThanhToan) {}
 }

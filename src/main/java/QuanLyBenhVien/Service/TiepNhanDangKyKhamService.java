@@ -1,7 +1,9 @@
+
 package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.TiepNhanDangKyKhamDTO;
 import QuanLyBenhVien.DTO.TiepNhanDangKyKhamKetQuaDTO;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -9,7 +11,11 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
@@ -28,11 +34,18 @@ public class TiepNhanDangKyKhamService {
     private static final ZoneId VIETNAM =
             ZoneId.of("Asia/Ho_Chi_Minh");
 
-    private final JdbcTemplate jdbcTemplate;
 
-    public TiepNhanDangKyKhamService(JdbcTemplate jdbcTemplate) {
+    private final JdbcTemplate jdbcTemplate;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public TiepNhanDangKyKhamService(
+            JdbcTemplate jdbcTemplate,
+            ApplicationEventPublisher eventPublisher
+    ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.eventPublisher = eventPublisher;
     }
+
 
     // =====================================================
     // DANH SÁCH KHOA CÓ LỊCH KHÁM CÒN HIỆU LỰC HÔM NAY
@@ -40,6 +53,7 @@ public class TiepNhanDangKyKhamService {
 
     @Transactional(readOnly = true)
     public List<Map<String, Object>> layDanhSachKhoa() {
+
         ZonedDateTime now = ZonedDateTime.now(VIETNAM);
 
         String sql = """
@@ -47,7 +61,8 @@ public class TiepNhanDangKyKhamService {
                     k.MaKhoa AS maKhoa,
                     k.TenKhoa AS tenKhoa
                 FROM khoa k
-                JOIN bacsi bs ON bs.MaKhoa = k.MaKhoa
+                JOIN bacsi bs
+                    ON bs.MaKhoa = k.MaKhoa
                 JOIN nguoidung nd
                     ON nd.MaNguoiDung = bs.MaNguoiDung
                 JOIN lichlamviec lv
@@ -76,7 +91,10 @@ public class TiepNhanDangKyKhamService {
     // =====================================================
 
     @Transactional(readOnly = true)
-    public List<Map<String, Object>> layLichBacSi(Integer maKhoa) {
+    public List<Map<String, Object>> layLichBacSi(
+            Integer maKhoa
+    ) {
+
         kiemTraMa(maKhoa, "Vui lòng chọn khoa.");
 
         ZonedDateTime now = ZonedDateTime.now(VIETNAM);
@@ -99,7 +117,8 @@ public class TiepNhanDangKyKhamService {
                         lv.GioKetThuc, '%H:%i'
                     ) AS gioKetThuc
                 FROM lichlamviec lv
-                JOIN bacsi bs ON bs.MaBacSi = lv.MaBacSi
+                JOIN bacsi bs
+                    ON bs.MaBacSi = lv.MaBacSi
                 JOIN nguoidung nd
                     ON nd.MaNguoiDung = bs.MaNguoiDung
                 JOIN phongchuyentrach p
@@ -124,13 +143,14 @@ public class TiepNhanDangKyKhamService {
     }
 
     // =====================================================
-    // ĐĂNG KÝ KHÁM VÀ CẤP SỐ CHỜ
+    // ĐĂNG KÝ KHÁM + CẤP SỐ CHỜ + TẠO HÓA ĐƠN
     // =====================================================
 
     @Transactional
     public TiepNhanDangKyKhamKetQuaDTO dangKyKham(
             TiepNhanDangKyKhamDTO request
     ) {
+
         if (request == null) {
             throw loi(
                     HttpStatus.BAD_REQUEST,
@@ -167,7 +187,8 @@ public class TiepNhanDangKyKhamService {
             );
         }
 
-        if (gioKham.getSecond() != 0 || gioKham.getNano() != 0) {
+        if (gioKham.getSecond() != 0
+                || gioKham.getNano() != 0) {
             throw loi(
                     HttpStatus.BAD_REQUEST,
                     "Giờ khám chỉ nhập giờ và phút."
@@ -189,8 +210,10 @@ public class TiepNhanDangKyKhamService {
             }
         }
 
-        // Khóa khoa để các yêu cầu tại quầy không cấp
-        // cùng một số chờ trong lúc xử lý đồng thời.
+        // =================================================
+        // 1. KHÓA KHOA ĐỂ TRÁNH TRÙNG SỐ CHỜ
+        // =================================================
+
         List<Integer> khoa = jdbcTemplate.query(
                 """
                 SELECT MaKhoa
@@ -209,8 +232,13 @@ public class TiepNhanDangKyKhamService {
             );
         }
 
-        // Hồ sơ tạo tại quầy vẫn sử dụng được dù tài khoản
-        // của bệnh nhân chưa được kích hoạt.
+        // =================================================
+        // 2. KIỂM TRA BỆNH NHÂN
+        // =================================================
+
+        // Bệnh nhân tạo tại quầy có thể có tài khoản
+        // nội bộ chưa kích hoạt, nhưng vẫn được khám.
+
         List<Integer> benhNhan = jdbcTemplate.query(
                 """
                 SELECT MaBenhNhan
@@ -229,38 +257,50 @@ public class TiepNhanDangKyKhamService {
             );
         }
 
-        // Đọc và khóa lịch làm việc đang được chọn.
-        List<LichLamViecInfo> lichLamViec = jdbcTemplate.query(
-                """
-                SELECT
-                    lv.NgayLamViec,
-                    lv.GioBatDau,
-                    lv.GioKetThuc
-                FROM lichlamviec lv
-                JOIN bacsi bs ON bs.MaBacSi = lv.MaBacSi
-                JOIN nguoidung nd
-                    ON nd.MaNguoiDung = bs.MaNguoiDung
-                JOIN phongchuyentrach p
-                    ON p.MaPhong = lv.MaPhong
-                   AND p.MaKhoa = bs.MaKhoa
-                WHERE lv.MaLichLamViec = ?
-                  AND lv.MaBacSi = ?
-                  AND bs.MaKhoa = ?
-                  AND lv.TrangThai = 'DangLamViec'
-                  AND bs.TrangThai = 1
-                  AND nd.TrangThai = 1
-                  AND p.TrangThai = 1
-                FOR UPDATE
-                """,
-                (rs, rowNum) -> new LichLamViecInfo(
-                        rs.getDate("NgayLamViec").toLocalDate(),
-                        rs.getTime("GioBatDau").toLocalTime(),
-                        rs.getTime("GioKetThuc").toLocalTime()
-                ),
-                request.getMaLichLamViec(),
-                request.getMaBacSi(),
-                request.getMaKhoa()
-        );
+        // =================================================
+        // 3. KIỂM TRA LỊCH LÀM VIỆC BÁC SĨ
+        // =================================================
+
+        List<LichLamViecInfo> lichLamViec =
+                jdbcTemplate.query(
+                        """
+                        SELECT
+                            lv.NgayLamViec,
+                            lv.GioBatDau,
+                            lv.GioKetThuc
+                        FROM lichlamviec lv
+                        JOIN bacsi bs
+                            ON bs.MaBacSi = lv.MaBacSi
+                        JOIN nguoidung nd
+                            ON nd.MaNguoiDung = bs.MaNguoiDung
+                        JOIN phongchuyentrach p
+                            ON p.MaPhong = lv.MaPhong
+                           AND p.MaKhoa = bs.MaKhoa
+                        WHERE lv.MaLichLamViec = ?
+                          AND lv.MaBacSi = ?
+                          AND bs.MaKhoa = ?
+                          AND lv.TrangThai = 'DangLamViec'
+                          AND bs.TrangThai = 1
+                          AND nd.TrangThai = 1
+                          AND p.TrangThai = 1
+                        FOR UPDATE
+                        """,
+                        (rs, rowNum) ->
+                                new LichLamViecInfo(
+                                        rs.getDate(
+                                                "NgayLamViec"
+                                        ).toLocalDate(),
+                                        rs.getTime(
+                                                "GioBatDau"
+                                        ).toLocalTime(),
+                                        rs.getTime(
+                                                "GioKetThuc"
+                                        ).toLocalTime()
+                                ),
+                        request.getMaLichLamViec(),
+                        request.getMaBacSi(),
+                        request.getMaKhoa()
+                );
 
         if (lichLamViec.isEmpty()) {
             throw loi(
@@ -272,9 +312,9 @@ public class TiepNhanDangKyKhamService {
         }
 
         ZonedDateTime now = ZonedDateTime.now(VIETNAM);
+
         LocalDate ngayKham = now.toLocalDate();
 
-        // Cho phép chọn phút hiện tại.
         LocalTime gioHienTai = now.toLocalTime()
                 .truncatedTo(ChronoUnit.MINUTES);
 
@@ -283,18 +323,17 @@ public class TiepNhanDangKyKhamService {
         if (!ngayKham.equals(lich.ngayLamViec())) {
             throw loi(
                     HttpStatus.BAD_REQUEST,
-                    "Đăng ký tại quầy chỉ áp dụng cho lịch hôm nay."
+                    "Đăng ký tại quầy chỉ áp dụng "
+                            + "cho lịch hôm nay."
             );
         }
 
-        if (
-                gioKham.isBefore(lich.gioBatDau())
-                        || !gioKham.isBefore(lich.gioKetThuc())
-        ) {
+        if (gioKham.isBefore(lich.gioBatDau())
+                || !gioKham.isBefore(lich.gioKetThuc())) {
             throw loi(
                     HttpStatus.BAD_REQUEST,
-                    "Giờ khám phải nằm trong giờ làm việc của bác sĩ "
-                            + "và trước giờ kết thúc."
+                    "Giờ khám phải nằm trong giờ làm việc "
+                            + "của bác sĩ và trước giờ kết thúc."
             );
         }
 
@@ -305,8 +344,10 @@ public class TiepNhanDangKyKhamService {
             );
         }
 
-        // Tránh tạo thêm lượt cùng khoa trong cùng ngày.
-        // Lịch đã hủy không cản việc đăng ký lại.
+        // =================================================
+        // 4. KIỂM TRA LỊCH TRÙNG
+        // =================================================
+
         Long soLichDaCo = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*)
@@ -325,34 +366,40 @@ public class TiepNhanDangKyKhamService {
         if (soLichDaCo != null && soLichDaCo > 0) {
             throw loi(
                     HttpStatus.CONFLICT,
-                    "Bệnh nhân đã có lượt khám tại khoa này hôm nay. "
-                            + "Vui lòng kiểm tra lịch hiện có."
+                    "Bệnh nhân đã có lượt khám tại khoa này "
+                            + "hôm nay. Vui lòng kiểm tra "
+                            + "lịch hiện có."
             );
         }
 
-        // Không đăng ký hai bệnh nhân cùng bác sĩ, cùng giờ.
-        Long soLichTrungGio = jdbcTemplate.queryForObject(
-                """
-                SELECT COUNT(*)
-                FROM lichdangkykham
-                WHERE MaBacSi = ?
-                  AND NgayKham = ?
-                  AND GioKham = ?
-                  AND TrangThai <> 'DaHuy'
-                """,
-                Long.class,
-                request.getMaBacSi(),
-                Date.valueOf(ngayKham),
-                Time.valueOf(gioKham)
-        );
+        Long soLichTrungGio =
+                jdbcTemplate.queryForObject(
+                        """
+                        SELECT COUNT(*)
+                        FROM lichdangkykham
+                        WHERE MaBacSi = ?
+                          AND NgayKham = ?
+                          AND GioKham = ?
+                          AND TrangThai <> 'DaHuy'
+                        """,
+                        Long.class,
+                        request.getMaBacSi(),
+                        Date.valueOf(ngayKham),
+                        Time.valueOf(gioKham)
+                );
 
-        if (soLichTrungGio != null && soLichTrungGio > 0) {
+        if (soLichTrungGio != null
+                && soLichTrungGio > 0) {
             throw loi(
                     HttpStatus.CONFLICT,
                     "Bác sĩ đã có lịch vào giờ này. "
                             + "Vui lòng chọn giờ khác."
             );
         }
+
+        // =================================================
+        // 5. CẤP SỐ THỨ TỰ
+        // =================================================
 
         Long soLonNhat = jdbcTemplate.queryForObject(
                 """
@@ -366,7 +413,8 @@ public class TiepNhanDangKyKhamService {
                 Date.valueOf(ngayKham)
         );
 
-        long soTiepTheo = (soLonNhat == null ? 0 : soLonNhat) + 1;
+        long soTiepTheo =
+                (soLonNhat == null ? 0 : soLonNhat) + 1;
 
         if (soTiepTheo > Integer.MAX_VALUE) {
             throw loi(
@@ -377,12 +425,15 @@ public class TiepNhanDangKyKhamService {
 
         int soThuTu = (int) soTiepTheo;
 
-        // TrangThai của sothutu để NULL theo cấu trúc hiện có.
         Integer maSoThuTu = themSoThuTu(
                 soThuTu,
                 request.getMaKhoa(),
                 ngayKham
         );
+
+        // =================================================
+        // 6. TẠO LƯỢT KHÁM - TRẠNG THÁI CHỜ GỌI
+        // =================================================
 
         Integer maLichKham = themLichKham(
                 request,
@@ -391,6 +442,24 @@ public class TiepNhanDangKyKhamService {
                 gioKham,
                 lyDoKham
         );
+
+        // =================================================
+        // 7. TỰ ĐỘNG TẠO HÓA ĐƠN PHÍ KHÁM
+        // =================================================
+
+        // Toàn bộ đang nằm trong @Transactional.
+        // Nếu lập hóa đơn lỗi thì lượt khám và
+        // số thứ tự cũng được rollback.
+
+        taoHoaDonPhiKham(
+                maLichKham,
+                request.getMaBenhNhan(),
+                request.getMaKhoa()
+        );
+
+        // =================================================
+        // 8. TRẢ KẾT QUẢ CHO FRONTEND
+        // =================================================
 
         TiepNhanDangKyKhamKetQuaDTO result =
                 new TiepNhanDangKyKhamKetQuaDTO();
@@ -401,13 +470,48 @@ public class TiepNhanDangKyKhamService {
         result.setSoThuTu(soThuTu);
         result.setNgayKham(ngayKham);
         result.setGioKham(gioKham);
-        result.setTrangThai("ChoKham");
 
+        result.setTrangThai("ChoGoi");
+
+        // =================================================
+        // 9. PHÁT SỰ KIỆN THÔNG BÁO LỊCH KHÁM MỚI
+        // =================================================
+
+        // Lấy tài khoản đang thực hiện đăng ký khám.
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        String taiKhoanTao = "";
+
+        if (authentication != null
+                && authentication.isAuthenticated()
+                && !"anonymousUser".equals(authentication.getName())) {
+
+            taiKhoanTao = authentication.getName();
+        }
+
+        // Phát sự kiện sau khi tạo lịch khám,
+        // cấp số thứ tự và tạo hóa đơn thành công.
+        //
+        // Listener sử dụng AFTER_COMMIT nên chỉ xử lý
+        // khi toàn bộ transaction đã commit thành công.
+
+        eventPublisher.publishEvent(
+                new TiepNhanLichKhamThongBaoListener.LichKhamMoiEvent(
+                        maLichKham,
+                        taiKhoanTao
+                )
+        );
+
+        // Trả kết quả đăng ký khám cho frontend.
         return result;
+
     }
 
     // =====================================================
-    // THÊM SỐ THỨ TỰ
+    // TẠO SỐ THỨ TỰ
     // =====================================================
 
     private Integer themSoThuTu(
@@ -415,21 +519,23 @@ public class TiepNhanDangKyKhamService {
             Integer maKhoa,
             LocalDate ngayCapSo
     ) {
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
-            PreparedStatement statement = connection.prepareStatement(
-                    """
-                    INSERT INTO sothutu (
-                        SoThuTu,
-                        MaKhoa,
-                        NgayCapSo,
-                        TrangThai
-                    )
-                    VALUES (?, ?, ?, NULL)
-                    """,
-                    Statement.RETURN_GENERATED_KEYS
-            );
+            PreparedStatement statement =
+                    connection.prepareStatement(
+                            """
+                            INSERT INTO sothutu (
+                                SoThuTu,
+                                MaKhoa,
+                                NgayCapSo,
+                                TrangThai
+                            )
+                            VALUES (?, ?, ?, NULL)
+                            """,
+                            Statement.RETURN_GENERATED_KEYS
+                    );
 
             statement.setInt(1, soThuTu);
             statement.setInt(2, maKhoa);
@@ -442,7 +548,7 @@ public class TiepNhanDangKyKhamService {
     }
 
     // =====================================================
-    // THÊM LƯỢT KHÁM
+    // TẠO LƯỢT KHÁM
     // =====================================================
 
     private Integer themLichKham(
@@ -452,6 +558,7 @@ public class TiepNhanDangKyKhamService {
             LocalTime gioKham,
             String lyDoKham
     ) {
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -471,13 +578,27 @@ public class TiepNhanDangKyKhamService {
                     """,
                     Statement.RETURN_GENERATED_KEYS
             );
-
-            statement.setInt(1, request.getMaBenhNhan());
-            statement.setInt(2, request.getMaBacSi());
-            statement.setInt(3, request.getMaKhoa());
+            statement.setInt(
+                    1,
+                    request.getMaBenhNhan()
+            );
+            statement.setInt(
+                    2,
+                    request.getMaBacSi()
+            );
+            statement.setInt(
+                    3,
+                    request.getMaKhoa()
+            );
             statement.setInt(4, maSoThuTu);
-            statement.setDate(5, Date.valueOf(ngayKham));
-            statement.setTime(6, Time.valueOf(gioKham));
+            statement.setDate(
+                    5,
+                    Date.valueOf(ngayKham)
+            );
+            statement.setTime(
+                    6,
+                    Time.valueOf(gioKham)
+            );
             statement.setString(7, lyDoKham);
 
             return statement;
@@ -487,10 +608,246 @@ public class TiepNhanDangKyKhamService {
     }
 
     // =====================================================
-    // HÀM HỖ TRỢ
+    // TỰ ĐỘNG TẠO HÓA ĐƠN PHÍ KHÁM
     // =====================================================
 
-    private Integer layMaVuaTao(KeyHolder keyHolder) {
+    private void taoHoaDonPhiKham(
+            Integer maLichKham,
+            Integer maBenhNhan,
+            Integer maKhoa
+    ) {
+
+        // =================================================
+        // 1. LẤY GIÁ KHÁM THỰC TẾ TỪ DATABASE
+        // =================================================
+
+        List<Map<String, Object>> danhSachKhoa =
+                jdbcTemplate.queryForList(
+                        """
+                        SELECT
+                            TenKhoa,
+                            GiaKham
+                        FROM khoa
+                        WHERE MaKhoa = ?
+                        """,
+                        maKhoa
+                );
+
+        if (danhSachKhoa.size() != 1) {
+            throw loi(
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy khoa khám."
+            );
+        }
+
+        Map<String, Object> khoa = danhSachKhoa.get(0);
+
+        String tenKhoa =
+                (String) khoa.get("TenKhoa");
+
+        BigDecimal giaKham =
+                (BigDecimal) khoa.get("GiaKham");
+
+        if (giaKham == null
+                || giaKham.compareTo(BigDecimal.ZERO) <= 0) {
+            throw loi(
+                    HttpStatus.CONFLICT,
+                    "Khoa " + tenKhoa
+                            + " chưa có giá khám hợp lệ."
+            );
+        }
+
+        // =================================================
+        // 2. TÌM DỊCH VỤ PHÍ KHÁM CỦA CÙNG KHOA
+        // =================================================
+
+        // Lấy mã dịch vụ từ những hóa đơn PhiKham
+        // đã được tạo trước đây tại cùng khoa.
+        //
+        // Ví dụ database hiện tại:
+        // Khoa Nội -> MaDichVu 29.
+        //
+        // Không hardcode 29 vào toàn bộ hệ thống.
+
+        List<Integer> danhSachMaDichVu =
+                jdbcTemplate.query(
+                        """
+                        SELECT DISTINCT
+                            ct.MaDichVu
+                        FROM hoadon hd
+                        JOIN lichdangkykham lk
+                            ON lk.MaLichKham = hd.MaLichKham
+                        JOIN cthoadon ct
+                            ON ct.MaHoaDon = hd.MaHoaDon
+                        JOIN dichvuyte dv
+                            ON dv.MaDichVu = ct.MaDichVu
+                        WHERE lk.MaKhoa = ?
+                          AND hd.LoaiHoaDon = 'PhiKham'
+                          AND hd.TrangThai <> 'DaHuy'
+                          AND ct.MaDichVu IS NOT NULL
+                          AND ct.MaChiDinh IS NULL
+                          AND ct.MaCTDonThuoc IS NULL
+                        ORDER BY ct.MaDichVu
+                        """,
+                        (rs, rowNum) ->
+                                rs.getInt("MaDichVu"),
+                        maKhoa
+                );
+
+        if (danhSachMaDichVu.isEmpty()) {
+            throw loi(
+                    HttpStatus.CONFLICT,
+                    "Chưa xác định được dịch vụ phí khám "
+                            + "cho khoa " + tenKhoa
+                            + ". Vui lòng cấu hình "
+                            + "dịch vụ khám trước."
+            );
+        }
+
+        if (danhSachMaDichVu.size() > 1) {
+            throw loi(
+                    HttpStatus.CONFLICT,
+                    "Khoa " + tenKhoa
+                            + " đang có nhiều mã dịch vụ "
+                            + "phí khám khác nhau. "
+                            + "Vui lòng kiểm tra dữ liệu."
+            );
+        }
+
+        Integer maDichVu =
+                danhSachMaDichVu.get(0);
+
+        // =================================================
+        // 3. KIỂM TRA TRÙNG HÓA ĐƠN
+        // =================================================
+
+        Long soHoaDonDaCo =
+                jdbcTemplate.queryForObject(
+                        """
+                        SELECT COUNT(*)
+                        FROM hoadon
+                        WHERE MaLichKham = ?
+                          AND LoaiHoaDon = 'PhiKham'
+                        """,
+                        Long.class,
+                        maLichKham
+                );
+
+        if (soHoaDonDaCo != null
+                && soHoaDonDaCo > 0) {
+            throw loi(
+                    HttpStatus.CONFLICT,
+                    "Lượt khám này đã có hóa đơn phí khám."
+            );
+        }
+
+        // =================================================
+        // 4. TẠO HÓA ĐƠN
+        // =================================================
+
+        KeyHolder keyHolder =
+                new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+
+            PreparedStatement statement =
+                    connection.prepareStatement(
+                            """
+                            INSERT INTO hoadon (
+                                MaBenhNhan,
+                                MaLichKham,
+                                LoaiHoaDon,
+                                NgayLapHoaDon,
+                                TongTien,
+                                TrangThai
+                            )
+                            VALUES (
+                                ?,
+                                ?,
+                                'PhiKham',
+                                NOW(),
+                                ?,
+                                'ChuaThanhToan'
+                            )
+                            """,
+                            Statement.RETURN_GENERATED_KEYS
+                    );
+
+            statement.setInt(1, maBenhNhan);
+            statement.setInt(2, maLichKham);
+            statement.setBigDecimal(3, giaKham);
+
+            return statement;
+
+        }, keyHolder);
+
+        Integer maHoaDon =
+                layMaVuaTao(keyHolder);
+
+        // =================================================
+        // 5. TẠO CHI TIẾT HÓA ĐƠN
+        // =================================================
+
+        // Ràng buộc CK_CTHoaDon_Nguon yêu cầu
+        // đúng một trong ba nguồn:
+        //
+        // MaDichVu
+        // MaChiDinh
+        // MaCTDonThuoc
+        //
+        // Phí khám sẽ sử dụng MaDichVu.
+        // Hai nguồn còn lại để NULL.
+
+        int soDongChiTiet = jdbcTemplate.update(
+                """
+                INSERT INTO cthoadon (
+                    MaHoaDon,
+                    MaDichVu,
+                    MaChiDinh,
+                    MaCTDonThuoc,
+                    NoiDung,
+                    SoLuong,
+                    DonGia,
+                    ThanhTien
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    NULL,
+                    NULL,
+                    ?,
+                    1,
+                    ?,
+                    ?
+                )
+                """,
+                maHoaDon,
+                maDichVu,
+                "Phí khám - " + tenKhoa,
+                giaKham,
+                giaKham
+        );
+
+        if (soDongChiTiet != 1) {
+            throw loi(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Không thể tạo chi tiết hóa đơn "
+                            + "cho lượt khám."
+            );
+        }
+
+        // Không INSERT ThanhToan tại đây.
+        // Chỉ tạo hóa đơn chờ bệnh nhân thanh toán.
+    }
+
+    // =====================================================
+    // CÁC HÀM HỖ TRỢ
+    // =====================================================
+
+    private Integer layMaVuaTao(
+            KeyHolder keyHolder
+    ) {
+
         Number key = keyHolder.getKey();
 
         if (key == null) {
@@ -503,9 +860,16 @@ public class TiepNhanDangKyKhamService {
         return key.intValue();
     }
 
-    private void kiemTraMa(Integer ma, String message) {
+    private void kiemTraMa(
+            Integer ma,
+            String message
+    ) {
+
         if (ma == null || ma <= 0) {
-            throw loi(HttpStatus.BAD_REQUEST, message);
+            throw loi(
+                    HttpStatus.BAD_REQUEST,
+                    message
+            );
         }
     }
 
@@ -513,7 +877,11 @@ public class TiepNhanDangKyKhamService {
             HttpStatus status,
             String message
     ) {
-        return new ResponseStatusException(status, message);
+
+        return new ResponseStatusException(
+                status,
+                message
+        );
     }
 
     private record LichLamViecInfo(

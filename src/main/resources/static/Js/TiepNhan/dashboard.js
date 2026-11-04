@@ -893,7 +893,6 @@ async function handleCallPatient(maLichKham) {
     callingPatient = true;
     updateBusyControls();
     renderDashboardTables();
-    showDashboardMessage("Đang gọi bệnh nhân...");
 
     try {
         const result = await postJson(
@@ -953,12 +952,17 @@ async function handleCallPatient(maLichKham) {
             true
         );
 
-        showDashboardMessage(
-            refreshed
-                ? "Đã gọi bệnh nhân. Mở hồ sơ để nhập và lưu số đo."
-                : "Đã ghi nhận gọi nhưng chưa tải lại được dữ liệu. Hãy làm mới dữ liệu.",
-            !refreshed
-        );
+        // Popup Gọi bệnh nhân đã hiển thị thông tin thành công.
+        // Không hiện thêm thông báo trùng lặp phía trên.
+
+        // Chỉ thông báo khi không tải lại được dữ liệu.
+        if (!refreshed) {
+            showDashboardMessage(
+                "Đã gọi bệnh nhân nhưng chưa tải lại được dữ liệu. "
+                + "Hãy bấm Làm mới dữ liệu.",
+                true
+            );
+        }
     } catch (error) {
         await loadDashboardRealData(true, true);
         showDashboardMessage(error.message, true);
@@ -1020,13 +1024,98 @@ async function handleConfirmReception(maLichKham) {
             return;
         }
 
-        const confirmed = window.confirm(
-            `Xác nhận đã tiếp nhận bệnh nhân ${
-                item.tenBenhNhan || ""
-            }?\n\n`
-            + "Hãy bảo đảm đã kiểm tra thông tin và lưu đủ "
-            + "cân nặng, chiều cao, huyết áp tâm thu, huyết áp tâm trương."
-        );
+        const confirmed = await new Promise(resolve => {
+            const modal = document.createElement("div");
+
+            modal.className = "modal fade";
+            modal.tabIndex = -1;
+            modal.setAttribute("aria-hidden", "true");
+            modal.style.zIndex = "30000";
+
+            modal.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content"
+                         style="border:0;border-radius:16px;overflow:hidden;">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title fw-bold">
+                                <i class="fa-solid fa-clipboard-check me-2"
+                                   style="color:var(--primary,#663cff)"></i>
+                                Xác nhận tiếp nhận bệnh nhân
+                            </h5>
+
+                            <button type="button"
+                                    class="btn-close reception-close"
+                                    aria-label="Đóng"></button>
+                        </div>
+
+                        <div class="modal-body p-4">
+                            <p class="reception-patient mb-3"></p>
+
+                            <div style="
+                                padding:14px;
+                                border-radius:10px;
+                                background:var(--primary-soft,#f0edff);
+                                color:var(--text-title,#343954);
+                                line-height:1.7;
+                            ">
+                                Vui lòng bảo đảm đã kiểm tra thông tin
+                                và lưu đầy đủ cân nặng, chiều cao,
+                                huyết áp tâm thu và huyết áp tâm trương.
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-outline-secondary reception-cancel">
+                                Hủy
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-primary reception-accept">
+                                Xác nhận tiếp nhận
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            modal.querySelector(".reception-patient").textContent =
+                `Xác nhận đã tiếp nhận bệnh nhân ${item.tenBenhNhan || ""}?`;
+
+            document.body.appendChild(modal);
+
+            const instance = new bootstrap.Modal(modal, {
+                backdrop: "static",
+                keyboard: true
+            });
+
+            let accepted = false;
+
+            modal.querySelector(".reception-accept")
+                .addEventListener("click", () => {
+                    accepted = true;
+                    instance.hide();
+                });
+
+            modal.querySelector(".reception-cancel")
+                .addEventListener("click", () => {
+                    instance.hide();
+                });
+
+            modal.querySelector(".reception-close")
+                .addEventListener("click", () => {
+                    instance.hide();
+                });
+
+            modal.addEventListener("hidden.bs.modal", () => {
+                instance.dispose();
+                modal.remove();
+                resolve(accepted);
+            }, { once: true });
+
+            instance.show();
+        });
 
         if (!confirmed) {
             return;
@@ -1237,7 +1326,9 @@ function initDashboard() {
         refreshDashboardWhenIdle();
     });
 
-    setupDashboardNotifications();
+    // layout.js đã xử lý mở / đóng chuông.
+    // Không khởi tạo thêm sự kiện lần thứ hai.
+
     updateCurrentHeaderDate();
     updateFilterOptions();
 

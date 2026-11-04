@@ -1,9 +1,7 @@
-
 package QuanLyBenhVien.Entity;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -45,12 +43,34 @@ public class LichDangKyKham {
     @Column(name = "NgayTao", nullable = false)
     private LocalDateTime ngayTao;
 
+    // =====================================================
+    // TRẠNG THÁI QUY TRÌNH KHÁM BỆNH
+    //
+    // Ví dụ:
+    // ChoGoi, DaGoi, DaTiepNhan, DangKham,
+    // ChoThanhToan, ChoCLS, HoanTat...
+    //
+    // Không dùng trường này để lưu trạng thái thanh toán.
+    // =====================================================
+
     @Column(name = "TrangThai", nullable = false, length = 50)
     private String trangThai;
 
     // ============== trang thai lich kham
     @Column(name = "HanThanhToan")
     private LocalDateTime hanThanhToan;
+
+
+    // =====================================================
+    // TRẠNG THÁI THANH TOÁN CỦA LỊCH KHÁM
+    //
+    // Theo quy định chung của nhóm:
+    // ChuaThanhToan
+    // DaThanhToan
+    //
+    // Khi tạo lịch khám mới, mặc định chưa thanh toán.
+    // Không tự chuyển sang DaThanhToan khi chỉ tạo QR.
+    // =====================================================
 
     @Column(name = "TrangThaiThanhToan",
             nullable = false, length = 30)
@@ -64,11 +84,9 @@ public class LichDangKyKham {
             nullable = false)
     private Boolean daNhacThanhToan23h = false;
 
-
-
-    // ==========================================
-    // GETTER / SETTER CŨ
-    // ==========================================
+    // =====================================================
+    // GETTER / SETTER
+    // =====================================================
 
     public Integer getMaLichKham() {
         return maLichKham;
@@ -142,6 +160,10 @@ public class LichDangKyKham {
         this.ngayTao = ngayTao;
     }
 
+    // =====================================================
+    // TRẠNG THÁI LỊCH KHÁM
+    // =====================================================
+
     public String getTrangThai() {
         return trangThai;
     }
@@ -158,6 +180,9 @@ public class LichDangKyKham {
     public void setHanThanhToan(LocalDateTime hanThanhToan) {
         this.hanThanhToan = hanThanhToan;
     }
+    // =====================================================
+    // TRẠNG THÁI THANH TOÁN
+    // =====================================================
 
     public String getTrangThaiThanhToan() {
         return trangThaiThanhToan;
@@ -183,3 +208,4 @@ public class LichDangKyKham {
         this.daNhacThanhToan23h = daNhacThanhToan23h;
     }
 }
+

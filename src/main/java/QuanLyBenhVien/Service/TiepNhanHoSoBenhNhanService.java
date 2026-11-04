@@ -544,21 +544,30 @@ public class TiepNhanHoSoBenhNhanService {
         );
     }
 
+
     private String hienThiTrangThai(String trangThai) {
         if (trangThai == null || trangThai.isBlank()) {
             return "Chưa xác định";
         }
 
         return switch (trangThai) {
-            case "ChoKham", "DaDat" -> "Chờ gọi";
+            case "ChoGoi" -> "Chờ gọi";
+            case "ChoKham" -> "Chờ khám";
+            case "DaDat" -> "Đã đặt lịch";
             case "DaXacNhan" -> "Lịch đã xác nhận";
             case "DaGoi" -> "Đã gọi";
             case "DaTiepNhan" -> "Đã tiếp nhận";
             case "DangKham" -> "Đang khám";
+            case "ChoThanhToan" -> "Chờ thanh toán";
+            case "ChoCLS" -> "Chờ CLS";
+            case "DangCLS" -> "Đang CLS";
+            case "ChoLayThuoc" -> "Chờ lấy thuốc";
+            case "DangLayThuoc" -> "Đang lấy thuốc";
             case "HoanTat", "HoanThanh", "DaKham" -> "Hoàn tất";
             case "DaHuy" -> "Đã hủy";
             case "KhongDen" -> "Không đến";
             default -> trangThai;
         };
     }
+
 }

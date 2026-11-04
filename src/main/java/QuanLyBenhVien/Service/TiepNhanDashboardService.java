@@ -188,6 +188,7 @@ public class TiepNhanDashboardService {
                     l.TrangThai,
                     s.SoThuTu,
                     nd.HoTen AS TenBenhNhan,
+                    nd.SoDienThoai AS SoDienThoai,
                     bn.GioiTinh,
                     YEAR(bn.NgaySinh) AS NamSinh,
                     k.TenKhoa,
@@ -324,6 +325,10 @@ public class TiepNhanDashboardService {
                             "TenBenhNhan",
                             "Chưa có tên"
                     )
+            );
+
+            item.setSoDienThoai(
+                    layChuoi(row, "SoDienThoai", "")
             );
 
             item.setThongTinPhu(

@@ -1,3 +1,4 @@
+
 package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.TiepNhanHoaDonDTO;
@@ -19,7 +20,6 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -86,18 +86,13 @@ public class TiepNhanHoaDonService {
                     l.TrangThai,
                     nd.HoTen,
                     k.TenKhoa
-
                 FROM lichdangkykham l
-
                 JOIN benhnhan bn
                     ON bn.MaBenhNhan = l.MaBenhNhan
-
                 JOIN nguoidung nd
                     ON nd.MaNguoiDung = bn.MaNguoiDung
-
                 JOIN khoa k
                     ON k.MaKhoa = l.MaKhoa
-
                 WHERE l.MaLichKham = ?
                   AND l.MaKhoa = ?
                 """;
@@ -110,7 +105,10 @@ public class TiepNhanHoaDonService {
                         rs.getInt("MaKhoa"),
                         rs.getString("HoTen"),
                         rs.getString("TenKhoa"),
-                        rs.getObject("NgayKham", LocalDate.class),
+                        rs.getObject(
+                                "NgayKham",
+                                LocalDate.class
+                        ),
                         rs.getString("TrangThai")
                 ),
                 maLichKham,
@@ -134,11 +132,8 @@ public class TiepNhanHoaDonService {
                     NgayLapHoaDon,
                     TongTien,
                     TrangThai
-
                 FROM hoadon
-
                 WHERE MaLichKham = ?
-
                 ORDER BY NgayLapHoaDon, MaHoaDon
                 """;
 
@@ -170,10 +165,8 @@ public class TiepNhanHoaDonService {
             }
         }
 
-        /*
-         * Đọc riêng chi tiết và giao dịch.
-         * Tránh JOIN hai danh sách làm nhân bản số tiền.
-         */
+        // Đọc riêng chi tiết và giao dịch.
+        // Tránh JOIN hai danh sách làm nhân bản số tiền.
         Map<Integer, List<ChiTietHoaDonDTO>> chiTietTheoHoaDon =
                 layChiTiet(maLichKham);
 
@@ -198,6 +191,7 @@ public class TiepNhanHoaDonService {
         boolean phiKhamDaTraDu = false;
 
         for (HoaDonRow hd : hoaDonRows) {
+
             List<ChiTietHoaDonDTO> chiTiet =
                     chiTietTheoHoaDon.getOrDefault(
                             hd.maHoaDon(),
@@ -210,19 +204,19 @@ public class TiepNhanHoaDonService {
                             List.of()
                     );
 
-            // Chỉ cộng giao dịch có trạng thái DaThanhToan.
-            //            BigDecimal daThu = thanhToan.stream()
-            //                    .filter(tt ->
-            //                            "ThanhCong".equals(tt.trangThai())
-            //                    )
-            //                    .map(LanThanhToanDTO::soTien)
-            //                    .reduce(KHONG, BigDecimal::add);
+            // Chỉ tính các giao dịch đã thanh toán thành công.
+            // Ưu tiên trạng thái của hệ thống nhóm:
+            // DaThanhToan và ThanhCong.
             BigDecimal daThu = thanhToan.stream()
-                    .filter(tt -> "DaThanhToan".equals(tt.trangThai()))
+                    .filter(tt ->
+                            "ThanhCong".equals(tt.trangThai())
+                                    || "DaThanhToan".equals(tt.trangThai())
+                    )
                     .map(LanThanhToanDTO::soTien)
                     .reduce(KHONG, BigDecimal::add);
 
-            boolean daHuy = "DaHuy".equals(hd.trangThai());
+            boolean daHuy =
+                    "DaHuy".equals(hd.trangThai());
 
             BigDecimal conThu = daHuy
                     ? KHONG
@@ -266,18 +260,48 @@ public class TiepNhanHoaDonService {
                 }
             }
 
-            /*
-             * Tiền thực tế đã thu vẫn được giữ trong tổng đã thu,
-             * kể cả khi hóa đơn bị hủy sau đó.
-             * Hóa đơn hủy có tiền đã thu sẽ có cảnh báo riêng.
-             */
+            // Giữ tổng tiền thực tế đã thu kể cả trường hợp
+            // hóa đơn đã bị hủy sau khi thanh toán.
             tongDaThu = tongDaThu.add(daThu);
 
-            boolean choPhepThu = duLieuHopLe
-                    && !daHuy
-                    && conThu.signum() > 0;
+            boolean choPhepThu =
+                    duLieuHopLe
+                            && !daHuy
+                            && conThu.signum() > 0;
 
-            // Tiếp nhận không thu tiền thuốc.
+            // =================================================
+            // RÀNG BUỘC MỚI:
+            // CHỈ THU PHÍ KHÁM KHI BỆNH NHÂN ĐÃ ĐƯỢC GỌI
+            // =================================================
+            //
+            // ChoGoi -> Không được thu tiền.
+            // DaGoi  -> Có thể thu nếu hóa đơn hợp lệ.
+            //
+            // Backend thu tiền mặt đang kiểm tra
+            // choPhepThanhToan nên không thể bỏ qua
+            // bằng cách gửi POST trực tiếp.
+            //
+            // Không ảnh hưởng luồng thanh toán CLS.
+            // =================================================
+
+            if (
+                    "PhiKham".equals(hd.loaiHoaDon())
+                            && conThu.signum() > 0
+                            && !"DaGoi".equals(lich.trangThai())
+            ) {
+                choPhepThu = false;
+
+                canhBao.add(
+                        "Chưa thể thanh toán phí khám. "
+                                + "Nhân viên tiếp nhận phải gọi bệnh nhân "
+                                + "trước khi thu tiền."
+                );
+            }
+
+            // =================================================
+            // RÀNG BUỘC THUỐC
+            // =================================================
+
             if ("TienThuoc".equals(hd.loaiHoaDon())) {
                 choPhepThu = false;
 
@@ -287,7 +311,10 @@ public class TiepNhanHoaDonService {
                 );
             }
 
-            // Lịch khác ngày được xem lại, chưa cho thu tại luồng này.
+            // =================================================
+            // RÀNG BUỘC NGÀY KHÁM
+            // =================================================
+
             if (!LocalDate.now(MUI_GIO).equals(lich.ngayKham())) {
                 choPhepThu = false;
 
@@ -295,6 +322,10 @@ public class TiepNhanHoaDonService {
                         "Lịch khám khác ngày hiện tại: chỉ xem viện phí."
                 );
             }
+
+            // =================================================
+            // RÀNG BUỘC HỦY LỊCH
+            // =================================================
 
             if (
                     Set.of("DaHuy", "KhongDen")
@@ -307,6 +338,10 @@ public class TiepNhanHoaDonService {
                                 + "chưa cho thu tiền."
                 );
             }
+
+            // =================================================
+            // RÀNG BUỘC CẬN LÂM SÀNG
+            // =================================================
 
             if (
                     "CanLamSang".equals(hd.loaiHoaDon())
@@ -350,13 +385,11 @@ public class TiepNhanHoaDonService {
             );
         }
 
-        /*
-         * Phải có đúng một hóa đơn phí khám còn hiệu lực
-         * và hóa đơn đó được thanh toán đủ.
-         * Không có hóa đơn không đồng nghĩa với đã thanh toán.
-         */
+        // Phải có đúng một hóa đơn phí khám còn hiệu lực
+        // và hóa đơn đó phải thanh toán đủ.
         boolean daThanhToanPhiKham =
-                soHoaDonPhiKham == 1 && phiKhamDaTraDu;
+                soHoaDonPhiKham == 1
+                        && phiKhamDaTraDu;
 
         return new TiepNhanHoaDonDTO(
                 lich.maLichKham(),
@@ -394,7 +427,6 @@ public class TiepNhanHoaDonService {
                     ct.ThanhTien
 
                 FROM cthoadon ct
-
                 JOIN hoadon hd
                     ON hd.MaHoaDon = ct.MaHoaDon
 
@@ -426,8 +458,12 @@ public class TiepNhanHoaDonService {
                                     ),
                                     rs.getString("NoiDung"),
                                     rs.getInt("SoLuong"),
-                                    tien(rs.getBigDecimal("DonGia")),
-                                    tien(rs.getBigDecimal("ThanhTien"))
+                                    tien(
+                                            rs.getBigDecimal("DonGia")
+                                    ),
+                                    tien(
+                                            rs.getBigDecimal("ThanhTien")
+                                    )
                             );
 
                     ketQua.computeIfAbsent(
@@ -488,7 +524,9 @@ public class TiepNhanHoaDonService {
                                             "NgayThanhToan",
                                             LocalDateTime.class
                                     ),
-                                    tien(rs.getBigDecimal("SoTien")),
+                                    tien(
+                                            rs.getBigDecimal("SoTien")
+                                    ),
                                     rs.getString("PhuongThucThanhToan"),
                                     rs.getString("TrangThai"),
                                     rs.getString("MaGiaoDich"),
@@ -557,7 +595,8 @@ public class TiepNhanHoaDonService {
         boolean thanhTienHopLe = true;
 
         for (ChiTietHoaDonDTO ct : chiTiet) {
-            tongChiTiet = tongChiTiet.add(ct.thanhTien());
+            tongChiTiet =
+                    tongChiTiet.add(ct.thanhTien());
 
             boolean phiKham =
                     ct.maDichVu() != null
@@ -574,18 +613,23 @@ public class TiepNhanHoaDonService {
                             && ct.maChiDinh() == null
                             && ct.maCTDonThuoc() != null;
 
-            // Dữ liệu phí khám hiện tại chưa lưu mã nguồn riêng.
             boolean phiKhamTheoNoiDung =
                     ct.maDichVu() == null
                             && ct.maChiDinh() == null
                             && ct.maCTDonThuoc() == null
                             && ct.noiDung() != null
-                            && ct.noiDung().trim().startsWith("Phí khám - ");
+                            && ct.noiDung()
+                            .trim()
+                            .startsWith("Phí khám - ");
 
             boolean nguonChiTietHopLe = switch (loai) {
-                case "PhiKham" -> phiKham || phiKhamTheoNoiDung;
+                case "PhiKham" ->
+                        phiKham || phiKhamTheoNoiDung;
+
                 case "CanLamSang" -> cls;
+
                 case "TienThuoc" -> thuoc;
+
                 default -> false;
             };
 
@@ -593,33 +637,50 @@ public class TiepNhanHoaDonService {
                 nguonHopLe = false;
             }
 
-            BigDecimal thanhTienTinhLai = ct.donGia()
-                    .multiply(BigDecimal.valueOf(ct.soLuong()));
+            BigDecimal thanhTienTinhLai =
+                    ct.donGia().multiply(
+                            BigDecimal.valueOf(ct.soLuong())
+                    );
 
-            if (ct.soLuong() <= 0
-                    || thanhTienTinhLai.compareTo(ct.thanhTien()) != 0) {
+            if (
+                    ct.soLuong() <= 0
+                            || thanhTienTinhLai.compareTo(
+                            ct.thanhTien()
+                    ) != 0
+            ) {
                 thanhTienHopLe = false;
             }
         }
 
         if (!nguonHopLe) {
-            canhBao.add("Nguồn chi tiết không khớp loại hóa đơn.");
+            canhBao.add(
+                    "Nguồn chi tiết không khớp loại hóa đơn."
+            );
         }
 
         if (!thanhTienHopLe) {
             canhBao.add(
-                    "Số lượng, đơn giá hoặc thành tiền chi tiết không khớp."
+                    "Số lượng, đơn giá hoặc thành tiền "
+                            + "chi tiết không khớp."
             );
         }
 
-        if (tongChiTiet.compareTo(hd.tongTien()) != 0) {
+        if (
+                tongChiTiet.compareTo(
+                        hd.tongTien()
+                ) != 0
+        ) {
             canhBao.add(
-                    "Tổng tiền hóa đơn không khớp tổng chi tiết. "
-                            + "Cần đối soát."
+                    "Tổng tiền hóa đơn không khớp "
+                            + "tổng chi tiết. Cần đối soát."
             );
         }
 
-        if (daThu.compareTo(hd.tongTien()) > 0) {
+        if (
+                daThu.compareTo(
+                        hd.tongTien()
+                ) > 0
+        ) {
             canhBao.add(
                     "Số tiền đã thu vượt tổng hóa đơn. "
                             + "Cần đối soát."
@@ -633,7 +694,9 @@ public class TiepNhanHoaDonService {
                                 "ThanhCong",
                                 "ThatBai",
                                 "DangXuLy"
-                        ).contains(chuoi(tt.trangThai()))
+                        ).contains(
+                                chuoi(tt.trangThai())
+                        )
                 );
 
         if (coTrangThaiChuaXacDinh) {
@@ -645,12 +708,15 @@ public class TiepNhanHoaDonService {
 
         boolean coGiaoDichDangXuLy =
                 thanhToan.stream().anyMatch(tt ->
-                        "DangXuLy".equals(tt.trangThai())
+                        "DangXuLy".equals(
+                                tt.trangThai()
+                        )
                 );
 
         if (coGiaoDichDangXuLy) {
             canhBao.add(
-                    "Có giao dịch đang xử lý. Chưa cho thu thêm."
+                    "Có giao dịch đang xử lý. "
+                            + "Chưa cho thu thêm."
             );
         }
 
@@ -659,8 +725,14 @@ public class TiepNhanHoaDonService {
 
             if (daThu.signum() == 0) {
                 mongDoi = "ChuaThanhToan";
-            } else if (daThu.compareTo(hd.tongTien()) >= 0) {
+
+            } else if (
+                    daThu.compareTo(
+                            hd.tongTien()
+                    ) >= 0
+            ) {
                 mongDoi = "DaThanhToan";
+
             } else {
                 mongDoi = "ThanhToanMotPhan";
             }
@@ -674,13 +746,17 @@ public class TiepNhanHoaDonService {
 
             if (
                     daThu.signum() > 0
-                            && daThu.compareTo(hd.tongTien()) < 0
+                            && daThu.compareTo(
+                            hd.tongTien()
+                    ) < 0
             ) {
                 canhBao.add(
                         "Hóa đơn đã thu một phần. "
-                                + "Cần đối soát phân bổ trước khi thu tiếp."
+                                + "Cần đối soát phân bổ "
+                                + "trước khi thu tiếp."
                 );
             }
+
         } else if (daThu.signum() > 0) {
             canhBao.add(
                     "Hóa đơn đã hủy nhưng có tiền đã thu. "
@@ -695,11 +771,17 @@ public class TiepNhanHoaDonService {
     // HÀM HỖ TRỢ
     // =====================================================
 
-    private static BigDecimal tien(BigDecimal value) {
-        if (value == null || value.signum() < 0) {
+    private static BigDecimal tien(
+            BigDecimal value
+    ) {
+        if (
+                value == null
+                        || value.signum() < 0
+        ) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Dữ liệu số tiền bị thiếu hoặc không hợp lệ."
+                    "Dữ liệu số tiền bị thiếu "
+                            + "hoặc không hợp lệ."
             );
         }
 
@@ -709,11 +791,15 @@ public class TiepNhanHoaDonService {
         );
     }
 
-    private static String chuoi(String value) {
+    private static String chuoi(
+            String value
+    ) {
         return value == null ? "" : value;
     }
 
-    private static String tenLoai(String loai) {
+    private static String tenLoai(
+            String loai
+    ) {
         return switch (chuoi(loai)) {
             case "PhiKham" -> "Phí khám";
             case "CanLamSang" -> "Cận lâm sàng";
@@ -722,18 +808,28 @@ public class TiepNhanHoaDonService {
         };
     }
 
-    private static String tenTrangThai(String trangThai) {
+    private static String tenTrangThai(
+            String trangThai
+    ) {
         return switch (chuoi(trangThai)) {
-            case "ChuaThanhToan" -> "Chưa thanh toán";
-            case "ThanhToanMotPhan" -> "Đã thanh toán một phần";
-            case "DaThanhToan" -> "Đã thanh toán";
-            case "DaHuy" -> "Đã hủy";
+            case "ChuaThanhToan" ->
+                    "Chưa thanh toán";
+
+            case "ThanhToanMotPhan" ->
+                    "Đã thanh toán một phần";
+
+            case "DaThanhToan" ->
+                    "Đã thanh toán";
+
+            case "DaHuy" ->
+                    "Đã hủy";
+
             default -> "Chưa xác định";
         };
     }
 
     // =====================================================
-    // DỮ LIỆU NỘI BỘ KHI ĐỌC DATABASE
+    // DỮ LIỆU NỘI BỘ
     // =====================================================
 
     private record LichKhamRow(

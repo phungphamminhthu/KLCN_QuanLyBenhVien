@@ -11,9 +11,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -61,6 +63,29 @@ public class TiepNhanTaoBenhNhanController {
                         "message",
                         "Tạo hồ sơ bệnh nhân thành công.",
                         "maBenhNhan", maBenhNhan
+                ));
+    }
+
+    // =====================================================
+    // KIỂM TRA EMAIL ĐÃ ĐƯỢC SỬ DỤNG TRONG HỆ THỐNG
+    // GET /api/tiepnhan/benh-nhan/kiem-tra-email?email=...
+    // =====================================================
+
+    @GetMapping("/kiem-tra-email")
+    public ResponseEntity<Map<String, Object>> kiemTraEmail(
+            @RequestParam(name = "email", defaultValue = "") String email,
+            Authentication authentication
+    ) {
+        kiemTraQuyen(authentication);
+
+        boolean daTonTai = service.emailDaTonTai(email);
+
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(Map.<String, Object>of(
+                        "success", true,
+                        "exists", daTonTai,
+                        "available", !daTonTai
                 ));
     }
 

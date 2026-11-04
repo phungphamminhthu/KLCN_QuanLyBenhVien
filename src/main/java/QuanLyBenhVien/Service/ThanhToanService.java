@@ -16,18 +16,13 @@ public class ThanhToanService {
 
     private final HoaDonRepository hoaDonRepository;
 
-//    @Value("${sepay.bank-code}")
-//    private String bankCode;
-//
-//    @Value("${sepay.account-number}")
-//    private String accountNumber;
-//
-//    @Value("${sepay.account-name}")
-//    private String accountName;
     @Value("${sepay.bank-code:}")
     private String bankCode;
 
-    @Value("${sepay.account-number:}")
+    //    @Value("${sepay.account-number:}")
+    //    private String accountNumber;
+
+    @Value("${sepay.bank-account-number:}")
     private String accountNumber;
 
     @Value("${sepay.account-name:}")

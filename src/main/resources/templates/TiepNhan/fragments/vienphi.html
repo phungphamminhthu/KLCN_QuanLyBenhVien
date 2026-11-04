@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <body>
@@ -9,48 +10,684 @@
      aria-labelledby="vien-phi-title"
      aria-hidden="true">
 
+    <style>
+        #vien-phi-modal {
+            --fee-blue: #2563eb;
+            --fee-red: #dc2626;
+        }
+
+        #vien-phi-modal [hidden] {
+            display: none !important;
+        }
+
+        #vien-phi-modal .modal-content {
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        #vien-phi-modal .reception-fee-body {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            min-height: 0;
+            padding: 22px 24px;
+        }
+
+        #vien-phi-modal .reception-fee-header h2 {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            font-size: 21px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        #vien-phi-modal .reception-fee-header i {
+            color: var(--fee-blue);
+        }
+
+        #vien-phi-modal .reception-fee-patient {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 13px;
+            margin-bottom: 20px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        #vien-phi-modal .reception-fee-patient strong {
+            color: #334155;
+        }
+
+        /* PHÒNG KHÁM */
+        #vien-phi-modal .fee-room-banner {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 14px 17px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            color: #334155;
+            font-size: 13px;
+        }
+
+        #vien-phi-modal .fee-room-banner i {
+            color: #2563eb;
+        }
+
+        #vien-phi-modal .fee-room-banner strong,
+        #vien-phi-modal .fee-payment-room strong {
+            color: #1d4ed8;
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        /* BA Ô TỔNG HỢP */
+        #vien-phi-modal .reception-fee-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        #vien-phi-modal .reception-fee-summary-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px;
+            min-width: 0;
+            border: 1px solid;
+            border-radius: 10px;
+        }
+
+        #vien-phi-modal .reception-fee-summary-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 43px;
+            height: 43px;
+            flex: 0 0 43px;
+            border-radius: 50%;
+        }
+
+        #vien-phi-modal .reception-fee-summary-label {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        #vien-phi-modal .reception-fee-summary-card strong {
+            font-size: 22px;
+            font-weight: 750;
+        }
+
+        #vien-phi-modal .reception-fee-summary-card.is-total {
+            background: #eff6ff !important;
+            border-color: #bfdbfe !important;
+        }
+
+        #vien-phi-modal .is-total .reception-fee-summary-icon {
+            background: #dbeafe !important;
+            color: #2563eb !important;
+        }
+
+        #vien-phi-modal #vien-phi-total {
+            color: #2563eb !important;
+        }
+
+        #vien-phi-modal .reception-fee-summary-card.is-paid {
+            background: #ecfdf5 !important;
+            border-color: #a7f3d0 !important;
+        }
+
+        #vien-phi-modal .is-paid .reception-fee-summary-icon {
+            background: #d1fae5 !important;
+            color: #059669 !important;
+        }
+
+        #vien-phi-modal #vien-phi-paid {
+            color: #059669 !important;
+        }
+
+        #vien-phi-modal .reception-fee-summary-card.is-due {
+            background: #fef2f2 !important;
+            border-color: #fecaca !important;
+        }
+
+        #vien-phi-modal .is-due .reception-fee-summary-icon {
+            background: #fee2e2 !important;
+            color: #dc2626 !important;
+        }
+
+        #vien-phi-modal #vien-phi-due,
+        #vien-phi-modal #vien-phi-selected-due,
+        #vien-phi-modal .reception-fee-footer-status.is-due {
+            color: #dc2626 !important;
+        }
+
+        /* BỐ CỤC HAI CỘT */
+        #vien-phi-modal .reception-fee-workspace {
+            display: grid;
+            grid-template-columns: minmax(0, 43%) minmax(0, 57%);
+            align-items: start;
+        }
+
+        #vien-phi-modal .reception-fee-invoices {
+            padding-right: 20px;
+        }
+
+        #vien-phi-modal .reception-fee-detail {
+            padding-left: 22px;
+            border-left: 1px solid #e2e8f0;
+        }
+
+        #vien-phi-modal .reception-fee-section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        #vien-phi-modal .reception-fee-section-heading h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        #vien-phi-modal .reception-fee-count,
+        #vien-phi-modal .reception-fee-meta {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        #vien-phi-modal .reception-fee-invoice-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #vien-phi-modal .fee-invoice-button {
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 11px;
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: left;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        #vien-phi-modal .fee-invoice-button.is-selected {
+            border-color: #2563eb !important;
+            background: #eff6ff !important;
+        }
+
+        #vien-phi-modal .fee-invoice-icon {
+            color: #2563eb !important;
+            font-size: 17px;
+            padding-top: 3px;
+        }
+
+        #vien-phi-modal .fee-invoice-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #vien-phi-modal .fee-invoice-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 9px;
+        }
+
+        #vien-phi-modal .fee-invoice-line:last-child {
+            margin-bottom: 0;
+        }
+
+        #vien-phi-modal .fee-invoice-name,
+        #vien-phi-modal .fee-invoice-amount {
+            font-size: 12px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        #vien-phi-modal .fee-invoice-date {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        #vien-phi-modal .reception-fee-status {
+            display: inline-flex;
+            padding: 6px 9px;
+            background: #fef9c3;
+            color: #a16207;
+            border-radius: 7px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        #vien-phi-modal .reception-fee-status.is-paid {
+            background: #dcfce7 !important;
+            color: #15803d !important;
+        }
+
+        #vien-phi-modal .reception-fee-status.is-error {
+            background: #fee2e2 !important;
+            color: #b91c1c !important;
+        }
+
+        #vien-phi-modal .reception-fee-heading-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #vien-phi-modal .reception-fee-print {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 28px !important;
+            height: 28px !important;
+            padding: 0 !important;
+            border: 1px solid #bfdbfe;
+            border-radius: 7px;
+            color: #2563eb;
+            background: #fff;
+        }
+
+        #vien-phi-modal .reception-fee-print:disabled {
+            color: #94a3b8;
+            background: #f8fafc;
+            cursor: not-allowed;
+        }
+
+        /* KHÔNG CUỘN RIÊNG BẢNG KHOẢN THU */
+        #vien-phi-modal .reception-fee-detail,
+        #vien-phi-modal .reception-fee-detail-scroll,
+        #vien-phi-modal .reception-fee-table-wrapper {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+            min-height: 0 !important;
+        }
+
+        #vien-phi-modal .reception-fee-subheading {
+            margin: 19px 0 12px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        #vien-phi-modal .reception-fee-table {
+            width: 100%;
+            height: auto !important;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        #vien-phi-modal .reception-fee-table th,
+        #vien-phi-modal .reception-fee-table td {
+            padding: 11px 9px;
+            border-bottom: 1px solid #e2e8f0;
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+
+        #vien-phi-modal .reception-fee-table th {
+            background: #eff6ff !important;
+            color: #475569;
+        }
+
+        #vien-phi-modal .fee-money {
+            text-align: right;
+        }
+
+        #vien-phi-modal .fee-quantity {
+            text-align: center;
+        }
+
+        #vien-phi-modal .reception-fee-invoice-totals {
+            padding: 16px;
+            margin-top: 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        #vien-phi-modal .reception-fee-invoice-totals > div {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        #vien-phi-modal .reception-fee-invoice-totals strong {
+            color: #334155;
+        }
+
+        #vien-phi-modal .reception-fee-invoice-totals
+        .reception-fee-remaining {
+            margin: 12px 0 0;
+            padding-top: 13px;
+            border-top: 1px solid #fecaca;
+            font-weight: 700;
+        }
+
+        /* NGƯỜI THU */
+        #vien-phi-modal .reception-fee-collector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 15px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9px;
+            background: #f8fafc;
+            font-size: 13px;
+        }
+
+        #vien-phi-modal .reception-fee-collector span {
+            color: #64748b;
+        }
+
+        #vien-phi-modal .reception-fee-collector strong {
+            color: #334155;
+        }
+
+        /* LỊCH SỬ THANH TOÁN */
+        #vien-phi-modal .fee-history {
+            margin-top: 19px;
+            padding-top: 4px;
+        }
+
+        #vien-phi-modal .fee-history-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        #vien-phi-modal .fee-history-card {
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            background: #f8fbff;
+            padding: 15px;
+        }
+
+        #vien-phi-modal .fee-history-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        #vien-phi-modal .fee-history-header strong {
+            color: #2563eb;
+            font-weight: 750;
+        }
+
+        #vien-phi-modal .fee-history-fields {
+            display: grid;
+            grid-template-columns: 120px minmax(0, 1fr);
+            gap: 9px 12px;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        #vien-phi-modal .fee-history-fields dt {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        #vien-phi-modal .fee-history-fields dd {
+            margin: 0;
+            color: #334155;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        /* THANH TOÁN */
+        #vien-phi-modal .reception-fee-payment {
+            margin-top: 18px;
+            padding: 17px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+        }
+
+        #vien-phi-modal .reception-fee-payment h4 {
+            margin: 0 0 12px;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        #vien-phi-modal #vien-phi-payment-amount {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        #vien-phi-modal .fee-payment-room {
+            margin: 12px 0;
+            padding: 12px;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            background: #fff;
+            color: #475569;
+            font-size: 13px;
+        }
+
+        #vien-phi-modal .reception-fee-payment legend {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        #vien-phi-modal .reception-fee-payment-methods {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        #vien-phi-modal .reception-fee-payment-methods label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        #vien-phi-modal
+        input[name="vienPhiPhuongThuc"] {
+            accent-color: #2563eb;
+        }
+
+        #vien-phi-modal .reception-fee-payment-notice {
+            margin: 15px 0 0;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            color: #1e40af;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        #vien-phi-modal .reception-fee-footer {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 14px 24px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        #vien-phi-modal .reception-fee-footer > p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        #vien-phi-modal .reception-fee-footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #vien-phi-modal .reception-fee-pay-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 17px;
+            background: #2563eb !important;
+            border: 1px solid #2563eb !important;
+            border-radius: 8px;
+            color: white !important;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        #vien-phi-modal .reception-fee-pay-button:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        /* HỘP XÁC NHẬN GIỮA POPUP */
+        #vien-phi-modal .fee-payment-confirm-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 30;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, .55);
+        }
+
+        #vien-phi-modal .fee-payment-confirm-box {
+            width: min(100%, 430px);
+            padding: 27px;
+            background: #fff;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 24px 70px rgba(15,23,42,.25);
+        }
+
+        #vien-phi-modal .fee-payment-confirm-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 57px;
+            height: 57px;
+            margin: 0 auto 16px;
+            background: #dbeafe;
+            border-radius: 50%;
+            color: #2563eb;
+            font-size: 25px;
+        }
+
+        #vien-phi-modal .fee-payment-confirm-box h3 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        #vien-phi-modal .fee-payment-confirm-box p {
+            color: #475569;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+        #vien-phi-modal .fee-payment-confirm-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        #vien-phi-modal .fee-payment-confirm-actions button {
+            min-width: 110px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        #vien-phi-modal .fee-payment-cancel {
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            color: #475569;
+        }
+
+        #vien-phi-modal .fee-payment-accept {
+            border: 1px solid #2563eb;
+            background: #2563eb;
+            color: #fff;
+        }
+
+        @media (max-width: 767px) {
+            #vien-phi-modal .reception-fee-summary,
+            #vien-phi-modal .reception-fee-workspace {
+                grid-template-columns: 1fr;
+            }
+
+            #vien-phi-modal .reception-fee-invoices {
+                padding-right: 0;
+                margin-bottom: 20px;
+            }
+
+            #vien-phi-modal .reception-fee-detail {
+                padding-left: 0;
+                border-left: none;
+            }
+
+            #vien-phi-modal .fee-history-fields {
+                grid-template-columns: 100px minmax(0, 1fr);
+            }
+        }
+    </style>
+
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
 
-            <!-- TIÊU ĐỀ POPUP -->
             <div class="modal-header reception-fee-header">
                 <h2 id="vien-phi-title" class="modal-title">
-                    <i class="fa-solid fa-file-invoice-dollar"
-                       aria-hidden="true"></i>
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
                     <span>Viện phí</span>
                 </h2>
 
-                <button class="btn-close"
-                        type="button"
+                <button type="button"
+                        class="btn-close"
                         data-bs-dismiss="modal"
-                        aria-label="Đóng viện phí"></button>
+                        aria-label="Đóng">
+                </button>
             </div>
 
-            <!-- NỘI DUNG -->
             <div id="vien-phi-body"
                  class="modal-body reception-fee-body"
                  aria-busy="false">
 
-                <!-- ĐANG TẢI -->
-                <div id="vien-phi-loading"
-                     class="reception-fee-loading"
-                     role="status"
-                     hidden>
-                    <i class="fa-solid fa-spinner fa-spin"
-                       aria-hidden="true"></i>
-                    <span>Đang tải thông tin viện phí...</span>
+                <div id="vien-phi-loading" hidden>
+                    Đang tải viện phí...
                 </div>
 
-                <!-- THÔNG BÁO LỖI -->
                 <div id="vien-phi-message"
                      class="alert alert-danger"
-                     role="status"
-                     aria-live="polite"
-                     hidden></div>
+                     role="alert"
+                     hidden>
+                </div>
 
                 <div id="vien-phi-content" hidden>
 
-                    <!-- THÔNG TIN BỆNH NHÂN -->
                     <div class="reception-fee-patient">
                         <strong id="vien-phi-patient-name">—</strong>
                         <span id="vien-phi-patient-code">—</span>
@@ -58,16 +695,21 @@
                         <span id="vien-phi-department">—</span>
                     </div>
 
-                    <!-- TỔNG HỢP VIỆN PHÍ CỦA LỊCH KHÁM -->
-                    <div class="reception-fee-summary"
-                         aria-label="Tổng hợp viện phí của lịch khám">
+                    <!-- PHÒNG KHÁM LẤY TỪ DATABASE -->
+                    <div class="fee-room-banner">
+                        <i class="fa-solid fa-door-open"></i>
+                        <span>Hướng dẫn bệnh nhân đến:</span>
+                        <strong id="vien-phi-room">
+                            Đang xác định phòng...
+                        </strong>
+                    </div>
+
+                    <div class="reception-fee-summary">
 
                         <div class="reception-fee-summary-card is-total">
-                            <span class="reception-fee-summary-icon"
-                                  aria-hidden="true">
+                            <span class="reception-fee-summary-icon">
                                 <i class="fa-solid fa-coins"></i>
                             </span>
-
                             <div>
                                 <span class="reception-fee-summary-label">
                                     Tổng viện phí
@@ -77,11 +719,9 @@
                         </div>
 
                         <div class="reception-fee-summary-card is-paid">
-                            <span class="reception-fee-summary-icon"
-                                  aria-hidden="true">
+                            <span class="reception-fee-summary-icon">
                                 <i class="fa-solid fa-circle-check"></i>
                             </span>
-
                             <div>
                                 <span class="reception-fee-summary-label">
                                     Đã thanh toán
@@ -91,11 +731,9 @@
                         </div>
 
                         <div class="reception-fee-summary-card is-due">
-                            <span class="reception-fee-summary-icon"
-                                  aria-hidden="true">
+                            <span class="reception-fee-summary-icon">
                                 <i class="fa-regular fa-clock"></i>
                             </span>
-
                             <div>
                                 <span class="reception-fee-summary-label">
                                     Còn phải thu
@@ -103,130 +741,78 @@
                                 <strong id="vien-phi-due">—</strong>
                             </div>
                         </div>
-
                     </div>
 
-                    <!-- CHƯA CÓ HÓA ĐƠN -->
-                    <div id="vien-phi-empty"
-                         class="reception-fee-empty"
-                         role="status"
-                         hidden>
-                        <i class="fa-solid fa-file-invoice"
-                           aria-hidden="true"></i>
-
-                        <p>Lịch khám này chưa có hóa đơn.</p>
-
-                        <span>
-                            Chưa có hóa đơn không đồng nghĩa
-                            với đã thanh toán phí khám.
-                        </span>
+                    <div id="vien-phi-empty" hidden>
+                        Lịch khám chưa có hóa đơn.
                     </div>
 
-                    <!-- DANH SÁCH VÀ CHI TIẾT -->
                     <div id="vien-phi-workspace"
                          class="reception-fee-workspace"
                          hidden>
 
-                        <!-- CỘT TRÁI: DANH SÁCH HÓA ĐƠN -->
-                        <section class="reception-fee-invoices"
-                                 aria-labelledby="vien-phi-list-title">
-
+                        <!-- DANH SÁCH HÓA ĐƠN -->
+                        <section class="reception-fee-invoices">
                             <div class="reception-fee-section-heading">
-                                <h3 id="vien-phi-list-title">
-                                    Danh sách hóa đơn
-                                </h3>
-
+                                <h3>Danh sách hóa đơn</h3>
                                 <span id="vien-phi-invoice-count"
                                       class="reception-fee-count"></span>
                             </div>
 
                             <ul id="vien-phi-invoice-list"
-                                class="reception-fee-invoice-list"
-                                aria-label="Chọn hóa đơn để xem chi tiết"></ul>
+                                class="reception-fee-invoice-list">
+                            </ul>
                         </section>
 
-                        <!-- CỘT PHẢI: CHI TIẾT HÓA ĐƠN -->
-                        <section class="reception-fee-detail"
-                                 aria-labelledby="vien-phi-detail-title">
+                        <!-- CHI TIẾT HÓA ĐƠN -->
+                        <section class="reception-fee-detail">
 
                             <div class="reception-fee-section-heading">
                                 <h3 id="vien-phi-detail-title">
                                     Chi tiết hóa đơn
                                 </h3>
 
-                                <span id="vien-phi-invoice-status"
-                                      class="reception-fee-status"></span>
-                            </div>
+                                <div class="reception-fee-heading-actions">
+                                    <span id="vien-phi-invoice-status"
+                                          class="reception-fee-status"></span>
 
-                            <!-- HAI TAB -->
-                            <div class="reception-fee-tabs"
-                                 role="tablist"
-                                 aria-label="Thông tin hóa đơn">
-
-                                <button id="vien-phi-details-tab"
-                                        class="reception-fee-tab is-active"
-                                        type="button"
-                                        role="tab"
-                                        aria-selected="true"
-                                        aria-controls="vien-phi-details-panel"
-                                        tabindex="0">
-                                    Chi tiết khoản thu
-                                </button>
-
-                                <button id="vien-phi-history-tab"
-                                        class="reception-fee-tab"
-                                        type="button"
-                                        role="tab"
-                                        aria-selected="false"
-                                        aria-controls="vien-phi-history-panel"
-                                        tabindex="-1">
-                                    Lịch sử thanh toán
-                                </button>
+                                    <button id="vien-phi-print-invoice"
+                                            class="reception-fee-print"
+                                            type="button"
+                                            aria-label="In hóa đơn"
+                                            title="Chỉ in khi đã thanh toán đủ"
+                                            disabled>
+                                        <i class="fa-solid fa-print"></i>
+                                    </button>
+                                </div>
                             </div>
 
                             <p id="vien-phi-invoice-meta"
                                class="reception-fee-meta"></p>
 
-                            <!-- CẢNH BÁO DỮ LIỆU HOẶC QUYỀN THU -->
                             <div id="vien-phi-invoice-warning"
-                                 class="reception-fee-warning"
-                                 role="status"
+                                 class="alert alert-warning"
                                  hidden></div>
 
                             <div class="reception-fee-detail-scroll">
 
-                                <!-- TAB CHI TIẾT KHOẢN THU -->
-                                <section id="vien-phi-details-panel"
-                                         class="reception-fee-tab-panel"
-                                         role="tabpanel"
-                                         aria-labelledby="vien-phi-details-tab"
-                                         tabindex="0">
+                                <section id="vien-phi-details-panel">
+                                    <h4 class="reception-fee-subheading">
+                                        Chi tiết khoản thu
+                                    </h4>
 
                                     <div class="reception-fee-table-wrapper">
                                         <table class="reception-fee-table">
-                                            <caption class="visually-hidden">
-                                                Chi tiết khoản thu
-                                                của hóa đơn đang chọn
-                                            </caption>
-
                                             <thead>
                                             <tr>
-                                                <th scope="col">
-                                                    Nội dung
-                                                </th>
-
-                                                <th scope="col"
-                                                    class="fee-quantity">
+                                                <th>Nội dung</th>
+                                                <th class="fee-quantity">
                                                     SL
                                                 </th>
-
-                                                <th scope="col"
-                                                    class="fee-money">
+                                                <th class="fee-money">
                                                     Đơn giá
                                                 </th>
-
-                                                <th scope="col"
-                                                    class="fee-money">
+                                                <th class="fee-money">
                                                     Thành tiền
                                                 </th>
                                             </tr>
@@ -237,44 +823,14 @@
                                         </table>
                                     </div>
 
-                                    <p id="vien-phi-details-empty"
-                                       class="reception-fee-inline-empty"
-                                       hidden>
-                                        Hóa đơn chưa có chi tiết khoản thu.
+                                    <p id="vien-phi-details-empty" hidden>
+                                        Chưa có chi tiết khoản thu.
                                     </p>
                                 </section>
 
-                                <!-- TAB LỊCH SỬ THANH TOÁN -->
-                                <section id="vien-phi-history-panel"
-                                         class="reception-fee-tab-panel"
-                                         role="tabpanel"
-                                         aria-labelledby="vien-phi-history-tab"
-                                         tabindex="0"
-                                         hidden>
-
-                                    <p id="vien-phi-history-count"
-                                       class="reception-fee-meta"></p>
-
-                                    <ul id="vien-phi-history-list"
-                                        class="reception-fee-history-list"
-                                        aria-label="Các lần thanh toán của hóa đơn đang chọn">
-                                    </ul>
-
-                                    <div id="vien-phi-history-empty"
-                                         class="reception-fee-empty is-compact"
-                                         role="status"
-                                         hidden>
-
-                                        <i class="fa-regular fa-clock"
-                                           aria-hidden="true"></i>
-
-                                        <p>Chưa có lịch sử thanh toán.</p>
-                                    </div>
-                                </section>
-
-                                <!-- TỔNG TIỀN RIÊNG CỦA HÓA ĐƠN ĐANG CHỌN -->
-                                <div class="reception-fee-invoice-totals"
-                                     aria-label="Số tiền của hóa đơn đang chọn">
+                                <!-- ĐIỂM ĐẾN CỦA NÚT THANH TOÁN -->
+                                <div id="vien-phi-invoice-totals"
+                                     class="reception-fee-invoice-totals">
 
                                     <div>
                                         <span>Tổng hóa đơn</span>
@@ -298,25 +854,56 @@
                                     </div>
                                 </div>
 
-                                <!--
-                                    Chỉ bật sau khi kết nối
-                                    API xác nhận thu tiền.
-                                -->
-                                <section id="vien-phi-payment-section"
-                                         class="reception-fee-payment"
-                                         aria-labelledby="vien-phi-payment-title"
+                                <div class="reception-fee-collector">
+                                    <span>
+                                        <i class="fa-solid fa-user-check"></i>
+                                        Người thu tiền
+                                    </span>
+
+                                    <strong id="vien-phi-collector">
+                                        Chưa ghi nhận
+                                    </strong>
+                                </div>
+
+                                <!-- LỊCH SỬ SAU KHI THANH TOÁN -->
+                                <section id="vien-phi-history-section"
+                                         class="fee-history"
                                          hidden>
 
-                                    <h4 id="vien-phi-payment-title">
-                                        Thu tiền
+                                    <h4 class="reception-fee-subheading">
+                                        Lịch sử thanh toán
                                     </h4>
+
+                                    <div id="vien-phi-history-list"
+                                         class="fee-history-list">
+                                    </div>
+                                </section>
+
+                                <!-- FORM LUÔN HIỆN KHI CÒN TIỀN PHẢI THU -->
+                                <section id="vien-phi-payment-section"
+                                         class="reception-fee-payment"
+                                         hidden>
+
+                                    <h4>Thanh toán viện phí</h4>
+
+                                    <p>
+                                        Số tiền còn phải thanh toán:
+                                        <strong id="vien-phi-payment-amount">
+                                            —
+                                        </strong>
+                                    </p>
+
+                                    <div class="fee-payment-room">
+                                        Phòng khám:
+                                        <strong id="vien-phi-payment-room">
+                                            Đang xác định...
+                                        </strong>
+                                    </div>
 
                                     <fieldset id="vien-phi-payment-fields"
                                               disabled>
 
-                                        <legend>
-                                            Phương thức thanh toán
-                                        </legend>
+                                        <legend>Phương thức thanh toán</legend>
 
                                         <div class="reception-fee-payment-methods">
                                             <label>
@@ -324,67 +911,44 @@
                                                        name="vienPhiPhuongThuc"
                                                        value="TIEN_MAT"
                                                        checked>
-                                                <span>Tiền mặt</span>
+                                                Tiền mặt
                                             </label>
 
                                             <label>
                                                 <input type="radio"
                                                        name="vienPhiPhuongThuc"
                                                        value="CHUYEN_KHOAN">
-                                                <span>Chuyển khoản</span>
+                                                Chuyển khoản
                                             </label>
-                                        </div>
-
-                                        <div id="vien-phi-reference-group"
-                                             class="reception-fee-reference"
-                                             hidden>
-
-                                            <label for="vien-phi-reference">
-                                                Mã giao dịch chuyển khoản
-                                            </label>
-
-                                            <input id="vien-phi-reference"
-                                                   class="form-control"
-                                                   type="text"
-                                                   maxlength="255"
-                                                   autocomplete="off">
                                         </div>
                                     </fieldset>
 
-                                    <p class="reception-fee-meta">
-                                        Xác nhận sau khi đã nhận đủ tiền.
+                                    <p id="vien-phi-payment-notice"
+                                       class="reception-fee-payment-notice">
                                     </p>
                                 </section>
-
                             </div>
                         </section>
-
                     </div>
                 </div>
             </div>
 
-            <!-- CHÂN POPUP -->
+            <!-- CHỈ MỘT NÚT THANH TOÁN -->
             <div class="modal-footer reception-fee-footer">
-                <p>
-                    Hóa đơn đã hủy không tính vào số tiền phải thu.
-                </p>
+
+                <p>Hóa đơn đã hủy không tính vào số tiền phải thu.</p>
 
                 <div class="reception-fee-footer-actions">
+
                     <span id="vien-phi-footer-status"
-                          class="reception-fee-footer-status"
-                          role="status"
-                          aria-live="polite"></span>
+                          class="reception-fee-footer-status"></span>
 
-                    <button id="vien-phi-confirm-payment"
-                            class="btn reception-fee-confirm"
+                    <button id="vien-phi-open-payment"
+                            class="btn reception-fee-pay-button"
                             type="button"
-                            disabled
                             hidden>
-
-                        <i class="fa-solid fa-circle-check"
-                           aria-hidden="true"></i>
-
-                        <span>Xác nhận thu tiền</span>
+                        <i class="fa-solid fa-credit-card"></i>
+                        <span>Thanh toán</span>
                     </button>
                 </div>
             </div>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Lịch khám trong ngày - BỆNH VIỆN ABC</title>
+    <title>Lịch khám trong ngày - MedCare Hospital</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
           rel="stylesheet">
@@ -15,10 +15,11 @@
 
     <link href="/Css/Auth/logout.css" rel="stylesheet">
     <link href="/Css/TiepNhan/layout.css" rel="stylesheet">
+    <link href="/Css/TiepNhan/appointment-history.css" rel="stylesheet">
     <link href="/Css/TiepNhan/checkin.css" rel="stylesheet">
 </head>
 
-<body class="reception-layout checkin-page">
+<body class="reception-layout checkin-page appointment-history-page">
 
 <!-- SIDEBAR DÙNG CHUNG -->
 <aside th:replace="~{TiepNhan/fragments/sidebar :: sidebar}"></aside>
@@ -28,122 +29,117 @@
     <!-- HEADER DÙNG CHUNG -->
     <header th:replace="~{TiepNhan/fragments/header :: header('refresh-appointments-button', 'Quản lý lịch khám trong ngày')}"></header>
 
-    <div class="page-content">
-        <div id="page-message"
-             class="alert"
-             role="status"
-             aria-live="polite"
-             hidden></div>
+    <div class="page-content history-page-content">
+        <div id="page-message" class="alert" role="status" aria-live="polite" hidden></div>
 
-        <section class="appointment-list-card"
-                 aria-labelledby="appointment-list-title">
+        <section class="appointment-list-card history-card"
+                 aria-labelledby="appointment-list-title" aria-busy="true">
 
-            <!-- TIÊU ĐỀ -->
-            <div class="appointment-list-header">
-                <div class="header-with-icon">
-                    <div class="icon-circle-header">
-                        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
-                    </div>
-
-                    <div>
-                        <h1 id="appointment-list-title"
-                            class="appointment-list-title">
-                            Danh sách lịch khám trong ngày
-                        </h1>
-
-                        <div class="appointment-list-subtitle">
-                            <span id="today-display">Đang cập nhật ngày...</span>
-                        </div>
-                    </div>
+            <div class="history-card-heading">
+                <div class="history-title-group">
+                    <span class="history-title-icon" aria-hidden="true">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </span>
+                    <h1 id="appointment-list-title">Danh sách lịch khám trong ngày</h1>
+                    <span id="today-display" class="visually-hidden"></span>
                 </div>
-
-                <button id="open-create-patient"
-                        class="create-patient-button"
-                        type="button">
+                <button id="open-create-patient" class="create-patient-button" type="button">
                     <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
                     <span>Tạo / chọn hồ sơ</span>
                 </button>
             </div>
 
-            <!-- TÌM KIẾM VÀ BỘ LỌC -->
-            <div class="appointment-bottom-toolbar d-flex align-items-center flex-wrap gap-2 mt-3">
-                <form id="patient-search-form" class="patient-search-form">
-                    <label for="patient-search-input" class="visually-hidden">
-                        Tra cứu bệnh nhân bằng mã, họ tên hoặc số điện thoại
+            <form id="appointment-list-search-form" class="history-filter-bar" role="search">
+                <div class="history-search-group">
+                    <label for="appointment-list-search-input" class="visually-hidden">
+                        Tìm mã lịch, mã bệnh nhân, họ tên hoặc số điện thoại
                     </label>
-
-                    <input id="patient-search-input"
-                           class="patient-search-input"
-                           type="search"
-                           maxlength="100"
-                           autocomplete="off"
-                           placeholder="Mã BN, họ tên hoặc số điện thoại">
-
-                    <button id="patient-search-button"
-                            class="patient-search-button"
-                            type="submit"
-                            title="Tra cứu bệnh nhân"
-                            aria-label="Tra cứu bệnh nhân">
+                    <input id="appointment-list-search-input"
+                           class="history-search-input" type="search" maxlength="100"
+                           autocomplete="off" placeholder="Mã lịch, mã BN, họ tên hoặc số điện thoại">
+                    <button id="appointment-list-search-button" class="history-search-button"
+                            type="submit" title="Tìm kiếm" aria-label="Lọc lịch khám">
                         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
                     </button>
-                </form>
+                </div>
+                <div class="history-select-group">
+                    <label for="appointment-doctor-filter" class="visually-hidden">Bác sĩ</label>
+                    <select id="appointment-doctor-filter" class="history-filter-select"
+                            aria-label="Lọc theo bác sĩ">
+                        <option value="">Tất cả bác sĩ</option>
+                    </select>
+                </div>
+                <div class="history-select-group">
+                    <label for="appointment-room-filter" class="visually-hidden">Phòng khám</label>
+                    <select id="appointment-room-filter" class="history-filter-select"
+                            aria-label="Lọc theo phòng khám">
+                        <option value="">Tất cả phòng</option>
+                    </select>
+                </div>
+            </form>
 
-                <select id="appointment-doctor-filter"
-                        class="filter-select"
-                        aria-label="Lọc lịch khám theo bác sĩ">
-                    <option value="">Tất cả bác sĩ</option>
-                </select>
-
-                <select id="appointment-department-filter"
-                        class="filter-select"
-                        aria-label="Lọc lịch khám theo khoa">
-                    <option value="">Tất cả khoa</option>
-                </select>
-
-                <select id="appointment-status-filter"
-                        class="filter-select"
-                        aria-label="Lọc lịch khám theo trạng thái">
-                    <option value="">Tất cả trạng thái</option>
-                </select>
-            </div>
-
-            <!-- BẢNG DANH SÁCH LỊCH KHÁM -->
-            <div class="appointment-table-region">
-                <table class="appointment-table">
-                    <thead>
-                    <tr>
-                        <th scope="col">STT</th>
-                        <th scope="col">MÃ LỊCH</th>
-                        <th scope="col">BỆNH NHÂN</th>
-                        <th scope="col">KHOA &amp; BÁC SĨ</th>
-                        <th scope="col">PHÒNG</th>
-                        <th scope="col">GIỜ KHÁM</th>
-                        <th scope="col">TRẠNG THÁI</th>
-                        <th scope="col" class="appointment-profile-column">
-                            <span class="visually-hidden">Hồ sơ bệnh nhân</span>
-                        </th>
-                    </tr>
-                    </thead>
-
-                    <tbody id="appointments-table-body"></tbody>
-                </table>
-
-                <div id="appointments-empty"
-                     class="appointment-empty-state"
-                     role="status"
-                     aria-live="polite">
-                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
-                    <p id="appointments-empty-message">
-                        Đang tải danh sách lịch khám...
-                    </p>
+            <div class="history-table-area">
+                <div class="history-table-scroll appointment-table-region">
+                    <table class="history-table appointment-table">
+                        <caption class="visually-hidden">Danh sách lịch khám hôm nay theo ca trực được phân công</caption>
+                        <colgroup>
+                            <col class="checkin-col-index">
+                            <col class="checkin-col-code">
+                            <col class="checkin-col-patient">
+                            <col class="checkin-col-doctor">
+                            <col class="checkin-col-room">
+                            <col class="checkin-col-time">
+                            <col class="checkin-col-status">
+                            <col class="checkin-col-action">
+                        </colgroup>
+                        <thead><tr>
+                            <th scope="col">STT</th>
+                            <th scope="col">MÃ LỊCH</th>
+                            <th scope="col">BỆNH NHÂN</th>
+                            <th scope="col">KHOA &amp; BÁC SĨ</th>
+                            <th scope="col">PHÒNG</th>
+                            <th scope="col">GIỜ KHÁM</th>
+                            <th scope="col">TRẠNG THÁI</th>
+                            <th scope="col"><span class="visually-hidden">Thao tác</span></th>
+                        </tr></thead>
+                        <tbody id="appointments-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="appointments-loading" class="history-state" role="status" aria-live="polite">
+                    <span class="history-state-icon" aria-hidden="true">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                    </span>
+                    <p>Đang tải danh sách lịch khám trong ngày...</p>
+                </div>
+                <div id="appointments-empty" class="history-state" role="status" aria-live="polite" hidden>
+                    <span class="history-state-icon" aria-hidden="true">
+                        <i class="fa-solid fa-users"></i>
+                    </span>
+                    <p id="appointments-empty-message">Không có lịch khám trong ngày.</p>
                 </div>
             </div>
 
-            <div id="appointments-record-count"
-                 class="appointment-list-footer"
-                 role="status"
-                 aria-live="polite">
-                Đang tải dữ liệu...
+            <div class="history-pagination">
+                <span id="appointments-record-count" class="history-record-count"
+                      role="status" aria-live="polite">Đang tải dữ liệu...</span>
+                <div class="history-pagination-controls">
+                    <label for="appointments-page-size" class="visually-hidden">Số lịch khám trên mỗi trang</label>
+                    <select id="appointments-page-size" class="history-page-size" aria-label="Số lịch khám trên mỗi trang">
+                        <option value="5" selected>5 / trang</option>
+                        <option value="10">10 / trang</option>
+                        <option value="20">20 / trang</option>
+                        <option value="50">50 / trang</option>
+                    </select>
+                    <button id="appointments-previous-page" class="history-page-button"
+                            type="button" title="Trang trước" aria-label="Trang trước" disabled>
+                        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <span id="appointments-page-label" class="history-page-label" aria-live="polite">Trang 0 / 0</span>
+                    <button id="appointments-next-page" class="history-page-button"
+                            type="button" title="Trang tiếp" aria-label="Trang tiếp" disabled>
+                        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                    </button>
+                </div>
             </div>
         </section>
     </div>
@@ -404,6 +400,20 @@
             </div>
 
             <div class="modal-body">
+                <!-- Tra cứu nhanh hồ sơ để đăng ký: giữ nguyên chức năng cũ. -->
+                <div class="checkin-quick-lookup">
+                    <label for="patient-search-input" class="form-label">Tìm hồ sơ đã có</label>
+                    <form id="patient-search-form" class="patient-search-form">
+                        <input id="patient-search-input" class="patient-search-input"
+                               type="search" maxlength="100" autocomplete="off"
+                               placeholder="Nhập mã BN, họ tên hoặc số điện thoại">
+                        <button id="patient-search-button" class="patient-search-button"
+                                type="submit" aria-label="Tra cứu bệnh nhân">
+                            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                    <div class="text-sub small mt-1">Hoặc nhập số điện thoại bên dưới để chọn / tạo hồ sơ.</div>
+                </div>
                 <div id="create-patient-message"
                      class="alert"
                      role="status"
@@ -965,6 +975,8 @@
 <script src="/Js/Auth/logout.js"></script>
 <script th:src="@{/Js/TiepNhan/layout.js}"></script>
 <script src="/Js/TiepNhan/checkin.js"></script>
+<script src="/Js/TiepNhan/checkin-email.js"></script>
+<script src="/Js/TiepNhan/reception-toast.js"></script>
 
 </body>
 </html>
