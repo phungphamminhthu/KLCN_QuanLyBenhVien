@@ -1,221 +1,230 @@
+/**
+ * TIEP NHAN - NOTIFICATION
+ * Chức năng:
+ * - Bấm chuông mở/đóng popup
+ * - Bấm ngoài popup hoặc Escape để đóng
+ * - Tải danh sách thông báo từ REST API
+ * - Hiển thị số thông báo chưa đọc
+ * - Đánh dấu một thông báo đã đọc
+ * - Đánh dấu tất cả đã đọc
+ * - Nhận thông báo realtime qua STOMP WebSocket
+ * - Gửi JWT trong STOMP CONNECT từ localStorage/sessionStorage
+ */
 
-/* =========================================================
-   MEDCARE - CHUÔNG THÔNG BÁO NHÂN VIÊN TIẾP NHẬN
-   - Lấy thông báo từ MySQL qua REST API
-   - Nhận realtime qua WebSocket STOMP
-   - Đếm thông báo chưa đọc
-   - Đánh dấu đã đọc / tất cả đã đọc
-   - Hiển thị tối đa 100 thông báo
-========================================================= */
-
-(() => {
+(function () {
     "use strict";
 
-    if (window.TiepNhanBell) return;
+    const API_BASE = "/api/thong-bao";
+    const WS_ENDPOINT = "/ws";
+    const WS_DESTINATION = "/user/queue/thong-bao";
 
-    const API = "/api/thong-bao";
-    const CHANNEL = "/user/queue/thong-bao";
+    const SELECTORS = {
+        wrapper: "#notification-wrapper",
+        button: "#notification-button",
+        badge: "#notificationBadge",
+        panel: "#notification-panel",
+        countText: "#notificationCountText",
+        markAllButton: "#markAllReadButton",
+        list: "#notificationList",
+        body: ".notification-panel-body"
+    };
 
-    let pageSize = 5;
-    let client = null;
-    let loading = false;
-    let pendingRefresh = false;
-    let refreshTimer = null;
+    let elements = {};
+    let notifications = [];
+    let unreadCount = 0;
+    let stompClient = null;
+    let reconnectTimer = null;
+    let isConnecting = false;
+    let initialized = false;
 
-    const $ = id => document.getElementById(id);
+    document.addEventListener("DOMContentLoaded", init);
 
-    const badge = $("notificationBadge");
-    const panel = $("notification-panel");
-    const countText = $("notificationCountText");
+    function init() {
+        if (initialized) return;
+        initialized = true;
 
-    const body = panel?.querySelector(
-        ".notification-panel-body"
-    );
+        elements.wrapper = document.querySelector(SELECTORS.wrapper);
+        elements.button = document.querySelector(SELECTORS.button);
+        elements.badge = document.querySelector(SELECTORS.badge);
+        elements.panel = document.querySelector(SELECTORS.panel);
+        elements.countText = document.querySelector(SELECTORS.countText);
+        elements.markAllButton = document.querySelector(SELECTORS.markAllButton);
+        elements.list = document.querySelector(SELECTORS.list);
+        elements.body = document.querySelector(SELECTORS.body);
 
-    const footer = panel?.querySelector(
-        ".notification-panel-footer"
-    );
+        if (!elements.wrapper || !elements.button || !elements.panel) {
+            console.error(
+                "[TiepNhan Notification] Không tìm thấy wrapper, button hoặc panel.",
+                {
+                    wrapper: elements.wrapper,
+                    button: elements.button,
+                    panel: elements.panel
+                }
+            );
+            return;
+        }
 
-    if (!badge || !panel || !body || !countText) {
-        console.warn(
-            "[TiepNhan] Không tìm thấy giao diện chuông."
-        );
-        return;
+        setupPanel();
+        bindEvents();
+        refreshNotifications();
+        connectWebSocket();
+
+        console.log("[TiepNhan Notification] Đã khởi tạo.");
     }
 
-    // =====================================================
-    // 1. CSS BỔ SUNG
-    // =====================================================
+    // =========================================================
+    // POPUP
+    // =========================================================
 
-    const style = document.createElement("style");
+    function setupPanel() {
+        elements.button.setAttribute("type", "button");
+        elements.button.setAttribute("aria-haspopup", "true");
+        elements.button.setAttribute("aria-expanded", "false");
 
-    style.textContent = `
-        .notification-panel-body {
-            max-height: 390px;
-            overflow-y: auto;
-        }
+        elements.panel.hidden = true;
+        elements.panel.style.display = "none";
+        elements.panel.setAttribute("aria-hidden", "true");
 
-        .tn-notification-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 11px;
-            width: 100%;
-            padding: 13px 15px;
-            background: #fff;
-            border: 0;
-            border-bottom: 1px solid #edf0f7;
-            text-align: left;
-            cursor: pointer;
-            font: inherit;
-            color: #293149;
-        }
-
-        .tn-notification-item:hover {
-            background: #f5f7ff;
-        }
-
-        .tn-notification-item.is-unread {
-            background: #f3f5ff;
-        }
-
-        .tn-notification-item.is-unread:hover {
-            background: #eaf0ff;
-        }
-
-        .tn-notification-icon {
-            width: 37px;
-            height: 37px;
-            flex: 0 0 37px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            color: #6236ff;
-            background: #efebff;
-            font-size: 15px;
-        }
-
-        .tn-notification-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .tn-notification-title {
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1.5;
-        }
-
-        .tn-notification-message {
-            margin: 4px 0;
-            font-size: 12px;
-            color: #68748e;
-            line-height: 1.6;
-            overflow-wrap: anywhere;
-        }
-
-        .tn-notification-time {
-            font-size: 11px;
-            color: #8994aa;
-        }
-
-        .tn-notification-dot {
-            width: 7px;
-            height: 7px;
-            flex: 0 0 7px;
-            margin-top: 7px;
-            border-radius: 50%;
-            background: #6236ff;
-        }
-
-        .tn-notification-empty {
-            padding: 35px 15px;
-            text-align: center;
-            color: #8490a5;
-            font-size: 13px;
-            line-height: 1.7;
-        }
-
-        .tn-notification-empty i {
-            display: block;
-            font-size: 27px;
-            color: #6236ff;
-            margin-bottom: 11px;
-        }
-
-        .tn-mark-all {
-            border: 0;
-            background: transparent;
-            color: #6236ff;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 6px;
-        }
-
-        .tn-mark-all:disabled {
-            opacity: .45;
-            cursor: not-allowed;
-        }
-
-        .notification-panel-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-    `;
-
-    document.head.appendChild(style);
-
-    // =====================================================
-    // 2. TOKEN VÀ GỌI API
-    // =====================================================
-
-    function getToken() {
-        return (
-            sessionStorage.getItem("Token")
-            || localStorage.getItem("Token")
-            || sessionStorage.getItem("token")
-            || localStorage.getItem("token")
-            || ""
-        ).trim();
+        elements.wrapper.style.position =
+            elements.wrapper.style.position || "relative";
+        elements.wrapper.style.zIndex = "10000";
     }
 
-    function bearerToken() {
-        const token = getToken();
-
-        return /^Bearer\s/i.test(token)
-            ? token
-            : `Bearer ${token}`;
+    function isPanelOpen() {
+        return !elements.panel.hidden &&
+            window.getComputedStyle(elements.panel).display !== "none";
     }
 
-    async function request(url, options = {}) {
-        if (!getToken()) {
-            throw new Error("Phiên đăng nhập không hợp lệ.");
+    function openPanel() {
+        elements.panel.hidden = false;
+        elements.panel.classList.add("show");
+        elements.panel.style.display = "block";
+        elements.panel.setAttribute("aria-hidden", "false");
+
+        elements.button.setAttribute("aria-expanded", "true");
+
+        console.log("[TiepNhan Notification] Đã mở popup.");
+
+        refreshNotifications();
+    }
+
+    function closePanel() {
+        elements.panel.classList.remove("show");
+        elements.panel.hidden = true;
+        elements.panel.style.display = "none";
+        elements.panel.setAttribute("aria-hidden", "true");
+
+        elements.button.setAttribute("aria-expanded", "false");
+    }
+
+    function togglePanel() {
+        if (isPanelOpen()) {
+            closePanel();
+        } else {
+            openPanel();
         }
+    }
 
-        const headers = new Headers(options.headers || {});
+    // =========================================================
+    // EVENTS
+    // =========================================================
 
-        headers.set("Accept", "application/json");
-        headers.set("Authorization", bearerToken());
-
-        const response = await fetch(url, {
-            ...options,
-            headers,
-            credentials: "same-origin",
-            cache: "no-store"
+    function bindEvents() {
+        elements.button.addEventListener("click", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            togglePanel();
         });
 
+        elements.panel.addEventListener("click", function (event) {
+            event.stopPropagation();
+        });
+
+        elements.wrapper.addEventListener("click", function (event) {
+            event.stopPropagation();
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!elements.wrapper.contains(event.target)) {
+                closePanel();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closePanel();
+            }
+        });
+
+        if (elements.markAllButton) {
+            elements.markAllButton.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                markAllAsRead();
+            });
+        }
+
+        if (elements.list) {
+            elements.list.addEventListener("click", function (event) {
+                const item = event.target.closest("[data-notification-id]");
+                if (!item) return;
+
+                const notificationId = item.dataset.notificationId;
+                if (!notificationId) return;
+
+                markAsRead(notificationId);
+            });
+        }
+    }
+
+    // =========================================================
+    // JWT
+    // LOGIN.JS LƯU TOKEN VỚI KEY "Token"
+    // =========================================================
+
+    function getJwtToken() {
+        return (
+            localStorage.getItem("Token") ||
+            sessionStorage.getItem("Token") ||
+            ""
+        );
+    }
+
+    // =========================================================
+    // API
+    // =========================================================
+
+    async function apiRequest(url, options = {}) {
+        const token = getJwtToken();
+
+        const headers = {
+            "Accept": "application/json",
+            ...(options.headers || {})
+        };
+
+        // Gửi JWT cho REST API nếu token tồn tại.
+        if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+        }
+
+        const config = {
+            ...options,
+            method: options.method || "GET",
+            credentials: "same-origin",
+            headers: headers
+        };
+
+        if (config.body && !config.headers["Content-Type"]) {
+            config.headers["Content-Type"] = "application/json";
+        }
+
+        const response = await fetch(url, config);
+
         if (!response.ok) {
-            const data = await response.json()
-                .catch(() => null);
+            const errorText = await response.text().catch(() => "");
 
             throw new Error(
-                data?.message
-                || `Không thể tải thông báo (HTTP ${response.status}).`
+                `HTTP ${response.status} - ${errorText || response.statusText}`
             );
         }
 
@@ -223,64 +232,481 @@
             return null;
         }
 
-        return response.json();
+        const contentType = response.headers.get("content-type") || "";
+
+        if (contentType.includes("application/json")) {
+            return response.json();
+        }
+
+        return null;
     }
 
-    // =====================================================
-    // 3. HIỂN THỊ SỐ THÔNG BÁO CHƯA ĐỌC
-    // =====================================================
+    async function refreshNotifications() {
+        try {
+            const [allResult, unreadResult] = await Promise.all([
+                apiRequest(API_BASE),
+                apiRequest(`${API_BASE}/chua-doc`)
+            ]);
 
-    function updateCount(count) {
-        const value = Math.max(0, Number(count) || 0);
+            notifications = normalizeList(allResult);
+            unreadCount = normalizeUnreadCount(
+                unreadResult,
+                notifications
+            );
 
-        badge.textContent =
-            value > 99 ? "99+" : String(value);
+            renderNotifications();
+            renderUnreadCount();
+        } catch (error) {
+            console.error(
+                "[TiepNhan Notification] Lỗi tải thông báo:",
+                error
+            );
 
-        badge.hidden = value === 0;
-
-        countText.textContent =
-            `${value} thông báo chưa đọc`;
-
-        if (markAllButton) {
-            markAllButton.disabled = value === 0;
+            if (elements.list && notifications.length === 0) {
+                renderError(
+                    "Không tải được thông báo. Vui lòng thử lại."
+                );
+            }
         }
     }
 
-    // =====================================================
-    // 4. THỜI GIAN THÔNG BÁO
-    // =====================================================
+    function normalizeList(result) {
+        if (Array.isArray(result)) {
+            return result;
+        }
 
-    function formatTime(value) {
+        if (result && Array.isArray(result.data)) {
+            return result.data;
+        }
+
+        if (result && Array.isArray(result.content)) {
+            return result.content;
+        }
+
+        if (result && Array.isArray(result.thongBao)) {
+            return result.thongBao;
+        }
+
+        return [];
+    }
+
+    function normalizeUnreadCount(result, allNotifications) {
+        if (typeof result === "number") {
+            return result;
+        }
+
+        if (
+            typeof result === "string" &&
+            !Number.isNaN(Number(result))
+        ) {
+            return Number(result);
+        }
+
+        if (result && typeof result === "object") {
+            const candidates = [
+                result.count,
+                result.soLuong,
+                result.total,
+                result.tongSo,
+                result.unreadCount,
+                result.soThongBaoChuaDoc
+            ];
+
+            for (const value of candidates) {
+                if (typeof value === "number") {
+                    return value;
+                }
+
+                if (
+                    typeof value === "string" &&
+                    !Number.isNaN(Number(value))
+                ) {
+                    return Number(value);
+                }
+            }
+
+            if (Array.isArray(result.data)) {
+                return result.data.length;
+            }
+        }
+
+        return allNotifications.filter(isUnread).length;
+    }
+
+    // =========================================================
+    // RENDER
+    // =========================================================
+
+    function renderNotifications() {
+        if (!elements.list) return;
+
+        if (!notifications.length) {
+            elements.list.innerHTML = `
+                <div class="notification-empty">
+                    <span>🔔</span>
+                    <p>Không có thông báo</p>
+                </div>
+            `;
+            return;
+        }
+
+        elements.list.innerHTML = notifications.map(function (notification) {
+            const id = getNotificationId(notification);
+
+            const title = escapeHtml(
+                notification.tieuDe ||
+                notification.title ||
+                "Thông báo"
+            );
+
+            const content = escapeHtml(
+                notification.noiDung ||
+                notification.content ||
+                notification.message ||
+                ""
+            );
+
+            const createdAt = formatDate(
+                notification.ngayTao ||
+                notification.createdAt ||
+                notification.thoiGian
+            );
+
+            const unread = isUnread(notification);
+
+            return `
+                <div class="notification-item ${unread ? "unread" : "read"}"
+                     data-notification-id="${escapeHtml(String(id ?? ""))}"
+                     role="button"
+                     tabindex="0">
+                    <div class="notification-item-content">
+                        <div class="notification-item-title">
+                            ${title}
+                            ${unread
+                                ? '<span class="notification-unread-dot"></span>'
+                                : ""}
+                        </div>
+
+                        <div class="notification-item-message">
+                            ${content}
+                        </div>
+
+                        <div class="notification-item-time">
+                            ${escapeHtml(createdAt)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function renderError(message) {
+        if (!elements.list) return;
+
+        elements.list.innerHTML = `
+            <div class="notification-error">
+                ${escapeHtml(message)}
+            </div>
+        `;
+    }
+
+    function renderUnreadCount() {
+        const count = Math.max(0, Number(unreadCount) || 0);
+
+        if (elements.badge) {
+            elements.badge.textContent =
+                count > 99 ? "99+" : String(count);
+
+            elements.badge.hidden = count === 0;
+            elements.badge.style.display =
+                count === 0 ? "none" : "inline-flex";
+        }
+
+        if (elements.countText) {
+            elements.countText.textContent =
+                count === 0
+                    ? "Không có thông báo chưa đọc"
+                    : `${count} thông báo chưa đọc`;
+        }
+
+        if (elements.markAllButton) {
+            elements.markAllButton.disabled = count === 0;
+        }
+    }
+
+    // =========================================================
+    // MARK AS READ
+    // =========================================================
+
+    async function markAsRead(id) {
+        try {
+            await apiRequest(
+                `${API_BASE}/${encodeURIComponent(id)}/da-doc`,
+                {
+                    method: "PATCH"
+                }
+            );
+
+            notifications = notifications.map(function (item) {
+                return String(getNotificationId(item)) === String(id)
+                    ? {
+                        ...item,
+                        daDoc: true,
+                        trangThai: "DA_DOC",
+                        isRead: true
+                    }
+                    : item;
+            });
+
+            unreadCount = notifications.filter(isUnread).length;
+
+            renderNotifications();
+            renderUnreadCount();
+        } catch (error) {
+            console.error(
+                "[TiepNhan Notification] Lỗi đánh dấu đã đọc:",
+                error
+            );
+        }
+    }
+
+    async function markAllAsRead() {
+        if (
+            !elements.markAllButton ||
+            elements.markAllButton.disabled
+        ) {
+            return;
+        }
+
+        try {
+            elements.markAllButton.disabled = true;
+
+            await apiRequest(`${API_BASE}/da-doc-tat-ca`, {
+                method: "PATCH"
+            });
+
+            notifications = notifications.map(function (item) {
+                return {
+                    ...item,
+                    daDoc: true,
+                    trangThai: "DA_DOC",
+                    isRead: true
+                };
+            });
+
+            unreadCount = 0;
+
+            renderNotifications();
+            renderUnreadCount();
+        } catch (error) {
+            console.error(
+                "[TiepNhan Notification] Lỗi đánh dấu tất cả đã đọc:",
+                error
+            );
+        } finally {
+            if (elements.markAllButton) {
+                elements.markAllButton.disabled = unreadCount === 0;
+            }
+        }
+    }
+
+    // =========================================================
+    // WEBSOCKET / STOMP
+    // =========================================================
+
+    function connectWebSocket() {
+        if (isConnecting || (stompClient && stompClient.connected)) {
+            return;
+        }
+
+        if (!window.StompJs || !window.StompJs.Client) {
+            console.warn(
+                "[TiepNhan Notification] STOMP chưa được tải. Kiểm tra script CDN."
+            );
+            scheduleReconnect();
+            return;
+        }
+
+        const token = getJwtToken();
+
+        if (!token) {
+            console.warn(
+                "[TiepNhan Notification] Không tìm thấy JWT trong localStorage/sessionStorage."
+            );
+            scheduleReconnect();
+            return;
+        }
+
+        isConnecting = true;
+
+        try {
+            stompClient = new window.StompJs.Client({
+                brokerURL: getWebSocketUrl(),
+
+                // Gửi JWT trong STOMP CONNECT frame.
+                connectHeaders: {
+                    Authorization: `Bearer ${token}`
+                },
+
+                reconnectDelay: 5000,
+                heartbeatIncoming: 10000,
+                heartbeatOutgoing: 10000,
+
+                debug: function (message) {
+                    console.debug("[STOMP]", message);
+                }
+            });
+
+            stompClient.onConnect = function () {
+                isConnecting = false;
+
+                console.log(
+                    "[TiepNhan Notification] WebSocket connected."
+                );
+
+                stompClient.subscribe(
+                    WS_DESTINATION,
+                    function (message) {
+                        handleRealtimeMessage(message);
+                    }
+                );
+            };
+
+            stompClient.onStompError = function (frame) {
+                isConnecting = false;
+
+                console.error(
+                    "[TiepNhan Notification] STOMP error:",
+                    frame.headers && frame.headers.message,
+                    frame.body
+                );
+            };
+
+            stompClient.onWebSocketClose = function () {
+                isConnecting = false;
+
+                console.warn(
+                    "[TiepNhan Notification] WebSocket closed."
+                );
+            };
+
+            stompClient.onWebSocketError = function (error) {
+                isConnecting = false;
+
+                console.error(
+                    "[TiepNhan Notification] WebSocket error:",
+                    error
+                );
+            };
+
+            stompClient.activate();
+        } catch (error) {
+            isConnecting = false;
+
+            console.error(
+                "[TiepNhan Notification] Không thể khởi tạo WebSocket:",
+                error
+            );
+
+            scheduleReconnect();
+        }
+    }
+
+    function getWebSocketUrl() {
+        const protocol =
+            window.location.protocol === "https:" ? "wss:" : "ws:";
+
+        return `${protocol}//${window.location.host}${WS_ENDPOINT}`;
+    }
+
+    function scheduleReconnect() {
+        if (reconnectTimer) return;
+
+        reconnectTimer = window.setTimeout(function () {
+            reconnectTimer = null;
+            connectWebSocket();
+        }, 5000);
+    }
+
+    function handleRealtimeMessage(message) {
+        try {
+            const payload = JSON.parse(message.body);
+
+            console.log(
+                "[TiepNhan Notification] Nhận realtime:",
+                payload
+            );
+
+            refreshNotifications();
+        } catch (error) {
+            console.error(
+                "[TiepNhan Notification] Lỗi đọc realtime message:",
+                error,
+                message.body
+            );
+        }
+    }
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+
+    function getNotificationId(notification) {
+        return notification.maThongBao ??
+            notification.id ??
+            notification.notificationId ??
+            notification.MaThongBao;
+    }
+
+    function isUnread(notification) {
+        if (
+            notification.daDoc === true ||
+            notification.isRead === true
+        ) {
+            return false;
+        }
+
+        if (
+            notification.daDoc === false ||
+            notification.isRead === false
+        ) {
+            return true;
+        }
+
+        const status = String(
+            notification.trangThai ||
+            notification.status ||
+            ""
+        ).toUpperCase();
+
+        if (
+            status.includes("DA_DOC") ||
+            status.includes("READ")
+        ) {
+            return false;
+        }
+
+        if (
+            status.includes("CHUA_DOC") ||
+            status.includes("UNREAD")
+        ) {
+            return true;
+        }
+
+        return notification.ngayDoc == null &&
+            notification.readAt == null;
+    }
+
+    function formatDate(value) {
         if (!value) return "";
 
-        // Java LocalDateTime không có múi giờ.
-        // Dữ liệu server MedCare dùng giờ Việt Nam.
-        let text = String(value).trim().replace(" ", "T");
-
-        if (!/(Z|[+-]\d{2}:\d{2})$/i.test(text)) {
-            text += "+07:00";
-        }
-
-        const date = new Date(text);
+        const date = new Date(value);
 
         if (Number.isNaN(date.getTime())) {
             return String(value);
         }
 
-        const minutes = Math.max(
-            0,
-            Math.floor((Date.now() - date.getTime()) / 60000)
-        );
-
-        if (minutes < 1) return "Vừa xong";
-        if (minutes < 60) return `${minutes} phút trước`;
-
-        if (minutes < 1440) {
-            return `${Math.floor(minutes / 60)} giờ trước`;
-        }
-
         return date.toLocaleString("vi-VN", {
-            timeZone: "Asia/Ho_Chi_Minh",
             day: "2-digit",
             month: "2-digit",
             year: "numeric",
@@ -289,318 +715,13 @@
         });
     }
 
-    // =====================================================
-    // 5. ICON TỪNG LOẠI THÔNG BÁO
-    // =====================================================
-
-    function getIcon(type) {
-        const icons = {
-            LICH_KHAM_MOI: "fa-calendar-plus",
-            THANH_TOAN_THANH_CONG: "fa-circle-check",
-            LICH_KHAM_BI_HUY: "fa-calendar-xmark",
-            LICH_KHAM_THAY_DOI: "fa-calendar-days",
-            THANH_TOAN_CAN_KIEM_TRA: "fa-triangle-exclamation",
-            BENH_NHAN_DEN_KHAM: "fa-user-check"
-        };
-
-        return icons[String(type || "").toUpperCase()]
-            || "fa-bell";
+    function escapeHtml(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
-    // =====================================================
-    // 6. HIỂN THỊ DANH SÁCH THÔNG BÁO
-    // =====================================================
-
-    function renderNotifications(items) {
-        body.replaceChildren();
-
-        if (!Array.isArray(items) || items.length === 0) {
-            const empty = document.createElement("div");
-
-            empty.className = "tn-notification-empty";
-
-            const icon = document.createElement("i");
-            icon.className = "fa-regular fa-bell";
-
-            const message = document.createElement("div");
-            message.textContent =
-                "Chưa có thông báo để hiển thị.";
-
-            empty.append(icon, message);
-            body.appendChild(empty);
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-
-        items.forEach(item => {
-            const button = document.createElement("button");
-
-            button.type = "button";
-            button.className = "tn-notification-item";
-
-            if (item.unread === true) {
-                button.classList.add("is-unread");
-            }
-
-            const iconBox = document.createElement("div");
-            iconBox.className = "tn-notification-icon";
-
-            const icon = document.createElement("i");
-            icon.className =
-                `fa-solid ${getIcon(item.type)}`;
-
-            iconBox.appendChild(icon);
-
-            const content = document.createElement("div");
-            content.className = "tn-notification-content";
-
-            const title = document.createElement("strong");
-            title.className = "tn-notification-title";
-            title.textContent =
-                item.title || "Thông báo MedCare";
-
-            const message = document.createElement("p");
-            message.className = "tn-notification-message";
-            message.textContent = item.message || "";
-
-            const time = document.createElement("span");
-            time.className = "tn-notification-time";
-            time.textContent = formatTime(item.createdAt);
-
-            content.append(title, message, time);
-
-            button.append(iconBox, content);
-
-            if (item.unread === true) {
-                const dot = document.createElement("span");
-                dot.className = "tn-notification-dot";
-                button.appendChild(dot);
-            }
-
-            // Đánh dấu đã đọc khi bấm vào thông báo.
-            button.addEventListener("click", async () => {
-                if (item.unread !== true) return;
-
-                button.disabled = true;
-
-                try {
-                    await request(
-                        `${API}/${encodeURIComponent(item.id)}/da-doc`,
-                        { method: "PATCH" }
-                    );
-
-                    await refresh();
-                } catch (error) {
-                    console.error(
-                        "[TiepNhan] Không đánh dấu được:",
-                        error
-                    );
-
-                    button.disabled = false;
-                }
-            });
-
-            fragment.appendChild(button);
-        });
-
-        body.appendChild(fragment);
-    }
-
-    // =====================================================
-    // 7. ĐỌC DANH SÁCH TỪ MYSQL
-    // =====================================================
-
-    async function refresh() {
-        if (loading) {
-            pendingRefresh = true;
-            return;
-        }
-
-        loading = true;
-
-        try {
-            const [items, counter] = await Promise.all([
-                request(`${API}?limit=${pageSize}`),
-                request(`${API}/chua-doc`)
-            ]);
-
-            renderNotifications(items);
-            updateCount(counter.count);
-
-        } catch (error) {
-            console.error(
-                "[TiepNhan] Lỗi tải thông báo:",
-                error
-            );
-
-            if (!body.children.length) {
-                const empty = document.createElement("div");
-                empty.className = "tn-notification-empty";
-                empty.textContent =
-                    "Không tải được thông báo. Vui lòng thử lại.";
-                body.appendChild(empty);
-            }
-
-            countText.textContent =
-                "Chưa cập nhật được thông báo";
-        } finally {
-            loading = false;
-
-            if (pendingRefresh) {
-                pendingRefresh = false;
-                void refresh();
-            }
-        }
-    }
-
-    function scheduleRefresh() {
-        clearTimeout(refreshTimer);
-
-        refreshTimer = setTimeout(
-            () => void refresh(),
-            150
-        );
-    }
-
-    // =====================================================
-    // 8. ĐÁNH DẤU TẤT CẢ ĐÃ ĐỌC
-    // =====================================================
-
-    const markAllButton = document.createElement("button");
-
-    markAllButton.type = "button";
-    markAllButton.className = "tn-mark-all";
-    markAllButton.textContent = "Đánh dấu tất cả đã đọc";
-    markAllButton.disabled = true;
-
-    if (footer) {
-        footer.prepend(markAllButton);
-    }
-
-    markAllButton.addEventListener("click", async () => {
-        markAllButton.disabled = true;
-
-        try {
-            await request(`${API}/da-doc-tat-ca`, {
-                method: "PATCH"
-            });
-
-            await refresh();
-        } catch (error) {
-            console.error(
-                "[TiepNhan] Lỗi đánh dấu tất cả:",
-                error
-            );
-        }
-    });
-
-    // Dùng nút Xem tất cả hiện có để mở rộng danh sách.
-    // Chưa cần xây thêm một trang riêng.
-    const viewAllLink = footer?.querySelector("a");
-
-    if (viewAllLink) {
-        viewAllLink.textContent = "Xem thêm";
-
-        viewAllLink.addEventListener("click", event => {
-            event.preventDefault();
-
-            pageSize = pageSize === 5 ? 100 : 5;
-
-            viewAllLink.textContent =
-                pageSize === 5 ? "Xem thêm" : "Thu gọn";
-
-            void refresh();
-        });
-    }
-
-    // =====================================================
-    // 9. KẾT NỐI WEBSOCKET STOMP REALTIME
-    // =====================================================
-
-    function connectWebSocket() {
-        if (!window.StompJs?.Client) {
-            console.error(
-                "[TiepNhan] Chưa tải thư viện STOMP."
-            );
-            return;
-        }
-
-        const protocol =
-            window.location.protocol === "https:"
-                ? "wss:"
-                : "ws:";
-
-        const url =
-            `${protocol}//${window.location.host}/ws`;
-
-        client = new StompJs.Client({
-            brokerURL: url,
-            reconnectDelay: 5000,
-            heartbeatIncoming: 10000,
-            heartbeatOutgoing: 10000,
-            debug: () => {}
-        });
-
-        // Cập nhật JWT trước mỗi lần kết nối / kết nối lại.
-        client.beforeConnect = async () => {
-            client.connectHeaders = {
-                Authorization: bearerToken()
-            };
-        };
-
-        client.onConnect = () => {
-            console.log(
-                "[TiepNhan] WebSocket đã kết nối."
-            );
-
-            // Đúng kênh cá nhân trong WebSocketConfig.java.
-            client.subscribe(CHANNEL, () => {
-                scheduleRefresh();
-            });
-
-            // Đồng bộ khi vừa kết nối hoặc kết nối lại.
-            scheduleRefresh();
-        };
-
-        client.onStompError = frame => {
-            console.error(
-                "[TiepNhan] STOMP lỗi:",
-                frame.headers?.message || frame.body
-            );
-        };
-
-        client.onWebSocketClose = () => {
-            console.warn(
-                "[TiepNhan] WebSocket ngắt kết nối; "
-                + "đang chờ kết nối lại."
-            );
-        };
-
-        client.activate();
-    }
-
-    // =====================================================
-    // 10. KHỞI TẠO
-    // =====================================================
-
-    window.TiepNhanBell = {
-        refresh,
-        get connected() {
-            return Boolean(client?.connected);
-        }
-    };
-
-    void refresh();
-
-    if (getToken()) {
-        connectWebSocket();
-    }
-
-    // Đồng bộ thêm khi quay lại tab.
-    document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
-            scheduleRefresh();
-        }
-    });
 })();

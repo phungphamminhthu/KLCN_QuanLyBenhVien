@@ -49,11 +49,14 @@ public class TiepNhanThanhToanCLSService {
     );
 
     private final JdbcTemplate jdbcTemplate;
+    private final ThongBaoService thongBaoService;
 
     public TiepNhanThanhToanCLSService(
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            ThongBaoService thongBaoService
     ) {
         this.jdbcTemplate = jdbcTemplate;
+        this.thongBaoService = thongBaoService;
     }
 
     // =========================================================
@@ -201,10 +204,21 @@ public class TiepNhanThanhToanCLSService {
          * Đây là trạng thái thanh toán của hóa đơn chung.
          * Hóa đơn có thể tiếp tục phát sinh khoản phí mới.
          */
-        String trangThaiHoaDon =
-                tongDaTra.compareTo(tongHoaDon) == 0
-                        ? "DaThanhToan"
-                        : "ChuaThanhToan";
+
+        /*CODE SỬA TEST CỦA EM THUI NHA CHỊ T*/
+        String trangThaiHoaDon;
+
+        if (tongDaTra.signum() <= 0) {
+            trangThaiHoaDon = "ChuaThanhToan";
+        } else if (tongDaTra.compareTo(tongHoaDon) >= 0) {
+            trangThaiHoaDon = "DaThanhToan";
+        } else {
+            trangThaiHoaDon = "ThanhToanMotPhan";
+        }
+        //        String trangThaiHoaDon =
+        //                tongDaTra.compareTo(tongHoaDon) == 0
+        //                        ? "DaThanhToan"
+        //                        : "ChuaThanhToan";
 
         jdbcTemplate.update(
                 """
@@ -218,6 +232,35 @@ public class TiepNhanThanhToanCLSService {
                 dto.maHoaDon()
         );
 
+        // ============== EM TEST NHA CHỊ T ===================
+        //        int soDongCapNhat = jdbcTemplate.update(
+        //                """
+        //                UPDATE lichdangkykham
+        //                SET TrangThai = 'ChoCLS'
+        //                WHERE MaLichKham = ?
+        //                  AND TrangThai = 'ChoThanhToan'
+        //                """,
+        //                maLichKham
+        //        );
+        //
+        //        if (soDongCapNhat != 1) {
+        //            throw xungDot(
+        //                    "Trạng thái lịch khám đã thay đổi. "
+        //                            + "Giao dịch chưa được ghi nhận."
+        //            );
+        //        }
+        //
+        //        return new KetQua(
+        //                true,
+        //                "Đã xác nhận thanh toán phí CLS.",
+        //                maLichKham,
+        //                dto.maHoaDon(),
+        //                maThanhToan,
+        //                dto.tongCanThu(),
+        //                "ChoCLS"
+        //        );
+
+        // 1. Chuyển lịch khám sang chờ CLS
         int soDongCapNhat = jdbcTemplate.update(
                 """
                 UPDATE lichdangkykham
@@ -235,6 +278,31 @@ public class TiepNhanThanhToanCLSService {
             );
         }
 
+        // 2. Chuyển tiếp nhận bệnh nhân sang chờ CLS
+        int soDongTiepNhan = jdbcTemplate.update(
+                """
+                UPDATE tiepnhanbenhnhan
+                SET TrangThai = 'ChoCLS'
+                WHERE MaLichKham = ?
+                """,
+                maLichKham
+        );
+
+        if (soDongTiepNhan == 0) {
+            throw xungDot(
+                    "Không tìm thấy thông tin tiếp nhận bệnh nhân. "
+                            + "Giao dịch chưa được ghi nhận."
+            );
+        }
+        // 3. Thông báo cho nhân viên chuyên trách
+        thongBaoService.taoThongBaoTheoVaiTro(
+                List.of("CHUYENTRACH"),
+                "Có bệnh nhân chờ thực hiện CLS",
+                "Bệnh nhân " + dto.tenBenhNhan()
+                        + " đã thanh toán phí cận lâm sàng. "
+                        + "Vui lòng kiểm tra danh sách chờ CLS.",
+                "BENH_NHAN_CHO_CLS"
+        );
         return new KetQua(
                 true,
                 "Đã xác nhận thanh toán phí CLS.",

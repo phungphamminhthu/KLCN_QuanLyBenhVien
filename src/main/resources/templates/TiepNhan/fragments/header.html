@@ -5,7 +5,9 @@
 <header class="top-header reception-header"
         th:fragment="header(refreshButtonId, roleDescription)">
 
-    <link rel="stylesheet" th:href="@{/Css/TiepNhan/notification.css}">
+    <!--    <link rel="stylesheet" th:href="@{/Css/TiepNhan/notification.css}">-->
+    <link rel="stylesheet"
+          th:href="@{/Css/TiepNhan/notification.css(v=6)}">
 
     <!-- BÊN TRÁI: NGÀY VÀ LÀM MỚI -->
     <div class="header-actions">
@@ -29,7 +31,6 @@
     <!-- BÊN PHẢI -->
     <div class="header-right">
 
-
         <!-- CHUÔNG THÔNG BÁO -->
         <div id="notification-wrapper" class="notification-wrapper">
 
@@ -48,13 +49,16 @@
                       hidden>0</span>
             </button>
 
+            <!-- POPUP THÔNG BÁO -->
             <section id="notification-panel"
                      class="notification-panel"
                      aria-labelledby="notification-title"
                      hidden>
 
+                <!-- HEADER POPUP -->
                 <div class="notification-panel-header">
-                    <div>
+
+                    <div class="notification-header-info">
                         <h3 id="notification-title"
                             class="notification-panel-title">
                             Thông báo
@@ -66,21 +70,30 @@
                     </div>
 
                     <button type="button"
-                            id="notification-close"
-                            aria-label="Đóng thông báo">
-                        <i class="fa-solid fa-xmark"
-                           aria-hidden="true"></i>
+                            id="markAllReadButton"
+                            class="notification-mark-all-read">
+                        Đánh dấu đã đọc
                     </button>
+
                 </div>
 
+                <!-- DANH SÁCH THÔNG BÁO -->
                 <div class="notification-panel-body">
-                    <div class="notification-empty">
-                        <i class="fa-regular fa-bell"
-                           aria-hidden="true"></i>
-                        <p>Chưa có thông báo để hiển thị.</p>
+
+                    <div id="notificationList"
+                         class="notification-list">
+
+                        <div class="notification-empty">
+                            <i class="fa-regular fa-bell"
+                               aria-hidden="true"></i>
+                            <p>Chưa có thông báo để hiển thị.</p>
+                        </div>
+
                     </div>
+
                 </div>
 
+                <!-- FOOTER -->
                 <div class="notification-panel-footer">
                     <a href="/TiepNhan/notifications">
                         Xem tất cả thông báo
@@ -115,12 +128,6 @@
                 </small>
             </div>
 
-<!--            <div class="user-avatar">-->
-<!--                <img id="current-user-avatar"-->
-<!--                     src="/Images/default-avatar.jpg"-->
-<!--                     alt="Ảnh đại diện nhân viên">-->
-<!--            </div>-->
-
         </div>
 
     </div>
@@ -132,11 +139,10 @@
 
     <!-- Chuông thông báo nhân viên tiếp nhận -->
     <script defer
-            src="/Js/TiepNhan/tiepnhan-notification.js?v=1">
+            src="/Js/TiepNhan/tiepnhan-notification.js?v=6">
     </script>
 
 </header>
 
 </body>
 </html>
-

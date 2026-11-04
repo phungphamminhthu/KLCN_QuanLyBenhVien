@@ -209,8 +209,8 @@ public class TiepNhanHoaDonService {
             // DaThanhToan và ThanhCong.
             BigDecimal daThu = thanhToan.stream()
                     .filter(tt ->
-                            "ThanhCong".equals(tt.trangThai())
-                                    || "DaThanhToan".equals(tt.trangThai())
+                            "DaThanhToan".equals(tt.trangThai())
+                                    || "ThanhCong".equals(tt.trangThai())
                     )
                     .map(LanThanhToanDTO::soTien)
                     .reduce(KHONG, BigDecimal::add);
@@ -744,18 +744,18 @@ public class TiepNhanHoaDonService {
                 );
             }
 
-            if (
-                    daThu.signum() > 0
-                            && daThu.compareTo(
-                            hd.tongTien()
-                    ) < 0
-            ) {
-                canhBao.add(
-                        "Hóa đơn đã thu một phần. "
-                                + "Cần đối soát phân bổ "
-                                + "trước khi thu tiếp."
-                );
-            }
+            //            if (
+            //                    daThu.signum() > 0
+            //                            && daThu.compareTo(
+            //                            hd.tongTien()
+            //                    ) < 0
+            //            ) {
+            //                canhBao.add(
+            //                        "Hóa đơn đã thu một phần. "
+            //                                + "Cần đối soát phân bổ "
+            //                                + "trước khi thu tiếp."
+            //                );
+            //            }
 
         } else if (daThu.signum() > 0) {
             canhBao.add(

@@ -433,8 +433,13 @@
     }
 
     function canPay(invoice) {
+        const loaiDuocThu = [
+            "PhiKham",
+            "CanLamSang"
+        ];
+
         return hasAmountDue(invoice)
-            && invoice.loaiHoaDon === "PhiKham"
+            && loaiDuocThu.includes(invoice.loaiHoaDon)
             && invoice.trangThai === "ChuaThanhToan"
             && invoice.choPhepThanhToan === true
             && invoice.trangThaiHienThi !== "Cần đối soát";

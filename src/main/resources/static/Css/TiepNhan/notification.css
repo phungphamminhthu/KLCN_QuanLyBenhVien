@@ -3,13 +3,14 @@
    NOTIFICATION - TIEP NHAN
 ========================================================= */
 
+/* Wrapper chuông */
 .notification-wrapper,
 #notification-wrapper {
     position: relative;
     z-index: 10000;
 }
 
-/* ==================== CHUONG ==================== */
+/* ==================== CHUÔNG ==================== */
 
 .notification-button,
 #notification-button {
@@ -26,11 +27,11 @@
     background: transparent !important;
     box-shadow: none !important;
     cursor: pointer;
+    pointer-events: auto;
     transition: background-color 0.2s ease;
     z-index: 10001;
 }
 
-/* Hover xam nhat giong Admin, khong nen vang */
 .notification-button:hover,
 #notification-button:hover {
     background: #f1f5f9 !important;
@@ -53,6 +54,7 @@
     color: #eab308 !important;
     font-size: 22px;
     line-height: 1;
+    pointer-events: none;
 }
 
 /* ==================== BADGE ==================== */
@@ -62,7 +64,7 @@
     position: absolute;
     top: 2px;
     right: 1px;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 18px;
@@ -76,6 +78,7 @@
     font-size: 10px;
     font-weight: 700;
     line-height: 1;
+    pointer-events: none;
 }
 
 .notification-badge[hidden],
@@ -84,7 +87,7 @@
     display: none !important;
 }
 
-/* ==================== PANEL ==================== */
+/* ==================== POPUP ==================== */
 
 .notification-panel,
 #notification-panel {
@@ -94,7 +97,7 @@
     width: 440px;
     max-width: calc(100vw - 30px);
     max-height: min(625px, calc(100vh - 100px));
-    display: block;
+    display: none;
     padding: 0;
     overflow: hidden;
     box-sizing: border-box;
@@ -103,18 +106,19 @@
     background: #fff;
     color: #1e293b;
     box-shadow: 0 12px 36px rgb(15 23 42 / 15%);
-    z-index: 10000;
+    z-index: 10002;
 }
 
-/* Ho tro ca hidden cua HTML va class show cua Admin */
+/* Chỉ mở khi JS thêm class show */
+.notification-panel.show,
+#notification-panel.show {
+    display: block !important;
+}
+
+/* hidden luôn được ưu tiên */
 .notification-panel[hidden],
 #notification-panel[hidden] {
     display: none !important;
-}
-
-.notification-panel.show,
-#notification-panel.show {
-    display: block;
 }
 
 /* ==================== HEADER ==================== */
@@ -177,7 +181,7 @@
     color: #1e293b;
 }
 
-/* ==================== VUNG DANH SACH ==================== */
+/* ==================== VÙNG DANH SÁCH ==================== */
 
 .notification-list,
 .notification-panel-body {
@@ -205,7 +209,7 @@
     background: #cbd5e1;
 }
 
-/* ==================== TUNG THONG BAO ==================== */
+/* ==================== TỪNG THÔNG BÁO ==================== */
 
 .notification-item {
     position: relative;
@@ -258,7 +262,7 @@
     box-shadow: none !important;
 }
 
-/* ==================== ICON THONG BAO ==================== */
+/* ==================== ICON THÔNG BÁO ==================== */
 
 .notification-item-icon {
     display: flex;
@@ -278,7 +282,7 @@
     color: inherit;
 }
 
-/* ==================== NOI DUNG ==================== */
+/* ==================== NỘI DUNG ==================== */
 
 .notification-item-content {
     flex: 1;
@@ -313,17 +317,19 @@
     line-height: 1.3;
 }
 
-/* Cham xanh cho thong bao chua doc */
+/* Chấm xanh chưa đọc */
 .notification-unread-dot {
+    display: inline-block;
     flex: 0 0 8px;
     width: 8px;
     height: 8px;
+    margin-left: 6px;
     margin-top: 7px;
     border-radius: 50%;
     background: #2563eb;
 }
 
-/* ==================== THONG BAO TRONG ==================== */
+/* ==================== THÔNG BÁO TRỐNG ==================== */
 
 .notification-empty {
     padding: 35px 20px;
@@ -370,24 +376,34 @@
     text-decoration: underline;
 }
 
-/* Nut danh dau da doc neu JS tao ra */
-.notification-mark-all {
+/* ==================== NÚT ĐÁNH DẤU ĐÃ ĐỌC ==================== */
+
+.notification-mark-all,
+.notification-mark-all-read,
+#markAllReadButton {
     padding: 6px 10px;
     border: none;
+    outline: none;
     border-radius: 8px;
     background: transparent;
     color: #2563eb;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
+    white-space: nowrap;
 }
 
-.notification-mark-all:hover {
+.notification-mark-all:hover,
+.notification-mark-all-read:hover,
+#markAllReadButton:hover {
     background: #eff6ff;
+    color: #1d4ed8;
 }
 
-.notification-mark-all:disabled {
-    color: #94a3b8;
+.notification-mark-all:disabled,
+.notification-mark-all-read:disabled,
+#markAllReadButton:disabled {
+    opacity: 0.45;
     cursor: not-allowed;
 }
 

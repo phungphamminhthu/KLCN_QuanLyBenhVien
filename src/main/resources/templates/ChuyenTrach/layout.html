@@ -24,6 +24,9 @@
     <link rel="stylesheet"
           th:href="@{/Css/ChuyenTrach/layout.css}">
 
+    <link rel="stylesheet"
+          th:href="@{/Css/ChuyenTrach/notification.css}">
+
     <!-- CSS ĐĂNG XUẤT DÙNG CHUNG -->
     <link rel="stylesheet"
           th:href="@{/Css/Auth/logout.css}">
@@ -61,12 +64,16 @@
 </div>
 
 <!-- JS ĐĂNG XUẤT DÙNG CHUNG -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.0/bundles/stomp.umd.min.js"></script>
+
 <script th:src="@{/Js/Auth/logout.js}"></script>
 
 <script th:src="@{/Js/ChuyenTrach/ct-menu-active.js}"></script>
 
 <!-- JS LAYOUT CHUYÊN TRÁCH -->
 <script th:src="@{/Js/ChuyenTrach/layout.js}"></script>
+
+<script th:src="@{/Js/ChuyenTrach/notification.js}"></script>
 
 <!-- JS RIÊNG CỦA TRANG CON -->
 <th:block layout:fragment="js"></th:block>

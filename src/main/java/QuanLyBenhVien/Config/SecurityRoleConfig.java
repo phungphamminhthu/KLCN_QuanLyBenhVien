@@ -69,4 +69,9 @@ public final class SecurityRoleConfig {
     public static final String[] BACSI_APIS = {
             "/api/bac-si/**"
     };
+
+    public static final String[] THONG_BAO_APIS = {
+            "/api/thong-bao",
+            "/api/thong-bao/**"
+    };
 }

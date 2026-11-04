@@ -194,10 +194,12 @@ public class SePayService {
 
         } else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
 
-            // Thanh toán CLS theo luồng chỉ định hiện tại.
-            if (!equalsStatus(lich.getTrangThai(), "ChoThanhToan")) {
+            // Cho phép thanh toán CLS khi đang chờ thanh toán
+            // hoặc đã chuyển ChoCLS nhưng tiếp nhận chưa được đồng bộ.
+            if (!equalsStatus(lich.getTrangThai(), "ChoThanhToan")
+                    && !equalsStatus(lich.getTrangThai(), "ChoCLS")) {
                 throw new IllegalArgumentException(
-                        "Chỉ thanh toán CLS khi lịch khám đang ChoThanhToan.");
+                        "Chỉ thanh toán CLS khi lịch khám đang ChoThanhToan hoặc ChoCLS.");
             }
         }
 
@@ -273,17 +275,27 @@ public class SePayService {
 
         } else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
 
-            int updated = jdbcTemplate.update(
-                    "UPDATE LichDangKyKham " +
-                            "SET TrangThai='ChoCLS' " +
-                            "WHERE MaLichKham=? AND TrangThai='ChoThanhToan'",
+            // Cập nhật lịch khám sang chờ thực hiện CLS.
+            jdbcTemplate.update(
+                    """
+                    UPDATE LichDangKyKham
+                    SET TrangThai = 'ChoCLS'
+                    WHERE MaLichKham = ?
+                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
+                    """,
                     maLichKham
             );
 
-            if (updated != 1) {
-                throw new IllegalStateException(
-                        "Không cập nhật được trạng thái lịch khám sau thanh toán CLS.");
-            }
+            // Đồng bộ trạng thái tiếp nhận bệnh nhân.
+            jdbcTemplate.update(
+                    """
+                    UPDATE TiepNhanBenhNhan
+                    SET TrangThai = 'ChoCLS'
+                    WHERE MaLichKham = ?
+                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
+                    """,
+                    maLichKham
+            );
         }
 
         // TienThuoc: không tự thay đổi trạng thái lịch khám.

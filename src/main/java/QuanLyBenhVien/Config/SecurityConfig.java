@@ -137,9 +137,19 @@ public class SecurityConfig {
                         ).hasRole("BACSI")
 
                         // API thông báo: yêu cầu đăng nhập
-                        .requestMatchers(
-                                SecurityRoleConfig.AUTHENTICATED_APIS
-                        ).authenticated()
+                        //                        .requestMatchers(
+                        //                                SecurityRoleConfig.AUTHENTICATED_APIS
+                        //                        ).authenticated()
+                        // API thông báo: các vai trò được phép sử dụng
+                        .requestMatchers(SecurityRoleConfig.THONG_BAO_APIS)
+                        .hasAnyRole(
+                                "ADMIN",
+                                "TIEPNHAN",
+                                "BACSI",
+                                "DUOCSI",
+                                "CHUYENTRACH",
+                                "BENHNHAN"
+                        )
 
                         // Các request còn lại cần đăng nhập
                         .anyRequest().authenticated()

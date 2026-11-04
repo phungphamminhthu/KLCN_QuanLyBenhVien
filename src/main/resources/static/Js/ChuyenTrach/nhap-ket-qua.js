@@ -21,6 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const finishBtn = $("finishClsBtn");
     const notice = $("resultNotice");
 
+    const resultImagesInput = $("resultImages");
+    const uploadResultImagesBtn = $("uploadResultImagesBtn");
+    const resultImagePreview = $("resultImagePreview");
+
+    let imageObjectUrls = [];
+
     // Giao diện xét nghiệm
     const labResults = $("labResults");
     const labGroups = $("labGroups");
@@ -65,6 +71,59 @@ document.addEventListener("DOMContentLoaded", () => {
     let editable = false;
     let allowNavigation = false;
     let modalActive = false;
+
+
+    const selectResultImagesBtn = $("selectResultImagesBtn");
+    const selectedResultFiles = $("selectedResultFiles");
+    const resultImageDropZone = $("resultImageDropZone");
+
+    selectResultImagesBtn?.addEventListener("click", () => {
+        if (!resultImagesInput?.disabled) {
+            resultImagesInput.click();
+        }
+    });
+
+    function updateSelectedFiles() {
+        const files = Array.from(resultImagesInput?.files || []);
+
+        if (selectedResultFiles) {
+            selectedResultFiles.hidden = files.length === 0;
+            selectedResultFiles.textContent = files.length
+                ? `${files.length} ảnh đã chọn`
+                : "";
+        }
+
+        updateUploadButton();
+    }
+
+    resultImagesInput?.addEventListener("change", updateSelectedFiles);
+
+    resultImageDropZone?.addEventListener("dragover", event => {
+        event.preventDefault();
+        resultImageDropZone.classList.add("ct-dragover");
+    });
+
+    resultImageDropZone?.addEventListener("dragleave", () => {
+        resultImageDropZone.classList.remove("ct-dragover");
+    });
+
+    resultImageDropZone?.addEventListener("drop", event => {
+        event.preventDefault();
+        resultImageDropZone.classList.remove("ct-dragover");
+
+        if (resultImagesInput?.disabled) return;
+
+        const files = Array.from(event.dataTransfer.files || [])
+            .filter(file => file.type.startsWith("image/"));
+
+        if (!files.length) return;
+
+        const transfer = new DataTransfer();
+        files.forEach(file => transfer.items.add(file));
+
+        resultImagesInput.files = transfer.files;
+        updateSelectedFiles();
+    });
 
     // ============================================
     // 2. TOKEN VÀ API
@@ -191,6 +250,121 @@ document.addEventListener("DOMContentLoaded", () => {
         getLabInputs().forEach(input => {
             input.disabled = value || !editable;
         });
+        updateUploadButton();
+    }
+
+    function updateUploadButton() {
+        const hasFiles = resultImagesInput?.files?.length > 0;
+
+        if (uploadResultImagesBtn) {
+            uploadResultImagesBtn.disabled =
+                busy || !editable || !selectedOrderId || !hasFiles;
+        }
+
+        if (resultImagesInput) {
+            resultImagesInput.disabled =
+                busy || !editable || !selectedOrderId;
+        }
+    }
+
+    resultImagesInput?.addEventListener("change", updateUploadButton);
+
+    // ===========================================
+    //
+    // ===========================================
+    function clearResultImages() {
+        imageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+        imageObjectUrls = [];
+
+        if (resultImagePreview) {
+            resultImagePreview.replaceChildren();
+
+            const empty = document.createElement("div");
+            empty.className = "text-muted";
+            empty.textContent = "Chưa có ảnh kết quả.";
+            resultImagePreview.appendChild(empty);
+        }
+    }
+
+    async function loadResultImages(maLich, maChiDinh) {
+        if (!resultImagePreview) return;
+
+        clearResultImages();
+
+        const token = getToken();
+
+        if (!token) {
+            resultImagePreview.textContent = "Vui lòng đăng nhập lại.";
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/chuyen-trach/ket-qua/${maLich}/chi-dinh/${maChiDinh}/files`,
+                {
+                    method: "GET",
+                    cache: "no-store",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Không tải được danh sách ảnh kết quả.");
+            }
+
+            const images = await response.json();
+
+            if (!Array.isArray(images) || images.length === 0) {
+                return;
+            }
+
+            resultImagePreview.replaceChildren();
+
+            for (const image of images) {
+                const fileUrl =
+                    `/api/chuyen-trach/ket-qua/file?key=${encodeURIComponent(image.fileURL)}`;
+
+                const imageResponse = await fetch(fileUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                if (!imageResponse.ok) {
+                    console.error("Không tải được ảnh:", image.fileURL);
+                    continue;
+                }
+
+                const blob = await imageResponse.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                imageObjectUrls.push(objectUrl);
+
+                const link = document.createElement("a");
+                link.href = objectUrl;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                const img = document.createElement("img");
+                img.src = objectUrl;
+                img.alt = image.tenFile || "Ảnh kết quả CLS";
+                img.title = image.tenFile || "Ảnh kết quả CLS";
+                img.className = "ct-result-image";
+
+                link.appendChild(img);
+                resultImagePreview.appendChild(link);
+            }
+
+            if (!resultImagePreview.children.length) {
+                resultImagePreview.textContent = "Không tải được ảnh kết quả.";
+            }
+        } catch (error) {
+            console.error(error);
+            resultImagePreview.textContent =
+                error.message || "Lỗi tải ảnh kết quả.";
+        }
     }
 
     // ============================================
@@ -215,30 +389,184 @@ document.addEventListener("DOMContentLoaded", () => {
             item => String(item.maChiDinh) === selectedOrderId
         );
 
-        if (!order) return;
+        if (!order) {
+            clearResultImages();
+            updateUploadButton();
+            return;
+        }
 
         select.value = selectedOrderId;
 
         setText("serviceName", order.tenDichVu);
-
-        setText(
-            "roomName",
-            order.maPhong ?? "Chưa phân phòng"
-        );
-
-        setText(
-            "orderDate",
-            formatDate(order.ngayChiDinh)
-        );
+        setText("roomName", order.maPhong ?? "Chưa phân phòng");
+        setText("orderDate", formatDate(order.ngayChiDinh));
 
         content.value = order.noiDungKetQua || "";
         conclusion.value = order.ketLuan || "";
+
+        loadResultImages(maLich, order.maChiDinh);
 
         savedValues = {
             content: content.value,
             conclusion: conclusion.value
         };
+
+        updateUploadButton();
     }
+
+    // ==============================================
+    // load
+    // ===========================================
+    async function loadResultImages(maLich, maChiDinh) {
+        const preview = $("resultImagePreview");
+        if (!preview) return;
+
+        const token = getToken();
+
+        if (!token) {
+            preview.textContent = "Vui lòng đăng nhập lại.";
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/api/chuyen-trach/ket-qua/${maLich}/chi-dinh/${maChiDinh}/files`,
+                {
+                    method: "GET",
+                    cache: "no-store",
+                    headers: {
+                        Accept: "application/json",
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Không tải được ảnh kết quả.");
+            }
+
+            const images = await response.json();
+
+            if (!Array.isArray(images) || images.length === 0) {
+                preview.textContent = "Chưa có ảnh kết quả.";
+                return;
+            }
+
+            preview.replaceChildren();
+
+            images.forEach(image => {
+                const url =
+                    `/api/chuyen-trach/ket-qua/file?key=${encodeURIComponent(image.fileURL)}`;
+
+                const link = document.createElement("a");
+                link.href = url;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = image.tenFile || "Ảnh kết quả CLS";
+                img.title = image.tenFile || "Ảnh kết quả CLS";
+                img.className = "ct-result-image";
+
+                link.appendChild(img);
+                preview.appendChild(link);
+            });
+
+        } catch (error) {
+            console.error(error);
+            preview.textContent = error.message || "Lỗi tải ảnh kết quả.";
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+     // ==========================================
+     // upload
+     // ==========================================
+     async function uploadResultImages() {
+         const files = Array.from(resultImagesInput?.files || []);
+
+         if (!selectedOrderId) {
+             showNotice("Vui lòng chọn chỉ định cần tải ảnh.", true);
+             return;
+         }
+
+         if (!files.length) {
+             showNotice("Vui lòng chọn ảnh trước khi tải lên.", true);
+             return;
+         }
+
+         const order = orders.find(
+             item => String(item.maChiDinh) === String(selectedOrderId)
+         );
+
+         if (!order) {
+             showNotice("Không tìm thấy chỉ định.", true);
+             return;
+         }
+
+         const token = getToken();
+
+         if (!token) {
+             showNotice("Vui lòng đăng nhập lại.", true);
+             return;
+         }
+
+         const formData = new FormData();
+         files.forEach(file => formData.append("files", file));
+
+         uploadResultImagesBtn.disabled = true;
+
+         try {
+             const response = await fetch(
+                 `/api/chuyen-trach/ket-qua/${maLich}/chi-dinh/${order.maChiDinh}/files`,
+                 {
+                     method: "POST",
+                     headers: {
+                         Authorization: `Bearer ${token}`
+                     },
+                     body: formData
+                 }
+             );
+
+             const data = await response.json().catch(() => ({}));
+
+             if (!response.ok) {
+                 throw new Error(
+                     data.message || "Tải ảnh kết quả thất bại."
+                 );
+             }
+
+             resultImagesInput.value = "";
+
+             await loadResultImages(maLich, order.maChiDinh);
+
+             showNotice(data.message || "Tải ảnh thành công.");
+         } catch (error) {
+             showNotice(error.message || "Có lỗi khi tải ảnh.", true);
+         } finally {
+             updateUploadButton();
+         }
+     }
+
+     document
+         .getElementById("uploadResultImagesBtn")
+         ?.addEventListener("click", async () => {
+             try {
+                 await uploadResultImages();
+             } catch (error) {
+                 console.error(error);
+                 showNotice(error.message || "Có lỗi khi tải ảnh.", "error");
+             }
+         });
 
     // ============================================
     // 5. GIAO DIỆN RIÊNG CHO XÉT NGHIỆM
@@ -799,6 +1127,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             editable = data.trangThai === "DangCLS";
 
+            // Thêm dòng này
+            updateUploadButton();
+
             orders = Array.isArray(data.chiDinh)
                 ? data.chiDinh
                 : [];
@@ -842,12 +1173,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 ".ct-file-placeholder"
             );
 
-            if (fileBox) {
-                const fileGroup = fileBox.closest(".ct-form-group");
+            const fileGroup = $("resultImageGroup");
 
-                if (fileGroup) {
-                    fileGroup.hidden = !normalVisible;
-                }
+            if (fileGroup) {
+                fileGroup.hidden = !normalVisible;
             }
 
             saveBtn.hidden = !normalVisible;

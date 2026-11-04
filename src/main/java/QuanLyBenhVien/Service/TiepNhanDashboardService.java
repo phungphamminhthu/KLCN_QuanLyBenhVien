@@ -792,6 +792,9 @@ public class TiepNhanDashboardService {
         // và ghi nhận tiếp nhận thành công.
         guiThongBaoTiepNhan(id);
 
+        // Gửi thông báo realtime cho bác sĩ được phân công.
+        guiThongBaoBacSiChoKham(id);
+
         return true;
     }
 
@@ -821,6 +824,64 @@ public class TiepNhanDashboardService {
                 "Tiếp nhận thành công",
                 "Bạn đã hoàn tất thủ tục tiếp nhận và vui lòng chờ gọi vào phòng.",
                 "TIEP_NHAN"
+        );
+    }
+
+    private void guiThongBaoBacSiChoKham(Integer maLichKham) {
+        String sql = """
+                SELECT
+                    bs.MaNguoiDung,
+                    nd.HoTen AS TenBacSi,
+                    bnnd.HoTen AS TenBenhNhan,
+                    s.SoThuTu
+                FROM lichdangkykham lk
+                JOIN bacsi bs
+                    ON bs.MaBacSi = lk.MaBacSi
+                JOIN nguoidung nd
+                    ON nd.MaNguoiDung = bs.MaNguoiDung
+                JOIN benhnhan bn
+                    ON bn.MaBenhNhan = lk.MaBenhNhan
+                JOIN nguoidung bnnd
+                    ON bnnd.MaNguoiDung = bn.MaNguoiDung
+                LEFT JOIN sothutu s
+                    ON s.MaSoThuTu = lk.MaSoThuTu
+                WHERE lk.MaLichKham = ?
+        """;
+
+        List<Map<String, Object>> rows =
+                jdbcTemplate.queryForList(sql, maLichKham);
+
+        if (rows.isEmpty()) {
+            return;
+        }
+
+        Map<String, Object> row = rows.get(0);
+
+        Integer maNguoiDungBacSi =
+                row.get("MaNguoiDung") == null
+                        ? null
+                        : ((Number) row.get("MaNguoiDung")).intValue();
+
+        if (maNguoiDungBacSi == null) {
+            return;
+        }
+
+        String tenBenhNhan =
+                row.get("TenBenhNhan") == null
+                        ? "Bệnh nhân"
+                        : row.get("TenBenhNhan").toString();
+
+        String soThuTu =
+                row.get("SoThuTu") == null
+                        ? ""
+                        : " (STT: " + row.get("SoThuTu") + ")";
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
+                maNguoiDungBacSi,
+                "Bệnh nhân đã được tiếp nhận",
+                tenBenhNhan + soThuTu
+                        + " đã hoàn tất thủ tục tiếp nhận và đang chờ khám.",
+                "BENH_NHAN_CHO_KHAM"
         );
     }
 }

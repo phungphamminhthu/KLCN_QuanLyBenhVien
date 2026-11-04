@@ -695,3 +695,185 @@ body > #ctBackButton.ct-back-compact .ct-back-text {
         flex: 1;
     }
 }
+/* Khu vực upload ảnh kết quả */
+.ct-upload-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 1.5px dashed #bfdbfe;
+    border-radius: 12px;
+    background: #f8fbff;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.ct-upload-box:hover,
+.ct-upload-box.ct-dragover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.ct-upload-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 52px;
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    background: #dbeafe;
+    color: #2563eb;
+    font-size: 23px;
+}
+
+.ct-upload-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ct-upload-title {
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.ct-upload-description {
+    color: #475569;
+    font-size: 13px;
+}
+
+.ct-upload-hint {
+    color: #94a3b8;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+.ct-btn-select-files {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 15px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #fff;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.ct-btn-select-files:hover {
+    border-color: #2563eb;
+    background: #eff6ff;
+}
+
+.ct-btn-select-files:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.ct-selected-files {
+    margin-top: 10px;
+    color: #475569;
+    font-size: 13px;
+}
+
+.ct-image-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.ct-image-preview:empty {
+    display: none;
+}
+
+.ct-image-preview a {
+    display: block;
+    width: 120px;
+    height: 100px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.ct-image-preview .ct-result-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.ct-image-preview a:hover .ct-result-image {
+    transform: scale(1.04);
+}
+
+.ct-image-empty {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 8px 0;
+}
+
+.ct-upload-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.ct-btn-upload-results {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-width: 190px;
+    padding: 11px 18px;
+    border: 1px solid #2563eb;
+    border-radius: 9px;
+    background: #2563eb;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.ct-btn-upload-results:hover:not(:disabled) {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.18);
+}
+
+.ct-btn-upload-results:disabled {
+    border-color: #cbd5e1;
+    background: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+    .ct-upload-box {
+        flex-wrap: wrap;
+        padding: 14px;
+    }
+
+    .ct-upload-content {
+        flex-basis: calc(100% - 70px);
+    }
+
+    .ct-btn-select-files {
+        width: 100%;
+    }
+
+    .ct-btn-upload-results {
+        width: 100%;
+    }
+}

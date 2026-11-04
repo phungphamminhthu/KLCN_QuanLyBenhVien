@@ -636,7 +636,7 @@ public class BacSiKhamBenhController {
                                     GiaTriThamChieu AS giaTriThamChieu
                                 FROM ChiSoDichVu
                                 WHERE MaDichVu = ?
-                                ORDER BY ThuTuHienThi, MaChiSoDichVu
+                                ORDER BY MaChiSoDichVu
                                 """,
                                 maDichVu
                         );
@@ -741,7 +741,7 @@ public class BacSiKhamBenhController {
                                     GiaTriThamChieu AS giaTriThamChieu
                                 FROM ChiSoDichVu
                                 WHERE MaDichVu = ?
-                                ORDER BY ThuTuHienThi, MaChiSoDichVu
+                                ORDER BY MaChiSoDichVu
                                 """,
                                 maDichVu
                         );
@@ -1745,73 +1745,103 @@ public class BacSiKhamBenhController {
 
 
     // =========================================================
-    // CHUYỂN CHỈ ĐỊNH THÀNH JSON
+    // CHUYỂN CHỈ ĐỊNH THÀNH JSON - EM TEST THÔI NHA ANH Tr
     // =========================================================
+    //    private Map<String, Object> chuyenChiDinhThanhMap(
+    //            ChiDinhYTe chiDinh
+    //    ) {
+    //
+    //        Map<String, Object> map =
+    //                new LinkedHashMap<>();
+    //
+    //        map.put(
+    //                "maChiDinh",
+    //                chiDinh.getMaChiDinh()
+    //        );
+    //        map.put(
+    //                "maPhieuChiDinh",
+    //                chiDinh.getMaPhieuChiDinh()
+    //        );
+    //
+    //        map.put(
+    //                "maPhong",
+    //                chiDinh.getMaPhong()
+    //        );
+    //
+    //        map.put(
+    //                "ngayChiDinh",
+    //                chiDinh.getNgayChiDinh()
+    //        );
+    //
+    //        map.put(
+    //                "loaiChiDinh",
+    //                chiDinh.getLoaiChiDinh()
+    //        );
+    //
+    //        map.put(
+    //                "trangThai",
+    //                chiDinh.getTrangThai()
+    //        );
+    //        map.put(
+    //                "nhomXetNghiem",
+    //                chiDinh.getDichVuYTe().getNhomXetNghiem()
+    //        );
+    //
+    //        if (chiDinh.getDichVuYTe() != null) {
+    //
+    //            map.put(
+    //                    "maDichVu",
+    //                    chiDinh.getDichVuYTe().getMaDichVu()
+    //            );
+    //
+    //            map.put(
+    //                    "tenDichVu",
+    //                    chiDinh.getDichVuYTe().getTenDichVu()
+    //            );
+    //
+    //            map.put(
+    //                    "loaiDichVu",
+    //                    chiDinh.getDichVuYTe().getLoaiDichVu()
+    //            );
+    //
+    //            map.put(
+    //                    "gia",
+    //                    chiDinh.getDichVuYTe().getGia()
+    //            );
+    //            map.put(
+    //                    "nhomXetNghiem",
+    //                    chiDinh.getDichVuYTe().getNhomXetNghiem()
+    //            );
+    //        }
+    //
+    //        return map;
+    //    }
     private Map<String, Object> chuyenChiDinhThanhMap(
             ChiDinhYTe chiDinh
     ) {
+        Map<String, Object> map = new LinkedHashMap<>();
 
-        Map<String, Object> map =
-                new LinkedHashMap<>();
+        map.put("maChiDinh", chiDinh.getMaChiDinh());
+        map.put("maPhieuChiDinh", chiDinh.getMaPhieuChiDinh());
+        map.put("maPhong", chiDinh.getMaPhong());
+        map.put("ngayChiDinh", chiDinh.getNgayChiDinh());
+        map.put("loaiChiDinh", chiDinh.getLoaiChiDinh());
+        map.put("trangThai", chiDinh.getTrangThai());
 
-        map.put(
-                "maChiDinh",
-                chiDinh.getMaChiDinh()
-        );
-        map.put(
-                "maPhieuChiDinh",
-                chiDinh.getMaPhieuChiDinh()
-        );
+        DichVuYTe dichVu = chiDinh.getDichVuYTe();
 
-        map.put(
-                "maPhong",
-                chiDinh.getMaPhong()
-        );
-
-        map.put(
-                "ngayChiDinh",
-                chiDinh.getNgayChiDinh()
-        );
-
-        map.put(
-                "loaiChiDinh",
-                chiDinh.getLoaiChiDinh()
-        );
-
-        map.put(
-                "trangThai",
-                chiDinh.getTrangThai()
-        );
-        map.put(
-                "nhomXetNghiem",
-                chiDinh.getDichVuYTe().getNhomXetNghiem()
-        );
-
-        if (chiDinh.getDichVuYTe() != null) {
-
-            map.put(
-                    "maDichVu",
-                    chiDinh.getDichVuYTe().getMaDichVu()
-            );
-
-            map.put(
-                    "tenDichVu",
-                    chiDinh.getDichVuYTe().getTenDichVu()
-            );
-
-            map.put(
-                    "loaiDichVu",
-                    chiDinh.getDichVuYTe().getLoaiDichVu()
-            );
-
-            map.put(
-                    "gia",
-                    chiDinh.getDichVuYTe().getGia()
-            );
-            map.put(
-                    "nhomXetNghiem",
-                    chiDinh.getDichVuYTe().getNhomXetNghiem()
-            );
+        if (dichVu != null) {
+            map.put("maDichVu", dichVu.getMaDichVu());
+            map.put("tenDichVu", dichVu.getTenDichVu());
+            map.put("loaiDichVu", dichVu.getLoaiDichVu());
+            map.put("gia", dichVu.getGia());
+            map.put("nhomXetNghiem", dichVu.getNhomXetNghiem());
+        } else {
+            map.put("maDichVu", null);
+            map.put("tenDichVu", null);
+            map.put("loaiDichVu", null);
+            map.put("gia", null);
+            map.put("nhomXetNghiem", null);
         }
 
         return map;

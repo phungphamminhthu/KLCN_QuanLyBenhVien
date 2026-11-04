@@ -43,7 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
             icon: "fa-calendar-days",
             color: "#d97706",
             bg: "#fef3c7"
-        }
+        },
+        BENH_NHAN_CHO_KHAM: {
+            icon: "fa-user-doctor",
+            color: "#7c3aed",
+            bg: "#ede9fe"
+        },
     };
 
     /* =====================================
@@ -262,6 +267,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 case "LICH_KHAM_BI_HUY":
                 case "LICH_KHAM_THAY_DOI":
+                    url = "/auth/bac-si/kham-benh";
+                    break;
+
+                case "BENH_NHAN_CHO_KHAM":
                     url = "/auth/bac-si/kham-benh";
                     break;
 

@@ -47,7 +47,8 @@ public class BacSiChiDinhNhieuController {
     // ============================================
 
     public record TaoNhieuRequest(
-            List<Integer> maDichVu
+            List<Integer> maDichVu,
+            Integer maPhong
     ) {
     }
 
@@ -177,6 +178,7 @@ public class BacSiChiDinhNhieuController {
                     taoNhieuChiDinhService.taoNhieu(
                             bacSi.getMaBacSi(),
                             maLichKham,
+                            request.maPhong(),
                             danhSach
                     );
 
@@ -253,4 +255,7 @@ public class BacSiChiDinhNhieuController {
                     ));
         }
     }
+
+
+
 }

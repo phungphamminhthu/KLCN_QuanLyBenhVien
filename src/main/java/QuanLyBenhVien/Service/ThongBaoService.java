@@ -5,6 +5,8 @@ import QuanLyBenhVien.Entity.NguoiDung;
 import QuanLyBenhVien.Entity.ThongBao;
 import QuanLyBenhVien.Repository.NguoiDungRepository;
 import QuanLyBenhVien.Repository.ThongBaoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class ThongBaoService {
     private final NguoiDungRepository nguoiDungRepository;
     private final ThongBaoWebSocketService thongBaoWebSocketService;
     private final FcmPushService fcmPushService;
+    private static final Logger log =
+            LoggerFactory.getLogger(ThongBaoService.class);
 
 
     public ThongBaoService(
@@ -155,13 +159,20 @@ public class ThongBaoService {
             String noiDung,
             String loaiThongBao) {
 
+        List<String> roles = tenVaiTro.stream()
+                .map(String::toUpperCase)
+                .toList();
+
         List<NguoiDung> nguoiNhans =
-                nguoiDungRepository.timNguoiDungTheoNhieuVaiTro(
-                        tenVaiTro.stream()
-                                .map(String::toLowerCase)
-                                .toList());
+                nguoiDungRepository.timNguoiDungTheoNhieuVaiTro(roles);
+
+        System.out.println("[THONG BAO] Roles: " + roles);
+        System.out.println("[THONG BAO] So nguoi nhan: " + nguoiNhans.size());
 
         for (NguoiDung nguoiNhan : nguoiNhans) {
+            System.out.println("[THONG BAO] User ID: "
+                    + nguoiNhan.getMaNguoiDung());
+
             taoThongBao(
                     nguoiNhan.getMaNguoiDung(),
                     tieuDe,
@@ -200,6 +211,13 @@ public class ThongBaoService {
         thongBao.setTrangThai("MOI");
 
         ThongBao saved = thongBaoRepository.save(thongBao);
+
+        log.info(
+                "[ThongBao] Đã lưu thông báo: id={}, nguoiNhan={}, loai={}",
+                saved.getMaThongBao(),
+                nguoiDung.getMaNguoiDung(),
+                saved.getLoaiThongBao()
+        );
 
         guiFcmSauCommit(saved);
 

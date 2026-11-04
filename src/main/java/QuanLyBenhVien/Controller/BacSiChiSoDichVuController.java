@@ -75,7 +75,7 @@ public class BacSiChiSoDichVuController {
                 FROM ChiSoDichVu
                 WHERE MaDichVu = ?
                   AND TrangThai = 1
-                ORDER BY ThuTuHienThi, MaChiSoDichVu
+                ORDER BY MaChiSoDichVu
                 """;
 
         List<Map<String, Object>> danhSach =

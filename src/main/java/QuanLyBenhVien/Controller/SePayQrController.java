@@ -147,25 +147,37 @@ public class SePayQrController {
                 authentication
         );
 
-        // 6. Chỉ triển khai QR cho phí khám
-        // tại bước tích hợp giao diện này.
-        if (!"PhiKham".equals(hoaDon.loaiHoaDon())) {
+        // 6. Chỉ hỗ trợ QR cho phí khám và phí cận lâm sàng
+        String loaiHoaDon = hoaDon.loaiHoaDon();
+
+        if (!"PhiKham".equals(loaiHoaDon)
+                && !"CanLamSang".equals(loaiHoaDon)) {
             return ResponseEntity.status(409).body(
                     Map.of(
                             "success", false,
                             "message",
-                            "QR này chỉ dành cho phí khám."
+                            "QR chỉ hỗ trợ thanh toán phí khám và phí cận lâm sàng."
                     )
             );
         }
 
-        // 7. Kiểm tra điều kiện thanh toán.
-        if (!"ChuaThanhToan".equals(
-                hoaDon.trangThaiHoaDon())
-                || !"DaGoi".equals(
-                hoaDon.trangThaiLichKham())
-                || !"ChuaThanhToan".equals(
-                hoaDon.trangThaiThanhToan())
+        // 7. Kiểm tra điều kiện thanh toán theo từng hóa đơn
+        boolean laPhiKham = "PhiKham".equals(hoaDon.loaiHoaDon());
+        boolean laCLS = "CanLamSang".equals(hoaDon.loaiHoaDon());
+
+        boolean trangThaiLichHopLe;
+
+        if (laPhiKham) {
+            trangThaiLichHopLe =
+                    "DaGoi".equals(hoaDon.trangThaiLichKham());
+        } else {
+            trangThaiLichHopLe =
+                    "ChoThanhToan".equals(hoaDon.trangThaiLichKham())
+                            || "DaGoi".equals(hoaDon.trangThaiLichKham());
+        }
+
+        if (!"ChuaThanhToan".equals(hoaDon.trangThaiHoaDon())
+                || !trangThaiLichHopLe
                 || hoaDon.soGiaoDich() > 0) {
 
             return ResponseEntity.status(409).body(

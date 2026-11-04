@@ -106,12 +106,12 @@ public interface NguoiDungRepository
     // =====================================================
 
     @Query("""
-        SELECT n
-        FROM NguoiDung n
-        JOIN n.vaiTro v
-        WHERE UPPER(v.TenVaiTro) IN :tenVaiTro
-          AND n.trangThai = true
-    """)
+    SELECT DISTINCT n
+    FROM NguoiDung n
+    JOIN n.vaiTro v
+    WHERE UPPER(v.TenVaiTro) IN :tenVaiTro
+      AND n.trangThai = true
+""")
     List<NguoiDung> timNguoiDungTheoNhieuVaiTro(
             @Param("tenVaiTro") List<String> tenVaiTro
     );

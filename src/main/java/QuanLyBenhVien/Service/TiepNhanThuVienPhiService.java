@@ -116,11 +116,11 @@ public class TiepNhanThuVienPhiService {
 
         HoaDonRow hoaDon = rows.get(0);
 
-        if (!"PhiKham".equals(hoaDon.loaiHoaDon())) {
+        if (!"PhiKham".equals(hoaDon.loaiHoaDon())
+                && !"CanLamSang".equals(hoaDon.loaiHoaDon())) {
             throw loi(
                     HttpStatus.BAD_REQUEST,
-                    "Chức năng này chỉ thu phí khám. "
-                            + "Cận lâm sàng và thuốc có luồng thu riêng."
+                    "Chỉ hỗ trợ thu phí khám và phí cận lâm sàng."
             );
         }
 
@@ -315,6 +315,35 @@ public class TiepNhanThuVienPhiService {
             throw loi(
                     HttpStatus.CONFLICT,
                     "Không cập nhật được trạng thái hóa đơn."
+            );
+        }
+
+        // 8. Nếu thu tiền hóa đơn CLS thành công,
+// chuyển lịch khám và tiếp nhận sang ChoCLS.
+// Hóa đơn PhiKham không thay đổi trạng thái lịch khám.
+        if ("CanLamSang".equals(hoaDon.loaiHoaDon())) {
+
+            // Lịch khám có thể đã là ChoCLS (ví dụ dữ liệu
+            // hiện tại), hoặc vẫn đang ChoThanhToan.
+            jdbcTemplate.update(
+                    """
+                    UPDATE LichDangKyKham
+                    SET TrangThai = 'ChoCLS'
+                    WHERE MaLichKham = ?
+                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
+                    """,
+                    hoaDon.maLichKham()
+            );
+
+            // Đồng bộ trạng thái tiếp nhận bệnh nhân.
+            jdbcTemplate.update(
+                    """
+                    UPDATE TiepNhanBenhNhan
+                    SET TrangThai = 'ChoCLS'
+                    WHERE MaLichKham = ?
+                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
+                    """,
+                    hoaDon.maLichKham()
             );
         }
 

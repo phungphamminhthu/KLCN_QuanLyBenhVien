@@ -24,6 +24,7 @@ public class DichVuYTe {
 
     @Column(name = "Gia", nullable = false, precision = 15, scale = 2)
     private BigDecimal gia;
+
     @Column(name = "NhomXetNghiem")
     private String nhomXetNghiem;
 
@@ -77,4 +78,5 @@ public class DichVuYTe {
     public void setGia(BigDecimal gia) {
         this.gia = gia;
     }
+
 }

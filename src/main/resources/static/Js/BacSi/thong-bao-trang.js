@@ -12,7 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
         BENH_NHAN_MOI: "fa-user-plus",
         KET_QUA_DICH_VU_MOI: "fa-flask",
         LICH_KHAM_BI_HUY: "fa-calendar-xmark",
-        LICH_KHAM_THAY_DOI: "fa-calendar-days"
+        LICH_KHAM_THAY_DOI: "fa-calendar-days",
+        BENH_NHAN_CHO_KHAM: "fa-user-doctor",
     };
 
     function layToken() {
@@ -51,6 +52,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             case "LICH_KHAM_BI_HUY":
             case "LICH_KHAM_THAY_DOI":
+                return "/auth/bac-si/kham-benh";
+            case "BENH_NHAN_CHO_KHAM":
                 return "/auth/bac-si/kham-benh";
 
             default:

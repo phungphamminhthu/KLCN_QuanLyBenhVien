@@ -1,12 +1,10 @@
-
 package QuanLyBenhVien.Service;
 
+import QuanLyBenhVien.DTO.TaoDotChiDinhCLSRequest;
 import QuanLyBenhVien.Entity.ChiDinhYTe;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,43 +18,30 @@ public class BacSiTaoNhieuChiDinhService {
         this.khamBenhService = khamBenhService;
     }
 
-    // ============================================
-    // TẠO NHIỀU CHỈ ĐỊNH CẬN LÂM SÀNG
-    // ============================================
-
     @Transactional
     public List<ChiDinhYTe> taoNhieu(
             Integer maBacSi,
             Integer maLichKham,
+            Integer maPhong,
             List<Integer> danhSachMaDichVu
     ) {
-
-        if (
-                danhSachMaDichVu == null ||
-                        danhSachMaDichVu.isEmpty()
-        ) {
+        if (danhSachMaDichVu == null
+                || danhSachMaDichVu.isEmpty()) {
             throw new IllegalArgumentException(
                     "Vui lòng chọn ít nhất một dịch vụ."
             );
         }
 
-        List<ChiDinhYTe> ketQua = new ArrayList<>();
+        TaoDotChiDinhCLSRequest request =
+                new TaoDotChiDinhCLSRequest();
 
-        for (Integer maDichVu : danhSachMaDichVu) {
+        request.setMaLichKham(maLichKham);
+        request.setMaPhong(maPhong);
+        request.setMaDichVuList(danhSachMaDichVu);
 
-            // Tận dụng chức năng tạo chỉ định đã có.
-            // Không cần viết lại logic nghiệp vụ.
-            ChiDinhYTe chiDinh =
-                    khamBenhService.taoChiDinh(
-                            maBacSi,
-                            maLichKham,
-                            maDichVu,
-                            null
-                    );
-
-            ketQua.add(chiDinh);
-        }
-
-        return ketQua;
+        return khamBenhService.taoDotChiDinhCLS(
+                maBacSi,
+                request
+        );
     }
 }

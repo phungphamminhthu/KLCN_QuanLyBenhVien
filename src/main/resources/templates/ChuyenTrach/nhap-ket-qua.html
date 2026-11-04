@@ -200,27 +200,65 @@
 
                 </div>
 
-                <!-- TỆP ĐÍNH KÈM -->
-                <div class="ct-form-group">
+                <!-- ẢNH KẾT QUẢ CLS -->
+                <div class="ct-form-group" id="resultImageGroup">
+                    <label class="ct-field-label">Ảnh kết quả đính kèm</label>
 
-                    <label>Tài liệu kết quả đính kèm</label>
+                    <div class="ct-upload-box" id="resultImageDropZone">
+                        <input
+                                type="file"
+                                id="resultImages"
+                                accept="image/*"
+                                multiple
+                                hidden
+                        >
 
-                    <div class="ct-file-placeholder">
+                        <div class="ct-upload-icon">
+                            <i class="fa-regular fa-images"></i>
+                        </div>
 
-                        <i class="fa-solid fa-cloud-arrow-up"
-                           aria-hidden="true"></i>
+                        <div class="ct-upload-content">
+                            <div class="ct-upload-title">
+                                Tải ảnh kết quả
+                            </div>
+                            <div class="ct-upload-description">
+                                Chọn ảnh siêu âm, X-quang hoặc phiếu kết quả
+                            </div>
+                            <div class="ct-upload-hint">
+                                Có thể chọn nhiều ảnh · Định dạng ảnh
+                            </div>
+                        </div>
 
-                        <strong>
-                            Phiếu kết quả / Ảnh máy phân tích
-                        </strong>
-
-                        <small>
-                            Chức năng tải file đang chờ kết nối lưu trữ.
-                            Hiện tại có thể lưu nội dung và kết luận.
-                        </small>
-
+                        <button
+                                type="button"
+                                class="ct-btn-select-files"
+                                id="selectResultImagesBtn"
+                        >
+                            <i class="fa-solid fa-folder-open"></i>
+                            Chọn ảnh
+                        </button>
                     </div>
 
+                    <div class="ct-selected-files" id="selectedResultFiles" hidden></div>
+
+                    <div class="ct-image-preview" id="resultImagePreview">
+                        <div class="ct-image-empty">
+                            <i class="fa-regular fa-image"></i>
+                            <span>Chưa có ảnh kết quả.</span>
+                        </div>
+                    </div>
+
+                    <div class="ct-upload-actions">
+                        <button
+                                type="button"
+                                id="uploadResultImagesBtn"
+                                class="ct-btn-upload-results"
+                                disabled
+                        >
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            Tải ảnh kết quả
+                        </button>
+                    </div>
                 </div>
 
                 <!-- NÚT THAO TÁC -->

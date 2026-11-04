@@ -607,8 +607,10 @@ public class TiepNhanDangKyKhamService {
         return layMaVuaTao(keyHolder);
     }
 
+
     // =====================================================
     // TỰ ĐỘNG TẠO HÓA ĐƠN PHÍ KHÁM
+    // Lấy GiaKham trực tiếp từ bảng khoa
     // =====================================================
 
     private void taoHoaDonPhiKham(
@@ -618,7 +620,7 @@ public class TiepNhanDangKyKhamService {
     ) {
 
         // =================================================
-        // 1. LẤY GIÁ KHÁM THỰC TẾ TỪ DATABASE
+        // 1. LẤY GIÁ KHÁM TỪ BẢNG KHOA
         // =================================================
 
         List<Map<String, Object>> danhSachKhoa =
@@ -642,11 +644,9 @@ public class TiepNhanDangKyKhamService {
 
         Map<String, Object> khoa = danhSachKhoa.get(0);
 
-        String tenKhoa =
-                (String) khoa.get("TenKhoa");
+        String tenKhoa = (String) khoa.get("TenKhoa");
 
-        BigDecimal giaKham =
-                (BigDecimal) khoa.get("GiaKham");
+        BigDecimal giaKham = (BigDecimal) khoa.get("GiaKham");
 
         if (giaKham == null
                 || giaKham.compareTo(BigDecimal.ZERO) <= 0) {
@@ -658,67 +658,7 @@ public class TiepNhanDangKyKhamService {
         }
 
         // =================================================
-        // 2. TÌM DỊCH VỤ PHÍ KHÁM CỦA CÙNG KHOA
-        // =================================================
-
-        // Lấy mã dịch vụ từ những hóa đơn PhiKham
-        // đã được tạo trước đây tại cùng khoa.
-        //
-        // Ví dụ database hiện tại:
-        // Khoa Nội -> MaDichVu 29.
-        //
-        // Không hardcode 29 vào toàn bộ hệ thống.
-
-        List<Integer> danhSachMaDichVu =
-                jdbcTemplate.query(
-                        """
-                        SELECT DISTINCT
-                            ct.MaDichVu
-                        FROM hoadon hd
-                        JOIN lichdangkykham lk
-                            ON lk.MaLichKham = hd.MaLichKham
-                        JOIN cthoadon ct
-                            ON ct.MaHoaDon = hd.MaHoaDon
-                        JOIN dichvuyte dv
-                            ON dv.MaDichVu = ct.MaDichVu
-                        WHERE lk.MaKhoa = ?
-                          AND hd.LoaiHoaDon = 'PhiKham'
-                          AND hd.TrangThai <> 'DaHuy'
-                          AND ct.MaDichVu IS NOT NULL
-                          AND ct.MaChiDinh IS NULL
-                          AND ct.MaCTDonThuoc IS NULL
-                        ORDER BY ct.MaDichVu
-                        """,
-                        (rs, rowNum) ->
-                                rs.getInt("MaDichVu"),
-                        maKhoa
-                );
-
-        if (danhSachMaDichVu.isEmpty()) {
-            throw loi(
-                    HttpStatus.CONFLICT,
-                    "Chưa xác định được dịch vụ phí khám "
-                            + "cho khoa " + tenKhoa
-                            + ". Vui lòng cấu hình "
-                            + "dịch vụ khám trước."
-            );
-        }
-
-        if (danhSachMaDichVu.size() > 1) {
-            throw loi(
-                    HttpStatus.CONFLICT,
-                    "Khoa " + tenKhoa
-                            + " đang có nhiều mã dịch vụ "
-                            + "phí khám khác nhau. "
-                            + "Vui lòng kiểm tra dữ liệu."
-            );
-        }
-
-        Integer maDichVu =
-                danhSachMaDichVu.get(0);
-
-        // =================================================
-        // 3. KIỂM TRA TRÙNG HÓA ĐƠN
+        // 2. KIỂM TRA HÓA ĐƠN PHÍ KHÁM ĐÃ TỒN TẠI
         // =================================================
 
         Long soHoaDonDaCo =
@@ -733,8 +673,7 @@ public class TiepNhanDangKyKhamService {
                         maLichKham
                 );
 
-        if (soHoaDonDaCo != null
-                && soHoaDonDaCo > 0) {
+        if (soHoaDonDaCo != null && soHoaDonDaCo > 0) {
             throw loi(
                     HttpStatus.CONFLICT,
                     "Lượt khám này đã có hóa đơn phí khám."
@@ -742,11 +681,10 @@ public class TiepNhanDangKyKhamService {
         }
 
         // =================================================
-        // 4. TẠO HÓA ĐƠN
+        // 3. TẠO HÓA ĐƠN PHÍ KHÁM
         // =================================================
 
-        KeyHolder keyHolder =
-                new GeneratedKeyHolder();
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
 
@@ -781,22 +719,11 @@ public class TiepNhanDangKyKhamService {
 
         }, keyHolder);
 
-        Integer maHoaDon =
-                layMaVuaTao(keyHolder);
+        Integer maHoaDon = layMaVuaTao(keyHolder);
 
         // =================================================
-        // 5. TẠO CHI TIẾT HÓA ĐƠN
+        // 4. TẠO CHI TIẾT HÓA ĐƠN
         // =================================================
-
-        // Ràng buộc CK_CTHoaDon_Nguon yêu cầu
-        // đúng một trong ba nguồn:
-        //
-        // MaDichVu
-        // MaChiDinh
-        // MaCTDonThuoc
-        //
-        // Phí khám sẽ sử dụng MaDichVu.
-        // Hai nguồn còn lại để NULL.
 
         int soDongChiTiet = jdbcTemplate.update(
                 """
@@ -812,7 +739,7 @@ public class TiepNhanDangKyKhamService {
                 )
                 VALUES (
                     ?,
-                    ?,
+                    NULL,
                     NULL,
                     NULL,
                     ?,
@@ -822,7 +749,6 @@ public class TiepNhanDangKyKhamService {
                 )
                 """,
                 maHoaDon,
-                maDichVu,
                 "Phí khám - " + tenKhoa,
                 giaKham,
                 giaKham
@@ -836,10 +762,9 @@ public class TiepNhanDangKyKhamService {
             );
         }
 
-        // Không INSERT ThanhToan tại đây.
-        // Chỉ tạo hóa đơn chờ bệnh nhân thanh toán.
+        // Không tạo bản ghi thanh toán tại đây.
+        // Hóa đơn ở trạng thái ChuaThanhToan.
     }
-
     // =====================================================
     // CÁC HÀM HỖ TRỢ
     // =====================================================
