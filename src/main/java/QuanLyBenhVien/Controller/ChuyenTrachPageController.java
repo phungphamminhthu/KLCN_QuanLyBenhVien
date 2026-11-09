@@ -44,6 +44,11 @@ public class ChuyenTrachPageController {
         return "ChuyenTrach/chi-tiet-chi-dinh";
     }
 
+    @GetMapping("/ChuyenTrach/lich-lam-viec")
+    public String lichLamViec() {
+        return "ChuyenTrach/lich-lam-viec";
+    }
+
 
     @GetMapping("/ChuyenTrach/ket-qua-da-thuc-hien")
     public String ketQuaDaThucHien() {

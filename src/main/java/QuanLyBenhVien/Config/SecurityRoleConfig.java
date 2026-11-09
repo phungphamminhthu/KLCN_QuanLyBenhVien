@@ -26,6 +26,10 @@ public final class SecurityRoleConfig {
             "/api/admin/yeu-cau-dieu-chinh-lich",
             "/api/admin/yeu-cau-dieu-chinh-lich/**",
 
+            // Phân công nhân viên Chuyên trách
+            "/api/phan-cong-chuyen-trach",
+            "/api/phan-cong-chuyen-trach/**",
+
             // Điều phối lịch khám (nếu endpoint thuộc nhóm này)
             "/api/admin/lich-kham/**",
 
@@ -46,7 +50,12 @@ public final class SecurityRoleConfig {
     public static final String[] TIEPNHAN_APIS = {
             "/api/tiep-nhan/ho-so-ca-nhan",
             "/api/tiep-nhan/ho-so-ca-nhan/**",
-            "/api/tiep-nhan/doi-mat-khau"
+            "/api/tiep-nhan/doi-mat-khau",
+
+            // Quản lý lịch làm việc
+            "/api/tiep-nhan/lich-lam-viec",
+            "/api/tiep-nhan/lich-lam-viec/**",
+
     };
 
     // Bệnh nhân, bác sĩ, Admin

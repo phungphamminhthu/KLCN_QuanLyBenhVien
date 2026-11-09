@@ -102,11 +102,24 @@ public class LichDangKyKhamService {
                         "Không tìm thấy tài khoản đăng nhập."));
 
         // 3. Tìm hồ sơ bệnh nhân của tài khoản
+        //        BenhNhan benhNhan = benhNhanRepository
+        //                .findByNguoiDung_MaNguoiDung(
+        //                        nguoiDung.getMaNguoiDung())
+        //                .orElseThrow(() -> new IllegalArgumentException(
+        //                        "Tài khoản chưa có hồ sơ bệnh nhân."));
+        // 3. Lấy hồ sơ bệnh nhân được chọn và xác minh thuộc tài khoản đăng nhập
+        if (request.getMaBenhNhan() == null) {
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn hồ sơ bệnh nhân để đặt lịch.");
+        }
+
         BenhNhan benhNhan = benhNhanRepository
-                .findByNguoiDung_MaNguoiDung(
-                        nguoiDung.getMaNguoiDung())
+                .findByMaBenhNhanAndNguoiDung_MaNguoiDung(
+                        request.getMaBenhNhan(),
+                        nguoiDung.getMaNguoiDung()
+                )
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Tài khoản chưa có hồ sơ bệnh nhân."));
+                        "Hồ sơ bệnh nhân không tồn tại hoặc không thuộc tài khoản của bạn."));
 
         // 4. Lấy lịch làm việc thực tế từ database
         LichLamViec lichLamViec = lichLamViecRepository
@@ -327,10 +340,10 @@ public class LichDangKyKhamService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy tài khoản đăng nhập."));
 
-        benhNhanRepository.findByNguoiDung_MaNguoiDung(
-                nguoiDung.getMaNguoiDung()
-        ).orElseThrow(() -> new IllegalArgumentException(
-                "Tài khoản chưa có hồ sơ bệnh nhân."));
+        //        benhNhanRepository.findByNguoiDung_MaNguoiDung(
+        //                nguoiDung.getMaNguoiDung()
+        //        ).orElseThrow(() -> new IllegalArgumentException(
+        //                "Tài khoản chưa có hồ sơ bệnh nhân."));
 
         List<LichDangKyKham> danhSach =
                 lichRepository
@@ -448,25 +461,26 @@ public class LichDangKyKhamService {
                 ));
 
         // 3. Lấy hồ sơ bệnh nhân của tài khoản
-        BenhNhan benhNhan = benhNhanRepository
-                .findByNguoiDung_MaNguoiDung(
-                        nguoiDung.getMaNguoiDung()
-                )
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Tài khoản chưa có hồ sơ bệnh nhân."
-                ));
-
-        // 4. Lấy lịch khám
+        //        BenhNhan benhNhan = benhNhanRepository
+        //                .findByNguoiDung_MaNguoiDung(
+        //                        nguoiDung.getMaNguoiDung()
+        //                )
+        //                .orElseThrow(() -> new IllegalArgumentException(
+        //                        "Tài khoản chưa có hồ sơ bệnh nhân."
+        //                ));
+        // 3. Lấy lịch khám
         LichDangKyKham lich = lichRepository
                 .findById(maLichKham)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy lịch khám."
                 ));
 
-        // 5. Đảm bảo lịch thuộc bệnh nhân đang đăng nhập
+        // 4. Đảm bảo lịch thuộc một hồ sơ của tài khoản đang đăng nhập
         if (lich.getBenhNhan() == null
-                || !lich.getBenhNhan().getMaBenhNhan()
-                .equals(benhNhan.getMaBenhNhan())) {
+                || lich.getBenhNhan().getNguoiDung() == null
+                || !lich.getBenhNhan().getNguoiDung()
+                .getMaNguoiDung()
+                .equals(nguoiDung.getMaNguoiDung())) {
             throw new IllegalArgumentException(
                     "Bạn không có quyền hủy lịch khám này."
             );

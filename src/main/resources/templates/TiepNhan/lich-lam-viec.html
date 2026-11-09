@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{TiepNhan/fragments/layout}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch phân công của tôi</title>
+    <th:block layout:fragment="css">
+        <link rel="stylesheet" th:href="@{/Css/TiepNhan/lich-lam-viec.css}">
+    </th:block>
+</head>
+<body>
+<section layout:fragment="content" class="schedule-page">
+    <div class="page-heading">
+        <div>
+            <h1><i class="fa-regular fa-calendar-check"></i> Lịch làm việc của tôi</h1>
+            <p>Theo dõi khoa và thời gian công tác được Admin phân công.</p>
+        </div>
+        <button type="button" class="btn-outline" id="btnRefresh">
+            <i class="fa-solid fa-rotate"></i> Làm mới
+        </button>
+    </div>
+
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="summary-icon blue"><i class="fa-regular fa-calendar"></i></div>
+            <div><span>Phân công trong tháng</span><strong id="totalSchedules">0</strong></div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon green"><i class="fa-regular fa-clock"></i></div>
+            <div><span>Phân công sắp tới</span><strong id="upcomingSchedules">0</strong></div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon orange"><i class="fa-solid fa-building"></i></div>
+            <div><span>Khoa được phân công</span><strong id="departmentCount">0</strong></div>
+        </div>
+    </div>
+
+    <div class="schedule-toolbar">
+        <div class="filter-group">
+            <div class="filter-item">
+                <label for="filterFrom">Từ ngày</label>
+                <input type="date" id="filterFrom">
+            </div>
+            <div class="filter-item">
+                <label for="filterTo">Đến ngày</label>
+                <input type="date" id="filterTo">
+            </div>
+            <button type="button" class="btn-outline" id="btnFilter">
+                <i class="fa-solid fa-filter"></i> Lọc lịch
+            </button>
+            <button type="button" class="btn-outline" id="btnReset">
+                <i class="fa-solid fa-rotate-left"></i> Đặt lại
+            </button>
+        </div>
+    </div>
+
+    <div class="schedule-workspace">
+        <section class="schedule-calendar-card">
+            <div class="calendar-toolbar">
+                <div>
+                    <h2>Lịch theo tuần</h2>
+                    <p id="calendarDateRange">Đang tải lịch...</p>
+                </div>
+                <div class="calendar-navigation">
+                    <button type="button" class="btn-outline" id="btnPrevWeek" aria-label="Tuần trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn-outline" id="btnToday">Hôm nay</button>
+                    <button type="button" class="btn-outline" id="btnNextWeek" aria-label="Tuần sau">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="calendar-legend">
+                <span><i class="legend-dot blue"></i> Đang/được phân công</span>
+                <span><i class="legend-dot gray"></i> Đã kết thúc</span>
+                <span><i class="legend-dot red"></i> Đã hủy</span>
+            </div>
+            <div class="calendar-scroll">
+                <div class="calendar-grid" id="calendarGrid">
+                    <div class="calendar-loading">Đang tải lịch phân công...</div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="schedule-list-card">
+            <div class="schedule-list-header">
+                <div>
+                    <h2>Danh sách phân công</h2>
+                    <p id="scheduleListSubtitle">Các phân công trong khoảng đã chọn</p>
+                </div>
+                <span class="result-count" id="resultCount">0 lịch</span>
+            </div>
+            <div class="schedule-list-content" id="scheduleListContent">
+                <div class="schedule-list-empty">Đang tải dữ liệu...</div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="modal-overlay" id="detailModal" hidden>
+        <div class="modal-dialog detail-modal-dialog">
+            <div class="modal-header">
+                <div>
+                    <h2>Chi tiết phân công</h2>
+                    <p>Thông tin công tác do Admin phân công.</p>
+                </div>
+                <button type="button" class="icon-button" id="btnCloseDetailModal" aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="detailModalContent" class="detail-modal-content"></div>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" id="btnCloseDetail">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-message" id="toastMessage" hidden></div>
+</section>
+
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/TiepNhan/lich-lam-viec.js}"></script>
+</th:block>
+</body>
+</html>

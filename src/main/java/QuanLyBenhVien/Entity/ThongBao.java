@@ -44,6 +44,21 @@ public class ThongBao {
     @Column(name = "TrangThai", length = 50)
     private String trangThai;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "MaBenhNhan",
+            foreignKey = @ForeignKey(name = "fk_thongbao_benhnhan")
+    )
+    private BenhNhan benhNhan;
+
+    public BenhNhan getBenhNhan() {
+        return benhNhan;
+    }
+
+    public void setBenhNhan(BenhNhan benhNhan) {
+        this.benhNhan = benhNhan;
+    }
+
     // GETTER / SETTER
 
     public Integer getMaThongBao() {

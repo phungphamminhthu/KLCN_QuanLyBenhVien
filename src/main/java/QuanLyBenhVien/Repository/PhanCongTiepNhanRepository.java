@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface PhanCongTiepNhanRepository
         extends JpaRepository<PhanCongTiepNhan, Integer> {
@@ -23,5 +24,13 @@ public interface PhanCongTiepNhanRepository
             @Param("maNhanVien") Integer maNhanVien,
             @Param("batDau") LocalDateTime batDau,
             @Param("ketThuc") LocalDateTime ketThuc
+    );
+
+    // ================================
+    // tim nhan vien theo thoi gian bat dau khi dang dang nhap
+    // ================================
+    List<PhanCongTiepNhan>
+    findByMaNhanVienTiepNhanOrderByThoiGianBatDauDesc(
+            Integer maNhanVienTiepNhan
     );
 }

@@ -122,6 +122,12 @@ public class AdminPageController {
         return "Admin/lich-lam-viec";
     }
 
+    // /Admin/phan-cong-chuyen-trach
+    @GetMapping("/phan-cong-chuyen-trach")
+    public String phanCongChuyenTrach() {
+        return "Admin/phan-cong-chuyen-trach";
+    }
+
     // yeu cau dieu chinh
     @GetMapping("/yeu-cau-lich")
     public String yeuCauLich() {

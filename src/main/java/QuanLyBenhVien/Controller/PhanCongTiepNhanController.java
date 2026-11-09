@@ -104,4 +104,51 @@ public class PhanCongTiepNhanController {
 
         return nguoiDung.getMaNguoiDung();
     }
+
+    // ==================================================
+    // LICH KHAM CUA TOI
+    // ==================================================
+    @GetMapping("/cua-toi")
+    public ResponseEntity<List<PhanCongTiepNhanResponse>> getPhanCongCuaToi() {
+
+        Integer maNhanVien = getMaNhanVienDangNhap();
+
+        return ResponseEntity.ok(
+                service.getPhanCongCuaNhanVien(maNhanVien)
+        );
+    }
+
+    // ===================================
+    // lay danh sach nhan vien dang dang nhap
+    // ===================================
+    private Integer getMaNhanVienDangNhap() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal()
+                instanceof CustomUserDetails userDetails)) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Vui lòng đăng nhập."
+            );
+        }
+
+        NguoiDung nguoiDung = userDetails.getNguoiDung();
+
+        if (nguoiDung.getVaiTro() == null
+                || !"TIEPNHAN".equalsIgnoreCase(
+                nguoiDung.getVaiTro().getTenVaiTro())) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Bạn không có quyền xem phân công tiếp nhận."
+            );
+        }
+
+        return nguoiDung.getMaNguoiDung();
+    }
 }

@@ -28,6 +28,11 @@ public class TiepNhanPageController {
         return "TiepNhan/patients";
     }
 
+    @GetMapping("/lich-lam-viec")
+    public String lichLamViec() {
+        return "TiepNhan/lich-lam-viec";
+    }
+
     @GetMapping("/profile")
     public String profile() {
         return "TiepNhan/profile";

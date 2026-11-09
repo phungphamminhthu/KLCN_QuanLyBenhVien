@@ -2,6 +2,7 @@ package QuanLyBenhVien.Controller;
 
 import QuanLyBenhVien.DTO.EmailRequest;
 import QuanLyBenhVien.DTO.LoginRequest;
+import QuanLyBenhVien.Entity.BenhNhan;
 import QuanLyBenhVien.Entity.NguoiDung;
 import QuanLyBenhVien.Repository.BenhNhanRepository;
 import QuanLyBenhVien.Repository.NguoiDungRepository;
@@ -21,7 +22,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -412,49 +415,74 @@ public class AuthController {
         response.put("AnhDaiDien", user.getAnhDaiDien());
 
         // Tìm hồ sơ bệnh nhân theo tài khoản đang đăng nhập
-        benhNhanRepository
-                .findByNguoiDung_MaNguoiDung(user.getMaNguoiDung())
-                .ifPresentOrElse(benhNhan -> {
+        //        benhNhanRepository
+        //                .findByNguoiDung_MaNguoiDung(user.getMaNguoiDung())
+        //                .ifPresentOrElse(benhNhan -> {
+        //
+        //                    response.put(
+        //                            "MaBenhNhan",
+        //                            benhNhan.getMaBenhNhan()
+        //                    );
+        //
+        //                    response.put(
+        //                            "NgaySinh",
+        //                            benhNhan.getNgaySinh()
+        //                    );
+        //
+        //                    response.put(
+        //                            "GioiTinh",
+        //                            benhNhan.getGioiTinh()
+        //                    );
+        //
+        //                    response.put(
+        //                            "DiaChi",
+        //                            benhNhan.getDiaChi()
+        //                    );
+        //
+        //                    response.put(
+        //                            "SoDienThoaiKhanCap",
+        //                            benhNhan.getSoDienThoaiKhanCap()
+        //                    );
+        //
+        //                    response.put(
+        //                            "TienSuBenh",
+        //                            benhNhan.getTienSuBenh()
+        //                    );
+        //
+        //                }, () -> {
+        //                    // Tài khoản chưa có hồ sơ bệnh nhân
+        //                    response.put("MaBenhNhan", null);
+        //                    response.put("NgaySinh", null);
+        //                    response.put("GioiTinh", null);
+        //                    response.put("DiaChi", null);
+        //                    response.put("SoDienThoaiKhanCap", null);
+        //                    response.put("TienSuBenh", null);
+        //                });
+        // Lấy tất cả hồ sơ bệnh nhân thuộc tài khoản đang đăng nhập
+        List<BenhNhan> danhSachBenhNhan =
+                benhNhanRepository.findByNguoiDung_MaNguoiDung(
+                        user.getMaNguoiDung()
+                );
 
-                    response.put(
-                            "MaBenhNhan",
-                            benhNhan.getMaBenhNhan()
-                    );
+        List<Map<String, Object>> danhSachHoSo = danhSachBenhNhan.stream()
+                .map(benhNhan -> {
+                    Map<String, Object> hoSo = new HashMap<>();
 
-                    response.put(
-                            "NgaySinh",
-                            benhNhan.getNgaySinh()
-                    );
+                    hoSo.put("MaBenhNhan", benhNhan.getMaBenhNhan());
+                    hoSo.put("HoTen", benhNhan.getHoTen());
+                    hoSo.put("MoiQuanHe", benhNhan.getMoiQuanHe());
+                    hoSo.put("LaHoSoMacDinh", benhNhan.getLaHoSoMacDinh());
+                    hoSo.put("NgaySinh", benhNhan.getNgaySinh());
+                    hoSo.put("GioiTinh", benhNhan.getGioiTinh());
+                    hoSo.put("DiaChi", benhNhan.getDiaChi());
+                    hoSo.put("SoDienThoaiKhanCap", benhNhan.getSoDienThoaiKhanCap());
+                    hoSo.put("TienSuBenh", benhNhan.getTienSuBenh());
 
-                    response.put(
-                            "GioiTinh",
-                            benhNhan.getGioiTinh()
-                    );
+                    return hoSo;
+                })
+                .collect(Collectors.toList());
 
-                    response.put(
-                            "DiaChi",
-                            benhNhan.getDiaChi()
-                    );
-
-                    response.put(
-                            "SoDienThoaiKhanCap",
-                            benhNhan.getSoDienThoaiKhanCap()
-                    );
-
-                    response.put(
-                            "TienSuBenh",
-                            benhNhan.getTienSuBenh()
-                    );
-
-                }, () -> {
-                    // Tài khoản chưa có hồ sơ bệnh nhân
-                    response.put("MaBenhNhan", null);
-                    response.put("NgaySinh", null);
-                    response.put("GioiTinh", null);
-                    response.put("DiaChi", null);
-                    response.put("SoDienThoaiKhanCap", null);
-                    response.put("TienSuBenh", null);
-                });
+        response.put("DanhSachBenhNhan", danhSachHoSo);
 
         return ResponseEntity.ok(response);
     }

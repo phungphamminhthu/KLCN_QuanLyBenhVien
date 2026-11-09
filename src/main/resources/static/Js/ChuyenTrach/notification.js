@@ -41,10 +41,10 @@
 
     let notifications = [];
     let isLoading = false;
+    let reloadPending = false;
     let isPanelOpen = false;
     let stompClient = null;
     let lastUnreadCount = 0;
-
     console.log("[Notification] JS initialized.");
 
     // =====================================================
@@ -265,6 +265,7 @@
             chidinh: "📋",
             donthuoc: "💊",
             don_thuoc: "💊",
+            lich_lam_viec_chuyen_trach: "📅",
             general: "🔔"
         };
 
@@ -374,9 +375,13 @@
     // =====================================================
     // TẢI DANH SÁCH THÔNG BÁO
     // =====================================================
-
     async function loadNotifications() {
-        if (isLoading) return;
+        // Nếu đang tải mà có yêu cầu tải mới,
+        // ghi nhận để tải lại sau khi hoàn tất.
+        if (isLoading) {
+            reloadPending = true;
+            return;
+        }
 
         isLoading = true;
         showMessage("Đang tải thông báo...", "notification-loading");
@@ -390,15 +395,54 @@
                 );
             }
 
-            notifications = result.map(item => ({
-                id: item.id ?? item.maThongBao,
-                title: item.title || item.tieuDe || "Thông báo",
-                message: item.message || item.noiDung || "",
-                type: item.type || item.loaiThongBao || "general",
-                createdAt: item.createdAt || item.ngayTao || "",
-                unread: item.unread === true,
-                status: item.status || item.trangThai || ""
-            }));
+            notifications = result.map(item => {
+                const daDoc = item.daDoc ?? item.DaDoc;
+
+                const status = String(
+                    item.status ||
+                    item.trangThai ||
+                    item.TrangThai ||
+                    ""
+                ).toUpperCase();
+
+                const unread =
+                    typeof item.unread === "boolean"
+                        ? item.unread
+                        : typeof daDoc === "boolean"
+                            ? !daDoc
+                            : status.includes("CHUA_DOC") ||
+                              status.includes("MOI") ||
+                              status.includes("UNREAD");
+
+                return {
+                    id: item.id ??
+                        item.maThongBao ??
+                        item.MaThongBao,
+
+                    title: item.title ||
+                        item.tieuDe ||
+                        item.TieuDe ||
+                        "Thông báo",
+
+                    message: item.message ||
+                        item.noiDung ||
+                        item.NoiDung ||
+                        "",
+
+                    type: item.type ||
+                        item.loaiThongBao ||
+                        item.LoaiThongBao ||
+                        "general",
+
+                    createdAt: item.createdAt ||
+                        item.ngayTao ||
+                        item.NgayTao ||
+                        "",
+
+                    unread,
+                    status
+                };
+            });
 
             const unreadCount = notifications.filter(
                 item => item.unread
@@ -409,17 +453,29 @@
 
             console.log("[Notification] Render thành công:", {
                 total: notifications.length,
-                unreadCount: unreadCount
+                unreadCount
             });
+
         } catch (error) {
-            console.error("[Notification] Lỗi tải thông báo:", error);
+            console.error(
+                "[Notification] Lỗi tải thông báo:",
+                error
+            );
 
             showMessage(
                 "Không tải được thông báo. Vui lòng thử lại.",
                 "notification-error"
             );
+
         } finally {
             isLoading = false;
+
+            // Có thông báo mới đến trong lúc đang tải:
+            // thực hiện thêm một lượt tải để đồng bộ danh sách.
+            if (reloadPending && isPanelOpen) {
+                reloadPending = false;
+                loadNotifications();
+            }
         }
     }
 

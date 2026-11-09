@@ -4,7 +4,12 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "BenhNhan")
+@Table(
+        name = "BenhNhan",
+        indexes = {
+                @Index(name = "idx_benhnhan_manguoidung", columnList = "MaNguoiDung")
+        }
+)
 public class BenhNhan {
 
     @Id
@@ -12,9 +17,23 @@ public class BenhNhan {
     @Column(name = "MaBenhNhan")
     private Integer maBenhNhan;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "MaNguoiDung", nullable = false, unique = true)
+    // Một tài khoản có thể quản lý nhiều hồ sơ bệnh nhân
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "MaNguoiDung",
+            nullable = false,
+            foreignKey = @ForeignKey(name = "FK_BenhNhan_NguoiDung")
+    )
     private NguoiDung nguoiDung;
+
+    @Column(name = "HoTen", nullable = false, length = 255)
+    private String hoTen;
+
+    @Column(name = "MoiQuanHe", nullable = false, length = 50)
+    private String moiQuanHe = "BanThan";
+
+    @Column(name = "LaHoSoMacDinh", nullable = false)
+    private Boolean laHoSoMacDinh = false;
 
     @Column(name = "NgaySinh")
     private LocalDate ngaySinh;
@@ -45,6 +64,30 @@ public class BenhNhan {
 
     public void setNguoiDung(NguoiDung nguoiDung) {
         this.nguoiDung = nguoiDung;
+    }
+
+    public String getHoTen() {
+        return hoTen;
+    }
+
+    public void setHoTen(String hoTen) {
+        this.hoTen = hoTen;
+    }
+
+    public String getMoiQuanHe() {
+        return moiQuanHe;
+    }
+
+    public void setMoiQuanHe(String moiQuanHe) {
+        this.moiQuanHe = moiQuanHe;
+    }
+
+    public Boolean getLaHoSoMacDinh() {
+        return laHoSoMacDinh;
+    }
+
+    public void setLaHoSoMacDinh(Boolean laHoSoMacDinh) {
+        this.laHoSoMacDinh = laHoSoMacDinh;
     }
 
     public LocalDate getNgaySinh() {

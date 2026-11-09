@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{Admin/fragments/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phân công chuyên trách | MedCare</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              href="/Css/Admin/phan-cong-chuyen-trach.css">
+    </th:block>
+</head>
+
+<body>
+<div layout:fragment="content" class="pctc-page">
+
+    <!-- Tiêu đề -->
+    <section class="pctc-heading">
+        <div>
+            <h1>Phân công chuyên trách</h1>
+            <p>
+                Quản lý lịch làm việc và gửi thông báo phân công
+                đến nhân viên chuyên trách.
+            </p>
+        </div>
+
+        <button type="button"
+                class="pctc-btn pctc-primary"
+                id="btnOpenCreate">
+            <span>＋</span> Tạo và gửi lịch
+        </button>
+    </section>
+
+    <!-- Thống kê -->
+    <section class="pctc-stats">
+        <article class="pctc-stat-card">
+            <span>Tổng lịch phân công</span>
+            <h2 id="statTotal">0</h2>
+            <small>Tất cả ca làm việc</small>
+        </article>
+
+        <article class="pctc-stat-card">
+            <span>Đang hoạt động</span>
+            <h2 id="statActive">0</h2>
+            <small>Trong thời gian làm việc</small>
+        </article>
+
+        <article class="pctc-stat-card">
+            <span>Sắp diễn ra</span>
+            <h2 id="statUpcoming">0</h2>
+            <small>Các ca đã được phân công</small>
+        </article>
+    </section>
+
+    <!-- Danh sách lịch -->
+    <section class="pctc-panel">
+
+        <header>
+            <div>
+                <h2>Danh sách lịch làm việc</h2>
+                <p>Theo dõi các ca đã phân công cho Chuyên trách.</p>
+            </div>
+
+            <button type="button"
+                    class="pctc-btn pctc-outline"
+                    id="btnRefresh">
+                ↻
+            </button>
+        </header>
+
+        <!-- Bộ lọc -->
+        <div class="pctc-filters">
+
+            <label>
+                Tìm kiếm
+                <input type="search"
+                       id="filterSearch"
+                       placeholder="Ngày, người phân công, ghi chú...">
+            </label>
+
+            <label>
+                Từ ngày
+                <input type="date" id="filterFrom">
+            </label>
+
+            <label>
+                Đến ngày
+                <input type="date" id="filterTo">
+            </label>
+
+            <label>
+                Trạng thái
+                <select id="filterStatus">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="active">Đang hoạt động</option>
+                    <option value="upcoming">Sắp diễn ra</option>
+                    <option value="ended">Đã kết thúc</option>
+                    <option value="inactive">Ngừng hoạt động</option>
+                </select>
+            </label>
+
+            <button type="button"
+                    class="pctc-btn pctc-outline"
+                    id="btnResetFilter">
+                Xóa lọc
+            </button>
+        </div>
+
+        <div id="pageMessage"
+             class="pctc-alert"
+             role="status"
+             hidden></div>
+
+        <!-- Bảng -->
+        <div class="pctc-table-wrap">
+            <table>
+                <thead>
+                <tr>
+                    <th>STT</th>
+                    <th>Ngày làm việc</th>
+                    <th>Nhân viên chuyên trách</th>
+                    <th>Giờ bắt đầu</th>
+                    <th>Giờ kết thúc</th>
+                    <th>Người phân công</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
+
+                <tbody id="assignmentTableBody">
+                <tr>
+                    <td colspan="8">Đang tải dữ liệu...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer id="tableSummary">
+            Đang tải dữ liệu...
+        </footer>
+    </section>
+
+    <!-- Modal tạo lịch -->
+    <div class="pctc-modal"
+         id="createModal"
+         aria-hidden="true">
+
+        <div class="pctc-backdrop" data-close-modal></div>
+
+        <section class="pctc-dialog"
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="modalTitle">
+
+            <header>
+                <div>
+                    <h2 id="modalTitle">Tạo và gửi lịch làm việc</h2>
+                    <p>
+                        Chọn nhân viên chuyên trách và thiết lập thời gian làm việc.
+                        Hệ thống sẽ gửi thông báo riêng đến từng nhân viên được chọn.
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="pctc-x"
+                        id="btnCloseModal">×</button>
+            </header>
+
+            <form id="assignmentForm">
+
+                <div class="pctc-body">
+
+                    <!-- Tài khoản chuyên trách -->
+
+                    <!-- Chọn nhiều nhân viên chuyên trách -->
+                    <div class="pctc-field">
+                        <label>
+                            Nhân viên chuyên trách <em>*</em>
+                        </label>
+
+                        <div class="pctc-multi-select" id="specialistDropdown">
+
+                            <!-- Nút mở dropdown -->
+                            <button type="button"
+                                    class="pctc-multi-select-trigger"
+                                    id="specialistDropdownTrigger"
+                                    aria-expanded="false">
+
+            <span id="specialistSelectedText">
+                Chọn nhân viên chuyên trách
+            </span>
+
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </button>
+
+                            <!-- Danh sách xổ xuống -->
+                            <div class="pctc-multi-select-panel"
+                                 id="specialistDropdownPanel"
+                                 hidden>
+
+                                <div class="pctc-multi-select-search">
+                                    <input type="text"
+                                           id="specialistSearch"
+                                           placeholder="Tìm kiếm nhân viên chuyên trách...">
+                                </div>
+
+                                <div class="pctc-multi-select-actions">
+                                    <button type="button"
+                                            id="btnSelectAllSpecialists">
+                                        Chọn tất cả
+                                    </button>
+
+                                    <button type="button"
+                                            id="btnClearSpecialists">
+                                        Bỏ chọn
+                                    </button>
+                                </div>
+
+                                <div id="specialistList"
+                                     class="pctc-specialist-list">
+
+                <span class="pctc-loading">
+                    Đang tải danh sách nhân viên...
+                </span>
+
+                                </div>
+
+                                <div class="pctc-multi-select-footer">
+                <span id="specialistSelectedCount">
+                    Đã chọn 0 nhân viên
+                </span>
+
+                                    <button type="button"
+                                            id="btnCloseSpecialistDropdown">
+                                        Xong
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Ngày làm việc -->
+                    <label>
+                        Ngày làm việc <em>*</em>
+                        <input type="date"
+                               id="workDate"
+                               required>
+                    </label>
+
+                    <!-- Khung giờ -->
+                    <div class="pctc-two">
+                        <label>
+                            Giờ bắt đầu <em>*</em>
+                            <input type="time"
+                                   id="startTime"
+                                   value="07:00"
+                                   required>
+                        </label>
+
+                        <label>
+                            Giờ kết thúc <em>*</em>
+                            <input type="time"
+                                   id="endTime"
+                                   value="11:30"
+                                   required>
+                        </label>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    <label>
+                        Ghi chú
+                        <small>(Không bắt buộc)</small>
+
+                        <textarea id="note"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Nội dung công việc hoặc lưu ý cho ca làm..."></textarea>
+                    </label>
+
+                    <div class="pctc-note">
+                        ⓘ Không được tạo hai ca có thời gian bị chồng lấn.
+                        Hai ca liền kề như 07:00–11:30 và 11:30–17:00
+                        vẫn hợp lệ. Khi lưu thành công, hệ thống gửi
+                        thông báo đến Chuyên trách.
+                    </div>
+
+                    <div id="formMessage"
+                         class="pctc-alert"
+                         role="alert"
+                         hidden></div>
+                </div>
+
+                <footer>
+                    <button type="button"
+                            class="pctc-btn pctc-outline"
+                            id="btnCancelCreate">
+                        Hủy
+                    </button>
+
+                    <button type="submit"
+                            class="pctc-btn pctc-primary"
+                            id="btnSubmitCreate">
+                        Lưu và gửi thông báo
+                    </button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <!-- Modal chi tiết -->
+    <div class="pctc-modal"
+         id="detailModal"
+         aria-hidden="true">
+
+        <div class="pctc-backdrop" data-close-detail></div>
+
+        <section class="pctc-dialog">
+
+            <header>
+                <div>
+                    <h2>Chi tiết lịch phân công</h2>
+                    <p>Thông tin ca làm việc đã giao.</p>
+                </div>
+
+                <button type="button"
+                        class="pctc-x"
+                        id="btnCloseDetail">×</button>
+            </header>
+
+            <div class="pctc-body" id="detailContent"></div>
+
+            <footer>
+                <button type="button"
+                        class="pctc-btn pctc-outline"
+                        id="btnCloseDetailFooter">
+                    Đóng
+                </button>
+            </footer>
+        </section>
+    </div>
+
+    <th:block layout:fragment="js">
+        <script src="/Js/Admin/phan-cong-chuyen-trach.js"></script>
+    </th:block>
+
+</div>
+</body>
+</html>

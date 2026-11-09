@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<html lang="vi"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{ChuyenTrach/layout}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Lịch làm việc của tôi</title>
+
+    <th:block layout:fragment="css">
+        <link rel="stylesheet"
+              th:href="@{/Css/ChuyenTrach/lich-lam-viec.css}">
+    </th:block>
+</head>
+
+<body>
+
+<section layout:fragment="content" class="ct-schedule-page">
+
+    <!-- TIÊU ĐỀ -->
+    <div class="ct-page-heading">
+        <div>
+            <h1>
+                <i class="fa-regular fa-calendar-check"></i>
+                Lịch làm việc của tôi
+            </h1>
+            <p>
+                Theo dõi thời gian làm việc được Admin phân công.
+            </p>
+        </div>
+
+        <button type="button"
+                class="ct-btn-outline"
+                id="btnRefresh">
+            <i class="fa-solid fa-rotate"></i>
+            Làm mới
+        </button>
+    </div>
+
+    <!-- THỐNG KÊ -->
+    <div class="ct-summary-grid">
+
+        <div class="ct-summary-card">
+            <div class="ct-summary-icon blue">
+                <i class="fa-regular fa-calendar"></i>
+            </div>
+
+            <div class="ct-summary-info">
+                <span>Tổng phân công</span>
+                <strong id="totalSchedules">0</strong>
+            </div>
+        </div>
+
+        <div class="ct-summary-card">
+            <div class="ct-summary-icon green">
+                <i class="fa-regular fa-clock"></i>
+            </div>
+
+            <div class="ct-summary-info">
+                <span>Lịch sắp tới</span>
+                <strong id="upcomingSchedules">0</strong>
+            </div>
+        </div>
+
+        <div class="ct-summary-card">
+            <div class="ct-summary-icon orange">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+
+            <div class="ct-summary-info">
+                <span>Đã hoàn thành</span>
+                <strong id="completedSchedules">0</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BỘ LỌC -->
+    <div class="ct-schedule-toolbar">
+
+        <div class="ct-filter-group">
+
+            <div class="ct-filter-item">
+                <label for="filterFrom">Từ ngày</label>
+                <input type="date" id="filterFrom">
+            </div>
+
+            <div class="ct-filter-item">
+                <label for="filterTo">Đến ngày</label>
+                <input type="date" id="filterTo">
+            </div>
+
+            <button type="button"
+                    class="ct-btn-outline"
+                    id="btnFilter">
+                <i class="fa-solid fa-filter"></i>
+                Lọc lịch
+            </button>
+
+            <button type="button"
+                    class="ct-btn-outline"
+                    id="btnReset">
+                <i class="fa-solid fa-rotate-left"></i>
+                Đặt lại
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- KHU VỰC LỊCH -->
+    <div class="ct-schedule-workspace">
+
+        <!-- LỊCH THEO TUẦN -->
+        <section class="ct-calendar-card">
+
+            <div class="ct-calendar-toolbar">
+
+                <div>
+                    <h2>
+                        <i class="fa-regular fa-calendar-days"></i>
+                        Lịch theo tuần
+                    </h2>
+
+                    <p id="calendarDateRange">
+                        Đang tải lịch...
+                    </p>
+                </div>
+
+                <div class="ct-calendar-navigation">
+
+                    <button type="button"
+                            class="ct-btn-outline"
+                            id="btnPrevWeek"
+                            aria-label="Tuần trước">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+
+                    <button type="button"
+                            class="ct-btn-outline"
+                            id="btnToday">
+                        Hôm nay
+                    </button>
+
+                    <button type="button"
+                            class="ct-btn-outline"
+                            id="btnNextWeek"
+                            aria-label="Tuần sau">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- CHÚ THÍCH -->
+
+            <div class="ct-calendar-legend">
+                <span>
+                    <i class="ct-legend-dot blue"></i>
+                    Sắp diễn ra
+                </span>
+
+                            <span>
+                    <i class="ct-legend-dot current"></i>
+                    Đang diễn ra
+                </span>
+
+                <span>
+                    <i class="ct-legend-dot green"></i>
+                    Đã hoàn thành
+                </span>
+
+                <span>
+                    <i class="ct-legend-dot red"></i>
+                    Đã hủy
+                </span>
+            </div>
+
+            <!-- LỊCH -->
+            <div class="ct-calendar-scroll">
+
+                <div class="ct-calendar-grid"
+                     id="calendarGrid">
+
+                    <div class="ct-calendar-loading">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        Đang tải lịch phân công...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- DANH SÁCH PHÂN CÔNG -->
+        <aside class="ct-schedule-list-card">
+
+            <div class="ct-schedule-list-header">
+
+                <div>
+                    <h2>Danh sách phân công</h2>
+
+                    <p id="scheduleListSubtitle">
+                        Các ca làm việc của bạn
+                    </p>
+                </div>
+
+                <span class="ct-result-count"
+                      id="resultCount">
+                    0 lịch
+                </span>
+
+            </div>
+
+            <div class="ct-schedule-list-content"
+                 id="scheduleListContent">
+
+                <div class="ct-schedule-list-empty">
+                    <i class="fa-regular fa-calendar"></i>
+                    <p>Đang tải dữ liệu...</p>
+                </div>
+
+            </div>
+
+        </aside>
+
+    </div>
+
+    <!-- MODAL CHI TIẾT -->
+    <div class="ct-modal-overlay"
+         id="detailModal"
+         hidden>
+
+        <div class="ct-modal-dialog ct-detail-modal-dialog">
+
+            <div class="ct-modal-header">
+
+                <div>
+                    <h2>
+                        <i class="fa-regular fa-calendar-check"></i>
+                        Chi tiết lịch làm việc
+                    </h2>
+
+                    <p>
+                        Thông tin lịch làm việc do Admin phân công.
+                    </p>
+                </div>
+
+                <button type="button"
+                        class="ct-icon-button"
+                        id="btnCloseDetailModal"
+                        aria-label="Đóng">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+            </div>
+
+            <div id="detailModalContent"
+                 class="ct-detail-modal-content">
+            </div>
+
+            <div class="ct-modal-actions">
+
+                <button type="button"
+                        class="ct-btn-outline"
+                        id="btnCloseDetail">
+                    Đóng
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- THÔNG BÁO -->
+    <div class="ct-toast-message"
+         id="toastMessage"
+         hidden>
+    </div>
+
+</section>
+
+<!-- JAVASCRIPT -->
+<th:block layout:fragment="js">
+    <script th:src="@{/Js/ChuyenTrach/lich-lam-viec.js}"></script>
+</th:block>
+
+</body>
+</html>

@@ -54,6 +54,7 @@ public class HoSoBenhAn {
     @Column(name = "HuyetApTamTruong")
     private Integer huyetApTamTruong;
 
+
     public Integer getMaHoSoBenhAn() {
         return maHoSoBenhAn;
     }

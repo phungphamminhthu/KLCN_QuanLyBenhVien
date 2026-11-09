@@ -38,6 +38,10 @@ public class RegistrationService {
         this.otpService = otpService;
     }
 
+
+    // ==============================================
+    // DANG KY TAI KHOAN VAO NGUOIDUNG - BENHNHAN
+    // ==============================================
     @Transactional
     public NguoiDung registerPatient(RegisterRequest request) {
 
@@ -70,22 +74,25 @@ public class RegistrationService {
                     "Mật khẩu phải có ít nhất 8 ký tự.");
         }
 
+        // Chuẩn hóa dữ liệu
         String email = request.getEmail()
                 .trim().toLowerCase(Locale.ROOT);
 
         String tenDangNhap = request.getTenDangNhap().trim();
 
+        String hoTen = request.getHoTen().trim();
+
         String soDienThoai = request.getSoDienThoai() == null
                 ? ""
                 : request.getSoDienThoai().trim();
 
-        // 1. Kiểm tra xác minh OTP.
+        // 1. Kiểm tra xác minh OTP
         if (!otpService.isEmailVerified(email)) {
             throw new IllegalArgumentException(
                     "Email chưa được xác minh OTP hoặc OTP đã hết hạn.");
         }
 
-        // 2. Kiểm tra dữ liệu trùng.
+        // 2. Kiểm tra dữ liệu trùng
         if (nguoiDungRepository.existsByEmailIgnoreCase(email)) {
             throw new IllegalArgumentException(
                     "Email này đã được sử dụng.");
@@ -102,72 +109,76 @@ public class RegistrationService {
                     "Số điện thoại này đã được sử dụng.");
         }
 
-        // 3. Tìm vai trò bệnh nhân.
+        // 3. Tìm vai trò bệnh nhân
         VaiTro vaiTro = vaiTroRepository
                 .findByTenVaiTroIgnoreCase("BENHNHAN")
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Không tìm thấy vai trò BENHNHAN."));
 
-        // 4. Tạo tài khoản người dùng.
+        // 4. Tạo tài khoản người dùng
         NguoiDung nguoiDung = new NguoiDung();
+
         nguoiDung.setEmail(email);
         nguoiDung.setTenDangNhap(tenDangNhap);
         nguoiDung.setMatKhau(
                 passwordEncoder.encode(request.getMatKhau()));
-        nguoiDung.setHoTen(request.getHoTen().trim());
+        nguoiDung.setHoTen(hoTen);
+
         nguoiDung.setSoDienThoai(
                 soDienThoai.isEmpty() ? null : soDienThoai);
+
         nguoiDung.setVaiTro(vaiTro);
         nguoiDung.setTrangThai(true);
 
         NguoiDung savedUser =
                 nguoiDungRepository.saveAndFlush(nguoiDung);
 
-
-        // 5. Tạo hồ sơ bệnh nhân và lưu thông tin từ DTO.
+        // 5. Tạo hồ sơ bệnh nhân
         BenhNhan benhNhan = new BenhNhan();
 
-        // Liên kết hồ sơ với tài khoản vừa tạo.
+        // Liên kết hồ sơ với tài khoản
         benhNhan.setNguoiDung(savedUser);
 
-        // Ngày sinh.
+        // Họ tên bệnh nhân
+        // QUAN TRỌNG: Phải gán HoTen vì cột này không cho phép NULL
+        benhNhan.setHoTen(hoTen);
+
+        // Ngày sinh
         benhNhan.setNgaySinh(request.getNgaySinh());
 
-        // Giới tính.
+        // Giới tính
         benhNhan.setGioiTinh(
                 request.getGioiTinh() == null
                         ? null
                         : request.getGioiTinh().trim()
         );
 
-        // Địa chỉ.
+        // Địa chỉ
         benhNhan.setDiaChi(
                 request.getDiaChi() == null
                         ? null
                         : request.getDiaChi().trim()
         );
 
-        // Số điện thoại liên hệ khẩn cấp.
+        // Số điện thoại liên hệ khẩn cấp
         benhNhan.setSoDienThoaiKhanCap(
                 request.getSoDienThoaiKhanCap() == null
                         ? null
                         : request.getSoDienThoaiKhanCap().trim()
         );
 
-        // Tiền sử bệnh.
+        // Tiền sử bệnh
         benhNhan.setTienSuBenh(
                 request.getTienSuBenh() == null
                         ? null
                         : request.getTienSuBenh().trim()
         );
 
-        // Lưu hồ sơ bệnh nhân.
+        // Lưu hồ sơ bệnh nhân
         benhNhanRepository.saveAndFlush(benhNhan);
-//        benhNhan.setSoDienThoaiKhanCap(
-//                request.getSoDienThoaiKhanCap()
-//        );
-        // 6. Xóa OTP sau khi tạo tài khoản và hồ sơ thành công.
+
+        // 6. Xóa OTP sau khi tạo tài khoản và hồ sơ thành công
         if (!otpService.consumeEmailVerification(email)) {
             throw new IllegalArgumentException(
                     "Xác minh email đã hết hạn. Vui lòng đăng ký lại.");
@@ -175,4 +186,5 @@ public class RegistrationService {
 
         return savedUser;
     }
+
 }

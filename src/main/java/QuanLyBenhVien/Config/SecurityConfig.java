@@ -58,6 +58,11 @@ public class SecurityConfig {
                                 "/api/sepay/webhook"
                         ).permitAll()
 
+                        // API Chatbot AI: chỉ bệnh nhân được sử dụng
+                        .requestMatchers("/api/chatbot/**")
+                        .hasRole("BENHNHAN")
+
+
                         // Public routes
                         .requestMatchers(
                                 SecurityRouteConfig.PUBLIC_ROUTES
@@ -99,6 +104,18 @@ public class SecurityConfig {
                                 "/api/thanh-toan/lich-kham/*/hoa-don"
                         ).permitAll()
 
+                        // Nhân viên tiếp nhận xem lịch phân công của chính mình
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/phan-cong-tiep-nhan/cua-toi"
+                        ).hasRole("TIEPNHAN")
+
+                        // Chuyên trách xem lịch phân công của chính mình
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/phan-cong-chuyen-trach/cua-toi"
+                        ).hasRole("CHUYENTRACH")
+
                         // API Admin
                         .requestMatchers(
                                 SecurityRoleConfig.ADMIN_APIS
@@ -114,10 +131,16 @@ public class SecurityConfig {
                                 SecurityRoleConfig.TIEPNHAN_APIS
                         ).hasRole("TIEPNHAN")
 
+                        // Trang web dành cho nhân viên tiếp nhận
+                        .requestMatchers(
+                                "/TiepNhan/**"
+                        ).hasRole("TIEPNHAN")
+
                         // API hồ sơ bệnh án
                         .requestMatchers(
                                 SecurityRoleConfig.MEDICAL_RECORD_APIS
                         ).hasAnyRole("BENHNHAN", "BACSI", "ADMIN")
+
 
                         // API thiết bị FCM: Bệnh nhân
                         .requestMatchers(

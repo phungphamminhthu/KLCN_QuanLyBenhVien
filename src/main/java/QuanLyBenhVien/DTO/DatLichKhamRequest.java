@@ -19,6 +19,16 @@ public class DatLichKhamRequest {
     @NotNull
     private LocalTime gioKham;
 
+    private Integer maBenhNhan;
+
+    public Integer getMaBenhNhan() {
+        return maBenhNhan;
+    }
+
+    public void setMaBenhNhan(Integer maBenhNhan) {
+        this.maBenhNhan = maBenhNhan;
+    }
+
     public Integer getMaLichLamViec() {
         return maLichLamViec;
     }
