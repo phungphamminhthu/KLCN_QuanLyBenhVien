@@ -89,43 +89,85 @@ public class PhanQuyenService {
         return ketQua;
     }
 
+    // ======================================
     // Lưu phân quyền
-    // Lưu phân quyền
+    // =======================================
+
     @Transactional
     public void capNhatPhanQuyen(
             Integer maVaiTro,
             List<QuyenItemDTO> danhSachQuyen
     ) {
         if (maVaiTro == null) {
-            throw new IllegalArgumentException("Mã vai trò không được để trống");
+            throw new IllegalArgumentException(
+                    "Mã vai trò không được để trống"
+            );
         }
 
         VaiTro vaiTro = vaiTroRepository.findById(maVaiTro)
                 .orElseThrow(() ->
-                        new RuntimeException("Không tìm thấy vai trò: " + maVaiTro));
+                        new RuntimeException("Không tìm thấy vai trò: " + maVaiTro)
+                );
 
-        if (danhSachQuyen == null) {
-            throw new IllegalArgumentException("Danh sách quyền không được để trống");
+        // Không cho chỉnh sửa quyền bệnh nhân trên màn hình phân quyền nhân viên.
+        if ("BENHNHAN".equalsIgnoreCase(vaiTro.getTenVaiTro())) {
+            throw new IllegalArgumentException(
+                    "Không thể phân quyền bệnh nhân tại màn hình này"
+            );
         }
 
+        if (danhSachQuyen == null || danhSachQuyen.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Danh sách quyền không được để trống"
+            );
+        }
+
+        // Lấy toàn bộ quyền hiện có trong hệ thống.
+        List<Quyen> tatCaQuyen =
+                quyenRepository.findAllByOrderByTenQuyenAsc();
+
+        // Kiểm tra danh sách gửi lên có đầy đủ quyền không.
+        if (danhSachQuyen.size() != tatCaQuyen.size()) {
+            throw new IllegalArgumentException(
+                    "Danh sách quyền không đầy đủ. Vui lòng tải lại trang."
+            );
+        }
+
+        Set<Integer> maQuyenDaGui = new HashSet<>();
+
         for (QuyenItemDTO dto : danhSachQuyen) {
-            if (dto == null) {
-                throw new IllegalArgumentException("Phần tử quyền không hợp lệ");
+            if (dto == null || dto.getMaQuyen() == null) {
+                throw new IllegalArgumentException(
+                        "Thông tin quyền không hợp lệ"
+                );
             }
 
             Integer maQuyen = dto.getMaQuyen();
 
-            if (maQuyen == null) {
+            // Không cho gửi trùng mã quyền.
+            if (!maQuyenDaGui.add(maQuyen)) {
                 throw new IllegalArgumentException(
-                        "Mã quyền bị null. Kiểm tra DTO và dữ liệu gửi từ JavaScript."
+                        "Mã quyền bị trùng: " + maQuyen
                 );
             }
 
+            // Kiểm tra mã quyền có tồn tại.
             Quyen quyen = quyenRepository.findById(maQuyen)
                     .orElseThrow(() ->
-                            new RuntimeException("Không tìm thấy quyền: " + maQuyen));
+                            new RuntimeException(
+                                    "Không tìm thấy quyền: " + maQuyen
+                            )
+                    );
 
-            // Tìm bản ghi phân quyền hiện có, nếu chưa có thì tạo mới
+            // Bảo vệ quyền truy cập màn hình phân quyền của Admin.
+            if ("ADMIN".equalsIgnoreCase(vaiTro.getTenVaiTro())
+                    && maQuyen == 43
+                    && (!dto.isQuyenXem() || !dto.isQuyenSua())) {
+                throw new IllegalArgumentException(
+                        "Không thể bỏ quyền xem hoặc sửa chức năng Phân quyền của Admin"
+                );
+            }
+
             CTQuyen ct = ctQuyenRepository.timTheoVaiTroVaQuyen(
                     maVaiTro,
                     maQuyen
@@ -141,4 +183,5 @@ public class PhanQuyenService {
             ctQuyenRepository.save(ct);
         }
     }
+
 }
