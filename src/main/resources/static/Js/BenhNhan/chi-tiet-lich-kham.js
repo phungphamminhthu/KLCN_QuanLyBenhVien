@@ -1,4 +1,3 @@
-
 (() => {
     "use strict";
 
@@ -13,6 +12,37 @@
         retry: $("retryButton"),
         paymentButton: $("paymentButton")
     };
+
+    // Một tài khoản có thể quản lý nhiều hồ sơ bệnh nhân.
+    // Luôn lấy lịch theo hồ sơ đang được chọn, không dùng toàn bộ tài khoản.
+    function getToken() {
+        return sessionStorage.getItem("Token")
+            || localStorage.getItem("Token")
+            || "";
+    }
+
+    function getSelectedPatientId() {
+        const selectedId = sessionStorage.getItem("MaBenhNhanDangChon")
+            || localStorage.getItem("MaBenhNhanDangChon");
+        const rawProfile = sessionStorage.getItem("HoSoBenhNhanDangChon")
+            || localStorage.getItem("HoSoBenhNhanDangChon");
+
+        if (!selectedId || !rawProfile) return null;
+
+        try {
+            const profile = JSON.parse(rawProfile);
+            const profileId = profile?.maBenhNhan ?? profile?.MaBenhNhan;
+            const id = Number(selectedId);
+            if (!Number.isSafeInteger(id) || id <= 0
+                || String(profileId) !== String(selectedId)) {
+                return null;
+            }
+            return id;
+        } catch (error) {
+            console.error("Không đọc được hồ sơ bệnh nhân đang chọn:", error);
+            return null;
+        }
+    }
 
     function number(value) {
         const result = Number(value);
@@ -56,7 +86,7 @@
 
     async function getJson(url) {
         // Dự án đang lưu JWT trong sessionStorage với key Token
-        const token = sessionStorage.getItem("Token");
+        const token = getToken();
 
         if (!token) {
             throw new Error(
@@ -114,31 +144,10 @@
         element.className = `status-badge ${type || ""}`.trim();
     }
 
-    async function layLichKhamCuaToi() {
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-            alert("Vui lòng đăng nhập để xem lịch khám.");
-            window.location.href = "/auth/login";
-            return;
-        }
-
-        const response = await fetch("/api/lich-kham/cua-toi", {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Accept": "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            const error = await response.json().catch(() => ({}));
-            throw new Error(
-                error.message || "Không thể tải lịch khám."
-            );
-        }
-
-        return await response.json();
+    async function layLichKhamCuaToi(maBenhNhan) {
+        return getJson(
+            `/api/lich-kham/cua-toi?maBenhNhan=${encodeURIComponent(maBenhNhan)}`
+        );
     }
 
     function appointmentStatusType(status) {
@@ -272,6 +281,7 @@
         const canPay = remaining > 0 && !cancelled && Boolean(unpaidInvoice);
 
         elements.paymentButton.hidden = !canPay;
+        elements.paymentButton.onclick = null;
 
         if (canPay) {
             elements.paymentButton.onclick = () => {
@@ -309,7 +319,14 @@
                 throw new Error("Mã lịch khám không hợp lệ.");
             }
 
-            const appointments = await getJson("/api/lich-kham/cua-toi");
+            const maBenhNhan = getSelectedPatientId();
+            if (!maBenhNhan) {
+                throw new Error(
+                    "Bạn chưa chọn hồ sơ bệnh nhân. Vui lòng quay lại trang chủ để chọn hồ sơ."
+                );
+            }
+
+            const appointments = await layLichKhamCuaToi(maBenhNhan);
 
             if (!Array.isArray(appointments)) {
                 throw new Error("Dữ liệu lịch khám không đúng định dạng.");
@@ -341,6 +358,10 @@
             } catch (error) {
                 console.error("Không tải được danh sách hóa đơn:", error);
                 // Vẫn hiển thị thông tin lịch nếu API hóa đơn gặp lỗi.
+            }
+
+            if (getSelectedPatientId() !== maBenhNhan) {
+                throw new Error("Hồ sơ bệnh nhân đã thay đổi. Vui lòng tải lại trang.");
             }
 
             renderAppointment(appointment, invoices);
@@ -414,7 +435,7 @@
 
     async function paymentGetJson(url) {
         // Cùng key JWT đang dùng trong ứng dụng bệnh nhân.
-        const token = sessionStorage.getItem("Token");
+        const token = getToken();
 
         if (!token) {
             throw new Error(
@@ -444,6 +465,10 @@
     }
 
     async function openPayment(invoiceId) {
+        if (!getSelectedPatientId()) {
+            alert("Bạn chưa chọn hồ sơ bệnh nhân hợp lệ.");
+            return;
+        }
         const id = Number(invoiceId);
 
         if (!Number.isSafeInteger(id) || id <= 0) {
@@ -497,7 +522,7 @@
 
             await checkPaymentStatus();
 
-            if (currentInvoiceId === id && !paymentPaid) {
+            if (currentInvoiceId === id && !paymentPaid && !paymentElements.modal.hidden) {
                 paymentTimer = setInterval(checkPaymentStatus, 3000);
             }
         } catch (error) {

@@ -296,10 +296,20 @@ public class LichDangKyKhamService {
         ctHoaDonRepository.save(chiTiet);
 
         // 14. Tạo thông báo đặt lịch thành công
-        thongBaoService.taoThongBao(
+        String noiDungThongBao =
+                "Bạn đã đặt lịch khám thành công cho "
+                        + benhNhan.getHoTen()
+                        + " vào ngày "
+                        + ngayKham
+                        + " lúc "
+                        + gioKham
+                        + ". Vui lòng theo dõi trạng thái lịch khám.";
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
                 nguoiDung.getMaNguoiDung(),
-                "Đặt lịch thành công",
-                "Lịch khám của bạn đã được ghi nhận. Vui lòng theo dõi trạng thái lịch khám.",
+                benhNhan,
+                "Đặt lịch khám thành công",
+                noiDungThongBao,
                 "DAT_LICH"
         );
 
@@ -318,21 +328,29 @@ public class LichDangKyKhamService {
     }
 
     // =========================================
-    //
+    // lay lich kham cua toi
     // =========================================
-
-
     @Transactional(readOnly = true)
     public List<LichKhamCuaToiResponse> layLichKhamCuaToi(
+            Integer maBenhNhan,
             Authentication authentication) {
 
+        // 1. Kiểm tra đăng nhập
         if (authentication == null
                 || !authentication.isAuthenticated()
                 || "anonymousUser".equals(authentication.getName())) {
+
             throw new IllegalArgumentException(
                     "Vui lòng đăng nhập để xem lịch khám.");
         }
 
+        // 2. Kiểm tra mã hồ sơ
+        if (maBenhNhan == null || maBenhNhan <= 0) {
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn hồ sơ bệnh nhân.");
+        }
+
+        // 3. Lấy tài khoản đang đăng nhập
         String tenDangNhap = authentication.getName();
 
         NguoiDung nguoiDung = nguoiDungRepository
@@ -340,33 +358,46 @@ public class LichDangKyKhamService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy tài khoản đăng nhập."));
 
-        //        benhNhanRepository.findByNguoiDung_MaNguoiDung(
-        //                nguoiDung.getMaNguoiDung()
-        //        ).orElseThrow(() -> new IllegalArgumentException(
-        //                "Tài khoản chưa có hồ sơ bệnh nhân."));
+        // 4. Kiểm tra hồ sơ bệnh nhân có thuộc tài khoản đăng nhập không
+        BenhNhan benhNhan = benhNhanRepository
+                .findByMaBenhNhanAndNguoiDung_MaNguoiDung(
+                        maBenhNhan,
+                        nguoiDung.getMaNguoiDung()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Hồ sơ bệnh nhân không tồn tại hoặc không thuộc tài khoản của bạn."));
 
+        // 5. Chỉ lấy lịch khám của hồ sơ đang được chọn
         List<LichDangKyKham> danhSach =
                 lichRepository
-                        .findByBenhNhan_NguoiDung_MaNguoiDungOrderByNgayKhamDescGioKhamDesc(
-                                nguoiDung.getMaNguoiDung());
+                        .findByBenhNhan_MaBenhNhanOrderByNgayKhamDescGioKhamDesc(
+                                benhNhan.getMaBenhNhan()
+                        );
 
+        // 6. Chuyển dữ liệu sang DTO
         return danhSach.stream()
                 .map(lich -> {
+
                     SoThuTu stt = lich.getSoThuTu();
 
+                    // Lấy danh sách hóa đơn của lịch khám
                     List<HoaDon> danhSachHoaDon =
                             hoaDonRepository.findByLichDangKyKham_MaLichKham(
-                                    lich.getMaLichKham());
+                                    lich.getMaLichKham()
+                            );
 
+                    // Loại bỏ hóa đơn đã hủy
                     List<HoaDon> hoaDonHopLe = danhSachHoaDon.stream()
                             .filter(h -> !"DaHuy".equals(h.getTrangThai()))
                             .toList();
 
+                    // Tổng chi phí
                     BigDecimal tongChiPhi = hoaDonHopLe.stream()
                             .map(HoaDon::getTongTien)
                             .filter(t -> t != null)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+                    // Tổng tiền đã thanh toán
                     BigDecimal tongDaThanhToan =
                             thanhToanRepository.tinhTongDaThanhToanTheoLichKham(
                                     lich.getMaLichKham(),
@@ -377,6 +408,7 @@ public class LichDangKyKhamService {
                         tongDaThanhToan = BigDecimal.ZERO;
                     }
 
+                    // Số tiền còn lại
                     BigDecimal soTienConLai =
                             tongChiPhi.subtract(tongDaThanhToan);
 
@@ -384,9 +416,11 @@ public class LichDangKyKhamService {
                         soTienConLai = BigDecimal.ZERO;
                     }
 
+                    // Lấy tên phòng khám
                     String tenPhong = null;
 
-                    if (lich.getBacSi() != null && lich.getNgayKham() != null
+                    if (lich.getBacSi() != null
+                            && lich.getNgayKham() != null
                             && lich.getGioKham() != null) {
 
                         List<LichLamViec> cacCaLamViec =
@@ -400,10 +434,14 @@ public class LichDangKyKhamService {
 
                         if (!cacCaLamViec.isEmpty()
                                 && cacCaLamViec.get(0).getPhong() != null) {
-                            tenPhong = cacCaLamViec.get(0).getPhong().getTenPhong();
+
+                            tenPhong = cacCaLamViec.get(0)
+                                    .getPhong()
+                                    .getTenPhong();
                         }
                     }
 
+                    // Trả dữ liệu lịch khám
                     return new LichKhamCuaToiResponse(
                             lich.getMaLichKham(),
                             stt != null ? stt.getMaSoThuTu() : null,
@@ -431,9 +469,11 @@ public class LichDangKyKhamService {
     // ===================================
     // huy lich
     // ===================================
+
     @Transactional
     public void huyLichKham(
             Integer maLichKham,
+            Integer maBenhNhan,
             Authentication authentication) {
 
         // 1. Kiểm tra đăng nhập
@@ -445,13 +485,20 @@ public class LichDangKyKhamService {
             );
         }
 
+        // 2. Kiểm tra dữ liệu đầu vào
         if (maLichKham == null || maLichKham <= 0) {
             throw new IllegalArgumentException(
                     "Mã lịch khám không hợp lệ."
             );
         }
 
-        // 2. Lấy tài khoản đang đăng nhập
+        if (maBenhNhan == null || maBenhNhan <= 0) {
+            throw new IllegalArgumentException(
+                    "Vui lòng chọn hồ sơ bệnh nhân."
+            );
+        }
+
+        // 3. Lấy tài khoản đăng nhập
         String tenDangNhap = authentication.getName();
 
         NguoiDung nguoiDung = nguoiDungRepository
@@ -460,33 +507,33 @@ public class LichDangKyKhamService {
                         "Không tìm thấy tài khoản đăng nhập."
                 ));
 
-        // 3. Lấy hồ sơ bệnh nhân của tài khoản
-        //        BenhNhan benhNhan = benhNhanRepository
-        //                .findByNguoiDung_MaNguoiDung(
-        //                        nguoiDung.getMaNguoiDung()
-        //                )
-        //                .orElseThrow(() -> new IllegalArgumentException(
-        //                        "Tài khoản chưa có hồ sơ bệnh nhân."
-        //                ));
-        // 3. Lấy lịch khám
+        // 4. Xác minh hồ sơ thuộc tài khoản
+        BenhNhan benhNhan = benhNhanRepository
+                .findByMaBenhNhanAndNguoiDung_MaNguoiDung(
+                        maBenhNhan,
+                        nguoiDung.getMaNguoiDung()
+                )
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Hồ sơ bệnh nhân không tồn tại hoặc không thuộc tài khoản của bạn."
+                ));
+
+        // 5. Lấy lịch khám
         LichDangKyKham lich = lichRepository
                 .findById(maLichKham)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Không tìm thấy lịch khám."
                 ));
 
-        // 4. Đảm bảo lịch thuộc một hồ sơ của tài khoản đang đăng nhập
+        // 6. Kiểm tra lịch thuộc đúng hồ sơ đang chọn
         if (lich.getBenhNhan() == null
-                || lich.getBenhNhan().getNguoiDung() == null
-                || !lich.getBenhNhan().getNguoiDung()
-                .getMaNguoiDung()
-                .equals(nguoiDung.getMaNguoiDung())) {
+                || !lich.getBenhNhan().getMaBenhNhan()
+                .equals(benhNhan.getMaBenhNhan())) {
             throw new IllegalArgumentException(
-                    "Bạn không có quyền hủy lịch khám này."
+                    "Lịch khám không thuộc hồ sơ bệnh nhân đang chọn."
             );
         }
 
-        // 6. Chỉ cho hủy ở các trạng thái được phép
+        // 7. Chỉ cho phép hủy ở các trạng thái được phép
         String trangThai = lich.getTrangThai();
 
         List<String> trangThaiChoPhepHuy = List.of(
@@ -501,11 +548,11 @@ public class LichDangKyKhamService {
             );
         }
 
-        // 7. Cập nhật trạng thái lịch khám
+        // 8. Cập nhật trạng thái lịch khám
         lich.setTrangThai("DaHuy");
         lichRepository.save(lich);
 
-        // 8. Cập nhật trạng thái số thứ tự nếu có
+        // 9. Cập nhật số thứ tự
         SoThuTu soThuTu = lich.getSoThuTu();
 
         if (soThuTu != null) {
@@ -513,19 +560,25 @@ public class LichDangKyKhamService {
             soThuTuRepository.save(soThuTu);
         }
 
-        // 9. Thông báo cho bệnh nhân
-        thongBaoService.taoThongBao(
-                nguoiDung.getMaNguoiDung(),
-                "Hủy lịch khám thành công",
-                "Lịch khám ngày "
+        // 10. Thông báo cho tài khoản bệnh nhân
+        String noiDungHuy =
+                "Lịch khám của "
+                        + benhNhan.getHoTen()
+                        + " ngày "
                         + lich.getNgayKham()
                         + " lúc "
                         + lich.getGioKham()
-                        + " đã được hủy.",
+                        + " đã được hủy thành công.";
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
+                nguoiDung.getMaNguoiDung(),
+                benhNhan,
+                "Hủy lịch khám thành công",
+                noiDungHuy,
                 "HUY_LICH"
         );
 
-        // 10. Thông báo cho bác sĩ nếu có tài khoản
+        // 11. Thông báo cho bác sĩ
         if (lich.getBacSi() != null
                 && lich.getBacSi().getNguoiDung() != null) {
 
@@ -534,10 +587,12 @@ public class LichDangKyKhamService {
                             .getNguoiDung()
                             .getMaNguoiDung();
 
-            thongBaoService.taoThongBao(
+            thongBaoService.taoThongBaoVaGuiRealtime(
                     maNguoiDungBacSi,
+                    benhNhan,
                     "Lịch khám đã bị hủy",
-                    "Bệnh nhân đã hủy lịch khám ngày "
+                    "Bệnh nhân " + benhNhan.getHoTen()
+                            + " đã hủy lịch khám ngày "
                             + lich.getNgayKham()
                             + " lúc "
                             + lich.getGioKham()
@@ -546,4 +601,5 @@ public class LichDangKyKhamService {
             );
         }
     }
+
 }

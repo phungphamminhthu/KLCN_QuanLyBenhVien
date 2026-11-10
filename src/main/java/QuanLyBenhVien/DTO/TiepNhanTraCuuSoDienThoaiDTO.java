@@ -1,3 +1,4 @@
+
 package QuanLyBenhVien.DTO;
 
 import java.time.LocalDate;
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 public record TiepNhanTraCuuSoDienThoaiDTO(
         Integer maBenhNhan,
         String hoTen,
+        String moiQuanHe,
         LocalDate ngaySinh,
         String gioiTinh,
         String soDienThoai

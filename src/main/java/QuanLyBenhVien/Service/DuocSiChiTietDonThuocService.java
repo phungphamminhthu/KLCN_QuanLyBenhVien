@@ -61,7 +61,7 @@ public class DuocSiChiTietDonThuocService {
 
                 bn.MaBenhNhan,
 
-                nd_bn.HoTen AS TenBenhNhan,
+                bn.HoTen AS TenBenhNhan,
 
                 bn.GioiTinh,
 
@@ -78,7 +78,7 @@ public class DuocSiChiTietDonThuocService {
                 hs.HuyetApTamThu,
 
                 hs.HuyetApTamTruong,
-                
+ 
                 -- NGÀY TÁI KHÁM
                 hs.NgayTaiKham AS NgayTaiKham,
 
@@ -131,10 +131,6 @@ public class DuocSiChiTietDonThuocService {
             INNER JOIN BenhNhan bn
                 ON bn.MaBenhNhan =
                    lk.MaBenhNhan
-
-            INNER JOIN Nguoidung nd_bn
-                ON nd_bn.MaNguoiDung =
-                   bn.MaNguoiDung
 
             -- =============================================
             -- BÁC SĨ

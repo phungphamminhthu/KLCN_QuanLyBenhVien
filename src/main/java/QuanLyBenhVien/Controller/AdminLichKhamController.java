@@ -74,26 +74,38 @@ public class AdminLichKhamController {
         map.put("lyDoKham", lich.getLyDoKham());
         map.put("trangThai", lich.getTrangThai());
 
+        // Thông tin bác sĩ
         if (lich.getBacSi() != null) {
             map.put("maBacSi", lich.getBacSi().getMaBacSi());
 
             if (lich.getBacSi().getNguoiDung() != null) {
-                map.put("tenBacSi",
-                        lich.getBacSi().getNguoiDung().getHoTen());
+                map.put(
+                        "tenBacSi",
+                        lich.getBacSi().getNguoiDung().getHoTen()
+                );
             }
         }
 
+        // Thông tin bệnh nhân
         if (lich.getBenhNhan() != null) {
-            map.put("maBenhNhan", lich.getBenhNhan().getMaBenhNhan());
+            map.put(
+                    "maBenhNhan",
+                    lich.getBenhNhan().getMaBenhNhan()
+            );
 
-            if (lich.getBenhNhan().getNguoiDung() != null) {
-                map.put("tenBenhNhan",
-                        lich.getBenhNhan().getNguoiDung().getHoTen());
-            }
+            // Lấy tên từ bảng BenhNhan, không lấy từ NguoiDung
+            map.put(
+                    "tenBenhNhan",
+                    lich.getBenhNhan().getHoTen()
+            );
         }
 
+        // Số thứ tự
         if (lich.getSoThuTu() != null) {
-            map.put("soThuTu", lich.getSoThuTu().getSoThuTu());
+            map.put(
+                    "soThuTu",
+                    lich.getSoThuTu().getSoThuTu()
+            );
         }
 
         return map;

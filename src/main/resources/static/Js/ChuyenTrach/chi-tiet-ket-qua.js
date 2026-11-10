@@ -1,7 +1,12 @@
+
 document.addEventListener("DOMContentLoaded", () => {
     "use strict";
 
     const $ = id => document.getElementById(id);
+
+    // ============================================
+    // 1. XÁC ĐỊNH MÃ CHỈ ĐỊNH / MÃ PHIẾU
+    // ============================================
 
     const segments = window.location.pathname
         .split("/")
@@ -27,9 +32,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const labSection = $("ctkqdLabSection");
     const normalSection = $("ctkqdNormalSection");
     const labGroups = $("ctkqdLabGroups");
+    const imageList = $("ctkqdImageList");
+    const objectUrls = new Set();
+
+    function revokeObjectUrls() {
+        objectUrls.forEach(url => URL.revokeObjectURL(url));
+        objectUrls.clear();
+    }
 
     // ============================================
-    // 1. TOKEN VÀ GỌI API
+    // 2. TOKEN VÀ GỌI API
     // ============================================
 
     function getToken() {
@@ -92,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 2. HIỂN THỊ VÀ ĐỊNH DẠNG
+    // 3. HIỂN THỊ VÀ ĐỊNH DẠNG
     // ============================================
 
     function setText(id, value) {
@@ -142,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 3. TÍNH TUỔI
+    // 4. TÍNH TUỔI
     // ============================================
 
     function calculateAge(birthDate) {
@@ -199,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 4. HIỂN THỊ THÔNG TIN BỆNH NHÂN
+    // 5. HIỂN THỊ THÔNG TIN BỆNH NHÂN
     // ============================================
 
     function renderPatient(data) {
@@ -245,169 +257,445 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 5. HIỂN THỊ KẾT QUẢ DỊCH VỤ THÔNG THƯỜNG
-    // ============================================
-
-    function renderNormalResult(data) {
-        if (labSection) {
-            labSection.hidden = true;
-        }
-
-        if (normalSection) {
-            normalSection.hidden = false;
-        }
-
-        renderPatient(data);
-
-        setText(
-            "ctkqdService",
-            data.tenDichVu
-        );
-
-        setText(
-            "ctkqdResultCode",
-            formatCode("KQ", data.maKetQua)
-        );
-
-        setText(
-            "ctkqdOrderCode",
-            formatCode("CD", data.maChiDinh)
-        );
-
-        setText(
-            "ctkqdResultDate",
-            formatDate(data.ngayCoKetQua, true)
-        );
-
-        setText(
-            "ctkqdContent",
-            data.noiDungKetQua ||
-                "Chưa có nội dung kết quả được ghi nhận."
-        );
-
-        setText(
-            "ctkqdConclusion",
-            data.ketLuan ||
-                "Chưa có kết luận chuyên môn được ghi nhận."
-        );
-
-        renderAttachment(data.fileURL);
-    }
-
-    // ============================================
     // 6. KIỂM TRA URL TỆP ĐÍNH KÈM
     // ============================================
 
     function safeFileUrl(value) {
-        if (
-            !value ||
-            typeof value !== "string" ||
-            !value.trim()
-        ) {
+        if (!value || typeof value !== "string") {
             return null;
         }
 
         const raw = value.trim();
 
-        // Chặn ký tự điều khiển trong URL.
-        if (/[\u0000-\u001F\u007F]/.test(raw)) {
+        // Chỉ chấp nhận object key, không chấp nhận URL tùy ý.
+        if (
+            !raw ||
+            raw.startsWith("/") ||
+            raw.includes("..") ||
+            raw.includes("\\") ||
+            /[\u0000-\u001F\u007F]/.test(raw)
+        ) {
             return null;
         }
 
-        try {
-            let url;
+        return new URL(
+            `/api/chuyen-trach/anh-ket-qua?key=${encodeURIComponent(raw)}`,
+            window.location.origin
+        );
+    }
 
-            if (/^https?:\/\//i.test(raw)) {
-                url = new URL(raw);
-            } else if (
-                /^[a-z][a-z0-9+.-]*:/i.test(raw) ||
-                raw.startsWith("//")
-            ) {
-                // Chặn javascript:, data:, file:...
-                return null;
-            } else {
-                url = new URL(
-                    raw.startsWith("/") ? raw : `/${raw}`,
-                    window.location.origin
-                );
-            }
+    //=====================================
+    //
+    // ====================================
+    async function loadProtectedFile(value) {
+        const apiUrl = safeFileUrl(value);
 
-            // HTTPS được phép; HTTP chỉ cho phép cùng origin.
-            if (
-                url.protocol !== "https:" &&
-                !(
-                    url.protocol === "http:" &&
-                    url.origin === window.location.origin
-                )
-            ) {
-                return null;
-            }
-
-            return url;
-        } catch (_) {
-            return null;
+        if (!apiUrl) {
+            throw new Error("Đường dẫn tệp không hợp lệ.");
         }
+
+        const token = getToken();
+
+        if (!token) {
+            throw new Error("Không tìm thấy token đăng nhập.");
+        }
+
+        const response = await fetch(apiUrl.href, {
+            method: "GET",
+            cache: "no-store",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "*/*"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `Không tải được tệp (HTTP ${response.status}).`
+            );
+        }
+
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        objectUrls.add(blobUrl);
+
+        return {
+            blobUrl,
+            fileName: getFileName(apiUrl),
+            blob
+        };
     }
 
     // ============================================
-    // 7. HIỂN THỊ TỆP ĐÍNH KÈM
+    // 7. KIỂM TRA FILE CÓ PHẢI HÌNH ẢNH
     // ============================================
 
-    function renderAttachment(value) {
-        const url = safeFileUrl(value);
+    function isImageFile(url) {
+        if (!url) return false;
 
-        if (fileBox) {
-            fileBox.hidden = !url;
-        }
+        const fileKey = url.searchParams?.get("key");
 
-        if (noFileBox) {
-            noFileBox.hidden = Boolean(url);
-        }
+        if (!fileKey) return false;
 
-        if (!url) return;
+        return /\.(jpg|jpeg|png|gif|webp|bmp)$/i.test(fileKey);
+    }
 
-        let fileName =
-            url.pathname.split("/").filter(Boolean).pop() ||
-            "Tệp kết quả";
+    // ============================================
+    // 8. LẤY TÊN FILE
+    // ============================================
+
+    function getFileName(url, fallback = "Tệp kết quả") {
+        if (!url) return fallback;
+
+        const fileKey = url.searchParams?.get("key");
+
+        if (!fileKey) return fallback;
+
+        let fileName = fileKey.split("/").pop() || fallback;
 
         try {
             fileName = decodeURIComponent(fileName);
         } catch (_) {
-            // Giữ nguyên tên nếu mã hóa không hợp lệ.
+            // Giữ nguyên tên file.
         }
 
-        setText("ctkqdFileName", fileName);
+        return fileName;
+    }
+
+    // ============================================
+    // 9. TẠO PHẦN TỬ HIỂN THỊ ẢNH
+    // ============================================
+
+async function createImageItem(imageData) {
+    if (!imageData || !imageData.fileURL) {
+        return null;
+    }
+
+    const apiUrl = safeFileUrl(imageData.fileURL);
+
+    if (!apiUrl || !isImageFile(apiUrl)) {
+        return null;
+    }
+
+    const item = document.createElement("div");
+    item.className = "ctkqd-image-item";
+
+    const img = document.createElement("img");
+    img.className = "ctkqd-image";
+    img.alt = "Ảnh kết quả CLS";
+    img.loading = "lazy";
+
+    try {
+        const file = await loadProtectedFile(imageData.fileURL);
+
+        img.src = file.blobUrl;
+
+    } catch (error) {
+        console.error(
+            "Không thể tải ảnh:",
+            imageData.fileURL,
+            error
+        );
+
+        item.classList.add("ctkqd-image-error");
+        img.alt = "Không thể tải hình ảnh";
+
+        return item;
+    }
+
+    // Chỉ hiển thị ảnh, không tạo link mở tab mới.
+    item.appendChild(img);
+
+    return item;
+}
+
+    // ============================================
+    // 10. HIỂN THỊ NHIỀU ẢNH TỪ ANHKETQUADICHVU
+    // ============================================
+
+    async function renderImageList(images) {
+        console.log("[DEBUG] Bắt đầu renderImageList:", images);
+
+        if (!imageList) {
+            console.error("[DEBUG] Không tìm thấy ctkqdImageList");
+            return 0;
+        }
+
+        imageList.replaceChildren();
+
+        if (!Array.isArray(images) || images.length === 0) {
+            imageList.hidden = true;
+            return 0;
+        }
+
+        const heading = document.createElement("h3");
+        heading.className = "ctkqd-image-heading";
+        heading.textContent = "Ảnh đính kèm kết quả";
+
+        const grid = document.createElement("div");
+        grid.className = "ctkqd-image-grid";
+
+        // Phải đợi createImageItem hoàn thành.
+        const items = await Promise.all(
+            images.map(async (image) => {
+                console.log("[DEBUG] Đang tạo ảnh:", image);
+
+                const item = await createImageItem(image);
+
+                console.log("[DEBUG] Kết quả createImageItem:", item);
+
+                return item;
+            })
+        );
+
+        let count = 0;
+
+        for (const item of items) {
+            if (!item) {
+                console.warn("[DEBUG] Bỏ qua ảnh vì item null");
+                continue;
+            }
+
+            if (!(item instanceof Node)) {
+                console.error("[DEBUG] Item không phải Node:", item);
+                continue;
+            }
+
+            grid.appendChild(item);
+            count++;
+        }
+
+        if (count > 0) {
+            imageList.appendChild(heading);
+            imageList.appendChild(grid);
+            imageList.hidden = false;
+        } else {
+            imageList.hidden = true;
+        }
+
+        console.log("[DEBUG] Tổng ảnh đã thêm:", count);
+
+        return count;
+    }
+
+    // ============================================
+    // 11. HIỂN THỊ TỆP CHÍNH
+    // ============================================
+    async function renderMainFile(value) {
+        const apiUrl = safeFileUrl(value);
 
         const previewLink = $("ctkqdPreview");
         const downloadLink = $("ctkqdDownload");
+        const fileNameElement = $("ctkqdFileName");
+        const actions = $("ctkqdMainFileActions");
 
-        if (previewLink) {
-            previewLink.href = url.href;
-            previewLink.target = "_blank";
-            previewLink.rel = "noopener noreferrer";
+        if (!apiUrl) {
+            if (previewLink) {
+                previewLink.hidden = true;
+                previewLink.removeAttribute("href");
+            }
+
+            if (downloadLink) {
+                downloadLink.hidden = true;
+                downloadLink.removeAttribute("href");
+            }
+
+            if (actions) actions.hidden = true;
+
+            setText("ctkqdFileName", "—");
+            return false;
         }
 
-        if (downloadLink) {
-            downloadLink.href = url.href;
+        const fileName = getFileName(apiUrl);
 
-            if (url.origin === window.location.origin) {
-                downloadLink.setAttribute(
-                    "download",
-                    fileName
-                );
-            } else {
-                downloadLink.removeAttribute("download");
-                downloadLink.target = "_blank";
-                downloadLink.rel = "noopener noreferrer";
+        try {
+            const token = getToken();
+
+            if (!token) {
+                throw new Error("Không tìm thấy token đăng nhập.");
             }
+
+            const response = await fetch(apiUrl.href, {
+                method: "GET",
+                cache: "no-store",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: "*/*"
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Không tải được tệp (HTTP ${response.status}).`);
+            }
+
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+
+            // Lưu URL để giải phóng khi không còn sử dụng.
+            objectUrls.add(blobUrl);
+
+            setText("ctkqdFileName", fileName);
+
+            if (previewLink) {
+                previewLink.href = blobUrl;
+                previewLink.target = "_blank";
+                previewLink.rel = "noopener noreferrer";
+                previewLink.hidden = false;
+            }
+
+            if (downloadLink) {
+                downloadLink.href = blobUrl;
+                downloadLink.download = fileName;
+                downloadLink.hidden = false;
+            }
+
+            if (actions) actions.hidden = false;
+
+            return true;
+
+        } catch (error) {
+            console.error("Lỗi tải tệp kết quả:", error);
+
+            setText("ctkqdFileName", "Không thể tải tệp");
+
+            if (previewLink) previewLink.hidden = true;
+            if (downloadLink) downloadLink.hidden = true;
+            if (actions) actions.hidden = true;
+
+            return false;
         }
     }
 
     // ============================================
-    // 8. HIỂN THỊ TOÀN BỘ PHIẾU XÉT NGHIỆM
+    // 12. HIỂN THỊ TOÀN BỘ TỆP ĐÍNH KÈM
     // ============================================
 
-    function renderLabSheet(data) {
+    async function renderAttachments(danhSachAnh) {
+        console.log("[DEBUG] renderAttachments được gọi");
+        console.log("[DEBUG] danhSachAnh:", danhSachAnh);
+        console.log("[DEBUG] Số lượng ảnh:", danhSachAnh?.length);
+
+        const imageCount = await renderImageList(danhSachAnh);
+
+        console.log("[DEBUG] imageCount:", imageCount);
+        console.log("[DEBUG] imageList HTML:", imageList?.innerHTML);
+        console.log("[DEBUG] imageList hidden:", imageList?.hidden);
+
+        if (fileBox) {
+            fileBox.hidden = imageCount === 0;
+        }
+
+        if (noFileBox) {
+            noFileBox.hidden = imageCount > 0;
+        }
+
+        setText(
+            "ctkqdFileName",
+            imageCount > 0 ? `${imageCount} ảnh đính kèm` : "—"
+        );
+
+        const mainActions = $("ctkqdMainFileActions");
+
+        if (mainActions) {
+            mainActions.hidden = true;
+        }
+
+        return imageCount;
+    }
+
+    // ============================================
+    // 13. HIỂN THỊ KẾT QUẢ DỊCH VỤ THÔNG THƯỜNG
+    // ============================================
+
+    async function renderNormalResult(data) {
+        if (labSection) labSection.hidden = true;
+        if (normalSection) normalSection.hidden = false;
+
+        renderPatient(data);
+
+        setText("ctkqdService", data.tenDichVu);
+        setText("ctkqdResultCode", formatCode("KQ", data.maKetQua));
+        setText("ctkqdOrderCode", formatCode("CD", data.maChiDinh));
+        setText("ctkqdResultDate", formatDate(data.ngayCoKetQua, true));
+
+        setText(
+            "ctkqdContent",
+            data.noiDungKetQua || "Chưa có nội dung kết quả được ghi nhận."
+        );
+
+        setText(
+            "ctkqdConclusion",
+            data.ketLuan || "Chưa có kết luận chuyên môn được ghi nhận."
+        );
+
+        // LẤY DANH SÁCH ẢNH TỪ CSDL
+       await renderAttachments(data.danhSachAnh);
+    }
+
+    // ============================================
+    // 14. HIỂN THỊ ẢNH ĐÍNH KÈM TRONG XÉT NGHIỆM
+    // ============================================
+
+    async function renderLabAttachments(test, group) {
+        const images = Array.isArray(test.danhSachAnh)
+            ? test.danhSachAnh
+            : [];
+
+        const hasMainFile = Boolean(safeFileUrl(test.fileURL));
+        const hasImages = images.length > 0;
+
+        if (!hasMainFile && !hasImages) {
+            return;
+        }
+
+        const attachmentBox = document.createElement("div");
+        attachmentBox.className = "ctkqd-lab-attachments";
+
+        // File chính của kết quả xét nghiệm.
+        if (hasMainFile) {
+            const mainLink = document.createElement("a");
+
+            mainLink.className = "ctkqd-lab-attachment";
+            mainLink.textContent = "Đang tải tệp kết quả...";
+            mainLink.href = "#";
+
+            try {
+                const file = await loadProtectedFile(test.fileURL);
+
+                mainLink.href = file.blobUrl;
+                mainLink.target = "_blank";
+                mainLink.rel = "noopener noreferrer";
+                mainLink.textContent = `Xem tệp kết quả (${file.fileName})`;
+            } catch (error) {
+                console.error("Lỗi tải tệp xét nghiệm:", error);
+
+                mainLink.textContent = "Không thể tải tệp kết quả";
+                mainLink.classList.add("ctkqd-image-error");
+                mainLink.removeAttribute("href");
+            }
+
+            attachmentBox.appendChild(mainLink);
+        }
+
+        // Danh sách ảnh đính kèm.
+        for (const image of images) {
+            const item = await createImageItem(image);
+
+            if (item) {
+                attachmentBox.appendChild(item);
+            }
+        }
+
+        if (attachmentBox.childElementCount > 0) {
+            group.appendChild(attachmentBox);
+        }
+    }
+    // ============================================
+    // 15. HIỂN THỊ TOÀN BỘ PHIẾU XÉT NGHIỆM
+    // ============================================
+
+    async function renderLabSheet(data) {
         if (labSection) {
             labSection.hidden = false;
         }
@@ -427,8 +715,16 @@ document.addEventListener("DOMContentLoaded", () => {
             `Xét nghiệm (${tests.length} mục)`
         );
 
-        // Một phiếu có thể chứa nhiều mã kết quả.
-        setText("ctkqdResultCode", "—");
+        const resultCodes = tests
+            .map(test => formatCode("KQ", test.maKetQua))
+            .filter(code => code !== "—");
+
+        setText(
+            "ctkqdResultCode",
+            resultCodes.length > 0
+                ? resultCodes.join(", ")
+                : "—"
+        );
 
         setText(
             "ctkqdOrderCode",
@@ -497,31 +793,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 label.append(icon, name);
 
+                const resultInfo = document.createElement("div");
+                resultInfo.className = "ctkqd-lab-result-info";
+
                 const value = document.createElement("strong");
                 value.className = "ctkqd-lab-value";
                 value.textContent =
                     String(test.noiDungKetQua || "").trim() || "—";
 
-                row.append(label, value);
+                resultInfo.append(value);
+
+                row.append(label, resultInfo);
                 group.appendChild(row);
 
-                const fileUrl = safeFileUrl(test.fileURL);
-
-                if (fileUrl) {
-                    const attachment =
-                        document.createElement("a");
-
-                    attachment.className =
-                        "ctkqd-lab-attachment";
-
-                    attachment.href = fileUrl.href;
-                    attachment.target = "_blank";
-                    attachment.rel = "noopener noreferrer";
-                    attachment.textContent =
-                        "Xem tài liệu đính kèm";
-
-                    group.appendChild(attachment);
-                }
+                // Hiển thị tệp và nhiều ảnh của từng xét nghiệm.
+                await renderLabAttachments(test, group);
             }
 
             labGroups.appendChild(group);
@@ -529,7 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 9. THÔNG BÁO LỖI
+    // 16. THÔNG BÁO LỖI
     // ============================================
 
     function showError(message) {
@@ -545,7 +831,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ============================================
-    // 10. TẢI DỮ LIỆU
+    // 17. RESET GIAO DIỆN KHI LỖI
+    // ============================================
+
+    function resetAttachment() {
+        if (fileBox) {
+            fileBox.hidden = true;
+        }
+
+        if (noFileBox) {
+            noFileBox.hidden = false;
+        }
+
+        if (imageList) {
+            imageList.replaceChildren();
+            imageList.hidden = true;
+        }
+
+        const preview = $("ctkqdPreview");
+        const download = $("ctkqdDownload");
+
+        if (preview) {
+            preview.hidden = true;
+            preview.removeAttribute("href");
+        }
+
+        if (download) {
+            download.hidden = true;
+            download.removeAttribute("href");
+        }
+    }
+
+    // ============================================
+    // 18. TẢI DỮ LIỆU
     // ============================================
 
     async function loadDetail() {
@@ -570,7 +888,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await apiGet(url);
 
             if (isLabSheet) {
-                // Đảm bảo dữ liệu trả về đúng phiếu.
                 if (
                     !data ||
                     String(data.maPhieuChiDinh) !== String(maPhieu)
@@ -580,9 +897,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
 
-                renderLabSheet(data);
+                await renderLabSheet(data);
+
             } else {
-                // Đảm bảo dữ liệu đúng chỉ định đang xem.
                 if (
                     !data ||
                     Number(data.maChiDinh) !== maChiDinh
@@ -592,12 +909,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
 
-                renderNormalResult(data);
+                await renderNormalResult(data);
             }
 
             if (errorBox) {
                 errorBox.hidden = true;
             }
+
         } catch (error) {
             showError(
                 error?.message ||
@@ -617,6 +935,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (normalSection) {
                     normalSection.hidden = true;
                 }
+
             } else {
                 setText(
                     "ctkqdContent",
@@ -628,19 +947,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Không có dữ liệu để hiển thị."
                 );
 
-                if (fileBox) {
-                    fileBox.hidden = true;
-                }
-
-                if (noFileBox) {
-                    noFileBox.hidden = false;
-                }
+                resetAttachment();
             }
         }
     }
 
     // ============================================
-    // 11. KHỞI TẠO
+    // 19. KHỞI TẠO
     // ============================================
 
     loadDetail();

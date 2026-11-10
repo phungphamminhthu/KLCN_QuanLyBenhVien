@@ -62,77 +62,78 @@ public class TiepNhanApiController {
     // =========================================================
 
     private static final String SQL_LICH_KHAM = """
-            SELECT
-                lk.MaLichKham,
-                lk.MaBenhNhan,
-                lk.MaBacSi,
-                lk.MaKhoa,
-                lk.MaSoThuTu,
-                lk.NgayKham,
-                lk.GioKham,
-                lk.TrangThai,
-                lk.LyDoKham,
+        SELECT
+            lk.MaLichKham,
+            lk.MaBenhNhan,
+            lk.MaBacSi,
+            lk.MaKhoa,
+            lk.MaSoThuTu,
+            lk.NgayKham,
+            lk.GioKham,
+            lk.TrangThai,
+            lk.LyDoKham,
 
-                nd.HoTen,
-                nd.SoDienThoai,
+            bn.HoTen,
+            nd.SoDienThoai,
 
-                bn.NgaySinh,
-                bn.GioiTinh,
-                bn.DiaChi,
+            bn.NgaySinh,
+            bn.GioiTinh,
+            bn.DiaChi,
 
-                k.TenKhoa AS ChuyenKhoa,
-                ndBacSi.HoTen AS TenBacSi,
-                s.SoThuTu,
+            k.TenKhoa AS ChuyenKhoa,
+            ndBacSi.HoTen AS TenBacSi,
+            s.SoThuTu,
 
-                (
-                    SELECT p.TenPhong
-                    FROM lichlamviec lv
-                    JOIN phongchuyentrach p
-                      ON p.MaPhong = lv.MaPhong
-                    WHERE lv.MaBacSi = lk.MaBacSi
-                      AND lv.NgayLamViec = lk.NgayKham
-                      AND lk.GioKham >= lv.GioBatDau
-                      AND lk.GioKham < lv.GioKetThuc
-                    ORDER BY
-                        lv.GioBatDau DESC,
-                        lv.MaLichLamViec DESC
-                    LIMIT 1
-                ) AS TenPhong,
-                (
-                    SELECT p.ViTri
-                    FROM lichlamviec lv
-                    JOIN phongchuyentrach p
-                      ON p.MaPhong = lv.MaPhong
-                    WHERE lv.MaBacSi = lk.MaBacSi
-                      AND lv.NgayLamViec = lk.NgayKham
-                      AND lk.GioKham >= lv.GioBatDau
-                      AND lk.GioKham < lv.GioKetThuc
-                    ORDER BY lv.MaLichLamViec
-                    LIMIT 1
-                ) AS ViTriPhong
+            (
+                SELECT p.TenPhong
+                FROM lichlamviec lv
+                JOIN phongchuyentrach p
+                    ON p.MaPhong = lv.MaPhong
+                WHERE lv.MaBacSi = lk.MaBacSi
+                  AND lv.NgayLamViec = lk.NgayKham
+                  AND lk.GioKham >= lv.GioBatDau
+                  AND lk.GioKham < lv.GioKetThuc
+                ORDER BY
+                    lv.GioBatDau DESC,
+                    lv.MaLichLamViec DESC
+                LIMIT 1
+            ) AS TenPhong,
 
-            FROM lichdangkykham lk
+            (
+                SELECT p.ViTri
+                FROM lichlamviec lv
+                JOIN phongchuyentrach p
+                    ON p.MaPhong = lv.MaPhong
+                WHERE lv.MaBacSi = lk.MaBacSi
+                  AND lv.NgayLamViec = lk.NgayKham
+                  AND lk.GioKham >= lv.GioBatDau
+                  AND lk.GioKham < lv.GioKetThuc
+                ORDER BY lv.MaLichLamViec
+                LIMIT 1
+            ) AS ViTriPhong
 
-            JOIN benhnhan bn
-              ON bn.MaBenhNhan = lk.MaBenhNhan
+        FROM lichdangkykham lk
 
-            JOIN nguoidung nd
-              ON nd.MaNguoiDung = bn.MaNguoiDung
+        JOIN benhnhan bn
+            ON bn.MaBenhNhan = lk.MaBenhNhan
+            
+        LEFT JOIN nguoidung nd
+            ON nd.MaNguoiDung = bn.MaNguoiDung
 
-            JOIN bacsi bs
-              ON bs.MaBacSi = lk.MaBacSi
+        JOIN bacsi bs
+            ON bs.MaBacSi = lk.MaBacSi
 
-            JOIN nguoidung ndBacSi
-              ON ndBacSi.MaNguoiDung = bs.MaNguoiDung
+        JOIN nguoidung ndBacSi
+            ON ndBacSi.MaNguoiDung = bs.MaNguoiDung
 
-            JOIN khoa k
-              ON k.MaKhoa = lk.MaKhoa
+        JOIN khoa k
+            ON k.MaKhoa = lk.MaKhoa
 
-            LEFT JOIN sothutu s
-              ON s.MaSoThuTu = lk.MaSoThuTu
-             AND s.MaKhoa = lk.MaKhoa
-             AND s.NgayCapSo = lk.NgayKham
-            """;
+        LEFT JOIN sothutu s
+            ON s.MaSoThuTu = lk.MaSoThuTu
+           AND s.MaKhoa = lk.MaKhoa
+           AND s.NgayCapSo = lk.NgayKham
+        """;
 
     // =========================================================
     // 1. DASHBOARD
@@ -390,23 +391,22 @@ public class TiepNhanApiController {
                 .replace("_", "!_");
 
         String sql = """
-                SELECT
-                    bn.MaBenhNhan,
-                    bn.NgaySinh,
-                    bn.GioiTinh,
-                    bn.DiaChi,
-                    nd.HoTen,
-                    nd.SoDienThoai
-                FROM benhnhan bn
-                JOIN nguoidung nd
-                  ON nd.MaNguoiDung = bn.MaNguoiDung
-                WHERE CAST(bn.MaBenhNhan AS CHAR) = ?
-                   OR nd.SoDienThoai = ?
-                   OR nd.HoTen LIKE ? ESCAPE '!'
-                ORDER BY bn.MaBenhNhan
-                LIMIT 2
-                """;
-
+            SELECT
+                bn.MaBenhNhan,
+                bn.HoTen,
+                nd.SoDienThoai,
+                bn.NgaySinh,
+                bn.GioiTinh,
+                bn.DiaChi
+            FROM benhnhan bn
+            LEFT JOIN nguoidung nd
+                ON nd.MaNguoiDung = bn.MaNguoiDung
+            WHERE CAST(bn.MaBenhNhan AS CHAR) = ?
+               OR nd.SoDienThoai = ?
+               OR bn.HoTen LIKE ? ESCAPE '!'
+            ORDER BY bn.MaBenhNhan
+            LIMIT 2
+            """;
         List<Map<String, Object>> danhSach =
                 jdbcTemplate.queryForList(
                         sql,
@@ -599,7 +599,7 @@ public class TiepNhanApiController {
                     lk.MaBenhNhan,
                     lk.TrangThai,
 
-                    nd.HoTen,
+                    bn.HoTen,
                     k.TenKhoa AS Khoa,
                     s.SoThuTu
 
@@ -610,9 +610,6 @@ public class TiepNhanApiController {
 
                 JOIN benhnhan bn
                   ON bn.MaBenhNhan = lk.MaBenhNhan
-
-                JOIN nguoidung nd
-                  ON nd.MaNguoiDung = bn.MaNguoiDung
 
                 JOIN khoa k
                   ON k.MaKhoa = lk.MaKhoa

@@ -4,6 +4,9 @@ const API_BASE = "/api/bac-si/kham-benh";
 let danhSachChiDinh = [];
 let danhSachPhieu = [];
 let trangThaiDangChon = "ALL";
+// Cấu hình phân trang giống trang kết quả CLS
+const PAGE_SIZE = 5;
+let currentPage = 1;
 
 function gomChiDinhTheoPhieu(danhSach) {
     const nhom = new Map();
@@ -51,11 +54,11 @@ function gomChiDinhTheoPhieu(danhSach) {
 /* =========================================================
    KHỞI TẠO TRANG
 ========================================================= */
-
-
 document.addEventListener("DOMContentLoaded", function () {
     ganSuKienTimKiem();
     ganSuKienBoLoc();
+    ganSuKienPhanTrang();
+
     taiDanhSachChiDinh();
 });
 
@@ -255,7 +258,6 @@ function ganSuKienBoLoc() {
 /* =========================================================
    LỌC VÀ HIỂN THỊ DANH SÁCH
 ========================================================= */
-
 function locVaHienThi() {
     const searchInput = document.getElementById("searchInput");
 
@@ -284,12 +286,14 @@ function locVaHienThi() {
         return dungTrangThai && dungTuKhoa;
     });
 
+    // Khi tìm kiếm hoặc lọc, quay về trang đầu
+    currentPage = 1;
+
     hienThiDanhSach(ketQua);
 }
 
-
 /* =========================================================
-   HIỂN THỊ BẢNG
+   HIỂN THỊ BẢNG + PHÂN TRANG
 ========================================================= */
 
 function hienThiDanhSach(danhSach) {
@@ -297,7 +301,23 @@ function hienThiDanhSach(danhSach) {
 
     if (!tbody) return;
 
-    if (!danhSach.length) {
+    const totalItems = danhSach.length;
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(totalItems / PAGE_SIZE)
+    );
+
+    // Đảm bảo trang hiện tại hợp lệ
+    if (currentPage > totalPages) {
+        currentPage = totalPages;
+    }
+
+    if (currentPage < 1) {
+        currentPage = 1;
+    }
+
+    if (totalItems === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" class="empty-cell">
@@ -307,15 +327,174 @@ function hienThiDanhSach(danhSach) {
         `;
 
         capNhatSoLuongBang(0);
+        renderPagination(0, 1);
         return;
     }
 
-    tbody.innerHTML = danhSach
-        .map((item, index) => taoDongChiDinh(item, index))
+    // Lấy dữ liệu của trang hiện tại
+    const start = (currentPage - 1) * PAGE_SIZE;
+
+    const end = Math.min(
+        start + PAGE_SIZE,
+        totalItems
+    );
+
+    const danhSachTrang = danhSach.slice(start, end);
+
+    tbody.innerHTML = danhSachTrang
+        .map((item, index) => {
+            return taoDongChiDinh(item, start + index);
+        })
         .join("");
 
-    capNhatSoLuongBang(danhSach.length);
+    capNhatSoLuongBang(totalItems);
+
+    renderPagination(totalItems, totalPages);
+
     ganSuKienNutXem();
+}
+
+/* =========================================================
+   PHÂN TRANG
+========================================================= */
+
+function renderPagination(totalItems, totalPages) {
+    const container = document.getElementById("pagination");
+
+    if (!container) return;
+
+    container.replaceChildren();
+
+    if (totalItems <= PAGE_SIZE) return;
+
+    // Thông tin số lượng
+    const info = document.createElement("div");
+    info.className = "pagination-info";
+
+    const start = (currentPage - 1) * PAGE_SIZE + 1;
+
+    const end = Math.min(
+        currentPage * PAGE_SIZE,
+        totalItems
+    );
+
+    info.textContent =
+        `Hiển thị ${start}-${end} trong tổng số ${totalItems} phiếu chỉ định`;
+
+    // Khu vực nút phân trang
+    const controls = document.createElement("div");
+    controls.className = "pagination-controls";
+
+    function addPageButton(label, page, disabled, active = false) {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className =
+            `page-btn${active ? " active" : ""}`;
+
+        button.textContent = label;
+        button.disabled = disabled;
+        button.dataset.page = String(page);
+
+        if (active) {
+            button.setAttribute("aria-current", "page");
+        }
+
+        controls.appendChild(button);
+    }
+
+    // Trang trước
+    addPageButton(
+        "‹",
+        currentPage - 1,
+        currentPage === 1
+    );
+
+    // Hiển thị tối đa 5 số trang
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+
+    if (currentPage <= 3) {
+        endPage = Math.min(totalPages, 5);
+    }
+
+    if (currentPage >= totalPages - 2) {
+        startPage = Math.max(1, totalPages - 4);
+    }
+
+    for (let page = startPage; page <= endPage; page++) {
+        addPageButton(
+            String(page),
+            page,
+            false,
+            page === currentPage
+        );
+    }
+
+    // Trang sau
+    addPageButton(
+        "›",
+        currentPage + 1,
+        currentPage === totalPages
+    );
+
+    container.append(info, controls);
+}
+
+/* =========================================================
+   SỰ KIỆN CHUYỂN TRANG
+========================================================= */
+
+/* =========================================================
+   SỰ KIỆN CHUYỂN TRANG
+========================================================= */
+
+function ganSuKienPhanTrang() {
+    const container = document.getElementById("pagination");
+
+    if (!container) return;
+
+    container.addEventListener("click", function(event) {
+        const button = event.target.closest(".page-btn");
+
+        if (!button || button.disabled) return;
+
+        const page = Number(button.dataset.page);
+
+        if (!Number.isInteger(page) || page < 1) return;
+
+        currentPage = page;
+
+        const searchInput = document.getElementById("searchInput");
+
+        const keyword = chuanHoaChuoi(
+            searchInput ? searchInput.value : ""
+        );
+
+        const danhSachLoc = danhSachPhieu.filter(item => {
+            const dungTrangThai =
+                trangThaiDangChon === "ALL" ||
+                item.trangThai === trangThaiDangChon;
+
+            const hoTen = chuanHoaChuoi(item.hoTen || "");
+            const maBenhNhan = chuanHoaChuoi(item.maBenhNhan || "");
+
+            const tenDichVu = chuanHoaChuoi(
+                item.danhSachDichVu.join(" ")
+            );
+
+            const dungTuKhoa =
+                !keyword ||
+                hoTen.includes(keyword) ||
+                maBenhNhan.includes(keyword) ||
+                tenDichVu.includes(keyword);
+
+            return dungTrangThai && dungTuKhoa;
+        });
+
+        // Hiển thị trang được chọn
+        hienThiDanhSach(danhSachLoc);
+    });
 }
 
 /* =========================================================
@@ -339,9 +518,17 @@ function taoDongChiDinh(item, index) {
 
     const ngayChiDinh = dinhDangNgayGio(item.ngayChiDinh);
 
-    const phong = item.maPhong != null
-        ? `Phòng ${item.maPhong}`
-        : "Chưa phân phòng";
+    const tenPhong = item.tenPhong
+        || item.tenPhongChuyenTrach
+        || item.TenPhong
+        || item.TenPhongChuyenTrach;
+
+    const phong = tenPhong
+        || (
+            item.maPhong != null
+                ? `Phòng ${item.maPhong}`
+                : "Chưa phân phòng"
+        );
 
     return `
         <tr>

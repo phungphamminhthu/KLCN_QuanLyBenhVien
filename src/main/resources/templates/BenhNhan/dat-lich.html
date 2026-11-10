@@ -27,6 +27,23 @@
 
 <main class="booking-container">
 
+
+    <!-- HỒ SƠ BỆNH NHÂN ĐANG ĐẶT LỊCH -->
+    <section class="booking-patient-profile">
+        <div class="booking-profile-icon">♙</div>
+
+        <div class="booking-profile-info">
+            <small>ĐANG ĐẶT LỊCH CHO HỒ SƠ</small>
+            <strong id="bookingPatientName">Đang tải hồ sơ...</strong>
+            <span id="bookingPatientRelation">Quan hệ: --</span>
+        </div>
+
+        <a th:href="@{/benh-nhan/trang-chu}"
+           class="booking-change-profile">
+            Đổi hồ sơ
+        </a>
+    </section>
+
     <!-- Tiến trình 4 bước -->
     <section class="stepper" aria-label="Các bước đặt lịch">
         <div class="step active" data-step-indicator="1">

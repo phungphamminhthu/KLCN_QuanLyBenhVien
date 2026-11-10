@@ -62,6 +62,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/chatbot/**")
                         .hasRole("BENHNHAN")
 
+                        // API quản lý hồ sơ bệnh nhân: chỉ bệnh nhân được sử dụng
+                        .requestMatchers("/api/benh-nhan/**")
+                        .hasRole("BENHNHAN")
 
                         // Public routes
                         .requestMatchers(

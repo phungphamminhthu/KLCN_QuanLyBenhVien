@@ -34,7 +34,6 @@ public class TiepNhanHoSoBenhNhanService {
     // =========================================================
     // ĐỌC HỒ SƠ BỆNH NHÂN
     // =========================================================
-
     @Transactional(readOnly = true)
     public TiepNhanHoSoBenhNhanDTO getHoSo(
             Integer maBenhNhan
@@ -42,21 +41,21 @@ public class TiepNhanHoSoBenhNhanService {
         kiemTraMaBenhNhan(maBenhNhan);
 
         String sqlBenhNhan = """
-                SELECT
-                    bn.MaBenhNhan,
-                    nd.HoTen,
-                    bn.NgaySinh,
-                    bn.GioiTinh,
-                    nd.SoDienThoai,
-                    bn.SoDienThoaiKhanCap,
-                    nd.Email,
-                    bn.DiaChi,
-                    bn.TienSuBenh
-                FROM benhnhan bn
-                JOIN nguoidung nd
-                  ON nd.MaNguoiDung = bn.MaNguoiDung
-                WHERE bn.MaBenhNhan = ?
-                """;
+            SELECT
+                bn.MaBenhNhan,
+                bn.HoTen,
+                bn.NgaySinh,
+                bn.GioiTinh,
+                nd.SoDienThoai AS SoDienThoai,
+                nd.Email,
+                bn.SoDienThoaiKhanCap,
+                bn.DiaChi,
+                bn.TienSuBenh
+            FROM BenhNhan bn
+            INNER JOIN NguoiDung nd
+                ON nd.MaNguoiDung = bn.MaNguoiDung
+            WHERE bn.MaBenhNhan = ?
+            """;
 
         List<TiepNhanHoSoBenhNhanDTO> ketQua =
                 jdbcTemplate.query(
@@ -68,12 +67,12 @@ public class TiepNhanHoSoBenhNhanService {
                             dto.setMaBenhNhan(
                                     rs.getInt("MaBenhNhan")
                             );
+
                             dto.setHoTen(
                                     rs.getString("HoTen")
                             );
 
-                            Date ngaySinh =
-                                    rs.getDate("NgaySinh");
+                            Date ngaySinh = rs.getDate("NgaySinh");
 
                             dto.setNgaySinh(
                                     ngaySinh != null
@@ -84,18 +83,23 @@ public class TiepNhanHoSoBenhNhanService {
                             dto.setGioiTinh(
                                     rs.getString("GioiTinh")
                             );
+
                             dto.setSoDienThoai(
                                     rs.getString("SoDienThoai")
                             );
-                            dto.setSoDienThoaiKhanCap(
-                                    rs.getString("SoDienThoaiKhanCap")
-                            );
+
                             dto.setEmail(
                                     rs.getString("Email")
                             );
+
+                            dto.setSoDienThoaiKhanCap(
+                                    rs.getString("SoDienThoaiKhanCap")
+                            );
+
                             dto.setDiaChi(
                                     rs.getString("DiaChi")
                             );
+
                             dto.setTienSuBenh(
                                     rs.getString("TienSuBenh")
                             );
@@ -128,7 +132,6 @@ public class TiepNhanHoSoBenhNhanService {
     // Trường tùy chọn để trống sẽ được lưu thành NULL.
     // Không thay đổi tài khoản, vai trò hoặc trạng thái lịch khám.
     // =========================================================
-
     @Transactional
     public void capNhatHoSo(
             Integer maBenhNhan,
@@ -143,6 +146,7 @@ public class TiepNhanHoSoBenhNhanService {
             );
         }
 
+        // 1. Kiểm tra họ tên bệnh nhân
         String hoTen = chuanHoaChuoi(
                 request.getHoTen(),
                 "Họ tên",
@@ -156,6 +160,7 @@ public class TiepNhanHoSoBenhNhanService {
             );
         }
 
+        // 2. Kiểm tra ngày sinh
         LocalDate ngaySinh = request.getNgaySinh();
 
         if (ngaySinh != null
@@ -167,6 +172,7 @@ public class TiepNhanHoSoBenhNhanService {
             );
         }
 
+        // 3. Kiểm tra giới tính
         String gioiTinh = chuanHoaChuoi(
                 request.getGioiTinh(),
                 "Giới tính",
@@ -174,26 +180,28 @@ public class TiepNhanHoSoBenhNhanService {
         );
 
         if (gioiTinh != null
-                && !List.of("Nam", "Nữ", "Khác")
-                .contains(gioiTinh)) {
+                && !List.of("Nam", "Nữ", "Khác").contains(gioiTinh)) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Giới tính phải là Nam, Nữ hoặc Khác."
             );
         }
 
+        // 4. Kiểm tra số điện thoại tài khoản
         String soDienThoai = kiemTraSoDienThoai(
                 request.getSoDienThoai(),
                 "Số điện thoại",
                 255
         );
 
+        // 5. Kiểm tra số điện thoại khẩn cấp
         String soDienThoaiKhanCap = kiemTraSoDienThoai(
                 request.getSoDienThoaiKhanCap(),
                 "Số điện thoại khẩn cấp",
                 15
         );
 
+        // 6. Kiểm tra email
         String email = chuanHoaChuoi(
                 request.getEmail(),
                 "Email",
@@ -210,19 +218,20 @@ public class TiepNhanHoSoBenhNhanService {
             );
         }
 
+        // 7. Kiểm tra địa chỉ
         String diaChi = chuanHoaChuoi(
                 request.getDiaChi(),
                 "Địa chỉ",
                 255
         );
 
+        // 8. Kiểm tra tiền sử bệnh
         String tienSuBenh = chuanHoaChuoi(
                 request.getTienSuBenh(),
                 "Tiền sử bệnh",
                 65535
         );
 
-        // Cột TEXT của MySQL có giới hạn theo số byte.
         if (tienSuBenh != null
                 && tienSuBenh.getBytes(
                 StandardCharsets.UTF_8
@@ -233,13 +242,14 @@ public class TiepNhanHoSoBenhNhanService {
             );
         }
 
-        // Khóa bản ghi bệnh nhân trong lúc cập nhật.
+        // 9. Lấy MaNguoiDung từ hồ sơ bệnh nhân
+        // Khóa bản ghi để đảm bảo dữ liệu nhất quán khi cập nhật.
         String sqlTimNguoiDung = """
-                SELECT MaNguoiDung
-                FROM benhnhan
-                WHERE MaBenhNhan = ?
-                FOR UPDATE
-                """;
+            SELECT MaNguoiDung
+            FROM BenhNhan
+            WHERE MaBenhNhan = ?
+            FOR UPDATE
+            """;
 
         List<Integer> maNguoiDungList =
                 jdbcTemplate.query(
@@ -258,13 +268,13 @@ public class TiepNhanHoSoBenhNhanService {
 
         Integer maNguoiDung = maNguoiDungList.get(0);
 
-        // Email là duy nhất trên toàn bộ bảng nguoidung.
+        // 10. Kiểm tra email có bị tài khoản khác sử dụng không
         if (email != null) {
             Long soTaiKhoanTrungEmail =
                     jdbcTemplate.queryForObject(
                             """
                             SELECT COUNT(*)
-                            FROM nguoidung
+                            FROM NguoiDung
                             WHERE Email = ?
                               AND MaNguoiDung <> ?
                             """,
@@ -283,30 +293,19 @@ public class TiepNhanHoSoBenhNhanService {
         }
 
         try {
+            // 11. Cập nhật thông tin riêng của bệnh nhân
             jdbcTemplate.update(
                     """
-                    UPDATE nguoidung
+                    UPDATE BenhNhan
                     SET HoTen = ?,
-                        SoDienThoai = ?,
-                        Email = ?
-                    WHERE MaNguoiDung = ?
-                    """,
-                    hoTen,
-                    soDienThoai,
-                    email,
-                    maNguoiDung
-            );
-
-            jdbcTemplate.update(
-                    """
-                    UPDATE benhnhan
-                    SET NgaySinh = ?,
+                        NgaySinh = ?,
                         GioiTinh = ?,
                         DiaChi = ?,
                         SoDienThoaiKhanCap = ?,
                         TienSuBenh = ?
                     WHERE MaBenhNhan = ?
                     """,
+                    hoTen,
                     ngaySinh != null
                             ? Date.valueOf(ngaySinh)
                             : null,
@@ -316,14 +315,24 @@ public class TiepNhanHoSoBenhNhanService {
                     tienSuBenh,
                     maBenhNhan
             );
+
+            // 12. Cập nhật thông tin liên hệ của tài khoản
+            jdbcTemplate.update(
+                    """
+                    UPDATE NguoiDung
+                    SET SoDienThoai = ?,
+                        Email = ?
+                    WHERE MaNguoiDung = ?
+                    """,
+                    soDienThoai,
+                    email,
+                    maNguoiDung
+            );
+
         } catch (DuplicateKeyException exception) {
-            // Vẫn xử lý trường hợp email bị tài khoản khác
-            // sử dụng sau bước kiểm tra phía trên.
-            // Exception này làm transaction rollback.
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Dữ liệu cập nhật bị trùng. "
-                            + "Vui lòng kiểm tra lại email.",
+                    "Dữ liệu cập nhật bị trùng. Vui lòng kiểm tra lại email.",
                     exception
             );
         }

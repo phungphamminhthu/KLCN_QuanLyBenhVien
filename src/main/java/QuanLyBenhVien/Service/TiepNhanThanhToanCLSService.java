@@ -1,3 +1,4 @@
+
 package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.TiepNhanThanhToanCLSDTO;
@@ -36,10 +37,8 @@ public class TiepNhanThanhToanCLSService {
             new BigDecimal("0.00");
 
     /*
-     * Danh mục CLS đã đối chiếu từ database bạn gửi.
-     *
-     * Mã 29 và 30 là khám chuyên khoa, không thuộc phần thu CLS.
-     * Khi thêm dịch vụ CLS mới, phải bổ sung mã tại đây.
+     * Danh sách mã dịch vụ CLS hiện tại.
+     * Nếu thêm dịch vụ CLS mới, cần bổ sung mã tại đây.
      */
     private static final Set<Integer> MA_DICH_VU_CLS = Set.of(
             1, 2, 3, 4, 5, 6, 7,
@@ -60,26 +59,33 @@ public class TiepNhanThanhToanCLSService {
     }
 
     // =========================================================
-    // XEM CÁC KHOẢN PHÍ CLS
-    // Không tạo hóa đơn hoặc ghi nhận thanh toán khi xem.
+    // 1. LẤY THÔNG TIN THANH TOÁN THEO LỊCH VÀ HÓA ĐƠN
     // =========================================================
 
     @Transactional(readOnly = true)
     public TiepNhanThanhToanCLSDTO getThongTinThanhToan(
-            Integer maLichKham
+            Integer maLichKham,
+            Integer maHoaDon
     ) {
         kiemTraMaLichKham(maLichKham);
 
-        return docDuLieu(maLichKham, false).dto();
+        if (maHoaDon == null || maHoaDon <= 0) {
+            throw khongHopLe("Mã hóa đơn không hợp lệ.");
+        }
+
+        return docDuLieu(
+                maLichKham,
+                maHoaDon,
+                false
+        ).dto();
     }
 
     // =========================================================
-    // XÁC NHẬN ĐÃ THỰC TẾ NHẬN TIỀN
+    // 2. XÁC NHẬN THANH TOÁN MỘT HÓA ĐƠN CLS
     //
-    // Ghi giao dịch, liên kết dòng phí và đổi trạng thái
-    // trong cùng một transaction.
-    //
-    // Không tích hợp kiểm tra ngân hàng tự động ở phương thức này.
+    // Chỉ thanh toán các dòng phí thuộc hóa đơn được chọn.
+    // Không thay đổi trạng thái chung của lịch khám.
+    // Không thay đổi trạng thái tiếp nhận chung.
     // =========================================================
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -90,18 +96,29 @@ public class TiepNhanThanhToanCLSService {
         kiemTraMaLichKham(maLichKham);
         kiemTraRequest(request);
 
-        DuLieu duLieu = docDuLieu(maLichKham, true);
+        // Đọc và khóa dữ liệu của hóa đơn đang thanh toán.
+        DuLieu duLieu = docDuLieu(
+                maLichKham,
+                request.maHoaDon(),
+                true
+        );
+
         TiepNhanThanhToanCLSDTO dto = duLieu.dto();
 
         if (!dto.choPhepThanhToan()) {
             throw xungDot(dto.thongBao());
         }
 
-        if (!dto.maHoaDon().equals(request.maHoaDon())) {
+        if (dto.maHoaDon() == null
+                || !dto.maHoaDon().equals(request.maHoaDon())) {
             throw xungDot(
                     "Hóa đơn đã thay đổi. Vui lòng tải lại thông tin."
             );
         }
+
+        // -----------------------------------------------------
+        // 2.1. Xác định các dòng phí chưa thanh toán
+        // -----------------------------------------------------
 
         Set<Integer> cacDongCanThu = new HashSet<>();
 
@@ -110,6 +127,16 @@ public class TiepNhanThanhToanCLSService {
                 cacDongCanThu.add(dong.maCTHoaDon());
             }
         }
+
+        if (cacDongCanThu.isEmpty()) {
+            throw xungDot(
+                    "Hóa đơn không còn khoản phí CLS cần thanh toán."
+            );
+        }
+
+        // -----------------------------------------------------
+        // 2.2. Kiểm tra danh sách dòng phí frontend gửi lên
+        // -----------------------------------------------------
 
         Set<Integer> cacDongXacNhan =
                 new HashSet<>(request.maCTHoaDon());
@@ -121,6 +148,10 @@ public class TiepNhanThanhToanCLSService {
             );
         }
 
+        // -----------------------------------------------------
+        // 2.3. Kiểm tra số tiền
+        // -----------------------------------------------------
+
         if (dto.tongCanThu().compareTo(
                 request.soTienXacNhan()
         ) != 0) {
@@ -129,6 +160,10 @@ public class TiepNhanThanhToanCLSService {
                             + "Vui lòng kiểm tra lại trước khi thu."
             );
         }
+
+        // -----------------------------------------------------
+        // 2.4. Xác định phương thức thanh toán
+        // -----------------------------------------------------
 
         String phuongThuc = switch (
                 request.phuongThucThanhToan()
@@ -148,6 +183,10 @@ public class TiepNhanThanhToanCLSService {
             maGiaoDich = null;
         }
 
+        // -----------------------------------------------------
+        // 2.5. Tạo giao dịch thanh toán cho hóa đơn được chọn
+        // -----------------------------------------------------
+
         Integer maThanhToan = themThanhToan(
                 dto.maHoaDon(),
                 dto.tongCanThu(),
@@ -155,12 +194,12 @@ public class TiepNhanThanhToanCLSService {
                 maGiaoDich
         );
 
-        /*
-         * UNIQUE(MaCTHoaDon) trong ctthanhtoan là lớp bảo vệ
-         * bổ sung chống thanh toán trùng một dòng phí.
-         */
+        // -----------------------------------------------------
+        // 2.6. Liên kết giao dịch với từng dòng phí
+        // -----------------------------------------------------
+
         for (Integer maCTHoaDon : cacDongCanThu) {
-            jdbcTemplate.update(
+            int soDong = jdbcTemplate.update(
                     """
                     INSERT INTO ctthanhtoan (
                         MaThanhToan,
@@ -171,16 +210,25 @@ public class TiepNhanThanhToanCLSService {
                     maThanhToan,
                     maCTHoaDon
             );
+
+            if (soDong != 1) {
+                throw xungDot(
+                        "Không thể liên kết dòng phí "
+                                + maCTHoaDon
+                                + " với giao dịch thanh toán."
+                );
+            }
         }
 
-        /*
-         * Tổng hóa đơn gồm mọi dòng phí: CLS, khám, thuốc...
-         * Chỉ thu các dòng CLS được xác nhận ở phía trên.
-         */
+        // -----------------------------------------------------
+        // 2.7. Tính lại tổng tiền của chính hóa đơn này
+        // -----------------------------------------------------
+
         BigDecimal tongHoaDon = KHONG;
         BigDecimal tongDaTra = KHONG;
 
         for (Map<String, Object> dong : duLieu.cacDongHoaDon()) {
+
             BigDecimal thanhTien = docTien(
                     dong.get("ThanhTien")
             );
@@ -200,12 +248,6 @@ public class TiepNhanThanhToanCLSService {
             }
         }
 
-        /*
-         * Đây là trạng thái thanh toán của hóa đơn chung.
-         * Hóa đơn có thể tiếp tục phát sinh khoản phí mới.
-         */
-
-        /*CODE SỬA TEST CỦA EM THUI NHA CHỊ T*/
         String trangThaiHoaDon;
 
         if (tongDaTra.signum() <= 0) {
@@ -215,94 +257,94 @@ public class TiepNhanThanhToanCLSService {
         } else {
             trangThaiHoaDon = "ThanhToanMotPhan";
         }
-        //        String trangThaiHoaDon =
-        //                tongDaTra.compareTo(tongHoaDon) == 0
-        //                        ? "DaThanhToan"
-        //                        : "ChuaThanhToan";
 
-        jdbcTemplate.update(
+        int soDongHoaDon = jdbcTemplate.update(
                 """
                 UPDATE hoadon
                 SET TongTien = ?,
                     TrangThai = ?
                 WHERE MaHoaDon = ?
+                  AND MaLichKham = ?
                 """,
                 tongHoaDon,
                 trangThaiHoaDon,
-                dto.maHoaDon()
-        );
-
-        // ============== EM TEST NHA CHỊ T ===================
-        //        int soDongCapNhat = jdbcTemplate.update(
-        //                """
-        //                UPDATE lichdangkykham
-        //                SET TrangThai = 'ChoCLS'
-        //                WHERE MaLichKham = ?
-        //                  AND TrangThai = 'ChoThanhToan'
-        //                """,
-        //                maLichKham
-        //        );
-        //
-        //        if (soDongCapNhat != 1) {
-        //            throw xungDot(
-        //                    "Trạng thái lịch khám đã thay đổi. "
-        //                            + "Giao dịch chưa được ghi nhận."
-        //            );
-        //        }
-        //
-        //        return new KetQua(
-        //                true,
-        //                "Đã xác nhận thanh toán phí CLS.",
-        //                maLichKham,
-        //                dto.maHoaDon(),
-        //                maThanhToan,
-        //                dto.tongCanThu(),
-        //                "ChoCLS"
-        //        );
-
-        // 1. Chuyển lịch khám sang chờ CLS
-        int soDongCapNhat = jdbcTemplate.update(
-                """
-                UPDATE lichdangkykham
-                SET TrangThai = 'ChoCLS'
-                WHERE MaLichKham = ?
-                  AND TrangThai = 'ChoThanhToan'
-                """,
+                dto.maHoaDon(),
                 maLichKham
         );
 
-        if (soDongCapNhat != 1) {
+        if (soDongHoaDon != 1) {
             throw xungDot(
-                    "Trạng thái lịch khám đã thay đổi. "
-                            + "Giao dịch chưa được ghi nhận."
+                    "Không thể cập nhật trạng thái hóa đơn."
             );
         }
 
-        // 2. Chuyển tiếp nhận bệnh nhân sang chờ CLS
-        int soDongTiepNhan = jdbcTemplate.update(
-                """
-                UPDATE tiepnhanbenhnhan
-                SET TrangThai = 'ChoCLS'
-                WHERE MaLichKham = ?
-                """,
-                maLichKham
-        );
+        // -----------------------------------------------------
+        // 2.8. Chỉ chuyển các chỉ định thuộc hóa đơn vừa thu
+        // -----------------------------------------------------
 
-        if (soDongTiepNhan == 0) {
+        int soChiDinhDuocMo = 0;
+
+        for (ChiPhiCLS dong : dto.danhSachChiPhi()) {
+
+            if (!cacDongCanThu.contains(dong.maCTHoaDon())) {
+                continue;
+            }
+
+            int soDong = jdbcTemplate.update(
+                    """
+                    UPDATE chidinhyte cd
+                    JOIN cthoadon ct
+                        ON ct.MaChiDinh = cd.MaChiDinh
+                    JOIN hosobenhan hs
+                        ON hs.MaHoSoBenhAn = cd.MaHoSoBenhAn
+                    SET cd.TrangThai = 'ChoThucHien'
+                    WHERE ct.MaCTHoaDon = ?
+                      AND ct.MaHoaDon = ?
+                      AND hs.MaLichKham = ?
+                      AND cd.TrangThai = 'ChoThanhToan'
+                    """,
+                    dong.maCTHoaDon(),
+                    dto.maHoaDon(),
+                    maLichKham
+            );
+
+            if (soDong != 1) {
+                throw xungDot(
+                        "Không thể chuyển trạng thái chỉ định "
+                                + dong.maChiDinh()
+                                + " sang chờ thực hiện. "
+                                + "Giao dịch chưa được ghi nhận."
+                );
+            }
+
+            soChiDinhDuocMo += soDong;
+        }
+
+        if (soChiDinhDuocMo == 0) {
             throw xungDot(
-                    "Không tìm thấy thông tin tiếp nhận bệnh nhân. "
-                            + "Giao dịch chưa được ghi nhận."
+                    "Không có chỉ định nào được chuyển sang chờ thực hiện."
             );
         }
-        // 3. Thông báo cho nhân viên chuyên trách
+
+        // -----------------------------------------------------
+        // 2.9. Thông báo nhân viên chuyên trách
+        // -----------------------------------------------------
+
         thongBaoService.taoThongBaoTheoVaiTro(
                 List.of("CHUYENTRACH"),
-                "Có bệnh nhân chờ thực hiện CLS",
+                "Có chỉ định CLS chờ thực hiện",
                 "Bệnh nhân " + dto.tenBenhNhan()
-                        + " đã thanh toán phí cận lâm sàng. "
-                        + "Vui lòng kiểm tra danh sách chờ CLS.",
+                        + " đã thanh toán hóa đơn CLS "
+                        + dto.maHoaDon()
+                        + ". Có "
+                        + soChiDinhDuocMo
+                        + " chỉ định chờ thực hiện.",
                 "BENH_NHAN_CHO_CLS"
         );
+
+        // Không cập nhật lichdangkykham hoặc tiepnhanbenhnhan
+        // tại đây vì một lịch khám có thể có nhiều hóa đơn CLS.
+
         return new KetQua(
                 true,
                 "Đã xác nhận thanh toán phí CLS.",
@@ -310,36 +352,40 @@ public class TiepNhanThanhToanCLSService {
                 dto.maHoaDon(),
                 maThanhToan,
                 dto.tongCanThu(),
-                "ChoCLS"
+                "ChoThucHien"
         );
     }
 
     // =========================================================
-    // ĐỌC VÀ KIỂM TRA DỮ LIỆU
+    // 3. ĐỌC DỮ LIỆU HÓA ĐƠN ĐƯỢC CHỌN
     // =========================================================
 
     private DuLieu docDuLieu(
             Integer maLichKham,
+            Integer maHoaDon,
             boolean khoaDuLieu
     ) {
         String khoa = khoaDuLieu ? " FOR UPDATE" : "";
 
-        List<Map<String, Object>> lichKham = jdbcTemplate.queryForList(
-                """
-                SELECT
-                    l.MaLichKham,
-                    l.MaBenhNhan,
-                    l.TrangThai,
-                    nd.HoTen
-                FROM lichdangkykham l
-                JOIN benhnhan bn
-                    ON bn.MaBenhNhan = l.MaBenhNhan
-                JOIN nguoidung nd
-                    ON nd.MaNguoiDung = bn.MaNguoiDung
-                WHERE l.MaLichKham = ?
-                """ + khoa,
-                maLichKham
-        );
+        // -----------------------------------------------------
+        // 3.1. Kiểm tra lịch khám và bệnh nhân
+        // -----------------------------------------------------
+
+        List<Map<String, Object>> lichKham =
+                jdbcTemplate.queryForList(
+                        """
+                        SELECT
+                            l.MaLichKham,
+                            l.MaBenhNhan,
+                            l.TrangThai,
+                            bn.HoTen
+                        FROM lichdangkykham l
+                        JOIN benhnhan bn
+                            ON bn.MaBenhNhan = l.MaBenhNhan
+                        WHERE l.MaLichKham = ?
+                        """ + khoa,
+                        maLichKham
+                );
 
         if (lichKham.isEmpty()) {
             throw new ResponseStatusException(
@@ -353,34 +399,36 @@ public class TiepNhanThanhToanCLSService {
         Integer maBenhNhan =
                 soNguyen(lich.get("MaBenhNhan"));
 
-        String tenBenhNhan = chuoi(lich.get("HoTen"));
-        String trangThai = chuoi(lich.get("TrangThai"));
+        String tenBenhNhan =
+                chuoi(lich.get("HoTen"));
 
-        List<Map<String, Object>> hoaDon = jdbcTemplate.queryForList(
-                """
-                SELECT MaHoaDon, MaBenhNhan
-                FROM hoadon
-                WHERE MaLichKham = ?
-                """ + khoa,
-                maLichKham
-        );
+        String trangThaiLich =
+                chuoi(lich.get("TrangThai"));
+
+        // -----------------------------------------------------
+        // 3.2. Lấy đúng hóa đơn được chọn
+        // -----------------------------------------------------
+
+        List<Map<String, Object>> hoaDon =
+                jdbcTemplate.queryForList(
+                        """
+                        SELECT
+                            MaHoaDon,
+                            MaBenhNhan,
+                            TrangThai,
+                            TongTien
+                        FROM hoadon
+                        WHERE MaLichKham = ?
+                          AND MaHoaDon = ?
+                        """ + khoa,
+                        maLichKham,
+                        maHoaDon
+                );
 
         if (hoaDon.isEmpty()) {
-            return new DuLieu(
-                    new TiepNhanThanhToanCLSDTO(
-                            maLichKham,
-                            null,
-                            maBenhNhan,
-                            tenBenhNhan,
-                            trangThai,
-                            List.of(),
-                            KHONG,
-                            KHONG,
-                            false,
-                            "Lịch khám chưa có hóa đơn. "
-                                    + "Cần lập các khoản phí trước khi thu."
-                    ),
-                    List.of()
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy hóa đơn thuộc lịch khám này."
             );
         }
 
@@ -394,12 +442,13 @@ public class TiepNhanThanhToanCLSService {
             );
         }
 
-        Integer maHoaDon = soNguyen(hd.get("MaHoaDon"));
+        Integer maHoaDonDuocChon =
+                soNguyen(hd.get("MaHoaDon"));
 
-        /*
-         * Đọc tất cả chỉ định của lịch để phát hiện
-         * trường hợp còn chỉ định CLS chưa được lập dòng phí.
-         */
+        // -----------------------------------------------------
+        // 3.3. Lấy tất cả chỉ định thuộc lịch khám
+        // -----------------------------------------------------
+
         List<Map<String, Object>> cacChiDinh =
                 jdbcTemplate.queryForList(
                         """
@@ -415,6 +464,10 @@ public class TiepNhanThanhToanCLSService {
                         """ + khoa,
                         maLichKham
                 );
+
+        // -----------------------------------------------------
+        // 3.4. Lấy tất cả dòng phí của hóa đơn đang chọn
+        // -----------------------------------------------------
 
         List<Map<String, Object>> cacDong =
                 jdbcTemplate.queryForList(
@@ -461,48 +514,96 @@ public class TiepNhanThanhToanCLSService {
                         WHERE ct.MaHoaDon = ?
                         ORDER BY ct.MaCTHoaDon
                         """ + khoa,
-                        maHoaDon
+                        maHoaDonDuocChon
                 );
+
+        // -----------------------------------------------------
+        // 3.5. Lấy giao dịch của hóa đơn đang chọn
+        // -----------------------------------------------------
 
         List<Map<String, Object>> cacThanhToan =
                 jdbcTemplate.queryForList(
                         """
-                        SELECT MaThanhToan, SoTien, TrangThai
+                        SELECT
+                            MaThanhToan,
+                            SoTien,
+                            TrangThai
                         FROM thanhtoan
                         WHERE MaHoaDon = ?
                         ORDER BY MaThanhToan
                         """ + khoa,
-                        maHoaDon
+                        maHoaDonDuocChon
                 );
 
-        Map<Integer, BigDecimal> tienDaPhanBo = new HashMap<>();
-        Map<Integer, Integer> soDongDaPhanBo = new HashMap<>();
+        // -----------------------------------------------------
+        // 3.6. Kiểm tra các chỉ định đã có dòng phí ở hóa đơn nào
+        // của cùng lịch khám.
+        // -----------------------------------------------------
 
-        Set<Integer> chiDinhDaLapPhi = new HashSet<>();
+        List<Integer> cacMaChiDinhDaLapPhi =
+                jdbcTemplate.queryForList(
+                        """
+                        SELECT DISTINCT ct.MaChiDinh
+                        FROM cthoadon ct
+                        JOIN chidinhyte cd
+                            ON cd.MaChiDinh = ct.MaChiDinh
+                        JOIN hosobenhan hs
+                            ON hs.MaHoSoBenhAn = cd.MaHoSoBenhAn
+                        WHERE hs.MaLichKham = ?
+                          AND ct.MaChiDinh IS NOT NULL
+                        """,
+                        Integer.class,
+                        maLichKham
+                );
 
-        List<ChiPhiCLS> danhSachCLS = new ArrayList<>();
+        Set<Integer> chiDinhDaLapPhi =
+                new HashSet<>(cacMaChiDinhDaLapPhi);
+
+        // Phát hiện chỉ định trùng dòng phí trong hóa đơn đang chọn.
+        Set<Integer> chiDinhTrongHoaDon = new HashSet<>();
+
+        // -----------------------------------------------------
+        // 3.7. Tổng hợp dữ liệu thanh toán
+        // -----------------------------------------------------
+
+        Map<Integer, BigDecimal> tienDaPhanBo =
+                new HashMap<>();
+
+        Map<Integer, Integer> soDongDaPhanBo =
+                new HashMap<>();
+
+        List<ChiPhiCLS> danhSachCLS =
+                new ArrayList<>();
 
         BigDecimal tongDaThanhToan = KHONG;
         BigDecimal tongCanThu = KHONG;
 
         for (Map<String, Object> dong : cacDong) {
+
             Integer maCTHoaDon =
                     soNguyen(dong.get("MaCTHoaDon"));
 
-            Integer soLuong = soNguyen(dong.get("SoLuong"));
+            Integer soLuong =
+                    soNguyen(dong.get("SoLuong"));
 
-            BigDecimal donGia = docTien(dong.get("DonGia"));
-            BigDecimal thanhTien = docTien(dong.get("ThanhTien"));
+            BigDecimal donGia =
+                    docTien(dong.get("DonGia"));
 
-            if (soLuong == null
+            BigDecimal thanhTien =
+                    docTien(dong.get("ThanhTien"));
+
+            if (maCTHoaDon == null
+                    || soLuong == null
                     || soLuong <= 0
                     || donGia.signum() < 0
                     || thanhTien.signum() < 0
                     || donGia.multiply(
                     BigDecimal.valueOf(soLuong)
             ).compareTo(thanhTien) != 0) {
+
                 throw xungDot(
-                        "Dòng phí " + maCTHoaDon
+                        "Dòng phí "
+                                + maCTHoaDon
                                 + " có số lượng hoặc thành tiền không hợp lệ."
                 );
             }
@@ -513,7 +614,8 @@ public class TiepNhanThanhToanCLSService {
             boolean daThanhToan = false;
 
             if (maThanhToan != null) {
-                if (!maHoaDon.equals(
+
+                if (!maHoaDonDuocChon.equals(
                         soNguyen(dong.get("MaHoaDonThanhToan"))
                 )) {
                     throw xungDot(
@@ -548,8 +650,8 @@ public class TiepNhanThanhToanCLSService {
             Integer maChiDinh =
                     soNguyen(dong.get("MaChiDinh"));
 
+            // Dòng không liên quan chỉ định CLS, ví dụ dòng thuốc.
             if (maChiDinh == null) {
-                // Dòng tiền thuốc không thuộc danh sách thu CLS.
                 continue;
             }
 
@@ -561,34 +663,33 @@ public class TiepNhanThanhToanCLSService {
                 );
             }
 
-            if (!chiDinhDaLapPhi.add(maChiDinh)) {
+            if (!chiDinhTrongHoaDon.add(maChiDinh)) {
                 throw xungDot(
-                        "Chỉ định " + maChiDinh
-                                + " đang có nhiều dòng phí. Cần kiểm tra lại."
+                        "Chỉ định "
+                                + maChiDinh
+                                + " đang có nhiều dòng phí trong hóa đơn."
                 );
             }
 
             Integer maDichVu =
                     soNguyen(dong.get("MaDichVu"));
 
-            if (!MA_DICH_VU_CLS.contains(maDichVu)) {
+            if (maDichVu == null
+                    || !MA_DICH_VU_CLS.contains(maDichVu)) {
                 continue;
             }
 
             String trangThaiChiDinh =
                     chuoi(dong.get("TrangThaiChiDinh"));
 
-            /*
-             * Quy trình thu trước khi thực hiện.
-             * Không tự thu hồi tố các chỉ định đã thực hiện
-             * mà chưa có liên kết thanh toán.
-             */
+            // Chỉ định chưa thanh toán phải đang chờ thanh toán.
             if (!daThanhToan
-                    && !"ChoThucHien".equals(trangThaiChiDinh)) {
+                    && !"ChoThanhToan".equals(trangThaiChiDinh)) {
+
                 throw xungDot(
-                        "Chỉ định " + maChiDinh
-                                + " không còn ở trạng thái chờ thực hiện "
-                                + "nhưng chưa có liên kết thanh toán. "
+                        "Chỉ định "
+                                + maChiDinh
+                                + " không ở trạng thái chờ thanh toán. "
                                 + "Cần kiểm tra dữ liệu."
                 );
             }
@@ -612,15 +713,17 @@ public class TiepNhanThanhToanCLSService {
                 tongDaThanhToan =
                         tongDaThanhToan.add(thanhTien);
             } else {
-                tongCanThu = tongCanThu.add(thanhTien);
+                tongCanThu =
+                        tongCanThu.add(thanhTien);
             }
         }
 
-        /*
-         * Giao dịch cũ đã thành công nhưng chưa được phân bổ
-         * không được coi là "chưa trả" để thu thêm lần nữa.
-         */
+        // -----------------------------------------------------
+        // 3.8. Đối soát giao dịch đã thành công
+        // -----------------------------------------------------
+
         for (Map<String, Object> thanhToan : cacThanhToan) {
+
             if (!"ThanhCong".equals(
                     chuoi(thanhToan.get("TrangThai"))
             )) {
@@ -640,8 +743,10 @@ public class TiepNhanThanhToanCLSService {
                     || soTien.compareTo(
                     tienDaPhanBo.getOrDefault(id, KHONG)
             ) != 0) {
+
                 throw xungDot(
-                        "Giao dịch " + id
+                        "Giao dịch "
+                                + id
                                 + " đã thành công nhưng chưa được liên kết "
                                 + "đầy đủ với các dòng phí. "
                                 + "Cần đối soát trước khi thu tiếp."
@@ -649,35 +754,43 @@ public class TiepNhanThanhToanCLSService {
             }
         }
 
+        // -----------------------------------------------------
+        // 3.9. Kiểm tra chỉ định CLS chưa được lập dòng phí
+        // -----------------------------------------------------
+
         String lyDoChan = "";
 
         for (Map<String, Object> chiDinh : cacChiDinh) {
+
             Integer maDichVu =
                     soNguyen(chiDinh.get("MaDichVu"));
 
             Integer maChiDinh =
                     soNguyen(chiDinh.get("MaChiDinh"));
 
-            if (MA_DICH_VU_CLS.contains(maDichVu)
+            if (maDichVu != null
+                    && MA_DICH_VU_CLS.contains(maDichVu)
                     && !chiDinhDaLapPhi.contains(maChiDinh)) {
-                lyDoChan = "Còn chỉ định CLS chưa có dòng phí "
-                        + "trong hóa đơn. Cần lập đủ phí trước khi thu.";
+
+                lyDoChan =
+                        "Còn chỉ định CLS chưa có dòng phí "
+                                + "trong hóa đơn. Cần lập đủ phí trước khi thu.";
+
                 break;
             }
         }
 
-        if (lyDoChan.isBlank()
-                && !"ChoThanhToan".equals(trangThai)) {
-            lyDoChan = "Lịch khám không ở trạng thái chờ thanh toán CLS.";
-        }
+        // Không kiểm tra trạng thái lịch khám ở đây.
+        // Mỗi hóa đơn được thanh toán độc lập.
 
         if (lyDoChan.isBlank() && danhSachCLS.isEmpty()) {
             lyDoChan = "Hóa đơn chưa có khoản phí CLS.";
         }
 
         if (lyDoChan.isBlank() && tongCanThu.signum() <= 0) {
-            lyDoChan = "Không còn phí CLS có số tiền cần thu. "
-                    + "Không tạo giao dịch thanh toán 0 đồng.";
+            lyDoChan =
+                    "Không còn phí CLS có số tiền cần thu. "
+                            + "Không tạo giao dịch thanh toán 0 đồng.";
         }
 
         boolean choPhepThanhToan = lyDoChan.isBlank();
@@ -686,13 +799,17 @@ public class TiepNhanThanhToanCLSService {
                 ? "Vui lòng kiểm tra dịch vụ và số tiền trước khi xác nhận."
                 : lyDoChan;
 
+        // -----------------------------------------------------
+        // 3.10. Trả DTO
+        // -----------------------------------------------------
+
         return new DuLieu(
                 new TiepNhanThanhToanCLSDTO(
                         maLichKham,
-                        maHoaDon,
+                        maHoaDonDuocChon,
                         maBenhNhan,
                         tenBenhNhan,
-                        trangThai,
+                        trangThaiLich,
                         danhSachCLS,
                         tongDaThanhToan,
                         tongCanThu,
@@ -704,7 +821,7 @@ public class TiepNhanThanhToanCLSService {
     }
 
     // =========================================================
-    // GHI GIAO DỊCH
+    // 4. TẠO GIAO DỊCH THANH TOÁN
     // =========================================================
 
     private Integer themThanhToan(
@@ -716,6 +833,7 @@ public class TiepNhanThanhToanCLSService {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
+
             PreparedStatement statement =
                     connection.prepareStatement(
                             """
@@ -758,7 +876,7 @@ public class TiepNhanThanhToanCLSService {
     }
 
     // =========================================================
-    // KIỂM TRA REQUEST
+    // 5. KIỂM TRA DỮ LIỆU ĐẦU VÀO
     // =========================================================
 
     private void kiemTraMaLichKham(Integer maLichKham) {
@@ -768,10 +886,14 @@ public class TiepNhanThanhToanCLSService {
     }
 
     private void kiemTraRequest(XacNhanRequest request) {
+
         if (request == null
                 || request.maHoaDon() == null
                 || request.maHoaDon() <= 0) {
-            throw khongHopLe("Thông tin hóa đơn không hợp lệ.");
+
+            throw khongHopLe(
+                    "Thông tin hóa đơn không hợp lệ."
+            );
         }
 
         List<Integer> danhSach = request.maCTHoaDon();
@@ -779,12 +901,16 @@ public class TiepNhanThanhToanCLSService {
         if (danhSach == null
                 || danhSach.isEmpty()
                 || danhSach.size() > 500) {
-            throw khongHopLe("Danh sách khoản thu không hợp lệ.");
+
+            throw khongHopLe(
+                    "Danh sách khoản thu không hợp lệ."
+            );
         }
 
         Set<Integer> cacMa = new HashSet<>();
 
         for (Integer id : danhSach) {
+
             if (id == null || id <= 0 || !cacMa.add(id)) {
                 throw khongHopLe(
                         "Danh sách khoản thu có mã sai hoặc bị trùng."
@@ -795,7 +921,9 @@ public class TiepNhanThanhToanCLSService {
         BigDecimal soTien = request.soTienXacNhan();
 
         if (soTien == null || soTien.signum() <= 0) {
-            throw khongHopLe("Số tiền xác nhận phải lớn hơn 0.");
+            throw khongHopLe(
+                    "Số tiền xác nhận phải lớn hơn 0."
+            );
         }
 
         try {
@@ -810,6 +938,7 @@ public class TiepNhanThanhToanCLSService {
 
         if (!"TIEN_MAT".equals(phuongThuc)
                 && !"CHUYEN_KHOAN".equals(phuongThuc)) {
+
             throw khongHopLe(
                     "Vui lòng chọn tiền mặt hoặc chuyển khoản."
             );
@@ -817,9 +946,16 @@ public class TiepNhanThanhToanCLSService {
 
         if (request.maGiaoDich() != null
                 && request.maGiaoDich().length() > 255) {
-            throw khongHopLe("Mã giao dịch tối đa 255 ký tự.");
+
+            throw khongHopLe(
+                    "Mã giao dịch tối đa 255 ký tự."
+            );
         }
     }
+
+    // =========================================================
+    // 6. HÀM HỖ TRỢ
+    // =========================================================
 
     private Integer soNguyen(Object value) {
         return value instanceof Number number
@@ -832,8 +968,11 @@ public class TiepNhanThanhToanCLSService {
     }
 
     private BigDecimal docTien(Object value) {
+
         if (value == null) {
-            throw xungDot("Có khoản phí thiếu thông tin số tiền.");
+            throw xungDot(
+                    "Có khoản phí thiếu thông tin số tiền."
+            );
         }
 
         return value instanceof BigDecimal tien
@@ -841,19 +980,27 @@ public class TiepNhanThanhToanCLSService {
                 : new BigDecimal(value.toString());
     }
 
-    private ResponseStatusException khongHopLe(String message) {
+    private ResponseStatusException khongHopLe(
+            String message
+    ) {
         return new ResponseStatusException(
                 HttpStatus.BAD_REQUEST,
                 message
         );
     }
 
-    private ResponseStatusException xungDot(String message) {
+    private ResponseStatusException xungDot(
+            String message
+    ) {
         return new ResponseStatusException(
                 HttpStatus.CONFLICT,
                 message
         );
     }
+
+    // =========================================================
+    // 7. OBJECT CHỨA DỮ LIỆU NỘI BỘ
+    // =========================================================
 
     private record DuLieu(
             TiepNhanThanhToanCLSDTO dto,

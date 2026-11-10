@@ -1,3 +1,4 @@
+
 package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.ThongTinQRResponse;
@@ -19,9 +20,6 @@ public class ThanhToanService {
     @Value("${sepay.bank-code:}")
     private String bankCode;
 
-    //    @Value("${sepay.account-number:}")
-    //    private String accountNumber;
-
     @Value("${sepay.bank-account-number:}")
     private String accountNumber;
 
@@ -32,34 +30,64 @@ public class ThanhToanService {
         this.hoaDonRepository = hoaDonRepository;
     }
 
+    // =========================================
+    // TẠO THÔNG TIN QR THEO HỒ SƠ BỆNH NHÂN
+    // =========================================
     @Transactional(readOnly = true)
     public ThongTinQRResponse taoThongTinQR(
             Integer maHoaDon,
-            String tenDangNhap) {
+            Integer maBenhNhan) {
 
+        // 1. Kiểm tra dữ liệu đầu vào
+        if (maHoaDon == null || maHoaDon <= 0) {
+            throw new IllegalArgumentException(
+                    "Mã hóa đơn không hợp lệ."
+            );
+        }
+
+        if (maBenhNhan == null || maBenhNhan <= 0) {
+            throw new IllegalArgumentException(
+                    "Mã hồ sơ bệnh nhân không hợp lệ."
+            );
+        }
+
+        // 2. Tìm hóa đơn thuộc đúng hồ sơ bệnh nhân
         HoaDon hoaDon = hoaDonRepository
-                .timHoaDonCuaBenhNhan(maHoaDon, tenDangNhap)
+                .timHoaDonTheoMaVaBenhNhan(
+                        maHoaDon,
+                        maBenhNhan
+                )
                 .orElseThrow(() ->
                         new IllegalArgumentException(
-                                "Không tìm thấy hóa đơn hoặc bạn không có quyền truy cập."
-                        ));
+                                "Không tìm thấy hóa đơn thuộc hồ sơ bệnh nhân này."
+                        )
+                );
 
-        if (!"ChuaThanhToan".equalsIgnoreCase(
-                hoaDon.getTrangThai())) {
+        // 3. Kiểm tra trạng thái hóa đơn
+        String trangThai = hoaDon.getTrangThai();
+
+        if ("DaHuy".equalsIgnoreCase(trangThai)) {
+            throw new IllegalArgumentException(
+                    "Hóa đơn đã bị hủy, không thể thanh toán."
+            );
+        }
+
+        if (!"ChuaThanhToan".equalsIgnoreCase(trangThai)) {
             throw new IllegalArgumentException(
                     "Hóa đơn không ở trạng thái chờ thanh toán."
             );
         }
 
+        // 4. Kiểm tra số tiền
         if (hoaDon.getTongTien() == null
                 || hoaDon.getTongTien().signum() <= 0) {
+
             throw new IllegalArgumentException(
                     "Số tiền hóa đơn không hợp lệ."
             );
         }
 
-        String noiDung = "BV" + hoaDon.getMaHoaDon();
-
+        // 5. Kiểm tra cấu hình ngân hàng
         if (bankCode == null || bankCode.isBlank()
                 || accountNumber == null || accountNumber.isBlank()
                 || accountName == null || accountName.isBlank()) {
@@ -69,17 +97,23 @@ public class ThanhToanService {
             );
         }
 
+        // 6. Tạo nội dung chuyển khoản
+        String noiDung = "BV" + hoaDon.getMaHoaDon();
+
+        // 7. Tạo URL QR VietQR
         String qrUrl = "https://img.vietqr.io/image/"
                 + encode(bankCode) + "-"
                 + encode(accountNumber)
                 + "-compact2.png?amount="
-                + hoaDon.getTongTien().stripTrailingZeros()
+                + hoaDon.getTongTien()
+                .stripTrailingZeros()
                 .toPlainString()
                 + "&addInfo="
                 + encode(noiDung)
                 + "&accountName="
                 + encode(accountName);
 
+        // 8. Trả thông tin QR về Flutter
         return new ThongTinQRResponse(
                 hoaDon.getMaHoaDon(),
                 hoaDon.getTongTien(),
@@ -92,6 +126,9 @@ public class ThanhToanService {
         );
     }
 
+    // =========================================
+    // ENCODE
+    // =========================================
     private String encode(String value) {
         return URLEncoder.encode(
                 value,

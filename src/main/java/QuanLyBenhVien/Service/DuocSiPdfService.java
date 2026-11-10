@@ -133,7 +133,7 @@ public class DuocSiPdfService {
                 d.NgayKeThuoc,
                 d.GhiChu,
 
-                nd_bn.HoTen AS TenBenhNhan,
+                bn.HoTen AS TenBenhNhan,
 
                 bn.MaBenhNhan,
                 bn.GioiTinh,
@@ -163,9 +163,6 @@ public class DuocSiPdfService {
 
             INNER JOIN BenhNhan bn
                 ON bn.MaBenhNhan = lk.MaBenhNhan
-
-            INNER JOIN Nguoidung nd_bn
-                ON nd_bn.MaNguoiDung = bn.MaNguoiDung
 
             INNER JOIN BacSi bs
                 ON bs.MaBacSi = d.MaBacSi

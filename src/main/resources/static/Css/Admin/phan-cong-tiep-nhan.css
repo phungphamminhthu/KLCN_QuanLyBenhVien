@@ -642,3 +642,63 @@
         transition: none;
     }
 }
+/* =========================
+   PHÂN TRANG - GIỐNG QUẢN LÝ PHÒNG
+========================= */
+
+.pct-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-top: 1px solid #eef2f7;
+}
+
+.pct-table-result {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.pct-pagination {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pct-pagination .pagination-button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #dbe3ec;
+    border-radius: 7px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.pct-pagination .pagination-button:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.pct-pagination .pagination-button.active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+}
+
+.pct-pagination .pagination-button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .pct-table-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+    }
+}

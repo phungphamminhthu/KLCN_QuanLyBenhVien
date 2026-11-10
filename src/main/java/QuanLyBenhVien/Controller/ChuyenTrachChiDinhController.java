@@ -143,7 +143,7 @@ public class ChuyenTrachChiDinhController {
 
         row.put(
                 "tenBenhNhan",
-                lich.getBenhNhan().getNguoiDung().getHoTen()
+                lich.getBenhNhan().getHoTen()
         );
 
         row.put(
@@ -259,7 +259,7 @@ public class ChuyenTrachChiDinhController {
                     first.get("maChiDinh")
             );
 
-// Gửi đầy đủ các chỉ định thuộc phiếu
+            // Gửi đầy đủ các chỉ định thuộc phiếu
             result.put("danhSachXetNghiem", items);
 
             String loai = chuanHoa(

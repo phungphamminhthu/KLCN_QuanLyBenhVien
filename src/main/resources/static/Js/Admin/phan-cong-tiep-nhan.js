@@ -13,6 +13,7 @@
     const elements = {
         tableBody: $("#assignmentTableBody"),
         tableSummary: $("#tableSummary"),
+        pagination: $("#pagination"),
         statTotal: $("#statTotal"),
         statActive: $("#statActive"),
         statUpcoming: $("#statUpcoming"),
@@ -38,6 +39,9 @@
     let employees = [];
     let departments = [];
     let isSubmitting = false;
+
+    const PAGE_SIZE = 5;
+    let currentPage = 1;
 
     // ========================================
     // JWT
@@ -386,6 +390,7 @@
             const data = await apiRequest(API.assignments);
 
             assignments = Array.isArray(data) ? data : [];
+            currentPage = 1;
 
             hideMessage(elements.pageMessage);
             renderAssignments();
@@ -401,6 +406,7 @@
 
             elements.tableSummary.textContent =
                 "Không tải được danh sách phân công.";
+            if (elements.pagination) elements.pagination.replaceChildren();
 
             showMessage(
                 elements.pageMessage,
@@ -485,12 +491,75 @@
     // STT
     // ====================================
 
+    function renderPagination(totalItems) {
+        if (!elements.pagination) return;
+
+        elements.pagination.replaceChildren();
+
+        const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+        if (totalItems <= PAGE_SIZE) return;
+
+        function addButton(label, page, options = {}) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "pagination-button";
+            button.textContent = label;
+
+            if (options.active) {
+                button.classList.add("active");
+                button.setAttribute("aria-current", "page");
+            }
+
+            button.disabled = Boolean(options.disabled);
+
+            if (!button.disabled && !options.active) {
+                button.addEventListener("click", () => {
+                    currentPage = page;
+                    renderAssignments();
+                });
+            }
+
+            elements.pagination.appendChild(button);
+        }
+
+        addButton("‹", currentPage - 1, { disabled: currentPage === 1 });
+
+        const pages = new Set([1, totalPages]);
+        for (let page = Math.max(1, currentPage - 2);
+             page <= Math.min(totalPages, currentPage + 2); page++) {
+            pages.add(page);
+        }
+
+        const sortedPages = [...pages].sort((a, b) => a - b);
+        let previous = 0;
+
+        sortedPages.forEach(page => {
+            if (previous && page - previous > 1) {
+                const dots = document.createElement("span");
+                dots.className = "pagination-ellipsis";
+                dots.textContent = "…";
+                elements.pagination.appendChild(dots);
+            }
+
+            addButton(String(page), page, { active: page === currentPage });
+            previous = page;
+        });
+
+        addButton("›", currentPage + 1, {
+            disabled: currentPage === totalPages
+        });
+    }
+
     function renderAssignments() {
         updateStatistics();
 
         const filtered = getFilteredAssignments();
+        const totalItems = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
 
-        if (filtered.length === 0) {
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        if (totalItems === 0) {
             elements.tableBody.innerHTML = `
                 <tr>
                     <td colspan="7" class="pct-table-message">
@@ -498,20 +567,22 @@
                     </td>
                 </tr>
             `;
-
             elements.tableSummary.textContent =
-                `Hiển thị 0/${assignments.length} phân công`;
-
+                "Hiển thị 0 trong tổng số 0 phân công";
+            if (elements.pagination) elements.pagination.replaceChildren();
             return;
         }
 
-        elements.tableBody.innerHTML = filtered.map((item, index) => {
+        const startIndex = (currentPage - 1) * PAGE_SIZE;
+        const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
+        const pageItems = filtered.slice(startIndex, endIndex);
+
+        elements.tableBody.innerHTML = pageItems.map((item, index) => {
             const status = getStatus(item);
 
             return `
                 <tr>
-                    <td>${index + 1}</td>
-
+                    <td>${startIndex + index + 1}</td>
                     <td>
                         <span class="pct-person-name">
                             ${escapeHTML(item.tenNhanVien)}
@@ -520,7 +591,6 @@
                             Mã NV: ${escapeHTML(item.maNhanVienTiepNhan)}
                         </span>
                     </td>
-
                     <td>
                         <span class="pct-person-name">
                             ${escapeHTML(item.tenKhoa)}
@@ -529,15 +599,8 @@
                             Mã khoa: ${escapeHTML(item.maKhoa)}
                         </span>
                     </td>
-
-                    <td>${escapeHTML(
-                        formatDateTime(item.thoiGianBatDau)
-                    )}</td>
-
-                    <td>${escapeHTML(
-                        formatDateTime(item.thoiGianKetThuc)
-                    )}</td>
-
+                    <td>${escapeHTML(formatDateTime(item.thoiGianBatDau))}</td>
+                    <td>${escapeHTML(formatDateTime(item.thoiGianKetThuc))}</td>
                     <td>
                         <span class="pct-person-name">
                             ${escapeHTML(item.tenNguoiPhanCong)}
@@ -546,7 +609,6 @@
                             Mã Admin: ${escapeHTML(item.maNguoiPhanCong)}
                         </span>
                     </td>
-
                     <td>
                         <span class="pct-status pct-status-${status.key}">
                             ${escapeHTML(status.label)}
@@ -557,9 +619,10 @@
         }).join("");
 
         elements.tableSummary.textContent =
-            `Hiển thị ${filtered.length}/${assignments.length} phân công`;
-    }
+            `Hiển thị ${startIndex + 1}–${endIndex} trong tổng số ${totalItems} phân công`;
 
+        renderPagination(totalItems);
+    }
 
     // ========================================
     // MODAL
@@ -683,7 +746,10 @@
         $("#btnOpenCreate").addEventListener("click", openModal);
         $("#btnCloseModal").addEventListener("click", closeModal);
         $("#btnCancelCreate").addEventListener("click", closeModal);
-        $("#btnRefresh").addEventListener("click", loadAssignments);
+        $("#btnRefresh").addEventListener("click", () => {
+            currentPage = 1;
+            loadAssignments();
+        });
 
         elements.modal
             .querySelectorAll("[data-close-modal]")
@@ -699,8 +765,12 @@
             elements.filterDepartment,
             elements.filterStatus
         ].forEach((element) => {
-            element.addEventListener("input", renderAssignments);
-            element.addEventListener("change", renderAssignments);
+            const handleFilterChange = () => {
+                currentPage = 1;
+                renderAssignments();
+            };
+            element.addEventListener("input", handleFilterChange);
+            element.addEventListener("change", handleFilterChange);
         });
 
         $("#btnResetFilter").addEventListener("click", () => {
@@ -708,6 +778,7 @@
             elements.filterEmployee.value = "";
             elements.filterDepartment.value = "";
             elements.filterStatus.value = "";
+            currentPage = 1;
 
             renderAssignments();
         });
@@ -772,3 +843,4 @@
         init();
     }
 })();
+

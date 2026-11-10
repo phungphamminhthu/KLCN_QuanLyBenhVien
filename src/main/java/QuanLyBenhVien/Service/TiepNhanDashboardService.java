@@ -1,6 +1,7 @@
 package QuanLyBenhVien.Service;
 
 import QuanLyBenhVien.DTO.TiepNhanDashboardDTO;
+import QuanLyBenhVien.Entity.BenhNhan;
 import QuanLyBenhVien.Service.TiepNhanPhanCongService.CaTrucHienTai;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -8,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import QuanLyBenhVien.Repository.BenhNhanRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -48,15 +50,18 @@ public class TiepNhanDashboardService {
     private final JdbcTemplate jdbcTemplate;
     private final TiepNhanPhanCongService phanCongService;
     private final ThongBaoService thongBaoService;
+    private final BenhNhanRepository benhNhanRepository;
 
     public TiepNhanDashboardService(
             JdbcTemplate jdbcTemplate,
             TiepNhanPhanCongService phanCongService,
-            ThongBaoService thongBaoService
+            ThongBaoService thongBaoService,
+            BenhNhanRepository benhNhanRepository
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.phanCongService = phanCongService;
         this.thongBaoService = thongBaoService;
+        this.benhNhanRepository = benhNhanRepository;
     }
 
     /*
@@ -187,7 +192,7 @@ public class TiepNhanDashboardService {
                     l.GioKham,
                     l.TrangThai,
                     s.SoThuTu,
-                    nd.HoTen AS TenBenhNhan,
+                    bn.HoTen AS TenBenhNhan,
                     nd.SoDienThoai AS SoDienThoai,
                     bn.GioiTinh,
                     YEAR(bn.NgaySinh) AS NamSinh,
@@ -468,88 +473,7 @@ public class TiepNhanDashboardService {
         };
     }
 
-    // =========================================================
-    // GỌI BỆNH NHÂN
-    // ChoGoi -> DaGoi; cho phép gọi lại khi đang DaGoi.
-    // =========================================================
 
-        //    @Transactional
-        //    public boolean updateTrangThaiHangDoi(
-        //            String maLichKham,
-        //            String trangThaiMoi
-        //    ) {
-        //        if (!"DaGoi".equals(trangThaiMoi)) {
-        //            return false;
-        //        }
-        //
-        //        Integer id = docMaLichKham(maLichKham);
-        //
-        //        if (id == null) {
-        //            return false;
-        //        }
-        //
-        //        CaTrucHienTai caTruc =
-        //                layCaTrucChoLichKham(id);
-        //
-        //        LocalDateTime hienTai =
-        //                LocalDateTime.now(MUI_GIO);
-        //
-        //        LocalDate homNay =
-        //                hienTai.toLocalDate();
-        //
-        //        String sql = """
-        //                UPDATE lichdangkykham
-        //                SET TrangThai = 'DaGoi'
-        //                WHERE MaLichKham = ?
-        //                  AND NgayKham = ?
-        //                  AND MaKhoa = ?
-        //                  AND TrangThai IN ('ChoGoi', 'DaGoi')
-        //                """ + DIEU_KIEN_CA_TRUC;
-        //
-        //        int soDongCapNhat = jdbcTemplate.update(
-        //                sql,
-        //                id,
-        //                homNay,
-        //                caTruc.maKhoa(),
-        //                caTruc.maPhanCong(),
-        //                caTruc.maNhanVienTiepNhan(),
-        //                hienTai,
-        //                hienTai
-        //        );
-        //
-        //        if (soDongCapNhat > 0) {
-        //            return true;
-        //        }
-        //
-        //        /*
-        //         * Một số cấu hình JDBC trả về 0 khi gọi lại
-        //         * vì giá trị DaGoi không thay đổi.
-        //         */
-        //        String sqlKiemTra = """
-        //                SELECT MaLichKham
-        //                FROM lichdangkykham
-        //                WHERE MaLichKham = ?
-        //                  AND NgayKham = ?
-        //                  AND MaKhoa = ?
-        //                  AND TrangThai = 'DaGoi'
-        //                """
-        //                + DIEU_KIEN_CA_TRUC
-        //                + " FOR UPDATE";
-        //
-        //        List<Integer> lichDaGoi = jdbcTemplate.query(
-        //                sqlKiemTra,
-        //                (rs, rowNum) -> rs.getInt("MaLichKham"),
-        //                id,
-        //                homNay,
-        //                caTruc.maKhoa(),
-        //                caTruc.maPhanCong(),
-        //                caTruc.maNhanVienTiepNhan(),
-        //                hienTai,
-        //                hienTai
-        //        );
-        //
-        //        return !lichDaGoi.isEmpty();
-        //    }
     // =========================================================
     // GỌI BỆNH NHÂN
     // ChoGoi -> DaGoi
@@ -640,6 +564,8 @@ public class TiepNhanDashboardService {
         String sql = """
         SELECT
             bn.MaNguoiDung,
+            bn.MaBenhNhan,
+            bn.MaBenhNhan,
             COALESCE(
                 NULLIF(TRIM(p.TenPhong), ''),
                 'theo hướng dẫn của nhân viên tiếp nhận'
@@ -647,7 +573,7 @@ public class TiepNhanDashboardService {
         FROM LichDangKyKham lk
         JOIN BenhNhan bn
             ON bn.MaBenhNhan = lk.MaBenhNhan
-        JOIN LichLamViec lv
+        LEFT JOIN LichLamViec lv
             ON lv.MaBacSi = lk.MaBacSi
             AND lv.NgayLamViec = lk.NgayKham
             AND lk.GioKham >= lv.GioBatDau
@@ -670,19 +596,34 @@ public class TiepNhanDashboardService {
                 ? null
                 : ((Number) row.get("MaNguoiDung")).intValue();
 
-        if (maNguoiDung == null) {
+        Integer maBenhNhan = row.get("MaBenhNhan") == null
+                ? null
+                : ((Number) row.get("MaBenhNhan")).intValue();
+
+        String tenBenhNhan = row.get("HoTen") == null
+                ? "Bệnh nhân"
+                : row.get("HoTen").toString();
+
+        if (maNguoiDung == null || maBenhNhan == null) {
             return;
         }
 
         String tenPhong = (String) row.get("TenPhong");
 
         String noiDung =
-                "Vui lòng đến phòng khám "
+                "Bệnh nhân " + tenBenhNhan
+                        + ", vui lòng đến phòng khám "
                         + tenPhong
                         + " để gặp nhân viên tiếp nhận.";
 
-        thongBaoService.taoThongBao(
+        BenhNhan benhNhan = benhNhanRepository.findById(maBenhNhan)
+                .orElseThrow(() ->
+                        new IllegalStateException("Không tìm thấy hồ sơ bệnh nhân.")
+                );
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
                 maNguoiDung,
+                benhNhan,
                 "Đã đến lượt khám",
                 noiDung,
                 "DEN_LUOT_KHAM"
@@ -800,53 +741,75 @@ public class TiepNhanDashboardService {
 
     private void guiThongBaoTiepNhan(Integer maLichKham) {
         String sql = """
-        SELECT bn.MaNguoiDung
-        FROM lichdangkykham lk
-        JOIN benhnhan bn ON bn.MaBenhNhan = lk.MaBenhNhan
-        WHERE lk.MaLichKham = ?
-        """;
+            SELECT
+                bn.MaNguoiDung,
+                bn.MaBenhNhan,
+                bn.HoTen
+            FROM lichdangkykham lk
+            JOIN benhnhan bn
+                ON bn.MaBenhNhan = lk.MaBenhNhan
+            WHERE lk.MaLichKham = ?
+            """;
 
-        List<Integer> ketQua = jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> {
-                    int maNguoiDung = rs.getInt("MaNguoiDung");
-                    return rs.wasNull() ? null : maNguoiDung;
-                },
-                maLichKham
-        );
+        List<Map<String, Object>> rows =
+                jdbcTemplate.queryForList(sql, maLichKham);
 
-        if (ketQua.isEmpty() || ketQua.get(0) == null) {
+        if (rows.isEmpty()) {
             return;
         }
 
-        thongBaoService.taoThongBao(
-                ketQua.get(0),
+        Map<String, Object> row = rows.get(0);
+
+        Integer maNguoiDung = row.get("MaNguoiDung") == null
+                ? null
+                : ((Number) row.get("MaNguoiDung")).intValue();
+
+        Integer maBenhNhan = row.get("MaBenhNhan") == null
+                ? null
+                : ((Number) row.get("MaBenhNhan")).intValue();
+
+        if (maNguoiDung == null || maBenhNhan == null) {
+            return;
+        }
+
+        String tenBenhNhan = row.get("HoTen") == null
+                ? "Bệnh nhân"
+                : row.get("HoTen").toString();
+
+        BenhNhan benhNhan = benhNhanRepository.findById(maBenhNhan)
+                .orElseThrow(() ->
+                        new IllegalStateException(
+                                "Không tìm thấy hồ sơ bệnh nhân."
+                        )
+                );
+
+        thongBaoService.taoThongBaoVaGuiRealtime(
+                maNguoiDung,
+                benhNhan,
                 "Tiếp nhận thành công",
-                "Bạn đã hoàn tất thủ tục tiếp nhận và vui lòng chờ gọi vào phòng.",
+                "Bệnh nhân " + tenBenhNhan
+                        + " đã hoàn tất thủ tục tiếp nhận. "
+                        + "Vui lòng chờ gọi vào phòng.",
                 "TIEP_NHAN"
         );
     }
 
     private void guiThongBaoBacSiChoKham(Integer maLichKham) {
         String sql = """
-                SELECT
-                    bs.MaNguoiDung,
-                    nd.HoTen AS TenBacSi,
-                    bnnd.HoTen AS TenBenhNhan,
-                    s.SoThuTu
-                FROM lichdangkykham lk
-                JOIN bacsi bs
-                    ON bs.MaBacSi = lk.MaBacSi
-                JOIN nguoidung nd
-                    ON nd.MaNguoiDung = bs.MaNguoiDung
-                JOIN benhnhan bn
-                    ON bn.MaBenhNhan = lk.MaBenhNhan
-                JOIN nguoidung bnnd
-                    ON bnnd.MaNguoiDung = bn.MaNguoiDung
-                LEFT JOIN sothutu s
-                    ON s.MaSoThuTu = lk.MaSoThuTu
-                WHERE lk.MaLichKham = ?
-        """;
+            SELECT
+                bs.MaNguoiDung,
+                bn.MaBenhNhan,
+                bn.HoTen AS TenBenhNhan,
+                s.SoThuTu
+            FROM lichdangkykham lk
+            JOIN bacsi bs
+                ON bs.MaBacSi = lk.MaBacSi
+            JOIN benhnhan bn
+                ON bn.MaBenhNhan = lk.MaBenhNhan
+            LEFT JOIN sothutu s
+                ON s.MaSoThuTu = lk.MaSoThuTu
+            WHERE lk.MaLichKham = ?
+            """;
 
         List<Map<String, Object>> rows =
                 jdbcTemplate.queryForList(sql, maLichKham);
@@ -862,7 +825,12 @@ public class TiepNhanDashboardService {
                         ? null
                         : ((Number) row.get("MaNguoiDung")).intValue();
 
-        if (maNguoiDungBacSi == null) {
+        Integer maBenhNhan =
+                row.get("MaBenhNhan") == null
+                        ? null
+                        : ((Number) row.get("MaBenhNhan")).intValue();
+
+        if (maNguoiDungBacSi == null || maBenhNhan == null) {
             return;
         }
 
@@ -876,8 +844,16 @@ public class TiepNhanDashboardService {
                         ? ""
                         : " (STT: " + row.get("SoThuTu") + ")";
 
+        BenhNhan benhNhan = benhNhanRepository.findById(maBenhNhan)
+                .orElseThrow(() ->
+                        new IllegalStateException(
+                                "Không tìm thấy hồ sơ bệnh nhân."
+                        )
+                );
+
         thongBaoService.taoThongBaoVaGuiRealtime(
                 maNguoiDungBacSi,
+                benhNhan,
                 "Bệnh nhân đã được tiếp nhận",
                 tenBenhNhan + soThuTu
                         + " đã hoàn tất thủ tục tiếp nhận và đang chờ khám.",

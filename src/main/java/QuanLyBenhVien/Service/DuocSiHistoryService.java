@@ -60,7 +60,7 @@ public class DuocSiHistoryService {
 
                         nd_cap.HoTen AS TenNguoiCap,
 
-                        nd_bn.HoTen AS TenBenhNhan,
+                        bn.HoTen AS TenBenhNhan,
 
                         nd_bs.HoTen AS TenBacSi,
 
@@ -84,10 +84,6 @@ public class DuocSiHistoryService {
                     INNER JOIN BenhNhan bn
                         ON bn.MaBenhNhan =
                            lk.MaBenhNhan
-
-                    INNER JOIN Nguoidung nd_bn
-                        ON nd_bn.MaNguoiDung =
-                           bn.MaNguoiDung
 
                     INNER JOIN BacSi bs
                         ON bs.MaBacSi =
@@ -175,7 +171,7 @@ public class DuocSiHistoryService {
 
                     OR
 
-                    nd_bn.HoTen LIKE ?
+                    bn.HoTen LIKE ?
 
                     OR
 

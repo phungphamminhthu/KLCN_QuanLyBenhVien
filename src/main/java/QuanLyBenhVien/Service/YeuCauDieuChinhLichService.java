@@ -281,7 +281,7 @@ public class YeuCauDieuChinhLichService {
                                 + tenPhong
                                 + ".";
 
-                thongBaoService.taoThongBaoVaGuiRealtime(
+                thongBaoService.taoThongBao(
                         bacSiNhan.getNguoiDung().getMaNguoiDung(),
                         "Bạn được phân công lịch làm việc mới",
                         noiDungBacSiNhan,
@@ -363,7 +363,7 @@ public class YeuCauDieuChinhLichService {
             return;
         }
 
-        thongBaoService.taoThongBaoVaGuiRealtime(
+        thongBaoService.taoThongBao(
                 maNguoiDung,
                 tieuDe,
                 noiDung,
@@ -441,7 +441,7 @@ public class YeuCauDieuChinhLichService {
 
         for (NguoiDung admin : admins) {
             if (admin != null && admin.getMaNguoiDung() != null) {
-                thongBaoService.taoThongBaoVaGuiRealtime(
+                thongBaoService.taoThongBao(
                         admin.getMaNguoiDung(),
                         tieuDe,
                         noiDung,

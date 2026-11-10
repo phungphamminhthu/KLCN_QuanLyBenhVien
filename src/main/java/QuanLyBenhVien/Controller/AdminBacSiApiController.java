@@ -197,7 +197,7 @@ public class AdminBacSiApiController {
         BacSi bacSiDaLuu = bacSiRepository.save(bacSi);
 
         // 1. Thông báo cho bác sĩ được bổ sung hồ sơ
-        thongBaoService.taoThongBaoVaGuiRealtime(
+        thongBaoService.taoThongBao(
                 nguoiDung.getMaNguoiDung(),
                 "Hồ sơ chuyên môn đã được tạo",
                 "Hồ sơ bác sĩ của bạn đã được bổ sung thành công."
@@ -212,7 +212,7 @@ public class AdminBacSiApiController {
                             && "ADMIN".equalsIgnoreCase(
                             admin.getVaiTro().getTenVaiTro()))
                     .ifPresent(admin ->
-                            thongBaoService.taoThongBaoVaGuiRealtime(
+                            thongBaoService.taoThongBao(
                                     admin.getMaNguoiDung(),
                                     "Bổ sung hồ sơ bác sĩ thành công",
                                     "Bạn đã bổ sung hồ sơ chuyên môn cho bác sĩ "
@@ -278,7 +278,7 @@ public class AdminBacSiApiController {
 
         if (nguoiDung != null) {
             // Thông báo cho bác sĩ được chỉnh sửa
-            thongBaoService.taoThongBaoVaGuiRealtime(
+            thongBaoService.taoThongBao(
                     nguoiDung.getMaNguoiDung(),
                     "Hồ sơ bác sĩ đã được cập nhật",
                     "Hồ sơ chuyên môn của bạn đã được cập nhật."
@@ -294,7 +294,7 @@ public class AdminBacSiApiController {
                             && "ADMIN".equalsIgnoreCase(
                             admin.getVaiTro().getTenVaiTro()))
                     .ifPresent(admin ->
-                            thongBaoService.taoThongBaoVaGuiRealtime(
+                            thongBaoService.taoThongBao(
                                     admin.getMaNguoiDung(),
                                     "Cập nhật hồ sơ bác sĩ thành công",
                                     "Bạn đã cập nhật hồ sơ chuyên môn cho bác sĩ "

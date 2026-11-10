@@ -38,7 +38,7 @@ public class TiepNhanHoaDonService {
     private static final Set<String> LOAI_HOA_DON = Set.of(
             "PhiKham",
             "CanLamSang",
-            "TienThuoc"
+            "Thuoc"
     );
 
     private static final Set<String> TRANG_THAI_HOA_DON = Set.of(
@@ -84,7 +84,7 @@ public class TiepNhanHoaDonService {
                     l.MaKhoa,
                     l.NgayKham,
                     l.TrangThai,
-                    nd.HoTen,
+                    bn.HoTen AS HoTen,
                     k.TenKhoa
                 FROM lichdangkykham l
                 JOIN benhnhan bn
@@ -302,7 +302,7 @@ public class TiepNhanHoaDonService {
             // RÀNG BUỘC THUỐC
             // =================================================
 
-            if ("TienThuoc".equals(hd.loaiHoaDon())) {
+            if ("Thuoc".equals(hd.loaiHoaDon())) {
                 choPhepThu = false;
 
                 canhBao.add(
@@ -343,17 +343,17 @@ public class TiepNhanHoaDonService {
             // RÀNG BUỘC CẬN LÂM SÀNG
             // =================================================
 
-            if (
-                    "CanLamSang".equals(hd.loaiHoaDon())
-                            && conThu.signum() > 0
-                            && !"ChoThanhToan".equals(lich.trangThai())
-            ) {
-                choPhepThu = false;
-
-                canhBao.add(
-                        "Chỉ thu phí CLS khi lịch khám đang Chờ thanh toán."
-                );
-            }
+            //            if (
+            //                    "CanLamSang".equals(hd.loaiHoaDon())
+            //                            && conThu.signum() > 0
+            //                            && !"ChoThanhToan".equals(lich.trangThai())
+            //            ) {
+            //                choPhepThu = false;
+            //
+            //                canhBao.add(
+            //                        "Chỉ thu phí CLS khi lịch khám đang Chờ thanh toán."
+            //                );
+            //            }
 
             if (daHuy) {
                 canhBao.add(

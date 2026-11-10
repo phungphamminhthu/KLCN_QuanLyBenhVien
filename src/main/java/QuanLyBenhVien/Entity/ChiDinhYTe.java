@@ -54,7 +54,7 @@ public class ChiDinhYTe {
         }
 
         if (trangThai == null || trangThai.isBlank()) {
-            trangThai = "ChoThucHien";
+            trangThai = "ChoThanhToan";
         }
     }
 

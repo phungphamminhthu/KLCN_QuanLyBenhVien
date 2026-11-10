@@ -49,16 +49,19 @@ public class LichDangKyKhamController {
     }
 
     // =============================================
-    //
+    // lấy lịch khám của tôi
     // =============================================
-
     @GetMapping("/cua-toi")
     public ResponseEntity<?> layLichKhamCuaToi(
+            @RequestParam Integer maBenhNhan,
             Authentication authentication) {
+
         try {
             List<LichKhamCuaToiResponse> danhSach =
                     lichDangKyKhamService.layLichKhamCuaToi(
-                            authentication);
+                            maBenhNhan,
+                            authentication
+                    );
 
             return ResponseEntity.ok(danhSach);
 
@@ -75,11 +78,13 @@ public class LichDangKyKhamController {
     @PostMapping("/{maLichKham}/huy")
     public ResponseEntity<?> huyLichKham(
             @PathVariable Integer maLichKham,
+            @RequestParam Integer maBenhNhan,
             Authentication authentication) {
 
         try {
             lichDangKyKhamService.huyLichKham(
                     maLichKham,
+                    maBenhNhan,
                     authentication
             );
 
@@ -93,12 +98,12 @@ public class LichDangKyKhamController {
             );
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(Map.of(
+            return ResponseEntity.badRequest().body(
+                    Map.of(
                             "success", false,
                             "message", e.getMessage()
-                    ));
+                    )
+            );
         }
     }
 

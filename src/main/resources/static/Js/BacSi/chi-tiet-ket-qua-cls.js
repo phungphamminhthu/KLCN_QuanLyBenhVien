@@ -1,4 +1,3 @@
-
 /* =========================================
    CHI TIẾT KẾT QUẢ CẬN LÂM SÀNG
    BÁC SĨ - CHỈ XEM KẾT QUẢ
@@ -10,6 +9,13 @@
     const el = id => document.getElementById(id);
 
     const API_BASE = "/api/bac-si/kham-benh";
+
+    // Quản lý ảnh kết quả tải từ Cloudflare R2.
+    const imageState = {
+        controller: null,
+        blobUrls: new Set(),
+        lightbox: null
+    };
 
     // Lấy mã lịch khám và mã chỉ định từ URL
     const match = location.pathname.match(
@@ -110,7 +116,8 @@
         }
 
         const response = await fetch(url, {
-            headers
+            headers,
+            cache: "no-store"
         });
 
         const body = await response.text();
@@ -141,6 +148,8 @@
     function showError(message) {
         const alert = el("clsAlert");
 
+        if (!alert) return;
+
         alert.textContent = message;
         alert.hidden = false;
     }
@@ -149,6 +158,8 @@
 
     function updateStatus(status, hasResult) {
         const badge = el("clsStatus");
+
+        if (!badge) return;
 
         const names = {
             ChoThucHien: "Chờ thực hiện",
@@ -290,6 +301,284 @@
         }
     }
 
+    /* =========================================================
+       ẢNH KẾT QUẢ CẬN LÂM SÀNG - CLOUDFLARE R2
+    ========================================================= */
+
+    function revokeImageUrls() {
+        imageState.blobUrls.forEach(url => {
+            URL.revokeObjectURL(url);
+        });
+
+        imageState.blobUrls.clear();
+    }
+
+    function clearResultImages() {
+        if (imageState.controller) {
+            imageState.controller.abort();
+            imageState.controller = null;
+        }
+
+        revokeImageUrls();
+
+        const list = el("clsImagesList");
+        const panel = el("clsImagesPanel");
+
+        if (list) {
+            list.replaceChildren();
+        }
+
+        if (panel) {
+            panel.hidden = true;
+        }
+    }
+
+    function getImageHeaders() {
+        const token = getToken();
+
+        return token
+            ? {
+                Authorization: `Bearer ${token}`,
+                Accept: "image/*"
+            }
+            : {
+                Accept: "image/*"
+            };
+    }
+
+    /* LIGHTBOX XEM ẢNH PHÓNG TO */
+
+    function ensureImageLightbox() {
+        if (imageState.lightbox) {
+            return imageState.lightbox;
+        }
+
+        const overlay = document.createElement("div");
+
+        overlay.className = "cls-image-lightbox";
+
+        overlay.innerHTML = `
+            <button
+                type="button"
+                class="cls-image-lightbox-close"
+                aria-label="Đóng">
+                &times;
+            </button>
+
+            <img alt="Ảnh kết quả cận lâm sàng phóng to">
+        `;
+
+        overlay.style.cssText = [
+            "position:fixed",
+            "inset:0",
+            "z-index:99999",
+            "display:none",
+            "align-items:center",
+            "justify-content:center",
+            "padding:24px",
+            "background:rgba(15,23,42,.92)"
+        ].join(";");
+
+        const image = overlay.querySelector("img");
+
+        image.style.cssText =
+            "max-width:95vw;" +
+            "max-height:90vh;" +
+            "object-fit:contain;" +
+            "border-radius:8px;" +
+            "box-shadow:0 10px 40px rgba(0,0,0,.35)";
+
+        const close = () => {
+            overlay.style.display = "none";
+            image.removeAttribute("src");
+        };
+
+        const closeButton = overlay.querySelector("button");
+
+        closeButton.style.cssText = [
+            "position:absolute",
+            "top:18px",
+            "right:24px",
+            "width:42px",
+            "height:42px",
+            "border:0",
+            "border-radius:50%",
+            "font-size:30px",
+            "line-height:1",
+            "cursor:pointer",
+            "color:#fff",
+            "background:rgba(255,255,255,.18)"
+        ].join(";");
+
+        closeButton.addEventListener("click", close);
+
+        overlay.addEventListener("click", event => {
+            if (event.target === overlay) {
+                close();
+            }
+        });
+
+        document.body.appendChild(overlay);
+
+        imageState.lightbox = overlay;
+
+        return overlay;
+    }
+
+    function openImageLightbox(src, alt) {
+        const overlay = ensureImageLightbox();
+
+        const image = overlay.querySelector("img");
+
+        image.src = src;
+
+        image.alt =
+            alt || "Ảnh kết quả cận lâm sàng";
+
+        overlay.style.display = "flex";
+    }
+
+    /* TẢI VÀ HIỂN THỊ NHIỀU ẢNH */
+
+    async function renderResultImages(images) {
+        clearResultImages();
+
+        const panel = el("clsImagesPanel");
+        const list = el("clsImagesList");
+
+        if (!panel || !list) return;
+
+        const validImages = Array.isArray(images)
+            ? images.filter(item =>
+                item && item.maAnh != null
+            )
+            : [];
+
+        if (validImages.length === 0) {
+            return;
+        }
+
+        panel.hidden = false;
+
+        imageState.controller = new AbortController();
+
+        const controller = imageState.controller;
+
+        const tasks = validImages.map(async (item, index) => {
+            const card = document.createElement("div");
+
+            card.className = "cls-image-card";
+
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className = "cls-image-preview-button";
+            button.disabled = true;
+            button.textContent = "Đang tải ảnh...";
+
+            button.setAttribute(
+                "aria-label",
+                "Đang tải ảnh kết quả " + (index + 1)
+            );
+
+            const caption = document.createElement("div");
+
+            caption.className = "cls-image-caption";
+
+            caption.textContent =
+                item.tenFile || `Ảnh kết quả ${index + 1}`;
+
+            card.append(button, caption);
+
+            list.appendChild(card);
+
+            const imageUrl =
+                `${API_BASE}/${encodeURIComponent(maLichKham)}` +
+                `/chi-dinh/${encodeURIComponent(maChiDinh)}` +
+                `/ket-qua/anh/${encodeURIComponent(item.maAnh)}`;
+
+            try {
+                const response = await fetch(imageUrl, {
+                    method: "GET",
+                    cache: "no-store",
+                    headers: getImageHeaders(),
+                    signal: controller.signal
+                });
+
+                if (!response.ok) {
+                    throw new Error(
+                        response.status === 403
+                            ? "Bạn không có quyền xem ảnh này."
+                            : response.status === 404
+                                ? "Không tìm thấy ảnh trên máy chủ."
+                                : `Không tải được ảnh (HTTP ${response.status}).`
+                    );
+                }
+
+                const blob = await response.blob();
+
+                if (controller.signal.aborted) {
+                    return;
+                }
+
+                if (!blob.type.startsWith("image/")) {
+                    throw new Error(
+                        "Máy chủ không trả về dữ liệu hình ảnh."
+                    );
+                }
+
+                const blobUrl = URL.createObjectURL(blob);
+
+                imageState.blobUrls.add(blobUrl);
+
+                const image = document.createElement("img");
+
+                image.src = blobUrl;
+
+                image.alt =
+                    item.tenFile || `Ảnh kết quả ${index + 1}`;
+
+                image.loading = "lazy";
+
+                image.style.cssText =
+                    "display:block;" +
+                    "width:100%;" +
+                    "height:220px;" +
+                    "object-fit:contain;" +
+                    "background:#f8fafc;" +
+                    "border-radius:10px";
+
+                button.replaceChildren(image);
+
+                button.disabled = false;
+
+                button.addEventListener("click", () => {
+                    openImageLightbox(blobUrl, image.alt);
+                });
+
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    return;
+                }
+
+                console.error(
+                    "Lỗi tải ảnh CLS:",
+                    item.maAnh,
+                    error
+                );
+
+                button.disabled = true;
+
+                button.textContent =
+                    error.message || "Không thể tải ảnh.";
+
+                button.classList.add("cls-image-error");
+            }
+        });
+
+        await Promise.allSettled(tasks);
+    }
+
     /* HIỂN THỊ KẾT QUẢ */
 
     function fillResult(data) {
@@ -314,6 +603,11 @@
             pick(data, "ketLuan", "KetLuan")
         );
 
+        // Tải danh sách ảnh theo maAnh qua API có JWT.
+        renderResultImages(
+            pick(data, "anhKetQua", "AnhKetQua")
+        );
+
         /* CHỈ SỐ XÉT NGHIỆM */
 
         const rows = pick(
@@ -323,7 +617,10 @@
         );
 
         const tbody = el("clsIndexesBody");
-        tbody.replaceChildren();
+
+        if (tbody) {
+            tbody.replaceChildren();
+        }
 
         if (Array.isArray(rows) && rows.length > 0) {
             rows.forEach(row => {
@@ -345,27 +642,34 @@
                     const td = document.createElement("td");
 
                     td.textContent = show(value);
+
                     tr.appendChild(td);
                 });
 
-                tbody.appendChild(tr);
+                tbody?.appendChild(tr);
             });
 
-            el("clsIndexesPanel").hidden = false;
+            if (el("clsIndexesPanel")) {
+                el("clsIndexesPanel").hidden = false;
+            }
 
         } else {
-            el("clsIndexesPanel").hidden = true;
+            if (el("clsIndexesPanel")) {
+                el("clsIndexesPanel").hidden = true;
+            }
         }
 
-        /* FILE ĐÍNH KÈM */
+        /* FILE ĐÍNH KÈM CŨ */
 
         const fileUrl = safeLink(
             pick(data, "fileURL", "FileURL")
         );
 
-        el("clsFilePanel").hidden = !fileUrl;
+        if (el("clsFilePanel")) {
+            el("clsFilePanel").hidden = !fileUrl;
+        }
 
-        if (fileUrl) {
+        if (fileUrl && el("clsFileLink")) {
             el("clsFileLink").href = fileUrl;
         }
     }
@@ -373,6 +677,8 @@
     /* TẢI TOÀN BỘ DỮ LIỆU */
 
     async function loadData() {
+        clearResultImages();
+
         el("clsAlert").hidden = true;
         el("clsLoading").hidden = false;
 
@@ -458,6 +764,7 @@
 
             if (ready) {
                 fillResult(result);
+
                 el("clsFinished").hidden = false;
 
             } else {
@@ -468,6 +775,7 @@
 
         } catch (error) {
             console.error(error);
+
             showError(
                 error.message || "Không thể tải kết quả."
             );
@@ -483,22 +791,22 @@
         "DOMContentLoaded",
         () => {
 
-            el("clsBack").addEventListener(
+            el("clsBack")?.addEventListener(
                 "click",
                 () => location.assign(pageCLS())
             );
 
-            el("clsBackBottom").addEventListener(
+            el("clsBackBottom")?.addEventListener(
                 "click",
                 () => location.assign(pageCLS())
             );
 
-            el("clsGoExam").addEventListener(
+            el("clsGoExam")?.addEventListener(
                 "click",
                 () => location.assign(pageExam())
             );
 
-            el("clsReload").addEventListener(
+            el("clsReload")?.addEventListener(
                 "click",
                 loadData
             );
@@ -506,5 +814,24 @@
             loadData();
         }
     );
+
+    /* DỌN DẸP KHI RỜI TRANG */
+
+    window.addEventListener("beforeunload", () => {
+        clearResultImages();
+
+        imageState.lightbox?.remove();
+    });
+
+    /* PHÍM ESC ĐÓNG LIGHTBOX */
+
+    document.addEventListener("keydown", event => {
+        if (
+            event.key === "Escape" &&
+            imageState.lightbox
+        ) {
+            imageState.lightbox.style.display = "none";
+        }
+    });
 
 })();

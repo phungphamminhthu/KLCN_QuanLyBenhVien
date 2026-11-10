@@ -3,6 +3,8 @@ package QuanLyBenhVien.Entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "KetQuaDichVu")
@@ -38,6 +40,22 @@ public class KetQuaDichVu {
 
     public KetQuaDichVu() {
     }
+
+    @OneToMany(
+            mappedBy = "ketQuaDichVu",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<AnhKetQuaDichVu> danhSachAnh = new ArrayList<>();
+
+    @OneToMany(
+            mappedBy = "ketQuaDichVu",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ChiTietKetQua> danhSachChiTiet = new ArrayList<>();
 
     public Integer getMaKetQua() {
         return maKetQua;
@@ -93,5 +111,23 @@ public class KetQuaDichVu {
 
     public void setTrangThai(String trangThai) {
         this.trangThai = trangThai;
+    }
+
+    public List<AnhKetQuaDichVu> getDanhSachAnh() {
+        return danhSachAnh;
+    }
+
+    public void setDanhSachAnh(List<AnhKetQuaDichVu> danhSachAnh) {
+        this.danhSachAnh = danhSachAnh;
+    }
+
+    public List<ChiTietKetQua> getDanhSachChiTiet() {
+        return danhSachChiTiet;
+    }
+
+    public void setDanhSachChiTiet(
+            List<ChiTietKetQua> danhSachChiTiet
+    ) {
+        this.danhSachChiTiet = danhSachChiTiet;
     }
 }

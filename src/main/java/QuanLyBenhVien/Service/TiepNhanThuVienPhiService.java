@@ -318,33 +318,31 @@ public class TiepNhanThuVienPhiService {
             );
         }
 
-        // 8. Nếu thu tiền hóa đơn CLS thành công,
-// chuyển lịch khám và tiếp nhận sang ChoCLS.
-// Hóa đơn PhiKham không thay đổi trạng thái lịch khám.
+        // 8. Nếu thanh toán hóa đơn CLS,
+        // chỉ mở thực hiện các chỉ định thuộc chính hóa đơn này.
+        // Không cập nhật trạng thái toàn bộ lịch khám.
+        // Không cập nhật trạng thái toàn bộ tiếp nhận bệnh nhân.
         if ("CanLamSang".equals(hoaDon.loaiHoaDon())) {
 
-            // Lịch khám có thể đã là ChoCLS (ví dụ dữ liệu
-            // hiện tại), hoặc vẫn đang ChoThanhToan.
-            jdbcTemplate.update(
+            int soChiDinhDuocMo = jdbcTemplate.update(
                     """
-                    UPDATE LichDangKyKham
-                    SET TrangThai = 'ChoCLS'
-                    WHERE MaLichKham = ?
-                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
+                    UPDATE ChiDinhYTe cd
+                    JOIN CTHoaDon ct
+                        ON ct.MaChiDinh = cd.MaChiDinh
+                    SET cd.TrangThai = 'ChoThucHien'
+                    WHERE ct.MaHoaDon = ?
+                      AND cd.TrangThai = 'ChoThanhToan'
                     """,
-                    hoaDon.maLichKham()
+                    maHoaDon
             );
 
-            // Đồng bộ trạng thái tiếp nhận bệnh nhân.
-            jdbcTemplate.update(
-                    """
-                    UPDATE TiepNhanBenhNhan
-                    SET TrangThai = 'ChoCLS'
-                    WHERE MaLichKham = ?
-                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
-                    """,
-                    hoaDon.maLichKham()
-            );
+            if (soChiDinhDuocMo <= 0) {
+                throw loi(
+                        HttpStatus.CONFLICT,
+                        "Không tìm thấy chỉ định CLS hợp lệ "
+                                + "thuộc hóa đơn cần thanh toán."
+                );
+            }
         }
 
         // Nếu lỗi bất kỳ xảy ra trong transaction,

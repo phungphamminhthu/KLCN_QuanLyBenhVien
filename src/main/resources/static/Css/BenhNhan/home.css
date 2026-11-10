@@ -1,4 +1,3 @@
-
 /* =========================================================
    MEDCARE HOSPITAL - PATIENT HOME
    ========================================================= */
@@ -954,5 +953,312 @@ a:focus-visible {
         scroll-behavior: auto !important;
         animation-duration: 0.01ms !important;
         transition-duration: 0.01ms !important;
+    }
+}
+
+```
+
+
+
+/* =========================================================
+   PATIENT PROFILE PICKER - AVATAR + DROPDOWN
+   ========================================================= */
+
+.profile-section {
+    margin-top: 30px;
+}
+
+.profile-heading {
+    margin-bottom: 14px;
+}
+
+.profile-heading h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 23px;
+    font-weight: 750;
+}
+
+.profile-heading p {
+    margin: 6px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.profile-picker {
+    position: relative;
+    width: min(100%, 560px);
+    z-index: 10;
+}
+
+.profile-current {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: var(--white);
+    color: var(--text);
+    text-align: left;
+    box-shadow: var(--shadow);
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+}
+
+.profile-current:hover,
+.profile-current[aria-expanded="true"] {
+    border-color: #93c5fd;
+    box-shadow: 0 10px 26px rgba(37, 99, 235, .10);
+}
+
+.profile-current:disabled {
+    cursor: wait;
+    opacity: .7;
+}
+
+.profile-current-avatar,
+.profile-option-avatar {
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-weight: 750;
+    letter-spacing: .3px;
+}
+
+.profile-current-avatar {
+    width: 64px;
+    height: 64px;
+    border: 3px solid #eff6ff;
+    font-size: 20px;
+}
+
+.profile-current-info {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.profile-current-caption {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .8px;
+}
+
+.profile-current-info strong {
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 17px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-current-info small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.profile-current-hint {
+    margin-top: 3px;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.profile-chevron {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 25px;
+    transition: transform .2s;
+}
+
+.profile-current[aria-expanded="true"] .profile-chevron {
+    transform: rotate(180deg);
+}
+
+.profile-picker-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 0;
+    width: 100%;
+    max-height: min(440px, 70vh);
+    overflow: auto;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, .16);
+    animation: profilePopoverIn .16s ease-out;
+}
+
+.profile-picker-popover[hidden] {
+    display: none !important;
+}
+
+@keyframes profilePopoverIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-popover-heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 12px 10px;
+}
+
+.profile-popover-heading strong {
+    color: #0f172a;
+    font-size: 15px;
+}
+
+.profile-popover-heading span {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.profile-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.profile-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 13px;
+    background: #fff;
+    color: var(--text);
+    text-align: left;
+    transition: background .18s, border-color .18s;
+}
+
+.profile-option:hover {
+    background: #f8fafc;
+}
+
+.profile-option.active {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+}
+
+.profile-option-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 14px;
+}
+
+.profile-option-info {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.profile-option-info strong {
+    overflow: hidden;
+    color: #1e293b;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.profile-option-info small {
+    color: #64748b;
+    font-size: 12px;
+}
+
+.profile-option-check {
+    width: 24px;
+    color: #2563eb;
+    font-size: 19px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.profile-popover-footer {
+    margin-top: 8px;
+    padding: 9px 6px 4px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.add-profile-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px dashed #93c5fd;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background .2s, border-color .2s;
+}
+
+.add-profile-button:hover {
+    border-color: #2563eb;
+    background: #dbeafe;
+}
+
+.add-profile-button span {
+    font-size: 19px;
+    line-height: 1;
+}
+
+.profile-picker-loading,
+.profile-picker-empty,
+.profile-picker-error {
+    padding: 18px 12px;
+    color: #64748b;
+    font-size: 13px;
+    text-align: center;
+}
+
+.profile-picker-error {
+    color: #b91c1c;
+}
+
+@media (max-width: 760px) {
+    .profile-section {
+        margin-top: 25px;
+    }
+
+    .profile-heading h2 {
+        font-size: 20px;
+    }
+
+    .profile-current {
+        gap: 12px;
+        padding: 13px;
+        border-radius: 15px;
+    }
+
+    .profile-current-avatar {
+        width: 56px;
+        height: 56px;
+        font-size: 17px;
+    }
+
+    .profile-current-info strong {
+        font-size: 15px;
+    }
+
+    .profile-picker-popover {
+        max-height: 65vh;
     }
 }

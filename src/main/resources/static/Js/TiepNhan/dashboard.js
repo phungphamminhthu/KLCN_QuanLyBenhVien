@@ -911,7 +911,7 @@ async function handleCallPatient(maLichKham) {
         currentCallItem = {
             maLichKham: id,
             stt: result.soThuTu ?? item.stt,
-            ten: result.tenBenhNhan ?? item.tenBenhNhan,
+            ten: item.tenBenhNhan,
             phong: result.phong ?? item.phong,
             khoa: result.khoa ?? item.khoa
         };

@@ -1,17 +1,9 @@
 package QuanLyBenhVien.Controller;
 
 import QuanLyBenhVien.DTO.DonThuocRequest;
+import QuanLyBenhVien.Entity.*;
+import QuanLyBenhVien.Service.CloudflareR2Service;
 import org.springframework.data.domain.Page;
-import QuanLyBenhVien.Entity.BacSi;
-import QuanLyBenhVien.Entity.CTDonThuoc;
-import QuanLyBenhVien.Entity.ChiDinhYTe;
-import QuanLyBenhVien.Entity.ChiTietKetQua;
-import QuanLyBenhVien.Entity.DichVuYTe;
-import QuanLyBenhVien.Entity.DonThuoc;
-import QuanLyBenhVien.Entity.HoSoBenhAn;
-import QuanLyBenhVien.Entity.KetQuaDichVu;
-import QuanLyBenhVien.Entity.LichDangKyKham;
-import QuanLyBenhVien.Entity.Thuoc;
 
 import QuanLyBenhVien.Repository.LichDangKyKhamRepository;
 import QuanLyBenhVien.Security.CustomUserDetails;
@@ -40,6 +32,7 @@ public class BacSiKhamBenhController {
     private final LichDangKyKhamRepository lichDangKyKhamRepository;
     private final ChiDinhYTeRepository chiDinhYTeRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final CloudflareR2Service cloudflareR2Service;
 
 
     public BacSiKhamBenhController(
@@ -47,13 +40,15 @@ public class BacSiKhamBenhController {
             KhamBenhService khamBenhService,
             LichDangKyKhamRepository lichDangKyKhamRepository,
             ChiDinhYTeRepository chiDinhYTeRepository,
-            JdbcTemplate jdbcTemplate
+            JdbcTemplate jdbcTemplate,
+            CloudflareR2Service cloudflareR2Service
     ) {
         this.bacSiService = bacSiService;
         this.khamBenhService = khamBenhService;
         this.lichDangKyKhamRepository = lichDangKyKhamRepository;
         this.chiDinhYTeRepository = chiDinhYTeRepository;
         this.jdbcTemplate = jdbcTemplate;
+        this.cloudflareR2Service = cloudflareR2Service;
     }
 
 
@@ -610,14 +605,10 @@ public class BacSiKhamBenhController {
                 map.put("maLichKham", lich.getMaLichKham());
                 map.put("ngayKham", lich.getNgayKham());
 
-                if (lich.getBenhNhan() != null &&
-                        lich.getBenhNhan().getNguoiDung() != null) {
-
+                if (lich.getBenhNhan() != null) {
                     map.put(
                             "hoTen",
-                            lich.getBenhNhan()
-                                    .getNguoiDung()
-                                    .getHoTen()
+                            lich.getBenhNhan().getHoTen()
                     );
                 }
             }
@@ -1549,15 +1540,10 @@ public class BacSiKhamBenhController {
                     lich.getBenhNhan().getGioiTinh()
             );
 
-            if (lich.getBenhNhan().getNguoiDung() != null) {
-
-                map.put(
-                        "hoTen",
-                        lich.getBenhNhan()
-                                .getNguoiDung()
-                                .getHoTen()
-                );
-            }
+            map.put(
+                    "hoTen",
+                    lich.getBenhNhan().getHoTen()
+            );
         }
 
         return map;
@@ -1685,15 +1671,10 @@ public class BacSiKhamBenhController {
                         lich.getBenhNhan().getGioiTinh()
                 );
 
-                if (lich.getBenhNhan().getNguoiDung() != null) {
-
-                    map.put(
-                            "hoTen",
-                            lich.getBenhNhan()
-                                    .getNguoiDung()
-                                    .getHoTen()
-                    );
-                }
+                map.put(
+                        "hoTen",
+                        lich.getBenhNhan().getHoTen()
+                );
             }
         }
         map.put("canNang", hoSo.getCanNang());
@@ -1901,16 +1882,10 @@ public class BacSiKhamBenhController {
                                     .getMaBenhNhan()
                     );
 
-                    if (lich.getBenhNhan()
-                            .getNguoiDung() != null) {
-
-                        map.put(
-                                "hoTen",
-                                lich.getBenhNhan()
-                                        .getNguoiDung()
-                                        .getHoTen()
-                        );
-                    }
+                    map.put(
+                            "hoTen",
+                            lich.getBenhNhan().getHoTen()
+                    );
                 }
             }
         }
@@ -1922,57 +1897,107 @@ public class BacSiKhamBenhController {
     // =========================================================
     // CHUYỂN KẾT QUẢ CLS CHI TIẾT THÀNH JSON
     // =========================================================
+
     private Map<String, Object> chuyenKetQuaThanhMap(
             KetQuaDichVu ketQua,
             List<ChiTietKetQua> danhSachChiTiet
     ) {
 
-        Map<String, Object> map =
-                new LinkedHashMap<>();
+        Map<String, Object> map = new LinkedHashMap<>();
 
-        map.put(
-                "maKetQua",
-                ketQua.getMaKetQua()
-        );
+        map.put("maKetQua", ketQua.getMaKetQua());
+        map.put("ngayCoKetQua", ketQua.getNgayCoKetQua());
+        map.put("noiDungKetQua", ketQua.getNoiDungKetQua());
+        map.put("ketLuan", ketQua.getKetLuan());
 
-        map.put(
-                "ngayCoKetQua",
-                ketQua.getNgayCoKetQua()
-        );
+        // FileURL cũ trong KetQuaDichVu (nếu có)
+        map.put("fileURL", ketQua.getFileURL());
 
-        map.put(
-                "noiDungKetQua",
-                ketQua.getNoiDungKetQua()
-        );
+        map.put("trangThai", ketQua.getTrangThai());
 
-        map.put(
-                "ketLuan",
-                ketQua.getKetLuan()
-        );
-
-        map.put(
-                "fileURL",
-                ketQua.getFileURL()
-        );
-
-        map.put(
-                "trangThai",
-                ketQua.getTrangThai()
-        );
-
+        // Lấy các chỉ số kết quả
         List<Map<String, Object>> chiTiet =
                 danhSachChiTiet.stream()
                         .map(this::chuyenChiTietKetQuaThanhMap)
                         .toList();
 
-        map.put(
-                "chiTiet",
-                chiTiet
-        );
+        map.put("chiTiet", chiTiet);
+
+        // Lấy danh sách ảnh từ bảng AnhKetQuaDichVu
+        List<Map<String, Object>> anhKetQua =
+                jdbcTemplate.queryForList(
+                        """
+                        SELECT
+                            MaAnh AS maAnh,
+                            TenFile AS tenFile,
+                            NgayTao AS ngayTao
+                        FROM AnhKetQuaDichVu
+                        WHERE MaKetQua = ?
+                        ORDER BY NgayTao DESC
+                        """,
+                        ketQua.getMaKetQua()
+                );
+
+        map.put("anhKetQua", anhKetQua);
 
         return map;
     }
 
+
+    // =====================================================
+    // XEM ẢNH KẾT QUẢ CẬN LÂM SÀNG TỪ CLOUDFLARE R2
+    // =====================================================
+
+    @GetMapping(
+            "/{maLichKham}/chi-dinh/{maChiDinh}/ket-qua/anh/{maAnh}"
+    )
+    public ResponseEntity<?> xemAnhKetQua(
+            @PathVariable Integer maLichKham,
+            @PathVariable Integer maChiDinh,
+            @PathVariable Integer maAnh,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        try {
+            BacSi bacSi = layBacSiDangNhap(userDetails);
+
+            // 1. Kiểm tra quyền bác sĩ và lấy danh sách ảnh
+            // của đúng kết quả thuộc chỉ định này.
+            List<AnhKetQuaDichVu> danhSachAnh =
+                    khamBenhService.xemDanhSachAnhKetQua(
+                            bacSi.getMaBacSi(),
+                            maLichKham,
+                            maChiDinh
+                    );
+
+            // 2. Tìm ảnh theo mã ảnh.
+            AnhKetQuaDichVu anh = danhSachAnh.stream()
+                    .filter(item ->
+                            maAnh.equals(item.getMaAnh())
+                    )
+                    .findFirst()
+                    .orElse(null);
+
+            if (anh == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 3. Lấy đường dẫn lưu trữ trên Cloudflare R2.
+            String fileKey = anh.getFileURL();
+
+            // 4. Kiểm tra đường dẫn.
+            if (fileKey == null
+                    || !fileKey.startsWith("images/")
+                    || fileKey.contains("..")) {
+                return ResponseEntity.badRequest().build();
+            }
+
+            // 5. Trả ảnh từ Cloudflare R2.
+            return cloudflareR2Service.getImage(fileKey);
+
+        } catch (Exception e) {
+            return loi(e);
+        }
+    }
 
     // =========================================================
     // CHUYỂN CHỈ ĐỊNH THÀNH KẾT QUẢ CLS TỔNG QUÁT
@@ -2292,16 +2317,10 @@ public class BacSiKhamBenhController {
                                     .getMaBenhNhan()
                     );
 
-                    if (lich.getBenhNhan()
-                            .getNguoiDung() != null) {
-
-                        map.put(
-                                "hoTen",
-                                lich.getBenhNhan()
-                                        .getNguoiDung()
-                                        .getHoTen()
-                        );
-                    }
+                    map.put(
+                            "hoTen",
+                            lich.getBenhNhan().getHoTen()
+                    );
                 }
             }
         }

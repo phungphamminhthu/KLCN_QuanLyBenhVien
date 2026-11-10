@@ -145,27 +145,88 @@ public class SePayService {
         String loaiHoaDon = hoaDon.getLoaiHoaDon();
         if (!equalsStatus(loaiHoaDon, "PhiKham")
                 && !equalsStatus(loaiHoaDon, "CanLamSang")
-                && !equalsStatus(loaiHoaDon, "TienThuoc")) {
+                && !equalsStatus(loaiHoaDon, "Thuoc")) {
             throw new IllegalArgumentException("Loại hóa đơn chưa được hỗ trợ thanh toán SePay.");
         }
-
         // 8. Kiểm tra lịch và bệnh nhân liên kết với hóa đơn.
         ThongTinLichKham thongTinLich = jdbcTemplate.query(
-                "SELECT l.MaLichKham, l.MaBenhNhan, l.TrangThai, l.TrangThaiThanhToan " +
-                        "FROM LichDangKyKham l JOIN HoaDon h ON h.MaLichKham=l.MaLichKham " +
-                        "WHERE h.MaHoaDon=?",
+                """
+                SELECT
+                    l.MaLichKham,
+                    l.MaBenhNhan,
+                    l.TrangThai,
+                    l.TrangThaiThanhToan
+                FROM LichDangKyKham l
+                JOIN HoaDon h
+                    ON h.MaLichKham = l.MaLichKham
+                WHERE h.MaHoaDon = ?
+                """,
                 rs -> rs.next() ? new ThongTinLichKham(
-                        rs.getInt("MaLichKham"), rs.getInt("MaBenhNhan"),
-                        rs.getString("TrangThai"), rs.getString("TrangThaiThanhToan")) : null,
-                maHoaDon);
+                        rs.getInt("MaLichKham"),
+                        rs.getInt("MaBenhNhan"),
+                        rs.getString("TrangThai"),
+                        rs.getString("TrangThaiThanhToan")
+                ) : null,
+                maHoaDon
+        );
+
         if (thongTinLich == null) {
-            throw new IllegalArgumentException("Hóa đơn chưa liên kết với lịch khám.");
+            throw new IllegalArgumentException(
+                    "Hóa đơn chưa liên kết với lịch khám."
+            );
         }
+
+        // Kiểm tra bệnh nhân trên hóa đơn có khớp lịch khám không.
         Integer maBenhNhanHoaDon = jdbcTemplate.queryForObject(
-                "SELECT MaBenhNhan FROM HoaDon WHERE MaHoaDon=?", Integer.class, maHoaDon);
+                """
+                SELECT MaBenhNhan
+                FROM HoaDon
+                WHERE MaHoaDon = ?
+                """,
+                Integer.class,
+                maHoaDon
+        );
+
         if (maBenhNhanHoaDon == null
                 || !maBenhNhanHoaDon.equals(thongTinLich.maBenhNhan())) {
-            throw new IllegalArgumentException("Hóa đơn không khớp bệnh nhân của lịch khám.");
+            throw new IllegalArgumentException(
+                    "Hóa đơn không khớp bệnh nhân của lịch khám."
+            );
+        }
+
+        // Kiểm tra chi tiết hóa đơn thuốc thuộc đúng lịch khám.
+        if (equalsStatus(loaiHoaDon, "Thuoc")) {
+
+            Integer soChiTietKhongHopLe = jdbcTemplate.queryForObject(
+                    """
+                    SELECT COUNT(*)
+                    FROM CTHoaDon cth
+                    LEFT JOIN CTDonThuoc ctdt
+                        ON ctdt.MaCTDonThuoc = cth.MaCTDonThuoc
+                    LEFT JOIN DonThuoc dt
+                        ON dt.MaDonThuoc = ctdt.MaDonThuoc
+                    LEFT JOIN HoSoBenhAn hs
+                        ON hs.MaHoSoBenhAn = dt.MaHoSoBenhAn
+                    WHERE cth.MaHoaDon = ?
+                      AND (
+                            cth.MaCTDonThuoc IS NULL
+                            OR ctdt.MaCTDonThuoc IS NULL
+                            OR dt.MaDonThuoc IS NULL
+                            OR hs.MaHoSoBenhAn IS NULL
+                            OR hs.MaLichKham <> ?
+                      )
+                    """,
+                    Integer.class,
+                    maHoaDon,
+                    maLichKham
+            );
+
+            if (soChiTietKhongHopLe == null
+                    || soChiTietKhongHopLe > 0) {
+                throw new IllegalArgumentException(
+                        "Chi tiết hóa đơn thuốc không thuộc đúng đơn thuốc của lịch khám."
+                );
+            }
         }
 
         // 9. Nghiệp vụ riêng từng loại hóa đơn.
@@ -192,16 +253,17 @@ public class SePayService {
                         "Có nhiều hóa đơn phí khám hoặc dữ liệu hóa đơn chưa hợp lệ.");
             }
 
-        } else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
-
-            // Cho phép thanh toán CLS khi đang chờ thanh toán
-            // hoặc đã chuyển ChoCLS nhưng tiếp nhận chưa được đồng bộ.
-            if (!equalsStatus(lich.getTrangThai(), "ChoThanhToan")
-                    && !equalsStatus(lich.getTrangThai(), "ChoCLS")) {
-                throw new IllegalArgumentException(
-                        "Chỉ thanh toán CLS khi lịch khám đang ChoThanhToan hoặc ChoCLS.");
-            }
         }
+        //        else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
+        //
+        //            // Cho phép thanh toán CLS khi đang chờ thanh toán
+        //            // hoặc đã chuyển ChoCLS nhưng tiếp nhận chưa được đồng bộ.
+        //            if (!equalsStatus(lich.getTrangThai(), "ChoThanhToan")
+        //                    && !equalsStatus(lich.getTrangThai(), "ChoCLS")) {
+        //                throw new IllegalArgumentException(
+        //                        "Chỉ thanh toán CLS khi lịch khám đang ChoThanhToan hoặc ChoCLS.");
+        //            }
+        //        }
 
         // TienThuoc không yêu cầu lịch ở trạng thái DaGoi/ChoThanhToan.
 
@@ -275,27 +337,24 @@ public class SePayService {
 
         } else if (equalsStatus(loaiHoaDon, "CanLamSang")) {
 
-            // Cập nhật lịch khám sang chờ thực hiện CLS.
-            jdbcTemplate.update(
+            int soChiDinhDuocMo = jdbcTemplate.update(
                     """
-                    UPDATE LichDangKyKham
-                    SET TrangThai = 'ChoCLS'
-                    WHERE MaLichKham = ?
-                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
+                    UPDATE ChiDinhYTe cd
+                    JOIN CTHoaDon ct
+                        ON ct.MaChiDinh = cd.MaChiDinh
+                    SET cd.TrangThai = 'ChoThucHien'
+                    WHERE ct.MaHoaDon = ?
+                      AND cd.TrangThai = 'ChoThanhToan'
                     """,
-                    maLichKham
+                    maHoaDon
             );
 
-            // Đồng bộ trạng thái tiếp nhận bệnh nhân.
-            jdbcTemplate.update(
-                    """
-                    UPDATE TiepNhanBenhNhan
-                    SET TrangThai = 'ChoCLS'
-                    WHERE MaLichKham = ?
-                      AND TrangThai IN ('ChoThanhToan', 'ChoCLS')
-                    """,
-                    maLichKham
-            );
+            if (soChiDinhDuocMo <= 0) {
+                throw new IllegalStateException(
+                        "Không tìm thấy chỉ định CLS hợp lệ "
+                                + "thuộc hóa đơn cần thanh toán."
+                );
+            }
         }
 
         // TienThuoc: không tự thay đổi trạng thái lịch khám.

@@ -1,6 +1,7 @@
 
 package QuanLyBenhVien.Service;
 
+import QuanLyBenhVien.Entity.BenhNhan;
 import QuanLyBenhVien.Entity.NguoiDung;
 import QuanLyBenhVien.Entity.ThongBao;
 import QuanLyBenhVien.Repository.NguoiDungRepository;
@@ -51,20 +52,36 @@ public class ThongBaoService {
                         maNguoiDung,
                         PageRequest.of(0, soLuong))
                 .stream()
-                .map(t -> Map.<String, Object>of(
-                        "id", t.getMaThongBao(),
-                        "title", t.getTieuDe() == null
-                                ? "Thông báo bệnh viện" : t.getTieuDe(),
-                        "message", t.getNoiDung() == null
-                                ? "" : t.getNoiDung(),
-                        "type", t.getLoaiThongBao() == null
-                                ? "general" : t.getLoaiThongBao(),
-                        "createdAt", t.getNgayTao() == null
-                                ? "" : t.getNgayTao().toString(),
-                        "unread", !Boolean.TRUE.equals(t.getDaDoc()),
-                        "status", t.getTrangThai() == null
-                                ? "" : t.getTrangThai()
-                ))
+                .map(t -> {
+                    Map<String, Object> item = new java.util.HashMap<>();
+
+                    item.put("id", t.getMaThongBao());
+                    item.put("title", t.getTieuDe());
+                    item.put("message", t.getNoiDung());
+                    item.put("type", t.getLoaiThongBao());
+
+                    item.put("createdAt",
+                            t.getNgayTao() == null
+                                    ? "" : t.getNgayTao().toString());
+
+                    item.put("unread",
+                            !Boolean.TRUE.equals(t.getDaDoc()));
+
+                    item.put("status", t.getTrangThai());
+
+                    // Thông tin hồ sơ bệnh nhân liên quan
+                    item.put("maBenhNhan",
+                            t.getBenhNhan() != null
+                                    ? t.getBenhNhan().getMaBenhNhan()
+                                    : null);
+
+                    item.put("tenBenhNhan",
+                            t.getBenhNhan() != null
+                                    ? t.getBenhNhan().getHoTen()
+                                    : null);
+
+                    return item;
+                })
                 .toList();
     }
 
@@ -186,10 +203,10 @@ public class ThongBaoService {
     // =================================
     // tạo thông báo realtime
     // =================================
-
     @Transactional
     public ThongBao taoThongBaoVaGuiRealtime(
             Integer maNguoiDung,
+            BenhNhan benhNhan,
             String tieuDe,
             String noiDung,
             String loaiThongBao
@@ -204,6 +221,7 @@ public class ThongBaoService {
 
         ThongBao thongBao = new ThongBao();
         thongBao.setNguoiDung(nguoiDung);
+        thongBao.setBenhNhan(benhNhan);
         thongBao.setTieuDe(tieuDe);
         thongBao.setNoiDung(noiDung);
         thongBao.setLoaiThongBao(loaiThongBao);
@@ -211,13 +229,6 @@ public class ThongBaoService {
         thongBao.setTrangThai("MOI");
 
         ThongBao saved = thongBaoRepository.save(thongBao);
-
-        log.info(
-                "[ThongBao] Đã lưu thông báo: id={}, nguoiNhan={}, loai={}",
-                saved.getMaThongBao(),
-                nguoiDung.getMaNguoiDung(),
-                saved.getLoaiThongBao()
-        );
 
         guiFcmSauCommit(saved);
 
@@ -227,15 +238,18 @@ public class ThongBaoService {
                             nguoiDung.getMaNguoiDung()
                     );
 
-            Map<String, Object> payload = Map.of(
-                    "id", saved.getMaThongBao(),
-                    "title", saved.getTieuDe(),
-                    "message", saved.getNoiDung() == null
-                            ? "" : saved.getNoiDung(),
-                    "type", saved.getLoaiThongBao() == null
-                            ? "general" : saved.getLoaiThongBao(),
-                    "count", count
-            );
+            Map<String, Object> payload = new java.util.HashMap<>();
+
+            payload.put("id", saved.getMaThongBao());
+            payload.put("title", saved.getTieuDe());
+            payload.put("message", saved.getNoiDung());
+            payload.put("type", saved.getLoaiThongBao());
+            payload.put("count", count);
+
+            if (benhNhan != null) {
+                payload.put("maBenhNhan", benhNhan.getMaBenhNhan());
+                payload.put("tenBenhNhan", benhNhan.getHoTen());
+            }
 
             thongBaoWebSocketService.guiThongBaoKemSoLuong(
                     nguoiDung.getTenDangNhap(),

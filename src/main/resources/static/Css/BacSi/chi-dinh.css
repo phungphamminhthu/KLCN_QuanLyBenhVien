@@ -890,16 +890,11 @@ tbody tr:hover {
 }
 
 .table-footer {
-    min-height: 48px;
-
+    min-height: 60px;
     display: flex;
     align-items: center;
-
+    width: 100%;
     padding: 0 22px;
-
-    color: #94a3b8;
-
-    font-size: 12px;
 }
 
 
@@ -1117,4 +1112,135 @@ tbody tr:hover {
 
 .sidebar .submenu.open {
     display: block !important;
+}
+
+/* =========================================
+   PHÂN TRANG - QUẢN LÝ CHỈ ĐỊNH
+========================================= */
+
+.table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-left: auto;
+}
+
+.pagination-info {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.page-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.page-btn.active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+}
+
+.page-btn:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .table-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 16px;
+        margin-left: 0;
+    }
+
+    .pagination-info {
+        margin-right: auto;
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+    }
+    .page-btn {
+        min-width: 32px;
+        height: 32px;
+    }
+}
+
+/* =========================================
+   FIX VỊ TRÍ THÔNG TIN PHÂN TRANG
+========================================= */
+
+.table-footer {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 0 22px;
+}
+
+.table-footer #pagination.pagination {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between !important;
+    margin-left: 0 !important;
+    gap: 16px;
+}
+
+.table-footer .pagination-info {
+    order: 1;
+    margin-right: auto;
+}
+
+.table-footer .pagination-controls {
+    order: 2;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }

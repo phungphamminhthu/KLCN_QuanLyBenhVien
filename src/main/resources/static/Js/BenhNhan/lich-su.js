@@ -1,7 +1,7 @@
 (() => {
     "use strict";
 
-    const $ = (selector) => document.querySelector(selector);
+    const $ = (selector, root = document) => root.querySelector(selector);
 
     const state = {
         appointments: [],
@@ -9,11 +9,62 @@
         loading: false
     };
 
+    // =========================
+    // HỒ SƠ BỆNH NHÂN ĐANG CHỌN
+    // =========================
+
     function getToken() {
         return sessionStorage.getItem("Token")
             || localStorage.getItem("Token")
             || "";
     }
+
+    function getSelectedPatientProfile() {
+        const maBenhNhan =
+            sessionStorage.getItem("MaBenhNhanDangChon")
+            || localStorage.getItem("MaBenhNhanDangChon");
+
+        const rawProfile =
+            sessionStorage.getItem("HoSoBenhNhanDangChon")
+            || localStorage.getItem("HoSoBenhNhanDangChon");
+
+        if (!maBenhNhan || !rawProfile) {
+            return null;
+        }
+
+        try {
+            const profile = JSON.parse(rawProfile);
+            const profileId = profile.maBenhNhan ?? profile.MaBenhNhan;
+
+            if (
+                profileId == null
+                || String(profileId) !== String(maBenhNhan)
+            ) {
+                return null;
+            }
+
+            return profile;
+        } catch (error) {
+            console.error("Lỗi đọc hồ sơ bệnh nhân đang chọn:", error);
+            return null;
+        }
+    }
+
+    function getSelectedPatientId() {
+        const profile = getSelectedPatientProfile();
+
+        if (!profile) {
+            return null;
+        }
+
+        const id = Number(profile.maBenhNhan ?? profile.MaBenhNhan);
+
+        return Number.isInteger(id) && id > 0 ? id : null;
+    }
+
+    // =========================
+    // HÀM TIỆN ÍCH
+    // =========================
 
     function authHeaders() {
         const token = getToken();
@@ -25,6 +76,10 @@
     }
 
     function amount(value) {
+        if (value === null || value === undefined || value === "") {
+            return 0;
+        }
+
         const number = Number(value);
         return Number.isFinite(number) ? number : 0;
     }
@@ -36,23 +91,23 @@
     function dateText(value) {
         if (!value) return "Chưa cập nhật";
 
-        const parts = String(value).slice(0, 10).split("-");
-        if (parts.length !== 3) return value;
+        const text = String(value);
+        const match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
 
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        if (!match) return text;
+
+        return `${match[3]}/${match[2]}/${match[1]}`;
     }
 
     function timeText(value) {
         if (!value) return "Chưa cập nhật";
 
-        const parts = String(value).split(":");
-        return parts.length >= 2
-            ? `${parts[0]}:${parts[1]}`
-            : value;
+        const match = String(value).match(/^(\d{1,2}):(\d{2})/);
+        return match ? `${match[1].padStart(2, "0")}:${match[2]}` : String(value);
     }
 
     function escapeHtml(value) {
-        return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
             "&": "&amp;",
             "<": "&lt;",
             ">": "&gt;",
@@ -61,21 +116,38 @@
         })[char]);
     }
 
+    function getAppointmentStatus(appointment) {
+        return appointment?.trangThaiLichKham ?? "";
+    }
+
     function isCancelled(appointment) {
         return ["DaHuy", "KhongDen"].includes(
-            appointment.trangThaiLichKham
+            getAppointmentStatus(appointment)
         );
     }
 
+    function normalizeInvoiceList(data) {
+        if (Array.isArray(data)) return data;
+
+        // Hỗ trợ trường hợp API bọc danh sách trong object.
+        if (Array.isArray(data?.data)) return data.data;
+        if (Array.isArray(data?.danhSachHoaDon)) return data.danhSachHoaDon;
+
+        return [];
+    }
+
     function isPaid(appointment) {
-        const invoices = appointment.danhSachHoaDon || [];
-        const activeInvoices = invoices.filter(
-            invoice => invoice.trangThai !== "DaHuy"
+        const invoices = Array.isArray(appointment.danhSachHoaDon)
+            ? appointment.danhSachHoaDon
+            : [];
+
+        const activeInvoices = invoices.filter(invoice =>
+            invoice.trangThai !== "DaHuy"
         );
 
-        if (activeInvoices.length) {
-            return activeInvoices.every(
-                invoice => invoice.trangThai === "DaThanhToan"
+        if (activeInvoices.length > 0) {
+            return activeInvoices.every(invoice =>
+                invoice.trangThai === "DaThanhToan"
             );
         }
 
@@ -105,6 +177,26 @@
         return labels[status] || status || "Chưa cập nhật";
     }
 
+    function paymentStatusText(appointment) {
+        if (isCancelled(appointment)) {
+            return "Không áp dụng";
+        }
+
+        if (isPaid(appointment) && amount(appointment.tongChiPhi) > 0) {
+            return "Đã thanh toán đủ";
+        }
+
+        if (amount(appointment.soTienConLai) > 0) {
+            return "Chưa thanh toán đủ";
+        }
+
+        return "Chưa có chi phí";
+    }
+
+    // =========================
+    // GỌI API
+    // =========================
+
     async function getJson(url) {
         const response = await fetch(url, {
             method: "GET",
@@ -113,104 +205,205 @@
             headers: authHeaders()
         });
 
-        const data = await response.json().catch(() => null);
+        if (response.status === 204) {
+            return null;
+        }
+
+        const contentType = response.headers.get("content-type") || "";
+        let data = null;
+
+        if (contentType.includes("application/json")) {
+            data = await response.json().catch(() => null);
+        } else {
+            const text = await response.text().catch(() => "");
+            data = text ? { message: text } : null;
+        }
 
         if (!response.ok) {
             throw new Error(
-                data?.message || `Lỗi máy chủ HTTP ${response.status}`
+                data?.message
+                || data?.error
+                || `Lỗi máy chủ HTTP ${response.status}`
             );
         }
 
         return data;
     }
 
-    async function loadAppointments() {
-        state.loading = true;
-        $("#loadingState").hidden = false;
-        $("#errorState").hidden = true;
-        $("#emptyState").hidden = true;
-        $("#appointmentList").replaceChildren();
-        $("#refreshButton").disabled = true;
+    async function loadInvoicesForAppointment(appointment, maBenhNhan) {
+        const maLichKham = Number(appointment.maLichKham);
+
+        if (!Number.isInteger(maLichKham) || maLichKham <= 0) {
+            return;
+        }
+
+        if (!Number.isInteger(maBenhNhan) || maBenhNhan <= 0) {
+            console.error("Không xác định được mã hồ sơ bệnh nhân.");
+            appointment.danhSachHoaDon = [];
+            return;
+        }
 
         try {
-            const response = await getJson("/api/lich-kham/cua-toi");
+            const data = await getJson(
+                `/api/thanh-toan/lich-kham/${encodeURIComponent(maLichKham)}/hoa-don` +
+                `?maBenhNhan=${encodeURIComponent(maBenhNhan)}`
+            );
 
-            if (!Array.isArray(response)) {
-                throw new Error("Dữ liệu lịch khám không hợp lệ.");
+            appointment.danhSachHoaDon = normalizeInvoiceList(data);
+
+            console.log(
+                `Hóa đơn lịch ${maLichKham}:`,
+                appointment.danhSachHoaDon
+            );
+        } catch (error) {
+            console.error(
+                `Không tải được hóa đơn lịch khám ${maLichKham}:`,
+                error
+            );
+
+            appointment.danhSachHoaDon = [];
+        }
+    }
+
+    async function loadAppointments() {
+        if (state.loading) return;
+
+        state.loading = true;
+
+        const loadingState = $("#loadingState");
+        const errorState = $("#errorState");
+        const emptyState = $("#emptyState");
+        const appointmentList = $("#appointmentList");
+        const refreshButton = $("#refreshButton");
+
+        if (loadingState) loadingState.hidden = false;
+        if (errorState) errorState.hidden = true;
+        if (emptyState) emptyState.hidden = true;
+        if (appointmentList) appointmentList.replaceChildren();
+        if (refreshButton) refreshButton.disabled = true;
+
+        try {
+            const token = getToken();
+
+            if (!token) {
+                throw new Error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
             }
 
-            const appointments = response.map(item => ({
+            const maBenhNhan = getSelectedPatientId();
+
+            if (!maBenhNhan) {
+                throw new Error(
+                    "Bạn chưa chọn hồ sơ bệnh nhân. Vui lòng quay lại trang chủ để chọn hồ sơ."
+                );
+            }
+
+            const response = await getJson(
+                `/api/lich-kham/cua-toi?maBenhNhan=${encodeURIComponent(maBenhNhan)}`
+            );
+
+            // API hiện tại được Service mô tả là trả về danh sách trực tiếp.
+            const rawAppointments = Array.isArray(response)
+                ? response
+                : Array.isArray(response?.data)
+                    ? response.data
+                    : null;
+
+            if (!rawAppointments) {
+                throw new Error("Dữ liệu lịch khám trả về không đúng định dạng.");
+            }
+
+            const appointments = rawAppointments.map(item => ({
                 ...item,
+
+                // Gắn mã hồ sơ bệnh nhân đang được chọn.
+                maBenhNhan: maBenhNhan,
+
                 tongChiPhi: amount(item.tongChiPhi),
                 tongDaThanhToan: amount(item.tongDaThanhToan),
                 soTienConLai: amount(item.soTienConLai),
+
                 danhSachHoaDon: []
             }));
 
-            // Lấy hóa đơn của từng lịch để xác định chính xác trạng thái.
-            await Promise.all(appointments.map(async appointment => {
-                const id = Number(appointment.maLichKham);
-                if (!Number.isInteger(id) || id <= 0) return;
-
-                try {
-                    const invoices = await getJson(
-                        `/api/thanh-toan/lich-kham/${id}/hoa-don`
-                    );
-
-                    if (Array.isArray(invoices)) {
-                        appointment.danhSachHoaDon = invoices;
-                    }
-                } catch (error) {
-                    console.error(
-                        `Không tải được hóa đơn lịch ${id}:`,
-                        error
-                    );
-                }
-            }));
+            // Tải hóa đơn cho từng lịch khám.
+            // Truyền đúng mã hồ sơ bệnh nhân vào API.
+            await Promise.all(
+                appointments.map(appointment =>
+                    loadInvoicesForAppointment(appointment, maBenhNhan)
+                )
+            );
 
             state.appointments = appointments;
             renderAppointments();
         } catch (error) {
-            $("#errorMessage").textContent =
-                error.message || "Không thể tải lịch khám. Vui lòng thử lại.";
-            $("#errorState").hidden = false;
+            console.error("Lỗi tải lịch sử khám:", error);
+
+            if ($("#errorMessage")) {
+                $("#errorMessage").textContent =
+                    error.message || "Không thể tải lịch khám. Vui lòng thử lại.";
+            }
+
+            if (errorState) errorState.hidden = false;
+            state.appointments = [];
         } finally {
             state.loading = false;
-            $("#loadingState").hidden = true;
-            $("#refreshButton").disabled = false;
+
+            if (loadingState) loadingState.hidden = true;
+            if (refreshButton) refreshButton.disabled = false;
         }
     }
 
+    // =========================
+    // LỌC LỊCH KHÁM
+    // =========================
+
     function filteredAppointments() {
         return state.appointments.filter(appointment => {
-            if (state.filter === "all") return true;
-            if (isCancelled(appointment)) return false;
+            if (state.filter === "all") {
+                return true;
+            }
+
+            if (isCancelled(appointment)) {
+                return false;
+            }
 
             if (state.filter === "paid") {
                 return isPaid(appointment)
-                    && appointment.tongChiPhi > 0;
+                    && amount(appointment.tongChiPhi) > 0;
             }
 
             if (state.filter === "unpaid") {
-                return appointment.soTienConLai > 0;
+                return amount(appointment.soTienConLai) > 0;
             }
 
             return true;
         });
     }
 
+    // =========================
+    // HIỂN THỊ DANH SÁCH
+    // =========================
+
     function renderAppointments() {
         const list = $("#appointmentList");
+        const emptyState = $("#emptyState");
+
+        if (!list) return;
+
         list.replaceChildren();
 
         const appointments = filteredAppointments();
 
-        $("#emptyState").hidden = appointments.length !== 0;
+        if (emptyState) {
+            emptyState.hidden = appointments.length !== 0;
+        }
 
         appointments.forEach(appointment => {
-            const paid = isPaid(appointment);
+            const paid = isPaid(appointment)
+                && amount(appointment.tongChiPhi) > 0;
             const cancelled = isCancelled(appointment);
-            const remaining = appointment.soTienConLai;
+            const remaining = amount(appointment.soTienConLai);
+            const status = getAppointmentStatus(appointment);
 
             const card = document.createElement("article");
             card.className = "appointment-card";
@@ -229,7 +422,7 @@
 
                 <div class="info-row">
                     <span>▦ Ngày khám</span>
-                    <strong>${dateText(appointment.ngayKham)} · ${timeText(appointment.gioKham)}</strong>
+                    <strong>${escapeHtml(dateText(appointment.ngayKham))} · ${escapeHtml(timeText(appointment.gioKham))}</strong>
                 </div>
 
                 <div class="info-row">
@@ -239,23 +432,23 @@
 
                 <div class="info-row">
                     <span>₫ Tổng chi phí</span>
-                    <strong>${money(appointment.tongChiPhi)}</strong>
+                    <strong>${escapeHtml(money(appointment.tongChiPhi))}</strong>
                 </div>
 
                 ${remaining > 0 ? `
                     <div class="info-row remaining">
                         <span>Còn phải trả</span>
-                        <strong>${money(remaining)}</strong>
+                        <strong>${escapeHtml(money(remaining))}</strong>
                     </div>
                 ` : ""}
 
                 <div class="badge-row">
                     <span class="status-badge ${cancelled ? "danger" : "normal"}">
-                        ${escapeHtml(statusText(appointment.trangThaiLichKham))}
+                        ${escapeHtml(statusText(status))}
                     </span>
 
                     <span class="status-badge ${paid ? "success" : "pending"}">
-                        ${paid ? "Đã thanh toán" : remaining > 0 ? "Chưa thanh toán đủ" : "Chưa có chi phí"}
+                        ${escapeHtml(paymentStatusText(appointment))}
                     </span>
                 </div>
 
@@ -263,6 +456,7 @@
                     <button type="button" class="detail-button">
                         Xem chi tiết lịch
                     </button>
+
                     ${remaining > 0 && !cancelled && !paid ? `
                         <button type="button" class="payment-button">
                             Thanh toán
@@ -271,31 +465,33 @@
                 </div>
             `;
 
-           card.querySelector(".detail-button").addEventListener("click", () => {
-               const maLichKham = Number(appointment.maLichKham);
+            // Mở modal chi tiết ngay trên trang hiện tại.
+            const detailButton = $(".detail-button", card);
+            detailButton?.addEventListener("click", () => {
+                showDetails(appointment);
+            });
 
-               if (!Number.isInteger(maLichKham) || maLichKham <= 0) {
-                   alert("Không xác định được mã lịch khám.");
-                   return;
-               }
-
-               window.location.href =
-                   `/benh-nhan/lich-su/chi-tiet?maLichKham=${encodeURIComponent(maLichKham)}`;
-           });
-
-            const paymentButton = card.querySelector(".payment-button");
-            if (paymentButton) {
-                paymentButton.addEventListener("click", () => {
-                    openPayment(appointment);
-                });
-            }
+            const paymentButton = $(".payment-button", card);
+            paymentButton?.addEventListener("click", () => {
+                openPayment(appointment);
+            });
 
             list.appendChild(card);
         });
     }
 
+    // =========================
+    // CHI TIẾT LỊCH KHÁM
+    // =========================
+
     function showDetails(appointment) {
-        const paid = isPaid(appointment);
+        const detailContent = $("#detailContent");
+        const detailModal = $("#detailModal");
+
+        if (!detailContent || !detailModal) {
+            console.error("Không tìm thấy thành phần modal chi tiết trong HTML.");
+            return;
+        }
 
         const rows = [
             ["Mã lịch khám", appointment.maLichKham],
@@ -309,55 +505,121 @@
             ["Tổng chi phí", money(appointment.tongChiPhi)],
             ["Đã thanh toán", money(appointment.tongDaThanhToan)],
             ["Còn phải thanh toán", money(appointment.soTienConLai)],
-            ["Trạng thái lịch", statusText(appointment.trangThaiLichKham)],
-            ["Trạng thái thanh toán", paid ? "Đã thanh toán đủ" : "Chưa thanh toán đủ"]
+            ["Trạng thái lịch", statusText(getAppointmentStatus(appointment))],
+            ["Trạng thái số thứ tự", statusText(appointment.trangThaiSoThuTu)],
+            ["Trạng thái thanh toán", paymentStatusText(appointment)]
         ];
 
-        $("#detailContent").innerHTML = rows.map(([label, value]) => `
+        detailContent.innerHTML = rows.map(([label, value]) => `
             <div class="detail-row">
                 <span>${escapeHtml(label)}</span>
                 <strong>${escapeHtml(value ?? "Chưa cập nhật")}</strong>
             </div>
         `).join("");
 
-        $("#detailModal").hidden = false;
+        detailModal.hidden = false;
     }
 
+    function closeDetailModal() {
+        const modal = $("#detailModal");
+        if (modal) modal.hidden = true;
+    }
+
+    // =========================
+    // THANH TOÁN QR
+    // =========================
     async function openPayment(appointment) {
-        const invoice = (appointment.danhSachHoaDon || []).find(
-            item => item.trangThai === "ChuaThanhToan"
+        const invoices = Array.isArray(appointment.danhSachHoaDon)
+            ? appointment.danhSachHoaDon
+            : [];
+
+        // Tìm hóa đơn chưa thanh toán.
+        const invoice = invoices.find(item => {
+            const trangThai = item.trangThai ?? item.TrangThai;
+
+            return trangThai === "ChuaThanhToan";
+        });
+
+        const maHoaDon = Number(
+            invoice?.maHoaDon ?? invoice?.MaHoaDon
         );
 
-        const maHoaDon = Number(invoice?.maHoaDon);
+        const maBenhNhan = Number(
+            appointment.maBenhNhan
+        );
 
-        if (!Number.isInteger(maHoaDon) || maHoaDon <= 0) {
-            alert("Chưa tìm thấy hóa đơn chưa thanh toán.");
+        console.log("===== DEBUG THANH TOÁN =====");
+        console.log("Mã lịch khám:", appointment.maLichKham);
+        console.log("Mã bệnh nhân:", maBenhNhan);
+        console.log("Mã hóa đơn:", maHoaDon);
+        console.log("Thông tin hóa đơn:", invoice);
+
+        if (!Number.isInteger(maBenhNhan) || maBenhNhan <= 0) {
+            alert("Không xác định được hồ sơ bệnh nhân. Vui lòng chọn lại hồ sơ.");
             return;
         }
 
-        /*
-         * Chưa tự chuyển sang một URL thanh toán web chưa được xác nhận.
-         * Phần mở QR cần nối với cấu trúc response thực tế của
-         * GET /api/thanh-toan/hoa-don/{maHoaDon}/qr.
-         */
+        if (!Number.isInteger(maHoaDon) || maHoaDon <= 0) {
+            alert(
+                "Chưa tìm thấy hóa đơn chưa thanh toán. Vui lòng tải lại lịch sử."
+            );
+            return;
+        }
+
+        // Mở tab ngay trong thao tác click để tránh bị chặn popup.
+        const paymentWindow = window.open("", "_blank");
+
+        if (!paymentWindow) {
+            alert(
+                "Trình duyệt đã chặn cửa sổ thanh toán. Vui lòng cho phép popup."
+            );
+            return;
+        }
+
+        paymentWindow.document.write(`
+            <!DOCTYPE html>
+            <html lang="vi">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+                <title>Đang tải thanh toán</title>
+            </head>
+            <body style="font-family:Arial,sans-serif;text-align:center;padding:40px">
+                <p>Đang tải mã QR thanh toán...</p>
+            </body>
+            </html>
+        `);
+
+        paymentWindow.document.close();
+
         try {
+            // Gọi API QR kèm mã hồ sơ bệnh nhân.
             const data = await getJson(
-                `/api/thanh-toan/hoa-don/${maHoaDon}/qr`
+                `/api/thanh-toan/hoa-don/${encodeURIComponent(maHoaDon)}/qr` +
+                `?maBenhNhan=${encodeURIComponent(maBenhNhan)}`
             );
 
             if (!data?.qrUrl) {
-                throw new Error("API chưa trả về đường dẫn ảnh QR (qrUrl).");
+                throw new Error(
+                    "API chưa trả về đường dẫn mã QR (qrUrl)."
+                );
             }
 
-            const win = window.open("", "_blank");
-            if (!win) {
-                throw new Error("Trình duyệt đã chặn cửa sổ thanh toán.");
+            const qrUrl = new URL(data.qrUrl, window.location.origin);
+
+            if (!["http:", "https:"].includes(qrUrl.protocol)) {
+                throw new Error("Đường dẫn mã QR không hợp lệ.");
             }
 
-            const qrUrl = escapeHtml(data.qrUrl);
-            const total = money(data.tongTien ?? appointment.soTienConLai);
+            const total = money(
+                data.tongTien ??
+                data.soTien ??
+                appointment.soTienConLai
+            );
 
-            win.document.write(`
+            paymentWindow.document.open();
+
+            paymentWindow.document.write(`
                 <!DOCTYPE html>
                 <html lang="vi">
                 <head>
@@ -365,55 +627,123 @@
                     <meta name="viewport" content="width=device-width, initial-scale=1">
                     <title>Thanh toán hóa đơn</title>
                     <style>
-                        body{font-family:Arial,sans-serif;background:#f0f8ff;
-                        color:#1e293b;text-align:center;padding:30px}
-                        main{max-width:460px;margin:auto;background:white;
-                        padding:28px;border-radius:20px}
-                        img{width:min(100%,300px);height:auto}
-                        h1{font-size:24px} .amount{font-size:22px;color:#2563eb;
-                        font-weight:bold}
+                        * {
+                            box-sizing: border-box;
+                        }
+
+                        body {
+                            font-family: Arial, sans-serif;
+                            background: #f0f8ff;
+                            color: #1e293b;
+                            text-align: center;
+                            padding: 30px;
+                            margin: 0;
+                        }
+
+                        main {
+                            max-width: 460px;
+                            margin: 30px auto;
+                            background: #fff;
+                            padding: 28px;
+                            border-radius: 20px;
+                            box-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+                        }
+
+                        img {
+                            width: min(100%, 300px);
+                            height: auto;
+                            margin: 12px auto;
+                        }
+
+                        h1 {
+                            font-size: 24px;
+                        }
+
+                        .amount {
+                            font-size: 22px;
+                            color: #2563eb;
+                            font-weight: bold;
+                        }
                     </style>
                 </head>
+
                 <body>
                     <main>
                         <h1>Thanh toán lịch khám</h1>
                         <p>Hóa đơn #${maHoaDon}</p>
-                        <p class="amount">${total}</p>
-                        <img src="${qrUrl}" alt="Mã QR thanh toán">
+                        <p class="amount">${escapeHtml(total)}</p>
+
+                        <img
+                            src="${escapeHtml(qrUrl.href)}"
+                            alt="Mã QR thanh toán"
+                        >
+
                         <p>Quét mã QR bằng ứng dụng ngân hàng để thanh toán.</p>
                     </main>
                 </body>
                 </html>
             `);
-            win.document.close();
+
+            paymentWindow.document.close();
+
         } catch (error) {
+            console.error("Lỗi mở thanh toán:", error);
+
+            if (!paymentWindow.closed) {
+                paymentWindow.close();
+            }
+
             alert(error.message || "Không thể mở thanh toán.");
         }
     }
 
-    document.querySelectorAll(".filter-chip").forEach(button => {
-        button.addEventListener("click", () => {
-            state.filter = button.dataset.filter;
 
-            document.querySelectorAll(".filter-chip").forEach(item => {
-                item.classList.toggle("active", item === button);
+    // =========================
+    // KHỞI TẠO SỰ KIỆN
+    // =========================
+
+    function initializeEvents() {
+        document.querySelectorAll(".filter-chip").forEach(button => {
+            button.addEventListener("click", () => {
+                state.filter = button.dataset.filter || "all";
+
+                document.querySelectorAll(".filter-chip").forEach(item => {
+                    item.classList.toggle("active", item === button);
+                });
+
+                renderAppointments();
             });
-
-            renderAppointments();
         });
-    });
 
-    $("#refreshButton").addEventListener("click", loadAppointments);
-    $("#retryButton").addEventListener("click", loadAppointments);
-    $("#closeDetail").addEventListener("click", () => {
-        $("#detailModal").hidden = true;
-    });
+        $("#refreshButton")?.addEventListener("click", loadAppointments);
+        $("#retryButton")?.addEventListener("click", loadAppointments);
+        $("#closeDetail")?.addEventListener("click", closeDetailModal);
 
-    $("#detailModal").addEventListener("click", event => {
-        if (event.target === $("#detailModal")) {
-            $("#detailModal").hidden = true;
-        }
-    });
+        $("#detailModal")?.addEventListener("click", event => {
+            if (event.target === $("#detailModal")) {
+                closeDetailModal();
+            }
+        });
 
-    loadAppointments();
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape") {
+                closeDetailModal();
+            }
+        });
+    }
+
+    // =========================
+    // CHẠY TRANG
+    // =========================
+
+    function initialize() {
+        initializeEvents();
+        loadAppointments();
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    } else {
+        initialize();
+    }
 })();

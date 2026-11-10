@@ -65,17 +65,16 @@ public class ChuyenTrachKetQuaController {
     }
 
     private LichDangKyKham getLich(Integer id) {
-        LichDangKyKham lich = em.find(LichDangKyKham.class, id);
+        LichDangKyKham lich = em.find(
+                LichDangKyKham.class,
+                id
+        );
 
         if (lich == null) {
             throw new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Không tìm thấy lượt khám");
-        }
-
-        if (!List.of("ChoCLS", "DangCLS").contains(lich.getTrangThai())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Lượt khám không còn trong quy trình CLS");
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy lượt khám"
+            );
         }
 
         return lich;
@@ -119,7 +118,7 @@ public class ChuyenTrachKetQuaController {
         result.put("maLichKham", lich.getMaLichKham());
         result.put("maBenhNhan", lich.getBenhNhan().getMaBenhNhan());
         result.put("tenBenhNhan",
-                lich.getBenhNhan().getNguoiDung().getHoTen());
+                lich.getBenhNhan().getHoTen());
         result.put("ngaySinh", lich.getBenhNhan().getNgaySinh());
         result.put("gioiTinh", lich.getBenhNhan().getGioiTinh());
         result.put("gioKham", lich.getGioKham());
@@ -169,6 +168,9 @@ public class ChuyenTrachKetQuaController {
         return result;
     }
 
+    // =======================================
+    // luu ket qua
+    // =======================================
     @PostMapping("/{maLich}/chi-dinh/{maChiDinh}/luu")
     @Transactional
     public Map<String, String> luuKetQua(
@@ -179,31 +181,43 @@ public class ChuyenTrachKetQuaController {
     ) {
         checkRole(user);
 
-        LichDangKyKham lich = getLich(maLich);
-        if (!"DangCLS".equals(lich.getTrangThai())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT, "Phải bắt đầu CLS trước khi nhập kết quả");
-        }
+        getLich(maLich);
 
         ChiDinhYTe chiDinh = getChiDinh(maLich).stream()
                 .filter(c -> maChiDinh.equals(c.getMaChiDinh()))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Chỉ định không thuộc lượt khám này"));
+                        "Chỉ định không thuộc lượt khám này"
+                ));
 
-        String noiDung = input.getOrDefault("noiDungKetQua", "").trim();
-        String ketLuan = input.getOrDefault("ketLuan", "").trim();
+        if (!"DangThucHien".equals(chiDinh.getTrangThai())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Chỉ định chưa được bắt đầu thực hiện CLS"
+            );
+        }
+
+        String noiDung = input.getOrDefault(
+                "noiDungKetQua", ""
+        ).trim();
+
+        String ketLuan = input.getOrDefault(
+                "ketLuan", ""
+        ).trim();
 
         if (noiDung.isBlank() || ketLuan.isBlank()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "Phải nhập nội dung kết quả và kết luận");
+                    "Phải nhập nội dung kết quả và kết luận"
+            );
         }
 
         if (noiDung.length() > 20000 || ketLuan.length() > 20000) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Nội dung vượt giới hạn");
+                    HttpStatus.BAD_REQUEST,
+                    "Nội dung vượt giới hạn"
+            );
         }
 
         KetQuaDichVu ketQua = getKetQua(maChiDinh);
@@ -211,92 +225,29 @@ public class ChuyenTrachKetQuaController {
         if (ketQua == null) {
             ketQua = new KetQuaDichVu();
             ketQua.setChiDinhYTe(chiDinh);
+            em.persist(ketQua);
         } else if ("DaHoanThanh".equals(ketQua.getTrangThai())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Kết quả đã hoàn thành, không thể sửa tại đây");
+                    "Kết quả đã hoàn thành, không thể sửa tại đây"
+            );
         }
 
         ketQua.setNoiDungKetQua(noiDung);
         ketQua.setKetLuan(ketLuan);
         ketQua.setTrangThai("DangThucHien");
-        em.persist(ketQua);
+
         em.flush();
 
-        return Map.of("message", "Đã lưu kết quả.");
+        return Map.of(
+                "message",
+                "Đã lưu kết quả."
+        );
     }
 
-    //    @PostMapping("/{maLich}/hoan-tat")
-    //    @Transactional
-    //    public Map<String, String> hoanTat(
-    //            @PathVariable Integer maLich,
-    //            @AuthenticationPrincipal CustomUserDetails user
-    //    ) {
-    //        checkRole(user);
-    //
-    //        LichDangKyKham lich = getLich(maLich);
-    //
-    //        if (!"DangCLS".equals(lich.getTrangThai())) {
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.CONFLICT, "Lượt khám chưa ở trạng thái DangCLS");
-    //        }
-    //
-    //        List<ChiDinhYTe> danhSach = getChiDinh(maLich);
-    //
-    //        if (danhSach.isEmpty()) {
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.CONFLICT,
-    //                    "Chưa có chỉ định thật. Không thể hoàn tất CLS");
-    //        }
-    //
-    //        for (ChiDinhYTe chiDinh : danhSach) {
-    //            KetQuaDichVu k = getKetQua(chiDinh.getMaChiDinh());
-    //
-    //            if (k == null ||
-    //                    k.getNoiDungKetQua() == null ||
-    //                    k.getNoiDungKetQua().isBlank() ||
-    //                    k.getKetLuan() == null ||
-    //                    k.getKetLuan().isBlank()) {
-    //                throw new ResponseStatusException(
-    //                        HttpStatus.CONFLICT,
-    //                        "Còn chỉ định chưa nhập đầy đủ kết quả");
-    //            }
-    //
-    //            k.setTrangThai("DaHoanThanh");
-    //            k.setNgayCoKetQua(LocalDateTime.now(
-    //                    ZoneId.of("Asia/Ho_Chi_Minh")));
-    //            chiDinh.setTrangThai("DaHoanThanh");
-    //        }
-    //        em.flush();
-    //
-    //        // Sau khi hoàn tất CLS, bệnh nhân quay lại bác sĩ
-    //        // để tiếp tục đánh giá và kê đơn thuốc.
-    //        int updated = em.createQuery("""
-    //                UPDATE LichDangKyKham l
-    //                SET l.trangThai = 'DangKham'
-    //                WHERE l.maLichKham = :id
-    //                  AND l.trangThai = 'DangCLS'
-    //                """)
-    //                .setParameter("id", maLich)
-    //                .executeUpdate();
-    //
-    //        if (updated != 1) {
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.CONFLICT,
-    //                    "Trạng thái lượt khám đã thay đổi"
-    //            );
-    //        }
-    //
-    //        // Đồng bộ EntityManager vì đã dùng JPQL UPDATE
-    //        em.clear();
-    //
-    //        return Map.of(
-    //                "message",
-    //                "Đã hoàn tất CLS. Bệnh nhân có thể tiếp tục khám và kê đơn thuốc.",
-    //                "trangThai",
-    //                "DangKham"
-    //        );
-    //    }
+    // ====================================
+    // hoan tat
+    // ====================================
     @PostMapping("/{maLich}/hoan-tat")
     @Transactional
     public Map<String, String> hoanTat(
@@ -307,48 +258,64 @@ public class ChuyenTrachKetQuaController {
 
         LichDangKyKham lich = getLich(maLich);
 
-        if (!"DangCLS".equals(lich.getTrangThai())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Lượt khám chưa ở trạng thái DangCLS"
-            );
-        }
-
         List<ChiDinhYTe> danhSach = getChiDinh(maLich);
 
-        if (danhSach.isEmpty()) {
+        // Chỉ lấy những chỉ định đang được nhân viên thực hiện.
+        List<ChiDinhYTe> danhSachDangThucHien = danhSach.stream()
+                .filter(c -> "DangThucHien".equals(c.getTrangThai()))
+                .toList();
+
+        if (danhSachDangThucHien.isEmpty()) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Chưa có chỉ định thật. Không thể hoàn tất CLS"
+                    "Không có chỉ định CLS nào đang thực hiện."
             );
         }
 
-        // 1. Kiểm tra tất cả chỉ định đã có kết quả đầy đủ
-        for (ChiDinhYTe chiDinh : danhSach) {
-            KetQuaDichVu k = getKetQua(chiDinh.getMaChiDinh());
+        // Kiểm tra kết quả của từng chỉ định đang thực hiện.
+        for (ChiDinhYTe chiDinh : danhSachDangThucHien) {
+            KetQuaDichVu ketQua = getKetQua(
+                    chiDinh.getMaChiDinh()
+            );
 
-            if (k == null
-                    || k.getNoiDungKetQua() == null
-                    || k.getNoiDungKetQua().isBlank()
-                    || k.getKetLuan() == null
-                    || k.getKetLuan().isBlank()) {
+            if (ketQua == null
+                    || ketQua.getNoiDungKetQua() == null
+                    || ketQua.getNoiDungKetQua().isBlank()
+                    || ketQua.getKetLuan() == null
+                    || ketQua.getKetLuan().isBlank()) {
+
                 throw new ResponseStatusException(
                         HttpStatus.CONFLICT,
-                        "Còn chỉ định chưa nhập đầy đủ kết quả"
+                        "Còn chỉ định chưa nhập đầy đủ kết quả: "
+                                + chiDinh.getDichVuYTe().getTenDichVu()
                 );
             }
 
-            k.setTrangThai("DaHoanThanh");
-            k.setNgayCoKetQua(LocalDateTime.now(
-                    ZoneId.of("Asia/Ho_Chi_Minh")
-            ));
+            ketQua.setTrangThai("DaHoanThanh");
+            ketQua.setNgayCoKetQua(
+                    LocalDateTime.now(
+                            ZoneId.of("Asia/Ho_Chi_Minh")
+                    )
+            );
 
             chiDinh.setTrangThai("DaHoanThanh");
         }
 
         em.flush();
 
-        // 2. Cập nhật HoSoBenhAn
+        // Kiểm tra còn chỉ định nào chưa được xử lý hay không.
+        // Không thay đổi những chỉ định chưa thanh toán hoặc chưa bắt đầu.
+        boolean conChiDinhChuaXuLy = danhSach.stream()
+                .anyMatch(c ->
+                        List.of(
+                                "ChoThanhToan",
+                                "ChoThucHien",
+                                "DangThucHien"
+                        ).contains(c.getTrangThai())
+                );
+
+        // Chỉ chuyển hồ sơ về bác sĩ khi tất cả chỉ định CLS
+        // của lượt khám đã được hoàn thành.
         HoSoBenhAn hoSo = em.createQuery("""
             SELECT h
             FROM HoSoBenhAn h
@@ -362,101 +329,72 @@ public class ChuyenTrachKetQuaController {
                         "Không tìm thấy hồ sơ bệnh án"
                 ));
 
-        if (!"ChoCLS".equals(hoSo.getTrangThai())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Hồ sơ bệnh án không ở trạng thái ChoCLS"
-            );
+        if (!conChiDinhChuaXuLy) {
+            if ("ChoCLS".equals(hoSo.getTrangThai())) {
+                hoSo.setTrangThai("DangKham");
+                hoSoBenhAnRepository.save(hoSo);
+            }
         }
 
-        hoSo.setTrangThai("DangKham");
-
-        // 3. Cập nhật LichDangKyKham
-        int updatedLich = em.createQuery("""
-            UPDATE LichDangKyKham l
-            SET l.trangThai = 'DangKham'
-            WHERE l.maLichKham = :id
-              AND l.trangThai = 'DangCLS'
-            """)
-                .setParameter("id", maLich)
-                .executeUpdate();
-
-        if (updatedLich != 1) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Trạng thái lượt khám đã thay đổi"
-            );
-        }
-
-        // 4. Cập nhật TiepNhanBenhNhan
-        int updatedTiepNhan =
-                tiepNhanBenhNhanRepository.capNhatTrangThaiTheoLich(
-                        maLich,
-                        "DangKham"
-                );
-
-        if (updatedTiepNhan == 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Không tìm thấy thông tin tiếp nhận bệnh nhân"
-            );
-        }
-
-        // 5. Lưu hồ sơ bệnh án
-        hoSoBenhAnRepository.save(hoSo);
-
-        // Đồng bộ dữ liệu sau khi cập nhật 3 bảng
         em.flush();
 
-        // 6. Gửi thông báo kết quả CLS cho bệnh nhân
-        Integer maNguoiDung = lich.getBenhNhan()
-                .getNguoiDung()
-                .getMaNguoiDung();
-
-        String tenDichVu = danhSach.stream()
+        // Thông tin dịch vụ vừa hoàn thành.
+        String tenDichVu = danhSachDangThucHien.stream()
                 .map(cd -> cd.getDichVuYTe().getTenDichVu())
                 .filter(Objects::nonNull)
                 .distinct()
                 .collect(Collectors.joining(", "));
 
+        BenhNhan benhNhan = lich.getBenhNhan();
+
+        // Gửi thông báo cho bệnh nhân.
+        Integer maNguoiDung = benhNhan.getNguoiDung()
+                .getMaNguoiDung();
+
         String noiDung = "Kết quả cận lâm sàng của bạn đã được cập nhật"
                 + (tenDichVu.isBlank() ? "." : ": " + tenDichVu + ".")
                 + " Vui lòng kiểm tra.";
 
-        thongBaoService.taoThongBao(
+        thongBaoService.taoThongBaoVaGuiRealtime(
                 maNguoiDung,
+                benhNhan,
                 "Đã có kết quả cận lâm sàng",
                 noiDung,
                 "KET_QUA_CLS"
         );
-        // 7. Gửi thông báo kết quả CLS cho bác sĩ phụ trách
-        Integer maNguoiDungBacSi = lich.getBacSi()
-                .getNguoiDung()
-                .getMaNguoiDung();
 
-        String noiDungBacSi =
-                "Bệnh nhân " + lich.getBenhNhan()
-                        .getNguoiDung()
-                        .getHoTen()
-                        + " đã có kết quả cận lâm sàng: "
-                        + (tenDichVu.isBlank() ? "CLS" : tenDichVu)
-                        + ". Vui lòng kiểm tra hồ sơ bệnh án để tiếp tục khám.";
+        // Gửi thông báo cho bác sĩ phụ trách.
+        if (lich.getBacSi() != null
+                && lich.getBacSi().getNguoiDung() != null) {
 
-        thongBaoService.taoThongBao(
-                maNguoiDungBacSi,
-                "Kết quả cận lâm sàng đã có",
-                noiDungBacSi,
-                "KET_QUA_CLS"
-        );
+            Integer maNguoiDungBacSi = lich.getBacSi()
+                    .getNguoiDung()
+                    .getMaNguoiDung();
 
-        // Đồng bộ EntityManager
-        em.clear();
+            String noiDungBacSi =
+                    "Bệnh nhân " + benhNhan.getHoTen()
+                            + " đã có kết quả cận lâm sàng: "
+                            + (tenDichVu.isBlank() ? "CLS" : tenDichVu)
+                            + ". Vui lòng kiểm tra hồ sơ bệnh án.";
+
+            thongBaoService.taoThongBaoVaGuiRealtime(
+                    maNguoiDungBacSi,
+                    benhNhan,
+                    "Kết quả cận lâm sàng đã có",
+                    noiDungBacSi,
+                    "KET_QUA_CLS"
+            );
+        }
+
+        em.flush();
 
         return Map.of(
                 "message",
-                "Đã hoàn tất CLS. Hồ sơ, lịch khám và tiếp nhận đã chuyển về Đang khám.",
+                conChiDinhChuaXuLy
+                        ? "Đã hoàn thành các chỉ định CLS đang thực hiện. Vẫn còn chỉ định chưa được xử lý."
+                        : "Đã hoàn thành CLS. Hồ sơ bệnh án đã được chuyển về bác sĩ.",
                 "trangThai",
-                "DangKham"
+                conChiDinhChuaXuLy ? "ChoCLS" : "DangKham"
         );
     }
 
@@ -530,7 +468,7 @@ public class ChuyenTrachKetQuaController {
     }
 
     // ======================================
-    //
+    // upload file
     // ======================================
     @PostMapping(
             value = "/{maLich}/chi-dinh/{maChiDinh}/files",
@@ -559,14 +497,7 @@ public class ChuyenTrachKetQuaController {
             );
         }
 
-        LichDangKyKham lich = getLich(maLich);
-
-        if (!"DangCLS".equals(lich.getTrangThai())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Phải bắt đầu CLS trước khi tải ảnh kết quả"
-            );
-        }
+        getLich(maLich);
 
         ChiDinhYTe chiDinh = getChiDinh(maLich).stream()
                 .filter(c -> maChiDinh.equals(c.getMaChiDinh()))
@@ -576,6 +507,13 @@ public class ChuyenTrachKetQuaController {
                         "Chỉ định không thuộc lượt khám này"
                 ));
 
+        if (!"DangThucHien".equals(chiDinh.getTrangThai())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Chỉ định chưa được bắt đầu thực hiện CLS"
+            );
+        }
+
         KetQuaDichVu ketQua = getKetQua(maChiDinh);
 
         if (ketQua == null) {
@@ -583,7 +521,9 @@ public class ChuyenTrachKetQuaController {
             ketQua.setChiDinhYTe(chiDinh);
             ketQua.setTrangThai("DangThucHien");
             ketQua.setNgayCoKetQua(
-                    LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+                    LocalDateTime.now(
+                            ZoneId.of("Asia/Ho_Chi_Minh")
+                    )
             );
 
             em.persist(ketQua);
@@ -604,7 +544,6 @@ public class ChuyenTrachKetQuaController {
                 continue;
             }
 
-            // Upload file lên Cloudflare R2, nhận về object key
             String fileKey = cloudflareR2Service.uploadImage(file);
 
             AnhKetQuaDichVu anh = new AnhKetQuaDichVu();
@@ -612,7 +551,9 @@ public class ChuyenTrachKetQuaController {
             anh.setFileURL(fileKey);
             anh.setTenFile(file.getOriginalFilename());
             anh.setNgayTao(
-                    LocalDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+                    LocalDateTime.now(
+                            ZoneId.of("Asia/Ho_Chi_Minh")
+                    )
             );
 
             em.persist(anh);

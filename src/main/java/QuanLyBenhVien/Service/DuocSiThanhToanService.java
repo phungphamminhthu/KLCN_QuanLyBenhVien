@@ -20,7 +20,7 @@ public class DuocSiThanhToanService {
     @Value("${sepay.bank-code:}")
     private String bankCode;
 
-    @Value("${sepay.account-number:}")
+    @Value("${sepay.bank-account-number:}")
     private String accountNumber;
 
     @Value("${sepay.account-name:}")
@@ -30,6 +30,9 @@ public class DuocSiThanhToanService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // ===================================
+    // tim hoa don theo don thuoc
+    // ===================================
     private Map<String, Object> timHoaDonTheoDonThuoc(
             Integer maDonThuoc
     ) {
@@ -37,6 +40,8 @@ public class DuocSiThanhToanService {
                 """
                 SELECT DISTINCT
                     hd.MaHoaDon,
+                    hd.MaBenhNhan,
+                    hd.MaLichKham,
                     hd.TongTien,
                     hd.TrangThai,
                     hd.LoaiHoaDon
@@ -48,7 +53,6 @@ public class DuocSiThanhToanService {
                 WHERE ct.MaDonThuoc = ?
                   AND hd.LoaiHoaDon = 'Thuoc'
                 ORDER BY hd.MaHoaDon DESC
-                LIMIT 1
                 """,
                 maDonThuoc
         );
@@ -56,6 +60,12 @@ public class DuocSiThanhToanService {
         if (rows.isEmpty()) {
             throw new IllegalArgumentException(
                     "Không tìm thấy hóa đơn thuốc của đơn thuốc này."
+            );
+        }
+
+        if (rows.size() > 1) {
+            throw new IllegalStateException(
+                    "Đơn thuốc đang liên kết với nhiều hóa đơn thuốc."
             );
         }
 

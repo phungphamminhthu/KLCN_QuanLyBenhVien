@@ -37,13 +37,15 @@ public class TiepNhanTraCuuSoDienThoaiService {
 
         String sql = """
                 SELECT ds.MaBenhNhan,
-                       ds.HoTen,
-                       ds.NgaySinh,
-                       ds.GioiTinh,
-                       ds.SoDienThoai
+                                            ds.HoTen,
+                                            ds.MoiQuanHe,
+                                            ds.NgaySinh,
+                                            ds.GioiTinh,
+                                            ds.SoDienThoai
                 FROM (
                     SELECT bn.MaBenhNhan,
-                           nd.HoTen,
+                           bn.HoTen,
+                           bn.MoiQuanHe,
                            bn.NgaySinh,
                            bn.GioiTinh,
                            nd.SoDienThoai,
@@ -71,6 +73,7 @@ public class TiepNhanTraCuuSoDienThoaiService {
             return new TiepNhanTraCuuSoDienThoaiDTO(
                     rs.getInt("MaBenhNhan"),
                     rs.getString("HoTen"),
+                    rs.getString("MoiQuanHe"),
                     ngaySinh != null
                             ? ngaySinh.toLocalDate()
                             : null,

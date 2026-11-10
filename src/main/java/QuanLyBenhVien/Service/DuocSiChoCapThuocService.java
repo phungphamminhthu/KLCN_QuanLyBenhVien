@@ -51,7 +51,7 @@ public class DuocSiChoCapThuocService {
 
                         bn.MaBenhNhan,
 
-                        nd_bn.HoTen AS TenBenhNhan,
+                        bn.HoTen AS TenBenhNhan,
 
                         nd_bs.HoTen AS TenBacSi,
 
@@ -135,7 +135,7 @@ public class DuocSiChoCapThuocService {
         ) {
 
             sql.append("""
-                AND nd_bn.HoTen
+                AND bn.HoTen
                     LIKE ?
                 """);
 
@@ -193,7 +193,7 @@ public class DuocSiChoCapThuocService {
             GROUP BY
                 d.MaDonThuoc,
                 bn.MaBenhNhan,
-                nd_bn.HoTen,
+                bn.HoTen,
                 nd_bs.HoTen,
                 d.NgayKeThuoc,
                 d.TrangThai
@@ -397,7 +397,7 @@ public class DuocSiChoCapThuocService {
         ) {
 
             sql.append("""
-                AND nd_bn.HoTen LIKE ?
+                AND bn.HoTen LIKE ?
                 """);
 
             params.add(

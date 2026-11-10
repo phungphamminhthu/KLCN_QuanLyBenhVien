@@ -1,6 +1,8 @@
 
 package QuanLyBenhVien.Service;
 
+import QuanLyBenhVien.Entity.BenhNhan;
+import QuanLyBenhVien.Repository.BenhNhanRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +44,7 @@ public class TiepNhanLichKhamThongBaoListener {
     private final JdbcTemplate jdbcTemplate;
     private final ThongBaoService thongBaoService;
     private final TransactionTemplate transactionTemplate;
+    private final BenhNhanRepository benhNhanRepository;
 
     // Sự kiện phát ra sau khi tạo lịch khám.
     // taiKhoanTao dùng để không thông báo cho chính
@@ -53,6 +56,7 @@ public class TiepNhanLichKhamThongBaoListener {
 
     private record ThongTinLich(
             Integer maLichKham,
+            Integer maBenhNhan,
             Integer maKhoa,
             String tenBenhNhan,
             String tenKhoa,
@@ -63,13 +67,13 @@ public class TiepNhanLichKhamThongBaoListener {
     public TiepNhanLichKhamThongBaoListener(
             JdbcTemplate jdbcTemplate,
             ThongBaoService thongBaoService,
-            PlatformTransactionManager transactionManager
+            PlatformTransactionManager transactionManager,
+            BenhNhanRepository benhNhanRepository
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.thongBaoService = thongBaoService;
+        this.benhNhanRepository = benhNhanRepository;
 
-        // Tạo transaction riêng sau khi đăng ký khám
-        // đã được commit thành công.
         this.transactionTemplate =
                 new TransactionTemplate(transactionManager);
 
@@ -118,28 +122,26 @@ public class TiepNhanLichKhamThongBaoListener {
     private void guiThongBao(LichKhamMoiEvent event) {
 
         String sqlLichKham = """
-                SELECT
-                    l.MaLichKham,
-                    l.MaKhoa,
-                    l.NgayKham,
-                    l.GioKham,
-                    nd.HoTen AS TenBenhNhan,
-                    k.TenKhoa
-
-                FROM lichdangkykham l
-
-                JOIN benhnhan bn
-                  ON bn.MaBenhNhan = l.MaBenhNhan
-
-                JOIN nguoidung nd
-                  ON nd.MaNguoiDung = bn.MaNguoiDung
-
-                JOIN khoa k
-                  ON k.MaKhoa = l.MaKhoa
-
-                WHERE l.MaLichKham = ?
-                  AND l.TrangThai <> 'DaHuy'
-                """;
+            SELECT
+                l.MaLichKham,
+                l.MaBenhNhan,
+                l.MaKhoa,
+                l.NgayKham,
+                l.GioKham,
+                bn.HoTen AS TenBenhNhan,
+                k.TenKhoa
+    
+            FROM LichDangKyKham l
+    
+            JOIN BenhNhan bn
+                ON bn.MaBenhNhan = l.MaBenhNhan
+    
+            JOIN Khoa k
+                ON k.MaKhoa = l.MaKhoa
+    
+            WHERE l.MaLichKham = ?
+              AND l.TrangThai <> 'DaHuy'
+            """;
 
         List<ThongTinLich> danhSach = jdbcTemplate.query(
                 sqlLichKham,
@@ -149,16 +151,12 @@ public class TiepNhanLichKhamThongBaoListener {
 
                     return new ThongTinLich(
                             rs.getInt("MaLichKham"),
+                            rs.getInt("MaBenhNhan"),
                             rs.getInt("MaKhoa"),
                             rs.getString("TenBenhNhan"),
                             rs.getString("TenKhoa"),
-                            rs.getObject(
-                                    "NgayKham",
-                                    LocalDate.class
-                            ),
-                            gio == null
-                                    ? null
-                                    : gio.toLocalTime()
+                            rs.getObject("NgayKham", LocalDate.class),
+                            gio == null ? null : gio.toLocalTime()
                     );
                 },
                 event.maLichKham()
@@ -266,10 +264,20 @@ public class TiepNhanLichKhamThongBaoListener {
         // 5. LƯU MYSQL VÀ PHÁT WEBSOCKET
         // =================================================
 
+        BenhNhan benhNhan = benhNhanRepository
+                .findById(lich.maBenhNhan())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Không tìm thấy hồ sơ bệnh nhân có mã: "
+                                        + lich.maBenhNhan()
+                        )
+                );
+
         for (Integer maNguoiNhan : nguoiNhans) {
 
             thongBaoService.taoThongBaoVaGuiRealtime(
                     maNguoiNhan,
+                    benhNhan,
                     tieuDe,
                     noiDung,
                     "LICH_KHAM_MOI"

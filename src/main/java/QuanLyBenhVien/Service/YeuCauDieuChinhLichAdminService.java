@@ -305,7 +305,7 @@ public class YeuCauDieuChinhLichAdminService {
                     .append(ghiChu);
         }
 
-        thongBaoService.taoThongBaoVaGuiRealtime(
+        thongBaoService.taoThongBao(
                 nguoiDung.getMaNguoiDung(),
                 tieuDe,
                 noiDung.toString(),

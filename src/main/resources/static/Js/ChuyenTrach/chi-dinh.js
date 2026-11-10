@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const API = "/api/chuyen-trach/danh-sach-chi-dinh";
     const CLS_API = "/api/chuyen-trach/luot-kham";
-    const PAGE_SIZE = 50;
+    const PAGE_SIZE = 5;
 
     const $ = id => document.getElementById(id);
 

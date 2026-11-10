@@ -1,45 +1,48 @@
 package QuanLyBenhVien.Controller;
 
-import QuanLyBenhVien.Entity.BenhNhan;
-import QuanLyBenhVien.Entity.ChiDinhYTe;
-import QuanLyBenhVien.Entity.HoSoBenhAn;
-import QuanLyBenhVien.Entity.KetQuaDichVu;
-import QuanLyBenhVien.Entity.LichDangKyKham;
-import QuanLyBenhVien.Entity.NguoiDung;
+import QuanLyBenhVien.Entity.*;
+import QuanLyBenhVien.Repository.AnhKetQuaDichVuRepository;
 import QuanLyBenhVien.Repository.KetQuaDichVuRepository;
 
+import QuanLyBenhVien.Service.CloudflareR2Service;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.util.*;
 
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @Controller
 public class ChuyenTrachChiTietKetQuaController {
 
     private final KetQuaDichVuRepository ketQuaRepository;
+    private final AnhKetQuaDichVuRepository anhKetQuaDichVuRepository;
+    private final CloudflareR2Service cloudflareR2Service;
 
     @PersistenceContext
     private EntityManager em;
 
 
     public ChuyenTrachChiTietKetQuaController(
-            KetQuaDichVuRepository ketQuaRepository
+            KetQuaDichVuRepository ketQuaRepository,
+            AnhKetQuaDichVuRepository anhKetQuaDichVuRepository,
+            CloudflareR2Service cloudflareR2Service
     ) {
         this.ketQuaRepository = ketQuaRepository;
+        this.anhKetQuaDichVuRepository = anhKetQuaDichVuRepository;
+        this.cloudflareR2Service = cloudflareR2Service;
     }
 
     // =====================================================
@@ -146,7 +149,7 @@ public class ChuyenTrachChiTietKetQuaController {
 
         data.put(
                 "tenBenhNhan",
-                nguoiDung.getHoTen()
+                benhNhan.getHoTen()
         );
 
         data.put(
@@ -161,12 +164,7 @@ public class ChuyenTrachChiTietKetQuaController {
 
         data.put(
                 "soDienThoai",
-                docThuocTinh(
-                        nguoiDung,
-                        "soDienThoai",
-                        "sdt",
-                        "dienThoai"
-                )
+                nguoiDung != null ? nguoiDung.getSoDienThoai() : null
         );
 
         // Hồ sơ và chỉ định
@@ -232,6 +230,28 @@ public class ChuyenTrachChiTietKetQuaController {
                 "fileURL",
                 ketQua.getFileURL()
         );
+
+
+        List<AnhKetQuaDichVu> danhSachAnh =
+                anhKetQuaDichVuRepository
+                        .findByKetQuaDichVu_MaKetQuaOrderByNgayTaoAsc(
+                                ketQua.getMaKetQua()
+                        );
+
+        List<Map<String, Object>> anhList = danhSachAnh.stream()
+                .map(anh -> {
+                    Map<String, Object> item = new HashMap<>();
+
+                    item.put("maAnh", anh.getMaAnh());
+                    item.put("fileURL", anh.getFileURL());
+                    item.put("tenFile", anh.getTenFile());
+                    item.put("ngayTao", anh.getNgayTao());
+
+                    return item;
+                })
+                .toList();
+
+        data.put("danhSachAnh", anhList);
 
         data.put(
                 "trangThaiKetQua",
@@ -337,22 +357,49 @@ public class ChuyenTrachChiTietKetQuaController {
                             )
                     );
 
+            List<AnhKetQuaDichVu> danhSachAnh =
+                    anhKetQuaDichVuRepository
+                            .findByKetQuaDichVu_MaKetQuaOrderByNgayTaoAsc(
+                                    ketQua.getMaKetQua()
+                            );
+
+            List<Map<String, Object>> anhList = danhSachAnh.stream()
+                    .map(anh -> {
+                        Map<String, Object> image = new LinkedHashMap<>();
+
+                        image.put("maAnh", anh.getMaAnh());
+                        image.put("fileURL", anh.getFileURL());
+                        image.put("tenFile", anh.getTenFile());
+                        image.put("ngayTao", anh.getNgayTao());
+
+                        return image;
+                    })
+                    .toList();
+
             Map<String, Object> item = new LinkedHashMap<>();
 
             item.put("maChiDinh", chiDinh.getMaChiDinh());
-            item.put("tenDichVu",
-                    chiDinh.getDichVuYTe().getTenDichVu());
-            item.put("nhomXetNghiem",
+
+            item.put("maKetQua", ketQua.getMaKetQua());
+
+            item.put(
+                    "tenDichVu",
+                    chiDinh.getDichVuYTe().getTenDichVu()
+            );
+
+            item.put(
+                    "nhomXetNghiem",
                     docThuocTinh(
                             chiDinh.getDichVuYTe(),
                             "nhomXetNghiem"
-                    ));
-            item.put("noiDungKetQua",
-                    ketQua.getNoiDungKetQua());
+                    )
+            );
+
+            item.put("noiDungKetQua", ketQua.getNoiDungKetQua());
             item.put("ketLuan", ketQua.getKetLuan());
-            item.put("ngayCoKetQua",
-                    ketQua.getNgayCoKetQua());
+            item.put("ngayCoKetQua", ketQua.getNgayCoKetQua());
             item.put("fileURL", ketQua.getFileURL());
+            item.put("danhSachAnh", anhList);
 
             danhSach.add(item);
         }
@@ -362,14 +409,14 @@ public class ChuyenTrachChiTietKetQuaController {
                 .getLichDangKyKham();
 
         BenhNhan benhNhan = lich.getBenhNhan();
+        NguoiDung nguoiDung = benhNhan.getNguoiDung();
 
         Map<String, Object> result = new LinkedHashMap<>();
 
         result.put("maPhieuChiDinh", maPhieu);
         result.put("maHoSoBenhAn", maHoSo);
         result.put("maBenhNhan", benhNhan.getMaBenhNhan());
-        result.put("tenBenhNhan",
-                benhNhan.getNguoiDung().getHoTen());
+        result.put("tenBenhNhan", benhNhan.getHoTen());
         result.put("gioiTinh", benhNhan.getGioiTinh());
         result.put("ngaySinh", benhNhan.getNgaySinh());
 
@@ -381,8 +428,50 @@ public class ChuyenTrachChiTietKetQuaController {
 
         result.put("soXetNghiem", danhSach.size());
         result.put("danhSachXetNghiem", danhSach);
-
+        result.put(
+                "soDienThoai",
+                nguoiDung != null ? nguoiDung.getSoDienThoai() : null
+        );
         return result;
+    }
+
+
+    // =====================================================
+    // API HIỂN THỊ ẢNH KẾT QUẢ TỪ CLOUDFLARE R2
+    // =====================================================
+    @ResponseBody
+    @GetMapping("/api/chuyen-trach/anh-ket-qua")
+    public ResponseEntity<InputStreamResource> xemAnhKetQua(
+            @RequestParam("key") String key,
+            Authentication authentication
+    ) {
+
+        // Kiểm tra quyền nhân viên chuyên trách
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication.getAuthorities().stream()
+                .noneMatch(a -> "ROLE_CHUYENTRACH"
+                        .equals(a.getAuthority()))) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Bạn không có quyền xem ảnh kết quả."
+            );
+        }
+
+        // Chỉ cho phép đọc ảnh trong thư mục images/
+        if (key == null
+                || key.isBlank()
+                || !key.startsWith("images/")
+                || key.contains("..")) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Đường dẫn ảnh không hợp lệ."
+            );
+        }
+
+        return cloudflareR2Service.getImage(key);
     }
 
     // =====================================================

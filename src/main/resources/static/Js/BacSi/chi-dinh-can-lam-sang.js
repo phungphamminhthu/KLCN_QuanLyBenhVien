@@ -10,6 +10,9 @@ let clsDanhSachChiDinh = [];
 let clsCoTheKeDon = false;
 let clsHoSoHoanTat = false;
 let clsToastTimer = null;
+// Quản lý ảnh kết quả cận lâm sàng trong modal
+let clsAnhKetQuaUrls = [];
+let clsAnhKetQuaController = null;
 
 const clsEl = id => document.getElementById(id);
 
@@ -999,21 +1002,36 @@ async function clsTaiChiDinh() {
     }
 }
 
+
 /* =========================================
    MODAL XEM KẾT QUẢ
 ========================================= */
 
-function clsMoModal() {
-    clsEl("resultOverlay")
-        .classList.remove("hidden");
+// Thu hồi các URL ảnh đã tải để tránh rò rỉ bộ nhớ
+function clsDonDepAnhKetQua() {
+    if (clsAnhKetQuaController) {
+        clsAnhKetQuaController.abort();
+        clsAnhKetQuaController = null;
+    }
 
+    clsAnhKetQuaUrls.forEach(url => {
+        URL.revokeObjectURL(url);
+    });
+
+    clsAnhKetQuaUrls = [];
+
+    document.getElementById("clsImageLightbox")?.remove();
+}
+
+function clsMoModal() {
+    clsEl("resultOverlay").classList.remove("hidden");
     document.body.style.overflow = "hidden";
 }
 
 function clsDongModal() {
-    clsEl("resultOverlay")
-        .classList.add("hidden");
+    clsDonDepAnhKetQua();
 
+    clsEl("resultOverlay").classList.add("hidden");
     document.body.style.overflow = "";
 }
 
@@ -1038,29 +1056,266 @@ function clsLinkFile(url) {
             window.location.origin
         );
 
-        if (
-            !["http:", "https:"].includes(
-                parsed.protocol
-            )
-        ) {
+        if (!["http:", "https:"].includes(parsed.protocol)) {
             return "";
         }
 
         return `
             <div class="result-section">
-                <h3>File đính kèm</h3>
+                <h3>
+                    <i class="fa-solid fa-paperclip"></i>
+                    File đính kèm
+                </h3>
 
                 <a href="${clsEscape(parsed.href)}"
                    target="_blank"
-                   rel="noopener noreferrer">
+                   rel="noopener noreferrer"
+                   class="cls-result-file-link">
+
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
                     Mở file kết quả
                 </a>
             </div>
         `;
-
     } catch {
         return "";
     }
+}
+
+/* =========================================
+   TẢI ẢNH KẾT QUẢ TỪ BACKEND
+========================================= */
+
+async function clsTaiMotAnhKetQua(
+    maChiDinh,
+    maAnh,
+    signal
+) {
+    const url =
+        `${CLS_API_BASE}/${clsMaLichKham}` +
+        `/chi-dinh/${maChiDinh}` +
+        `/ket-qua/anh/${maAnh}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: clsHeaders(),
+        signal
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            `Không tải được ảnh (${response.status})`
+        );
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.size) {
+        throw new Error("Ảnh không có dữ liệu.");
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+
+    clsAnhKetQuaUrls.push(objectUrl);
+
+    return objectUrl;
+}
+
+/* =========================================
+   PHÓNG TO ẢNH
+========================================= */
+
+function clsMoAnhPhongTo(src, tenAnh) {
+    document.getElementById("clsImageLightbox")?.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "clsImageLightbox";
+    overlay.className = "cls-image-lightbox";
+
+    overlay.innerHTML = `
+        <div class="cls-image-lightbox-content">
+
+            <button type="button"
+                    class="cls-image-lightbox-close"
+                    aria-label="Đóng ảnh">
+
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <img src="${clsEscape(src)}"
+                 alt="${clsEscape(tenAnh)}">
+
+            <div class="cls-image-lightbox-caption">
+                ${clsEscape(tenAnh)}
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", event => {
+        if (
+            event.target === overlay ||
+            event.target.closest(".cls-image-lightbox-close")
+        ) {
+            overlay.remove();
+        }
+    });
+
+    const closeOnEscape = event => {
+        if (event.key === "Escape") {
+            overlay.remove();
+            document.removeEventListener(
+                "keydown",
+                closeOnEscape
+            );
+        }
+    };
+
+    document.addEventListener(
+        "keydown",
+        closeOnEscape
+    );
+}
+
+/* =========================================
+   HIỂN THỊ DANH SÁCH ẢNH
+========================================= */
+
+async function clsRenderAnhKetQua(
+    data,
+    maChiDinh,
+    signal
+) {
+    const danhSachAnh = clsGiaTri(
+        data,
+        "anhKetQua",
+        "AnhKetQua"
+    );
+
+    if (
+        !Array.isArray(danhSachAnh) ||
+        danhSachAnh.length === 0
+    ) {
+        return "";
+    }
+
+    const ketQuaAnh = await Promise.all(
+        danhSachAnh.map(async (anh, index) => {
+            const maAnh = clsGiaTri(
+                anh,
+                "maAnh",
+                "MaAnh"
+            );
+
+            const tenAnh = clsGiaTri(
+                anh,
+                "tenFile",
+                "TenFile"
+            ) || `Hình ảnh ${index + 1}`;
+
+            if (!maAnh) {
+                return {
+                    tenAnh,
+                    error: "Không tìm thấy mã ảnh."
+                };
+            }
+
+            try {
+                const src = await clsTaiMotAnhKetQua(
+                    maChiDinh,
+                    maAnh,
+                    signal
+                );
+
+                return {
+                    tenAnh,
+                    src
+                };
+
+            } catch (error) {
+                if (error.name === "AbortError") {
+                    throw error;
+                }
+
+                console.error(
+                    "Lỗi tải ảnh kết quả:",
+                    maAnh,
+                    error
+                );
+
+                return {
+                    tenAnh,
+                    error: error.message
+                };
+            }
+        })
+    );
+
+    if (signal.aborted) {
+        throw new DOMException(
+            "Đã hủy tải ảnh.",
+            "AbortError"
+        );
+    }
+
+    return `
+        <section class="result-section cls-result-images">
+
+            <h3>
+                <i class="fa-solid fa-images"></i>
+                Hình ảnh kết quả
+                <span class="cls-image-count">
+                    ${danhSachAnh.length} ảnh
+                </span>
+            </h3>
+
+            <div class="cls-result-image-grid">
+
+                ${ketQuaAnh.map((anh, index) => `
+                    <div class="cls-result-image-card">
+
+                        ${
+                            anh.src
+                                ? `
+                                    <button type="button"
+                                            class="cls-result-image-button"
+                                            data-image-src="${clsEscape(anh.src)}"
+                                            data-image-name="${clsEscape(anh.tenAnh)}">
+
+                                        <img src="${clsEscape(anh.src)}"
+                                             alt="${clsEscape(anh.tenAnh)}"
+                                             loading="lazy">
+
+                                        <span class="cls-result-image-zoom">
+                                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                            Xem ảnh
+                                        </span>
+                                    </button>
+                                `
+                                : `
+                                    <div class="cls-result-image-error">
+                                        <i class="fa-solid fa-image"></i>
+                                        <span>${clsEscape(anh.error)}</span>
+                                    </div>
+                                `
+                        }
+
+
+
+                    </div>
+                `).join("")}
+
+            </div>
+
+            <p class="cls-result-image-note">
+                <i class="fa-solid fa-circle-info"></i>
+                Nhấn vào hình ảnh để xem kích thước lớn hơn.
+            </p>
+
+        </section>
+    `;
 }
 
 /* =========================================
@@ -1071,6 +1326,9 @@ async function clsXemKetQua(
     maChiDinh,
     tenDichVu
 ) {
+    // Dọn ảnh của lần xem trước
+    clsDonDepAnhKetQua();
+
     clsMoModal();
 
     clsEl("resultServiceName").textContent =
@@ -1081,17 +1339,22 @@ async function clsXemKetQua(
 
     clsEl("resultDetail").innerHTML = "";
 
+    const controller = new AbortController();
+
+    clsAnhKetQuaController = controller;
+
     try {
         const data = await clsApi(
             `${CLS_API_BASE}/${clsMaLichKham}/chi-dinh/${maChiDinh}/ket-qua`,
             {
-                headers: clsHeaders()
+                headers: clsHeaders(),
+                signal: controller.signal
             }
         );
 
         if (
-            data?.coKetQua !== true
-            || clsGiaTri(
+            data?.coKetQua !== true ||
+            clsGiaTri(
                 data,
                 "trangThai",
                 "TrangThai"
@@ -1102,18 +1365,44 @@ async function clsXemKetQua(
             );
         }
 
+
+        // Lấy danh sách chỉ số xét nghiệm
         const details = clsGiaTri(
-            data, "chiTiet", "ChiTiet"
+            data,
+            "chiTiet",
+            "ChiTiet"
+        );
+
+        const images = clsGiaTri(
+            data,
+            "anhKetQua",
+            "AnhKetQua"
         );
 
         const rows = Array.isArray(details)
-            ? details
+            ? details.filter(item => item != null)
             : [];
 
-        const table = rows.length
+        const hasImages = Array.isArray(images)
+            && images.length > 0;
+
+        console.log("===== KIỂM TRA KẾT QUẢ CLS =====");
+        console.log("API data:", data);
+        console.log("chiTiet:", details);
+        console.log("anhKetQua:", images);
+        console.log("Số chỉ số:", rows.length);
+        console.log("Có hình ảnh:", hasImages);
+        console.log("HTML bảng chỉ số:", table);
+
+        // Nếu kết quả có hình ảnh thì không hiển thị bảng chỉ số.
+        // Nếu không có hình ảnh thì hiển thị bảng khi có chỉ số.
+        const table = (!hasImages && rows.length > 0)
             ? `
                 <section class="result-section">
-                    <h3>Chỉ số xét nghiệm</h3>
+                    <h3>
+                        <i class="fa-solid fa-chart-simple"></i>
+                        Chi tiết chỉ số xét nghiệm
+                    </h3>
 
                     <div class="result-table-wrapper">
                         <table class="result-table">
@@ -1130,11 +1419,11 @@ async function clsXemKetQua(
                             <tbody>
                                 ${rows.map(row => `
                                     <tr>
-                                        <td>${clsEscape(clsGiaTri(row, "tenChiSo", "TenChiSo"))}</td>
-                                        <td>${clsEscape(clsGiaTri(row, "giaTri", "GiaTri"))}</td>
-                                        <td>${clsEscape(clsGiaTri(row, "donVi", "DonVi"))}</td>
-                                        <td>${clsEscape(clsGiaTri(row, "giaTriThamChieu", "GiaTriThamChieu"))}</td>
-                                        <td>${clsEscape(clsGiaTri(row, "trangThai", "TrangThai"))}</td>
+                                        <td>${clsEscape(clsGiaTri(row, "tenChiSo", "TenChiSo") ?? "---")}</td>
+                                        <td>${clsEscape(clsGiaTri(row, "giaTri", "GiaTri") ?? "---")}</td>
+                                        <td>${clsEscape(clsGiaTri(row, "donVi", "DonVi") ?? "---")}</td>
+                                        <td>${clsEscape(clsGiaTri(row, "giaTriThamChieu", "GiaTriThamChieu") ?? "---")}</td>
+                                        <td>${clsEscape(clsGiaTri(row, "trangThai", "TrangThai") ?? "---")}</td>
                                     </tr>
                                 `).join("")}
                             </tbody>
@@ -1144,11 +1433,21 @@ async function clsXemKetQua(
             `
             : "";
 
+        // Tải ảnh kết quả từ API
+        const htmlAnh = await clsRenderAnhKetQua(
+            data,
+            maChiDinh,
+            controller.signal
+        );
+
+        if (controller.signal.aborted) return;
+
         clsEl("resultDetail").innerHTML = `
             <div class="result-info-grid">
 
                 <div class="result-info-item">
                     <span>Mã kết quả</span>
+
                     <strong>
                         ${clsEscape(
                             clsGiaTri(
@@ -1162,6 +1461,7 @@ async function clsXemKetQua(
 
                 <div class="result-info-item">
                     <span>Ngày có kết quả</span>
+
                     <strong>
                         ${clsEscape(
                             clsNgay(
@@ -1197,6 +1497,8 @@ async function clsXemKetQua(
 
             ${table}
 
+            ${htmlAnh}
+
             ${clsLinkFile(
                 clsGiaTri(
                     data,
@@ -1206,23 +1508,51 @@ async function clsXemKetQua(
             )}
         `;
 
+        // Gắn sự kiện phóng to ảnh
+        clsEl("resultDetail")
+            .querySelectorAll(".cls-result-image-button")
+            .forEach(button => {
+                button.addEventListener("click", () => {
+                    clsMoAnhPhongTo(
+                        button.dataset.imageSrc,
+                        button.dataset.imageName
+                    );
+                });
+            });
+
     } catch (error) {
+        if (error.name === "AbortError") return;
+
+        console.error(
+            "Lỗi xem kết quả CLS:",
+            error
+        );
+
         clsEl("resultDetail").textContent =
             error.message;
 
         clsThongBao(error.message, true);
 
     } finally {
-        clsEl("resultLoading")
-            .classList.add("hidden");
+        if (clsAnhKetQuaController === controller) {
+            clsAnhKetQuaController = null;
+        }
+
+        if (!controller.signal.aborted) {
+            clsEl("resultLoading")
+                .classList.add("hidden");
+        }
     }
 }
+
 
 /* =========================================
    GẮN SỰ KIỆN
 ========================================= */
 
 function clsGanSuKien() {
+
+    // Quay lại trang khám bệnh
     clsEl("btnBackToExam").addEventListener(
         "click",
         () => window.location.assign(clsTrangKham())
@@ -1233,13 +1563,13 @@ function clsGanSuKien() {
         () => window.location.assign(clsTrangKham())
     );
 
+    // Làm mới danh sách chỉ định
     clsEl("btnRefreshClinical").addEventListener(
         "click",
         clsTaiChiDinh
     );
 
-
-
+    // Tạo chỉ định mới
     clsEl("btnOpenOrderForm").addEventListener(
         "click",
         () => {
@@ -1260,36 +1590,36 @@ function clsGanSuKien() {
                 return;
             }
 
-            // Chuyển sang trang tạo phiếu chỉ định mới
             window.location.href =
                 `/auth/bac-si/tao-chi-dinh?maLichKham=${clsMaLichKham}`;
         }
     );
 
-
-
+    // Hủy form
     clsEl("btnCancelOrder").addEventListener(
         "click",
         clsDongForm
     );
 
+    // Xác nhận tạo chỉ định
     clsEl("btnCreateOrder").addEventListener(
         "click",
         clsTaoChiDinh
     );
 
+    // Chọn dịch vụ
     clsEl("serviceSelect").addEventListener(
         "change",
         clsChonDichVu
     );
 
+    // Chuyển sang kê đơn
     clsEl("btnGoPrescription").addEventListener(
         "click",
         async () => {
+
             if (!clsCoTheKeDon) return;
 
-            // Kiểm tra lại trạng thái mới nhất
-            // trước khi rời trang.
             await clsTaiChiDinh();
 
             if (!clsCoTheKeDon) return;
@@ -1300,6 +1630,7 @@ function clsGanSuKien() {
         }
     );
 
+    // Đóng modal kết quả
     clsEl("btnCloseResult").addEventListener(
         "click",
         clsDongModal
@@ -1310,18 +1641,17 @@ function clsGanSuKien() {
         clsDongModal
     );
 
+    // Nhấn bên ngoài modal để đóng
     clsEl("resultOverlay").addEventListener(
         "click",
         event => {
-            if (
-                event.target
-                === clsEl("resultOverlay")
-            ) {
+            if (event.target === clsEl("resultOverlay")) {
                 clsDongModal();
             }
         }
     );
 
+    // Nhấn ESC để đóng modal
     document.addEventListener(
         "keydown",
         event => {

@@ -19,6 +19,7 @@ public class DatLichKhamRequest {
     @NotNull
     private LocalTime gioKham;
 
+    @NotNull(message = "Vui lòng chọn hồ sơ bệnh nhân.")
     private Integer maBenhNhan;
 
     public Integer getMaBenhNhan() {

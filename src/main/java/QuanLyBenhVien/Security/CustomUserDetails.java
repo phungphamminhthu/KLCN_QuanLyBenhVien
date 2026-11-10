@@ -25,12 +25,6 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-
-    //        return List.of(
-    //                new SimpleGrantedAuthority(
-    //                        "ROLE_" + NguoiDung.getVaiTro().getTenVaiTro()
-    //                )
-    //        );
         String role = "ROLE_" + NguoiDung.getVaiTro().getTenVaiTro();
 
         System.out.println("[AUTH DEBUG] Username: " + getUsername());
@@ -69,5 +63,9 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return NguoiDung.getTrangThai();
+    }
+
+    public Integer getMaNguoiDung() {
+        return NguoiDung.getMaNguoiDung();
     }
 }

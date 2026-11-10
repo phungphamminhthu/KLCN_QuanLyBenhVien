@@ -115,6 +115,8 @@
                 </tbody>
             </table>
         </div>
+        <!-- PHÂN TRANG -->
+        <div id="pagination" class="pagination"></div>
     </div>
 
     <!-- MODAL CHI TIẾT -->
@@ -164,8 +166,17 @@
                     <div id="detailConclusion" class="result-text">—</div>
                 </div>
 
+                <!-- ẢNH KẾT QUẢ -->
+                <div id="imageSection" class="detail-section hidden">
+                    <h3>Hình ảnh kết quả</h3>
+
+                    <div id="resultImageList" class="result-image-list"></div>
+                </div>
+
+                <!-- FILE KẾT QUẢ -->
                 <div id="fileSection" class="detail-section hidden">
                     <h3>Tệp kết quả</h3>
+
                     <a id="resultFile"
                        class="file-link"
                        href="#"
@@ -176,7 +187,7 @@
                     </a>
                 </div>
 
-                <div class="detail-section">
+                <div class="detail-section" id="indicatorSection">
                     <h3>Chi tiết chỉ số</h3>
 
                     <div class="table-wrapper detail-table">

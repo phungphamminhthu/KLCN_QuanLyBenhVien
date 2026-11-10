@@ -75,117 +75,6 @@ public class PhanCongTiepNhanService {
     }
 
     // Tạo phân công tiếp nhận
-    //    @Transactional
-    //    public PhanCongTiepNhanResponse create(
-    //            PhanCongTiepNhanRequest request,
-    //            Integer maAdmin) {
-    //
-    //        // Kiểm tra Admin đã được xác định chưa
-    //        if (maAdmin == null) {
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.UNAUTHORIZED,
-    //                    "Không xác định được tài khoản Admin.");
-    //        }
-    //
-    //        // Kiểm tra dữ liệu đầu vào
-    //        if (request == null
-    //                || request.getMaNhanVienTiepNhan() == null
-    //                || request.getMaKhoa() == null
-    //                || request.getThoiGianBatDau() == null
-    //                || request.getThoiGianKetThuc() == null) {
-    //
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.BAD_REQUEST,
-    //                    "Vui lòng nhập đầy đủ thông tin phân công.");
-    //        }
-    //
-    //        LocalDateTime batDau = request.getThoiGianBatDau();
-    //        LocalDateTime ketThuc = request.getThoiGianKetThuc();
-    //
-    //        // Thời gian kết thúc phải sau thời gian bắt đầu
-    //        if (!ketThuc.isAfter(batDau)) {
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.BAD_REQUEST,
-    //                    "Thời gian kết thúc phải sau thời gian bắt đầu.");
-    //        }
-    //
-    //        // Tìm nhân viên tiếp nhận
-    //        NguoiDung nhanVien = nguoiDungRepository
-    //                .findById(request.getMaNhanVienTiepNhan())
-    //                .orElseThrow(() -> new ResponseStatusException(
-    //                        HttpStatus.NOT_FOUND,
-    //                        "Không tìm thấy nhân viên tiếp nhận."));
-    //
-    //        // Kiểm tra nhân viên còn hoạt động và đúng vai trò
-    //        if (!Boolean.TRUE.equals(nhanVien.getTrangThai())
-    //                || nhanVien.getVaiTro() == null
-    //                || !"TIEPNHAN".equalsIgnoreCase(
-    //                nhanVien.getVaiTro().getTenVaiTro())) {
-    //
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.BAD_REQUEST,
-    //                    "Tài khoản được chọn không phải nhân viên tiếp nhận đang hoạt động.");
-    //        }
-    //
-    //        // Tìm khoa
-    //        Khoa khoa = khoaRepository
-    //                .findById(request.getMaKhoa())
-    //                .orElseThrow(() -> new ResponseStatusException(
-    //                        HttpStatus.NOT_FOUND,
-    //                        "Không tìm thấy khoa được chọn."));
-    //
-    //        // Tìm người phân công
-    //        NguoiDung admin = nguoiDungRepository
-    //                .findById(maAdmin)
-    //                .orElseThrow(() -> new ResponseStatusException(
-    //                        HttpStatus.UNAUTHORIZED,
-    //                        "Không xác định được tài khoản Admin."));
-    //
-    //        // Kiểm tra quyền và trạng thái Admin
-    //        if (!Boolean.TRUE.equals(admin.getTrangThai())
-    //                || admin.getVaiTro() == null
-    //                || !"ADMIN".equalsIgnoreCase(
-    //                admin.getVaiTro().getTenVaiTro())) {
-    //
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.FORBIDDEN,
-    //                    "Chỉ Admin đang hoạt động mới được phân công.");
-    //        }
-    //
-    //        // Kiểm tra nhân viên đã có ca bị trùng hay chưa
-    //        boolean trungCa = phanCongRepository.existsCaTrung(
-    //                nhanVien.getMaNguoiDung(),
-    //                batDau,
-    //                ketThuc);
-    //
-    //        if (trungCa) {
-    //            throw new ResponseStatusException(
-    //                    HttpStatus.CONFLICT,
-    //                    "Nhân viên đã có phân công trùng thời gian này.");
-    //        }
-    //
-    //        // Tạo bản ghi phân công
-    //        PhanCongTiepNhan phanCong = new PhanCongTiepNhan();
-    //
-    //        phanCong.setMaNhanVienTiepNhan(
-    //                nhanVien.getMaNguoiDung());
-    //
-    //        phanCong.setMaKhoa(
-    //                khoa.getMaKhoa());
-    //
-    //        phanCong.setMaNguoiPhanCong(
-    //                admin.getMaNguoiDung());
-    //
-    //        phanCong.setThoiGianBatDau(batDau);
-    //        phanCong.setThoiGianKetThuc(ketThuc);
-    //        phanCong.setTrangThai((byte) 1);
-    //
-    //        // Lưu xuống cơ sở dữ liệu
-    //        PhanCongTiepNhan saved =
-    //                phanCongRepository.save(phanCong);
-    //
-    //        return toResponse(saved);
-    //    }
     @Transactional
     public PhanCongTiepNhanResponse create(
             PhanCongTiepNhanRequest request,
@@ -282,7 +171,7 @@ public class PhanCongTiepNhanService {
                 + ketThuc.format(formatter)
                 + ". Vui lòng kiểm tra lịch làm việc của bạn.";
 
-        thongBaoService.taoThongBaoVaGuiRealtime(
+        thongBaoService.taoThongBao(
                 nhanVien.getMaNguoiDung(),
                 "Bạn vừa được phân công làm việc",
                 noiDung,

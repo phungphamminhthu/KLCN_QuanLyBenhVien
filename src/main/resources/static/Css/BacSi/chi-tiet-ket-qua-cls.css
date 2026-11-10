@@ -300,3 +300,67 @@
         width: 100%;
     }
 }
+
+/* =========================================
+   HÌNH ẢNH KẾT QUẢ CẬN LÂM SÀNG
+========================================= */
+
+.cls-images-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 16px;
+}
+
+.cls-image-card {
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.cls-image-preview-button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: #f8fafc;
+    border-radius: 10px;
+    cursor: zoom-in;
+    overflow: hidden;
+}
+
+.cls-image-preview-button:disabled {
+    cursor: default;
+    color: #64748b;
+    padding: 20px 10px;
+}
+
+.cls-image-preview-button img {
+    transition: transform .2s ease;
+}
+
+.cls-image-preview-button:not(:disabled):hover img {
+    transform: scale(1.03);
+}
+
+.cls-image-caption {
+    margin-top: 10px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    overflow-wrap: anywhere;
+}
+
+.cls-image-error {
+    color: #dc2626 !important;
+    font-size: 13px;
+    cursor: default;
+}
+
+@media (max-width: 576px) {
+    .cls-images-list {
+        grid-template-columns: 1fr;
+    }
+}

@@ -259,7 +259,7 @@ public class PhanCongChuyenTrachService {
                 noiDung += " Ghi chú: " + saved.getGhiChu();
             }
 
-            thongBaoService.taoThongBaoVaGuiRealtime(
+            thongBaoService.taoThongBao(
                     nhanVien.getMaNguoiDung(),
                     "Bạn vừa được phân công lịch làm việc",
                     noiDung,
@@ -270,7 +270,7 @@ public class PhanCongChuyenTrachService {
         }
 
         // Gửi thông báo xác nhận cho chính Admin đang phân công
-        thongBaoService.taoThongBaoVaGuiRealtime(
+        thongBaoService.taoThongBao(
                 admin.getMaNguoiDung(),
                 "Phân công lịch làm việc thành công",
                 "Bạn đã phân công lịch làm việc ngày "

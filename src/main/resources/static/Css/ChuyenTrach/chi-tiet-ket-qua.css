@@ -1,25 +1,41 @@
 
-/* ==============================================
-   CHI TIET KET QUA DA THUC HIEN - CHUYEN TRACH
-   ============================================== */
+/* =====================================================
+   CHI TIẾT KẾT QUẢ ĐÃ THỰC HIỆN - CHUYÊN TRÁCH
+   Hospital Management System
+===================================================== */
+
+/* =====================================================
+   1. BIẾN VÀ KHUNG TRANG
+===================================================== */
 
 .ctkqd-page {
     --blue: #2563EB;
+    --blue-dark: #1D4ED8;
     --blue-soft: #EFF6FF;
+    --blue-light: #DBEAFE;
+
+    --green: #16A34A;
+    --green-soft: #DCFCE7;
+
+    --red: #DC2626;
+    --red-soft: #FEF2F2;
+
     --border: #E2E8F0;
+    --border-light: #E9EEF5;
+
     --text: #1E293B;
+    --text-secondary: #475569;
     --muted: #64748B;
+    --muted-light: #94A3B8;
 
     width: 100%;
     min-width: 0;
-    height: calc(100dvh - 138px);
-    min-height: 0;
+    min-height: calc(100dvh - 195px);
 
     display: flex;
     flex-direction: column;
     gap: 12px;
 
-    overflow: hidden;
     color: var(--text);
     font-family: "Segoe UI", Arial, sans-serif;
 }
@@ -34,41 +50,56 @@
     display: none !important;
 }
 
-/* THANH QUAY LAI */
+/* =====================================================
+   2. THANH ĐIỀU HƯỚNG
+===================================================== */
 
 .ctkqd-toolbar {
     display: flex;
     align-items: center;
-    flex: 0 0 36px;
+    flex: 0 0 auto;
 }
 
 .ctkqd-back {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
 
-    height: 36px;
+    min-height: 36px;
     padding: 0 13px;
 
     border: 1px solid #DBE6F8;
     border-radius: 9px;
-    background: #FFFFFF;
 
+    background: #FFFFFF;
     color: var(--blue);
+
     font-size: 12px;
     font-weight: 700;
     text-decoration: none;
+
+    transition: background 0.2s ease,
+                border-color 0.2s ease;
 }
 
 .ctkqd-back:hover {
     background: var(--blue-soft);
+    border-color: #BFDBFE;
 }
 
-/* KHUNG CHUNG */
+.ctkqd-back i {
+    font-size: 12px;
+}
+
+/* =====================================================
+   3. CARD DÙNG CHUNG
+===================================================== */
 
 .ctkqd-card {
     min-width: 0;
     min-height: 0;
+
     padding: 15px 17px;
 
     background: #FFFFFF;
@@ -84,11 +115,13 @@
     justify-content: space-between;
     gap: 8px;
 
+    min-width: 0;
     min-height: 30px;
+
     padding-bottom: 10px;
     margin-bottom: 11px;
 
-    border-bottom: 1px solid #E9EEF5;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .ctkqd-card-header h2 {
@@ -102,39 +135,56 @@
     color: #344769;
     font-size: 11px;
     font-weight: 800;
-    letter-spacing: .25px;
+    letter-spacing: 0.25px;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
 }
 
 .ctkqd-card-header h2 i {
+    flex-shrink: 0;
     color: var(--blue);
     font-size: 13px;
 }
 
-/* ==============================================
-   3 THE THONG TIN PHIA TREN
-   ============================================== */
+/* =====================================================
+   4. THÔNG TIN TỔNG QUAN
+===================================================== */
 
 .ctkqd-summary-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
+
     gap: 14px;
 
-    flex: 0 0 165px;
-    min-height: 0;
+    flex: 0 0 auto;
+    min-width: 0;
 }
 
 .ctkqd-summary-card {
-    height: 100%;
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+    min-height: 190px;
+    height: auto;
+
+    overflow: visible;
 }
 
-.ctkqd-gender-badge {
-    padding: 4px 9px;
-    border-radius: 5px;
+/* =====================================================
+   5. BADGE TRẠNG THÁI
+===================================================== */
 
-    background: #EFF6FF;
-    color: #2563EB;
+.ctkqd-gender-badge {
+    flex-shrink: 0;
+
+    padding: 4px 9px;
+
+    border-radius: 5px;
+    background: var(--blue-soft);
+    color: var(--blue);
 
     font-size: 11px;
     font-weight: 700;
@@ -143,12 +193,15 @@
 .ctkqd-complete-badge {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 5px;
 
-    padding: 5px 8px;
-    border-radius: 6px;
+    flex-shrink: 0;
 
-    background: #DCFCE7;
+    padding: 5px 8px;
+
+    border-radius: 6px;
+    background: var(--green-soft);
     color: #15803D;
 
     font-size: 11px;
@@ -156,13 +209,17 @@
     white-space: nowrap;
 }
 
-/* BENH NHAN */
+/* =====================================================
+   6. THÔNG TIN BỆNH NHÂN
+===================================================== */
 
 .ctkqd-patient-row {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 9px;
+
+    min-width: 0;
+    margin-bottom: 12px;
 }
 
 .ctkqd-avatar {
@@ -172,12 +229,13 @@
 
     width: 41px;
     height: 41px;
+
     flex-shrink: 0;
 
     border-radius: 50%;
     background: #E8F0FF;
 
-    color: #2563EB;
+    color: var(--blue);
     font-size: 18px;
 }
 
@@ -185,18 +243,22 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
+
     min-width: 0;
 }
 
 .ctkqd-patient-main strong {
+    color: #172554;
     font-size: 14px;
     font-weight: 800;
-    color: #172554;
+    line-height: 1.4;
+
+    white-space: normal;
     overflow-wrap: anywhere;
 }
 
 .ctkqd-patient-main > span {
-    color: #2563EB;
+    color: var(--blue);
     font-size: 11px;
     font-weight: 700;
 }
@@ -204,134 +266,180 @@
 .ctkqd-summary-info {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 15px;
+    gap: 8px 15px;
+
+    min-width: 0;
 }
 
-.ctkqd-summary-info div {
+.ctkqd-summary-info > div {
     display: flex;
-    gap: 5px;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+
     min-width: 0;
 }
 
 .ctkqd-summary-info span {
-    color: #94A3B8;
+    color: var(--muted-light);
     font-size: 11px;
 }
 
 .ctkqd-summary-info strong {
-    color: #475569;
+    color: var(--text-secondary);
     font-size: 11px;
     font-weight: 700;
+
+    overflow-wrap: anywhere;
 }
 
-/* CHI DINH */
+/* =====================================================
+   7. THÔNG TIN CHỈ ĐỊNH
+===================================================== */
 
 .ctkqd-summary-field {
-    margin-bottom: 11px;
+    min-width: 0;
+    margin-bottom: 13px;
 }
 
 .ctkqd-summary-field > span {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
 
-    color: #94A3B8;
+    color: var(--muted-light);
     font-size: 11px;
+    line-height: 1.4;
 }
 
 .ctkqd-summary-field strong {
-    color: #1E293B;
+    display: block;
+
+    min-width: 0;
+
+    color: var(--text);
     font-size: 12.5px;
     font-weight: 800;
-    line-height: 1.4;
+    line-height: 1.5;
+
+    white-space: normal;
     overflow-wrap: anywhere;
 }
 
-/* MA TRA CUU */
+/* =====================================================
+   8. MÃ TRA CỨU VÀ THỜI GIAN
+===================================================== */
 
 .ctkqd-code-list {
     display: flex;
     flex-direction: column;
-    gap: 7px;
+    gap: 9px;
+
+    min-width: 0;
 }
 
 .ctkqd-code-list > div {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px;
+
     min-width: 0;
 }
 
 .ctkqd-code-list span {
-    color: #94A3B8;
+    color: var(--muted-light);
     font-size: 11px;
+    line-height: 1.45;
 }
 
 .ctkqd-code-list strong {
+    min-width: 0;
+    max-width: 100%;
+
     color: #334155;
     font-size: 11.5px;
     font-weight: 800;
+    line-height: 1.45;
+
     text-align: right;
+    overflow-wrap: anywhere;
 }
 
 .ctkqd-code-list > div:last-child strong {
     color: #15803D;
 }
 
-/* ==============================================
-   2 O NOI DUNG PHIA DUOI
-   ============================================== */
+/* =====================================================
+   9. KHU VỰC NỘI DUNG PHÍA DƯỚI
+===================================================== */
 
 .ctkqd-detail-grid {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: stretch;
+
     gap: 14px;
 
-    flex: 1 1 auto;
-    min-height: 0;
     width: 100%;
+    min-width: 0;
+    min-height: 330px;
 }
 
 .ctkqd-result-card,
 .ctkqd-attachment-card {
     display: flex;
     flex-direction: column;
+
+    min-width: 0;
+    min-height: 330px;
+
     height: 100%;
-    overflow: hidden;
 }
 
-/* NOI DUNG + KET LUAN */
+/* =====================================================
+   10. NỘI DUNG KẾT QUẢ VÀ KẾT LUẬN
+===================================================== */
 
 .ctkqd-result-content {
     display: grid;
     grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 13px;
+
+    gap: 12px;
 
     flex: 1 1 auto;
+    min-width: 0;
     min-height: 0;
 }
 
 .ctkqd-text-block {
     display: flex;
     flex-direction: column;
+
+    min-width: 0;
     min-height: 0;
+
     padding: 12px 13px;
 
     border: 1px solid #E8EDF5;
     border-radius: 10px;
+
     background: #F7F9FD;
 }
 
 .ctkqd-text-block h3 {
+    flex-shrink: 0;
+
     margin: 0 0 8px;
 
-    color: #64748B;
+    color: var(--muted);
     font-size: 12px;
     font-weight: 800;
 }
 
 .ctkqd-text-value {
     flex: 1 1 auto;
+
+    min-width: 0;
     min-height: 0;
 
     color: #334155;
@@ -341,6 +449,8 @@
 
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+
+    overflow-x: hidden;
     overflow-y: auto;
 
     scrollbar-width: thin;
@@ -353,7 +463,7 @@
 }
 
 .ctkqd-conclusion h3 {
-    color: #2563EB;
+    color: var(--blue);
 }
 
 .ctkqd-conclusion .ctkqd-text-value {
@@ -361,9 +471,13 @@
     font-weight: 600;
 }
 
-/* ==============================================
-   TEP DINH KEM
-   ============================================== */
+/* =====================================================
+   11. KHU VỰC TỆP ĐÍNH KÈM
+===================================================== */
+
+.ctkqd-attachment-card {
+    min-width: 0;
+}
 
 .ctkqd-file-box {
     display: flex;
@@ -371,11 +485,15 @@
     align-items: center;
     gap: 12px;
 
+    width: 100%;
+    min-width: 0;
+
     padding: 16px;
     margin-top: 3px;
 
     border: 1px solid #E6EDF7;
     border-radius: 10px;
+
     background: #F8FAFF;
 }
 
@@ -386,67 +504,237 @@
 
     width: 48px;
     height: 48px;
+
     flex-shrink: 0;
 
     border-radius: 10px;
     background: #FEE2E2;
 
-    color: #DC2626;
+    color: var(--red);
     font-size: 23px;
 }
 
 .ctkqd-file-info {
     display: flex;
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 150px;
     flex-direction: column;
     gap: 5px;
+
+    min-width: 0;
 }
 
 .ctkqd-file-info strong {
-    color: #1E293B;
+    max-width: 100%;
+
+    color: var(--text);
     font-size: 13px;
     font-weight: 800;
 
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
 }
 
 .ctkqd-file-info > span {
-    color: #94A3B8;
+    color: var(--muted-light);
     font-size: 11px;
 }
+
+/* =====================================================
+   12. DANH SÁCH NHIỀU ẢNH ĐÍNH KÈM
+===================================================== */
+
+.ctkqd-image-list {
+    display: block;
+
+    flex: 0 0 100%;
+
+    width: 100%;
+    min-width: 0;
+
+    margin-top: 8px;
+}
+
+.ctkqd-image-heading {
+    margin: 0 0 12px;
+
+    color: #334155;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+/* Lưới ảnh */
+.ctkqd-image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 12px;
+
+    width: 100%;
+    min-width: 0;
+}
+
+/* Thẻ ảnh */
+.ctkqd-image-item {
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+    padding: 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: #F8FAFC;
+
+    overflow: hidden;
+
+    transition: border-color 0.2s ease,
+                box-shadow 0.2s ease;
+}
+
+.ctkqd-image-item:hover {
+    border-color: #93C5FD;
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.08);
+}
+
+/* Liên kết ảnh */
+.ctkqd-image-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    height: 155px;
+    min-height: 155px;
+
+    overflow: hidden;
+
+    border-radius: 7px;
+    background: #F1F5F9;
+
+    cursor: pointer;
+}
+
+/* Hình ảnh */
+.ctkqd-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+
+    border-radius: 7px;
+
+    transition: transform 0.2s ease;
+}
+
+.ctkqd-image-link:hover .ctkqd-image {
+    transform: scale(1.04);
+}
+
+/* Tên ảnh */
+.ctkqd-image-name {
+    display: block;
+
+    min-width: 0;
+    margin-top: 9px;
+
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.5;
+
+    overflow-wrap: anywhere;
+}
+
+/* Nút xem ảnh */
+.ctkqd-image-view {
+    display: inline-flex;
+    align-items: center;
+
+    width: fit-content;
+    margin-top: 7px;
+
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 700;
+
+    text-decoration: none;
+}
+
+.ctkqd-image-view:hover {
+    color: var(--blue-dark);
+    text-decoration: underline;
+}
+
+/* Ảnh lỗi */
+.ctkqd-image-error {
+    border-color: #FECACA;
+    background: var(--red-soft);
+}
+
+.ctkqd-image-error::after {
+    content: "Không thể tải hình ảnh";
+
+    display: block;
+    margin-top: 8px;
+
+    color: var(--red);
+    font-size: 11px;
+    text-align: center;
+}
+
+/* =====================================================
+   13. NÚT THAO TÁC TỆP
+===================================================== */
 
 .ctkqd-file-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 9px;
+
+    flex: 0 0 100%;
+
     width: 100%;
+    min-width: 0;
+
     padding-left: 60px;
 }
 
 .ctkqd-file-actions a {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
 
     padding: 7px 9px;
-    border-radius: 7px;
-    background: #EFF6FF;
 
-    color: #2563EB;
+    border-radius: 7px;
+    background: var(--blue-soft);
+
+    color: var(--blue);
     font-size: 12px;
     font-weight: 700;
+
     text-decoration: none;
+
+    transition: background 0.2s ease;
 }
 
 .ctkqd-file-actions a:hover {
-    background: #DBEAFE;
+    background: var(--blue-light);
 }
 
-/* KHONG CO TEP */
+.ctkqd-file-actions a i {
+    font-size: 12px;
+}
+
+/* =====================================================
+   14. TRƯỜNG HỢP KHÔNG CÓ TỆP
+===================================================== */
 
 .ctkqd-no-file {
     display: flex;
@@ -456,8 +744,12 @@
     gap: 12px;
 
     flex: 1 1 auto;
-    min-height: 0;
+
+    min-width: 0;
+    min-height: 180px;
+
     padding: 20px;
+
     text-align: center;
 }
 
@@ -475,374 +767,43 @@
     max-width: 280px;
     margin: 0;
 
-    color: #94A3B8;
+    color: var(--muted-light);
     font-size: 12px;
     line-height: 1.6;
 }
 
-/* LOI API */
-
-.ctkqd-error {
-    flex-shrink: 0;
-    padding: 10px 13px;
-
-    background: #FEF2F2;
-    border: 1px solid #FECACA;
-    border-radius: 9px;
-
-    color: #B91C1C;
-    font-size: 12px;
-}
-
-/* MAN HINH THAP: THU GON */
-
-@media (min-width: 1001px) and (max-height: 750px) {
-    .ctkqd-page {
-        gap: 9px;
-    }
-
-    .ctkqd-summary-grid {
-        flex-basis: 145px;
-        gap: 10px;
-    }
-
-    .ctkqd-card {
-        padding: 11px 13px;
-    }
-
-    .ctkqd-card-header {
-        padding-bottom: 7px;
-        margin-bottom: 8px;
-    }
-
-    .ctkqd-detail-grid {
-        gap: 10px;
-    }
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 1000px) {
-    .ctkqd-page {
-        height: auto;
-        overflow: visible;
-    }
-
-    .ctkqd-summary-grid {
-        grid-template-columns: 1fr;
-        flex: none;
-    }
-
-    .ctkqd-summary-card {
-        min-height: 140px;
-    }
-
-    .ctkqd-detail-grid {
-        grid-template-columns: 1fr;
-        flex: none;
-    }
-
-    .ctkqd-result-card,
-    .ctkqd-attachment-card {
-        height: auto;
-        min-height: 240px;
-    }
-
-    .ctkqd-result-content {
-        grid-template-rows: auto auto;
-    }
-
-    .ctkqd-text-value {
-        overflow: visible;
-    }
-
-    .ctkqd-text-block {
-        min-height: 120px;
-    }
-}
-
 /* =====================================================
-   CHI TIẾT KẾT QUẢ - KHẮC PHỤC TRÀN NỘI DUNG
-   Giữ nguyên header, sidebar và giao diện dùng chung
-   ===================================================== */
-
-/* 1. Cho phép trang tự điều chỉnh chiều cao */
-.ctkqd-page {
-    width: 100%;
-    min-width: 0;
-    height: auto;
-    min-height: calc(100dvh - 195px);
-    overflow: visible;
-    gap: 12px;
-}
-
-/* 2. Ba thẻ phía trên có chiều cao bằng nhau */
-.ctkqd-page .ctkqd-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: stretch;
-
-    flex: 0 0 auto;
-    height: auto;
-    min-height: 190px;
-    gap: 14px;
-}
-
-/* Không cắt nội dung của các thẻ */
-.ctkqd-page .ctkqd-summary-card {
-    height: auto;
-    min-height: 190px;
-    overflow: visible;
-
-    display: flex;
-    flex-direction: column;
-
-    padding: 15px 17px;
-}
-
-/* 3. Tiêu đề của thẻ */
-.ctkqd-page .ctkqd-card-header {
-    flex-shrink: 0;
-    min-height: 32px;
-    margin-bottom: 13px;
-}
-
-.ctkqd-page .ctkqd-card-header h2 {
-    min-width: 0;
-    line-height: 1.4;
-    overflow-wrap: anywhere;
-}
-
-/* 4. Thông tin bệnh nhân */
-.ctkqd-page .ctkqd-patient-row {
-    flex-shrink: 0;
-    min-width: 0;
-    margin-bottom: 12px;
-}
-
-.ctkqd-page .ctkqd-patient-main {
-    min-width: 0;
-}
-
-.ctkqd-page .ctkqd-patient-main strong {
-    line-height: 1.4;
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
-
-.ctkqd-page .ctkqd-summary-info {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 15px;
-}
-
-.ctkqd-page .ctkqd-summary-info > div {
-    display: flex;
-    align-items: baseline;
-    flex-wrap: wrap;
-    gap: 4px;
-    min-width: 0;
-}
-
-.ctkqd-page .ctkqd-summary-info strong {
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
-
-/* 5. Thông tin chỉ định:
-      sửa phần bác sĩ bị tràn ra ngoài */
-.ctkqd-page .ctkqd-summary-field {
-    min-width: 0;
-    flex-shrink: 0;
-    margin-bottom: 13px;
-}
-
-.ctkqd-page .ctkqd-summary-field > span {
-    display: block;
-    margin-bottom: 6px;
-    line-height: 1.4;
-}
-
-.ctkqd-page .ctkqd-summary-field strong {
-    display: block;
-    min-width: 0;
-
-    font-size: 12.5px;
-    line-height: 1.5;
-
-    white-space: normal;
-    overflow-wrap: anywhere;
-}
-
-/* 6. Mã kết quả và thời gian:
-      tránh tràn mã và ngày giờ */
-.ctkqd-page .ctkqd-code-list {
-    gap: 9px;
-}
-
-.ctkqd-page .ctkqd-code-list > div {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 10px;
-}
-
-.ctkqd-page .ctkqd-code-list strong {
-    min-width: 0;
-    max-width: 100%;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-}
-
-/* 7. Hai thẻ bên dưới cao bằng nhau */
-.ctkqd-page .ctkqd-detail-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    align-items: stretch;
-
-    flex: 1 1 auto;
-    width: 100%;
-    height: auto;
-    min-height: 330px;
-    gap: 14px;
-}
-
-.ctkqd-page .ctkqd-result-card,
-.ctkqd-page .ctkqd-attachment-card {
-    min-width: 0;
-    min-height: 330px;
-    height: 100%;
-    overflow: hidden;
-}
-
-/* 8. Nội dung kết quả và kết luận */
-.ctkqd-page .ctkqd-result-content {
-    display: grid;
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
-
-    flex: 1 1 auto;
-    min-height: 0;
-    gap: 12px;
-}
-
-.ctkqd-page .ctkqd-text-block {
-    min-width: 0;
-    min-height: 0;
-    padding: 12px 13px;
-}
-
-.ctkqd-page .ctkqd-text-value {
-    min-width: 0;
-    min-height: 0;
-
-    line-height: 1.65;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-
-    /* Chỉ cuộn nội dung nếu kết quả rất dài */
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-/* 9. Tệp đính kèm */
-.ctkqd-page .ctkqd-file-box {
-    min-width: 0;
-    max-width: 100%;
-}
-
-.ctkqd-page .ctkqd-file-info {
-    min-width: 0;
-}
-
-.ctkqd-page .ctkqd-file-info strong {
-    max-width: 100%;
-    overflow-wrap: anywhere;
-}
-
-.ctkqd-page .ctkqd-no-file {
-    min-height: 180px;
-}
-
-/* 10. Màn hình laptop có chiều cao thấp */
-@media (min-width: 1001px) and (max-height: 800px) {
-    .ctkqd-page {
-        gap: 10px;
-    }
-
-    .ctkqd-page .ctkqd-summary-grid,
-    .ctkqd-page .ctkqd-summary-card {
-        min-height: 175px;
-    }
-
-    .ctkqd-page .ctkqd-detail-grid,
-    .ctkqd-page .ctkqd-result-card,
-    .ctkqd-page .ctkqd-attachment-card {
-        min-height: 300px;
-    }
-
-    .ctkqd-page .ctkqd-card {
-        padding: 12px 14px;
-    }
-
-    .ctkqd-page .ctkqd-card-header {
-        margin-bottom: 10px;
-    }
-}
-
-/* 11. Tablet và điện thoại */
-@media (max-width: 1000px) {
-    .ctkqd-page {
-        height: auto;
-        min-height: 0;
-        overflow: visible;
-    }
-
-    .ctkqd-page .ctkqd-summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .ctkqd-page .ctkqd-detail-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .ctkqd-page .ctkqd-result-card,
-    .ctkqd-page .ctkqd-attachment-card {
-        height: auto;
-        min-height: 280px;
-    }
-
-    .ctkqd-page .ctkqd-result-content {
-        grid-template-rows: auto auto;
-    }
-
-    .ctkqd-page .ctkqd-text-block {
-        min-height: 120px;
-    }
-
-    .ctkqd-page .ctkqd-text-value {
-        overflow: visible;
-    }
-}
-
-.ctkqd-page [hidden] {
-    display: none !important;
-}
+   15. KẾT QUẢ XÉT NGHIỆM
+===================================================== */
 
 .ctkqd-lab-section {
-    margin-top: 16px;
+    width: 100%;
+    min-width: 0;
+
+    margin-top: 4px;
     padding: 22px;
 }
 
 .ctkqd-lab-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+
     gap: 28px 36px;
-    padding-top: 22px;
+
+    width: 100%;
+    min-width: 0;
+
+    padding-top: 12px;
+}
+
+.ctkqd-lab-group {
+    min-width: 0;
 }
 
 .ctkqd-lab-group h3 {
     margin: 0 0 16px;
-    color: #2563eb;
+
+    color: var(--blue);
     font-size: 14px;
     font-weight: 700;
 }
@@ -852,47 +813,309 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+
+    min-width: 0;
+
     padding: 11px 0;
-    border-bottom: 1px solid #edf1f7;
+
+    border-bottom: 1px solid #EDF1F7;
 }
 
 .ctkqd-lab-name {
     display: flex;
     align-items: center;
     gap: 10px;
+
     flex: 1;
     min-width: 0;
-    font-size: 13px;
+
     color: #334155;
+    font-size: 13px;
+}
+
+.ctkqd-lab-name span {
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .ctkqd-lab-name i {
-    color: #16a34a;
+    flex-shrink: 0;
+
+    color: var(--green);
     font-size: 12px;
 }
 
 .ctkqd-lab-value {
     flex: 0 0 135px;
+
+    min-width: 0;
     padding: 10px 12px;
-    border: 1px solid #dbe3f0;
+
+    border: 1px solid #DBE3F0;
     border-radius: 9px;
-    background: #f8fafc;
-    color: #172b4d;
+
+    background: #F8FAFC;
+    color: #172B4D;
+
     text-align: center;
     font-size: 13px;
+
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
 
+/* Tệp đính kèm của từng xét nghiệm */
 .ctkqd-lab-attachment {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    width: fit-content;
+
     margin: 6px 0 12px;
+    padding: 7px 10px;
+
+    border-radius: 7px;
+    background: var(--blue-soft);
+
+    color: var(--blue);
     font-size: 12px;
-    color: #2563eb;
+    font-weight: 700;
+
+    text-decoration: none;
 }
 
-@media (max-width: 850px) {
+.ctkqd-lab-attachment:hover {
+    background: var(--blue-light);
+}
+
+/* Danh sách ảnh của từng xét nghiệm */
+.ctkqd-lab-attachments {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 12px;
+
+    width: 100%;
+    min-width: 0;
+
+    margin: 12px 0 18px;
+}
+
+.ctkqd-lab-attachments .ctkqd-image-item {
+    width: 180px;
+    max-width: 100%;
+}
+
+/* =====================================================
+   16. THÔNG BÁO LỖI API
+===================================================== */
+
+.ctkqd-error {
+    flex-shrink: 0;
+
+    padding: 10px 13px;
+
+    background: var(--red-soft);
+    border: 1px solid #FECACA;
+    border-radius: 9px;
+
+    color: #B91C1C;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+/* =====================================================
+   17. LAPTOP CÓ CHIỀU CAO THẤP
+===================================================== */
+
+@media (min-width: 1001px) and (max-height: 800px) {
+
+    .ctkqd-page {
+        gap: 10px;
+    }
+
+    .ctkqd-card {
+        padding: 12px 14px;
+    }
+
+    .ctkqd-card-header {
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .ctkqd-summary-card {
+        min-height: 175px;
+    }
+
+    .ctkqd-detail-grid,
+    .ctkqd-result-card,
+    .ctkqd-attachment-card {
+        min-height: 300px;
+    }
+
+    .ctkqd-image-link {
+        height: 130px;
+        min-height: 130px;
+    }
+}
+
+/* =====================================================
+   18. TABLET
+===================================================== */
+
+@media (max-width: 1000px) {
+
+    .ctkqd-page {
+        min-height: 0;
+    }
+
+    .ctkqd-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctkqd-summary-card {
+        min-height: 140px;
+    }
+
+    .ctkqd-detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctkqd-result-card,
+    .ctkqd-attachment-card {
+        height: auto;
+        min-height: 280px;
+    }
+
+    .ctkqd-result-content {
+        grid-template-rows: auto auto;
+    }
+
+    .ctkqd-text-block {
+        min-height: 120px;
+    }
+
+    .ctkqd-text-value {
+        overflow: visible;
+    }
+
     .ctkqd-lab-grid {
         grid-template-columns: 1fr;
+    }
+
+    .ctkqd-image-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =====================================================
+   19. ĐIỆN THOẠI
+===================================================== */
+
+@media (max-width: 576px) {
+
+    .ctkqd-page {
+        gap: 10px;
+    }
+
+    .ctkqd-card {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .ctkqd-card-header h2 {
+        font-size: 10.5px;
+    }
+
+    .ctkqd-summary-info {
+        gap: 8px 12px;
+    }
+
+    .ctkqd-code-list > div {
+        gap: 8px;
+    }
+
+    .ctkqd-detail-grid {
+        gap: 10px;
+    }
+
+    .ctkqd-file-box {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .ctkqd-file-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 19px;
+    }
+
+    .ctkqd-file-info {
+        flex-basis: 120px;
+    }
+
+    .ctkqd-file-actions {
+        padding-left: 0;
+    }
+
+    .ctkqd-image-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .ctkqd-image-item {
+        padding: 7px;
+    }
+
+    .ctkqd-image-link {
+        height: 115px;
+        min-height: 115px;
+    }
+
+    .ctkqd-image-name {
+        font-size: 10px;
+    }
+
+    .ctkqd-lab-section {
+        padding: 13px;
+    }
+
+    .ctkqd-lab-row {
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .ctkqd-lab-value {
+        flex-basis: 110px;
+        padding: 8px;
+    }
+
+    .ctkqd-lab-attachments .ctkqd-image-item {
+        width: calc(50% - 6px);
+    }
+
+    .ctkqd-back {
+        font-size: 11px;
+    }
+}
+
+/* =====================================================
+   20. MÀN HÌNH RẤT NHỎ
+===================================================== */
+
+@media (max-width: 360px) {
+
+    .ctkqd-page .ctkqd-image-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ctkqd-page .ctkqd-image-link {
+        height: 170px;
+        min-height: 170px;
+    }
+
+    .ctkqd-page .ctkqd-file-actions a {
+        font-size: 11px;
     }
 }

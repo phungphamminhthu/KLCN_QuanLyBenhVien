@@ -830,3 +830,79 @@
     font-size: 13px;
 }
 
+/* =====================================
+   PHÂN TRANG - ĐỒNG BỘ PHÂN CÔNG TIẾP NHẬN
+===================================== */
+
+.pctc-panel > .pctc-table-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-top: 1px solid #eef2f7;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.pctc-table-result {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.pctc-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.pctc-pagination .pagination-button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    border: 1px solid #dbe3ec;
+    border-radius: 7px;
+    background: #fff;
+    color: #475569;
+    cursor: pointer;
+    font: inherit;
+    font-size: 13px;
+    transition: .15s ease;
+}
+
+.pctc-pagination .pagination-button:hover:not(:disabled) {
+    border-color: #2563eb;
+    color: #2563eb;
+    background: #eff6ff;
+}
+
+.pctc-pagination .pagination-button.active {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+}
+
+.pctc-pagination .pagination-button:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+}
+
+.pctc-pagination .pagination-ellipsis {
+    padding: 0 3px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+@media (max-width: 768px) {
+    .pctc-panel > .pctc-table-footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .pctc-pagination {
+        justify-content: flex-start;
+    }
+}

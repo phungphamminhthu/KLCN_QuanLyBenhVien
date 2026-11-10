@@ -60,39 +60,39 @@ public class ChuyenTrachBenhNhanController {
                 .trim();
     }
 
+
     private List<LichDangKyKham> layLichCLS(
             LocalDate tuNgay,
             LocalDate denNgay
     ) {
         return em.createQuery("""
-            SELECT l
-            FROM LichDangKyKham l
-            JOIN FETCH l.benhNhan b
-            JOIN FETCH b.nguoiDung
-            JOIN FETCH l.bacSi bs
-            JOIN FETCH bs.nguoiDung
-            JOIN FETCH l.khoa
-            WHERE l.ngayKham BETWEEN :tuNgay AND :denNgay
-              AND (
-                  l.trangThai IN ('ChoCLS', 'DangCLS')
-                  OR (
-                      l.trangThai = 'ChoKham'
-                      AND EXISTS (
-                          SELECT c.maChiDinh
-                          FROM ChiDinhYTe c
-                          WHERE c.hoSoBenhAn.lichDangKyKham = l
-                            AND c.trangThai = 'DaHoanThanh'
-                      )
-                  )
-              )
-            ORDER BY l.ngayKham DESC,
-                     l.gioKham ASC,
-                     l.maLichKham ASC
-            """, LichDangKyKham.class)
+        SELECT l
+        FROM LichDangKyKham l
+        JOIN FETCH l.benhNhan b
+        JOIN FETCH b.nguoiDung
+        JOIN FETCH l.bacSi bs
+        JOIN FETCH bs.nguoiDung
+        JOIN FETCH l.khoa
+        WHERE l.ngayKham BETWEEN :tuNgay AND :denNgay
+          AND EXISTS (
+              SELECT c.maChiDinh
+              FROM ChiDinhYTe c
+              WHERE c.hoSoBenhAn.lichDangKyKham = l
+                AND c.trangThai IN (
+                    'ChoThucHien',
+                    'DangThucHien',
+                    'DaHoanThanh'
+                )
+          )
+        ORDER BY l.ngayKham DESC,
+                 l.gioKham ASC,
+                 l.maLichKham ASC
+        """, LichDangKyKham.class)
                 .setParameter("tuNgay", tuNgay)
                 .setParameter("denNgay", denNgay)
                 .getResultList();
     }
+
 
     private List<ChiDinhYTe> layChiDinh(List<Integer> maLich) {
         if (maLich.isEmpty()) return List.of();
@@ -151,20 +151,28 @@ public class ChuyenTrachBenhNhanController {
                 .map(id -> tenPhong.getOrDefault(id, "Phòng " + id))
                 .toList();
 
+
         String trangThaiCLS;
 
-        if ("ChoCLS".equals(l.getTrangThai())) {
-            trangThaiCLS = "ChoCLS";
-        } else if ("DangCLS".equals(l.getTrangThai())) {
+        if (chiDinhs.isEmpty()) {
+            trangThaiCLS = "ChuaCoCLS";
+        } else if (chiDinhs.stream().anyMatch(
+                c -> "DangThucHien".equals(c.getTrangThai()))) {
             trangThaiCLS = "DangCLS";
-        } else {
+        } else if (chiDinhs.stream().anyMatch(
+                c -> "ChoThucHien".equals(c.getTrangThai()))) {
+            trangThaiCLS = "ChoCLS";
+        } else if (chiDinhs.stream().allMatch(
+                c -> "DaHoanThanh".equals(c.getTrangThai()))) {
             trangThaiCLS = "HoanThanhCLS";
+        } else {
+            trangThaiCLS = "ChoCLS";
         }
+
 
         row.put("maLichKham", l.getMaLichKham());
         row.put("maBenhNhan", l.getBenhNhan().getMaBenhNhan());
-        row.put("hoTen",
-                l.getBenhNhan().getNguoiDung().getHoTen());
+        row.put("hoTen", l.getBenhNhan().getHoTen());
         row.put("ngaySinh", l.getBenhNhan().getNgaySinh());
         row.put("gioiTinh", l.getBenhNhan().getGioiTinh());
         row.put("ngayKham", l.getNgayKham().toString());
@@ -371,15 +379,13 @@ public class ChuyenTrachBenhNhanController {
         List<ChiDinhYTe> dsChiDinh =
                 layChiDinh(List.of(maLichKham));
 
-        boolean coCLS =
-                "ChoCLS".equals(lich.getTrangThai())
-                        || "DangCLS".equals(lich.getTrangThai())
-                        || (
-                        "ChoKham".equals(lich.getTrangThai())
-                                && dsChiDinh.stream().anyMatch(
-                                c -> "DaHoanThanh".equals(c.getTrangThai())
-                        )
-                );
+
+        boolean coCLS = dsChiDinh.stream().anyMatch(c ->
+                "ChoThucHien".equals(c.getTrangThai())
+                        || "DangThucHien".equals(c.getTrangThai())
+                        || "DaHoanThanh".equals(c.getTrangThai())
+        );
+
 
         if (!coCLS) {
             throw new ResponseStatusException(

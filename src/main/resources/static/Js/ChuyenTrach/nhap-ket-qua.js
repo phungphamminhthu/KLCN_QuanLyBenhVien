@@ -342,19 +342,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 const objectUrl = URL.createObjectURL(blob);
                 imageObjectUrls.push(objectUrl);
 
-                const link = document.createElement("a");
-                link.href = objectUrl;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-
                 const img = document.createElement("img");
+
                 img.src = objectUrl;
-                img.alt = image.tenFile || "Ảnh kết quả CLS";
-                img.title = image.tenFile || "Ảnh kết quả CLS";
+                img.alt = "Ảnh kết quả CLS";
                 img.className = "ct-result-image";
 
-                link.appendChild(img);
-                resultImagePreview.appendChild(link);
+                // Chỉ hiển thị ảnh, không tạo link mở tab mới.
+                resultImagePreview.appendChild(img);
             }
 
             if (!resultImagePreview.children.length) {
@@ -392,10 +387,20 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!order) {
             clearResultImages();
             updateUploadButton();
+        content.disabled = !editable;
+        conclusion.disabled = !editable;
+        setBusy(false);
             return;
         }
 
         select.value = selectedOrderId;
+
+        // Chỉ mở form cho chỉ định đang thực hiện.
+        editable = order.trangThai === "DangThucHien";
+        setText(
+            "pageStatus",
+            editable ? "Đang thực hiện cận lâm sàng" : "Chỉ định chưa sẵn sàng nhập kết quả"
+        );
 
         setText("serviceName", order.tenDichVu);
         setText("roomName", order.maPhong ?? "Chưa phân phòng");
@@ -414,70 +419,7 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUploadButton();
     }
 
-    // ==============================================
-    // load
-    // ===========================================
-    async function loadResultImages(maLich, maChiDinh) {
-        const preview = $("resultImagePreview");
-        if (!preview) return;
-
-        const token = getToken();
-
-        if (!token) {
-            preview.textContent = "Vui lòng đăng nhập lại.";
-            return;
-        }
-
-        try {
-            const response = await fetch(
-                `/api/chuyen-trach/ket-qua/${maLich}/chi-dinh/${maChiDinh}/files`,
-                {
-                    method: "GET",
-                    cache: "no-store",
-                    headers: {
-                        Accept: "application/json",
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error("Không tải được ảnh kết quả.");
-            }
-
-            const images = await response.json();
-
-            if (!Array.isArray(images) || images.length === 0) {
-                preview.textContent = "Chưa có ảnh kết quả.";
-                return;
-            }
-
-            preview.replaceChildren();
-
-            images.forEach(image => {
-                const url =
-                    `/api/chuyen-trach/ket-qua/file?key=${encodeURIComponent(image.fileURL)}`;
-
-                const link = document.createElement("a");
-                link.href = url;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-
-                const img = document.createElement("img");
-                img.src = url;
-                img.alt = image.tenFile || "Ảnh kết quả CLS";
-                img.title = image.tenFile || "Ảnh kết quả CLS";
-                img.className = "ct-result-image";
-
-                link.appendChild(img);
-                preview.appendChild(link);
-            });
-
-        } catch (error) {
-            console.error(error);
-            preview.textContent = error.message || "Lỗi tải ảnh kết quả.";
-        }
-    }
+    // Dùng duy nhất loadResultImages() phía trên để tải ảnh có Bearer token.
 
     function escapeHtml(value) {
         return String(value)
@@ -1118,21 +1060,24 @@ document.addEventListener("DOMContentLoaded", () => {
             setText("appointmentCode", data.maLichKham);
             setText("doctorName", data.bacSiPhuTrach);
 
-            setText(
-                "pageStatus",
-                data.trangThai === "DangCLS"
-                    ? "Đang khám chuyên trách"
-                    : "Chờ bắt đầu CLS"
-            );
-
-            editable = data.trangThai === "DangCLS";
-
-            // Thêm dòng này
-            updateUploadButton();
-
             orders = Array.isArray(data.chiDinh)
                 ? data.chiDinh
                 : [];
+
+            // Xác định trạng thái theo chỉ định CLS,
+            // không lấy trạng thái của LichDangKyKham.
+            editable = orders.some(
+                order => order.trangThai === "DangThucHien"
+            );
+
+            setText(
+                "pageStatus",
+                editable
+                    ? "Đang thực hiện cận lâm sàng"
+                    : "Chờ bắt đầu CLS"
+            );
+
+            updateUploadButton();
 
             // Phân loại chỉ định xét nghiệm và dịch vụ khác
             labOrders = orders.filter(isLabOrder);

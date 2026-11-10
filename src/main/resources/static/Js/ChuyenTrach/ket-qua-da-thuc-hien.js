@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const $ = id => document.getElementById(id);
 
     const API = "/api/chuyen-trach/danh-sach-chi-dinh";
-    const PAGE_SIZE = 50;
+    const PAGE_SIZE = 5;
 
     const search = $("ctkqSearch");
     const fromDate = $("ctkqFromDate");
@@ -491,8 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
         pageInfo.textContent =
-            `Hiển thị ${first}-${last} / ${total} chỉ định` +
-            ` • Trang ${page}/${totalPages}`;
+            `Hiển thị ${first}-${last} trong tổng số ${total} chỉ định`;
     }
 
     // =====================================================

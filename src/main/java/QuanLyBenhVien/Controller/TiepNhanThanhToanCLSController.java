@@ -53,22 +53,25 @@ public class TiepNhanThanhToanCLSController {
     // GET /api/tiepnhan/thanh-toan-cls/{maLichKham}
     // =========================================================
 
-    @GetMapping("/{maLichKham}")
+    @GetMapping("/{maLichKham}/{maHoaDon}")
     public ResponseEntity<TiepNhanThanhToanCLSDTO>
     getThongTinThanhToan(
-            @PathVariable("maLichKham") Integer maLichKham,
+            @PathVariable Integer maLichKham,
+            @PathVariable Integer maHoaDon,
             Authentication authentication
     ) {
         kiemTraQuyenTiepNhan(authentication);
 
         TiepNhanThanhToanCLSDTO ketQua =
-                service.getThongTinThanhToan(maLichKham);
+                service.getThongTinThanhToan(
+                        maLichKham,
+                        maHoaDon
+                );
 
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
                 .body(ketQua);
     }
-
     // =========================================================
     // XÁC NHẬN NHÂN VIÊN ĐÃ THỰC TẾ NHẬN TIỀN
     //
@@ -189,7 +192,7 @@ public class TiepNhanThanhToanCLSController {
             Exception exception
     ) {
         logger.error(
-                "Lỗi khi xử lý thanh toán CLS",
+                "Lỗi không xác định khi xử lý thanh toán CLS",
                 exception
         );
 

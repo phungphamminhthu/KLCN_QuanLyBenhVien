@@ -287,4 +287,13 @@ public interface LichDangKyKhamRepository
     );
 
 
+    // ======================================
+    // Lấy lịch khám theo hồ sơ bệnh nhân đang chọn
+    // ======================================
+    List<LichDangKyKham>
+    findByBenhNhan_MaBenhNhanOrderByNgayKhamDescGioKhamDesc(
+            Integer maBenhNhan
+    );
+
+
 }

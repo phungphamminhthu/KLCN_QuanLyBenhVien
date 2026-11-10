@@ -4,12 +4,14 @@ package QuanLyBenhVien.Controller;
 import QuanLyBenhVien.Service.TiepNhanHoaDonService;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.net.URLEncoder;
@@ -139,13 +141,31 @@ public class SePayQrController {
 
         HoaDonQr hoaDon = danhSach.get(0);
 
-        // 5. Kiểm tra quyền với lịch khám.
-        // Service hiện tại của nhóm kiểm tra
-        // quyền phân công của nhân viên tiếp nhận.
-        hoaDonService.layDanhSachHoaDon(
+        // 5. Kiểm tra quyền và điều kiện thanh toán của chính hóa đơn.
+        var vienPhi = hoaDonService.layDanhSachHoaDon(
                 hoaDon.maLichKham(),
                 authentication
         );
+
+        var thongTinHoaDon = vienPhi.danhSachHoaDon()
+                .stream()
+                .filter(item -> maHoaDon.equals(item.maHoaDon()))
+                .findFirst()
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Không tìm thấy hóa đơn thuộc lịch khám."
+                ));
+
+        if (!thongTinHoaDon.choPhepThanhToan()) {
+            return ResponseEntity.status(409).body(
+                    Map.of(
+                            "success", false,
+                            "message", thongTinHoaDon.thongBao() == null
+                                    ? "Hóa đơn chưa đủ điều kiện thanh toán."
+                                    : thongTinHoaDon.thongBao()
+                    )
+            );
+        }
 
         // 6. Chỉ hỗ trợ QR cho phí khám và phí cận lâm sàng
         String loaiHoaDon = hoaDon.loaiHoaDon();
@@ -165,19 +185,18 @@ public class SePayQrController {
         boolean laPhiKham = "PhiKham".equals(hoaDon.loaiHoaDon());
         boolean laCLS = "CanLamSang".equals(hoaDon.loaiHoaDon());
 
-        boolean trangThaiLichHopLe;
+        // 7. Kiểm tra điều kiện tạo QR theo từng hóa đơn.
+        boolean hoaDonChuaThanhToan =
+                "ChuaThanhToan".equals(hoaDon.trangThaiHoaDon());
 
-        if (laPhiKham) {
-            trangThaiLichHopLe =
-                    "DaGoi".equals(hoaDon.trangThaiLichKham());
-        } else {
-            trangThaiLichHopLe =
-                    "ChoThanhToan".equals(hoaDon.trangThaiLichKham())
-                            || "DaGoi".equals(hoaDon.trangThaiLichKham());
-        }
+        // Phí khám vẫn phải đợi bệnh nhân được gọi khám.
+        // CLS được kiểm tra độc lập, không phụ thuộc trạng thái lịch khám.
+        boolean dieuKienTrangThaiHopLe =
+                laCLS
+                        || "DaGoi".equals(hoaDon.trangThaiLichKham());
 
-        if (!"ChuaThanhToan".equals(hoaDon.trangThaiHoaDon())
-                || !trangThaiLichHopLe
+        if (!hoaDonChuaThanhToan
+                || !dieuKienTrangThaiHopLe
                 || hoaDon.soGiaoDich() > 0) {
 
             return ResponseEntity.status(409).body(

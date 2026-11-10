@@ -85,4 +85,23 @@ public interface HoSoBenhAnRepository
     findByLichDangKyKham_BenhNhan_NguoiDung_TenDangNhapAndNgayTaiKhamIsNotNullOrderByNgayTaiKhamAsc(
             String tenDangNhap
     );
+
+    // =========================================================
+    // LẤY DANH SÁCH BỆNH ÁN THEO HỒ SƠ BỆNH NHÂN
+    // Dùng cho ứng dụng Flutter khi chuyển đổi hồ sơ
+    // =========================================================
+    List<HoSoBenhAn>
+    findByLichDangKyKham_BenhNhan_MaBenhNhanOrderByLichDangKyKham_NgayKhamDesc(
+            Integer maBenhNhan
+    );
+
+    // ============================================
+    // Lấy lịch tái khám theo hồ sơ bệnh nhân đang chọn
+    // ============================================
+    List<HoSoBenhAn>
+    findByLichDangKyKham_BenhNhan_MaBenhNhanAndNgayTaiKhamIsNotNullOrderByNgayTaiKhamAsc(
+            Integer maBenhNhan
+    );
+
+
 }

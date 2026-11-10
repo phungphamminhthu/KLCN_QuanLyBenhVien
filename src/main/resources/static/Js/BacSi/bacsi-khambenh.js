@@ -1673,45 +1673,52 @@ function renderDanhSachChiDinh() {
 }
 
 
+
 /* =====================================================
    TRẠNG THÁI CHỈ ĐỊNH
 ===================================================== */
 
-function layThongTinTrangThaiChiDinh(
-    trangThai
-) {
-
+function layThongTinTrangThaiChiDinh(trangThai) {
     switch (trangThai) {
 
-        case "ChoThucHien":
+        case "ChoThanhToan":
+            return {
+                text: "Chờ thanh toán",
+                className: "badge badge-orange"
+            };
 
+        case "ChoThucHien":
             return {
                 text: "Chờ thực hiện",
                 className: "badge badge-orange"
             };
 
         case "DangThucHien":
-
             return {
                 text: "Đang thực hiện",
                 className: "badge badge-blue"
             };
 
         case "DaHoanThanh":
-
             return {
                 text: "Đã hoàn thành",
                 className: "badge badge-green"
             };
 
-        default:
+        case "DaHuy":
+            return {
+                text: "Đã hủy",
+                className: "badge badge-red"
+            };
 
+        default:
             return {
                 text: trangThai || "---",
                 className: "badge badge-blue"
             };
     }
 }
+
 
 
 /* =====================================================

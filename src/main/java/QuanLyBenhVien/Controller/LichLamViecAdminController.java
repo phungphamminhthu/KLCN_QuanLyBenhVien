@@ -171,7 +171,7 @@ public class LichLamViecAdminController {
                 );
 
                 // Lưu thông báo + gửi WebSocket realtime
-                thongBaoService.taoThongBaoVaGuiRealtime(
+                thongBaoService.taoThongBao(
                         nguoiDung.getMaNguoiDung(),
                         "Lịch làm việc mới",
                         noiDung,
@@ -298,7 +298,7 @@ public class LichLamViecAdminController {
             return;
         }
 
-        thongBaoService.taoThongBaoVaGuiRealtime(
+        thongBaoService.taoThongBao(
                 nguoiDung.getMaNguoiDung(),
                 tieuDe,
                 noiDung,
