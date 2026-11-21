@@ -309,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!Array.isArray(rows) || rows.length === 0) {
             showTableMessage(
-                "Không có bệnh nhân chờ thực hiện cận lâm sàng phù hợp."
+                "Không có chỉ định CLS chờ thực hiện phù hợp."
             );
             return;
         }
@@ -320,27 +320,20 @@ document.addEventListener("DOMContentLoaded", () => {
             // STT
             addCell(
                 row,
-                (currentPage - 1) * PAGE_SIZE +
-                index + 1
+                (currentPage - 1) * PAGE_SIZE + index + 1
             );
 
             // BỆNH NHÂN
-            const patientCell =
-                document.createElement("td");
-
-            const patientBox = element(
-                "div",
-                "ctq-patient-cell"
-            );
+            const patientCell = document.createElement("td");
+            const patientBox = element("div", "ctq-patient-cell");
 
             const patientName = element(
                 "strong",
                 "ctq-patient-name",
-                item.hoTen || "Chưa có tên"
+                item.hoTen || item.tenBenhNhan || "Chưa có tên"
             );
 
-            patientName.title =
-                item.hoTen || "Chưa có tên";
+            patientName.title = item.hoTen || item.tenBenhNhan || "";
 
             const patientCode = element(
                 "span",
@@ -350,16 +343,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             patientBox.appendChild(patientName);
             patientBox.appendChild(patientCode);
-
             patientCell.appendChild(patientBox);
             row.appendChild(patientCell);
 
             // DỊCH VỤ
-            const serviceCell =
-                document.createElement("td");
+            const serviceCell = document.createElement("td");
 
-            const serviceText =
-                item.dichVu || "Chưa có chỉ định";
+            const serviceText = item.tenDichVu || "Chưa có chỉ định";
 
             const serviceElement = element(
                 "span",
@@ -367,18 +357,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 serviceText
             );
 
-            // Tooltip hiển thị đầy đủ dịch vụ.
             serviceElement.title = serviceText;
-
             serviceCell.appendChild(serviceElement);
             row.appendChild(serviceCell);
 
-            // PHÒNG THỰC HIỆN
-            const roomCell =
-                document.createElement("td");
+            // PHÒNG
+            const roomCell = document.createElement("td");
 
-            const roomText =
-                item.tenPhong || "Chưa phân phòng";
+            const roomText = item.tenPhong ||
+                (item.maPhong ? `Phòng ${item.maPhong}` : "Chưa phân phòng");
 
             const roomElement = element(
                 "span",
@@ -387,13 +374,11 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             roomElement.title = roomText;
-
             roomCell.appendChild(roomElement);
             row.appendChild(roomCell);
 
-            // THỜI GIAN KHÁM
-            const timeCell =
-                document.createElement("td");
+            // THỜI GIAN
+            const timeCell = document.createElement("td");
 
             timeCell.appendChild(
                 element(
@@ -414,33 +399,22 @@ document.addEventListener("DOMContentLoaded", () => {
             row.appendChild(timeCell);
 
             // TRẠNG THÁI
-            const statusCell =
-                document.createElement("td");
+            const statusCell = document.createElement("td");
+            const status = element("span", "ctq-status");
 
-            const status = element(
-                "span",
-                "ctq-status"
+            status.appendChild(
+                element("span", "ctq-status-dot")
             );
 
             status.appendChild(
-                element(
-                    "span",
-                    "ctq-status-dot"
-                )
-            );
-
-            status.appendChild(
-                document.createTextNode(
-                    "Chờ thực hiện"
-                )
+                document.createTextNode("Chờ thực hiện")
             );
 
             statusCell.appendChild(status);
             row.appendChild(statusCell);
 
-            // THAO TÁC XEM
-            const actionCell =
-                document.createElement("td");
+            // XEM CHỈ ĐỊNH
+            const actionCell = document.createElement("td");
 
             const viewButton = element(
                 "button",
@@ -450,10 +424,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             viewButton.type = "button";
 
-            viewButton.addEventListener(
-                "click",
-                () => openPatient(item, viewButton)
-            );
+            viewButton.addEventListener("click", () => {
+                openPatient(item, viewButton);
+            });
 
             actionCell.appendChild(viewButton);
             row.appendChild(actionCell);
@@ -502,67 +475,104 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadQueue() {
         const version = ++requestVersion;
 
-        showTableMessage(
-            "Đang tải bệnh nhân chờ CLS..."
-        );
-
-        const today = getTodayVietnam();
-
-        const params = new URLSearchParams({
-            tuNgay: today,
-            denNgay: today,
-            trangThai: "ChoCLS",
-            phong: roomFilter.value,
-            page: String(currentPage),
-            pageSize: String(PAGE_SIZE)
-        });
+        showTableMessage("Đang tải bệnh nhân chờ CLS...");
 
         try {
-            const result = await apiRequest(
-                `${LIST_API}?${params.toString()}`
-            );
+            const data = await apiRequest(`${CLS_API}/hom-nay`);
 
-            if (version !== requestVersion) {
-                return;
+            if (version !== requestVersion) return;
+
+            if (!Array.isArray(data)) {
+                throw new Error("API không trả về danh sách hợp lệ.");
             }
 
-            if (!Array.isArray(result.items)) {
-                throw new Error(
-                    "API không trả về danh sách hợp lệ."
+            // Tách từng chỉ định CLS thành một dòng riêng.
+            const allOrders = data.flatMap(appointment =>
+                (appointment.chiDinh || []).map(order => ({
+                    ...appointment,
+                    ...order,
+                    maLichKham: appointment.maLichKham,
+                    maBenhNhan: appointment.maBenhNhan,
+                    hoTen: appointment.tenBenhNhan,
+                    gioKham: appointment.gioKham,
+                    ngayKham: appointment.ngayKham,
+                    bacSiPhuTrach: appointment.bacSiPhuTrach
+                }))
+            );
+
+            // Chỉ lấy chỉ định đang chờ.
+            let waitingOrders = allOrders.filter(
+                order => order.trangThai === "ChoThucHien"
+            );
+
+            // Lọc phòng theo MaPhong.
+            if (roomFilter.value) {
+                waitingOrders = waitingOrders.filter(
+                    order => String(order.maPhong || "") === roomFilter.value
                 );
             }
 
-            updateRoomOptions(
-                Array.isArray(result.phong)
-                    ? result.phong
-                    : []
+            // Sắp xếp theo giờ khám.
+            waitingOrders.sort((a, b) => {
+                const timeCompare = String(a.gioKham || "")
+                    .localeCompare(String(b.gioKham || ""));
+
+                if (timeCompare !== 0) {
+                    return timeCompare;
+                }
+
+                return Number(a.maLichKham) - Number(b.maLichKham);
+            });
+
+            // Tạo danh sách phòng từ dữ liệu thực.
+            const roomMap = new Map();
+
+            allOrders.forEach(order => {
+                if (order.maPhong != null) {
+                    roomMap.set(String(order.maPhong), {
+                        id: order.maPhong,
+                        name: order.tenPhong || `Phòng ${order.maPhong}`
+                    });
+                }
+            });
+
+            updateRoomOptions([...roomMap.values()]);
+
+            // Phân trang phía frontend.
+            totalPatients = waitingOrders.length;
+            totalPages = Math.max(
+                1,
+                Math.ceil(totalPatients / PAGE_SIZE)
             );
 
-            updatePagination(result);
-
-            // Kiểm tra bổ sung, chỉ nhận ChoCLS.
-            const waiting = result.items.filter(
-                item => item.trangThai === "ChoCLS"
-            );
-
-            renderTable(waiting);
-
-        } catch (error) {
-            if (version !== requestVersion) {
-                return;
+            if (currentPage > totalPages) {
+                currentPage = totalPages;
             }
 
-            console.error(
-                "Lỗi tải hàng đợi CLS:",
-                error
+            const startIndex = (currentPage - 1) * PAGE_SIZE;
+
+            const displayedOrders = waitingOrders.slice(
+                startIndex,
+                startIndex + PAGE_SIZE
             );
+
+            updatePagination({
+                page: currentPage,
+                totalPages,
+                total: totalPatients
+            });
+
+            renderTable(displayedOrders);
+
+        } catch (error) {
+            if (version !== requestVersion) return;
+
+            console.error("Lỗi tải hàng đợi CLS:", error);
 
             showTableMessage(error.message);
 
             countBadge.textContent = "Không thể tải";
-
-            pageInfo.textContent =
-                "Không thể tải dữ liệu";
+            pageInfo.textContent = "Không thể tải dữ liệu";
 
             prevButton.disabled = true;
             nextButton.disabled = true;
@@ -622,71 +632,73 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function fillPatientDetails(data) {
-        setText("ctqDetailName", data.hoTen);
+        setText(
+            "ctqDetailName",
+            data.hoTen || data.tenBenhNhan || data.tenBN
+        );
 
         setText(
             "ctqDetailCode",
             formatPatientCode(data.maBenhNhan)
         );
 
-        setText(
-            "ctqDetailAppointment",
-            data.maLichKham
-        );
+        setText("ctqDetailAppointment", data.maLichKham);
 
-        setText(
-            "ctqDetailDate",
-            formatDate(data.ngayKham)
-        );
+        setText("ctqDetailDate", formatDate(data.ngayKham));
 
         setText(
             "ctqDetailBirthday",
-            formatDate(data.ngaySinh)
+            formatDate(
+                data.ngaySinh ||
+                data.ngaySinhBenhNhan ||
+                data.birthDate
+            )
         );
 
         setText(
             "ctqDetailGender",
-            data.gioiTinh
+            data.gioiTinh ||
+            data.gender ||
+            data.gioiTinhBenhNhan
         );
 
         setText(
             "ctqDetailDepartment",
-            data.tenKhoa
+            data.tenKhoa ||
+            data.khoa ||
+            data.tenKhoaBenhNhan
         );
 
         setText(
             "ctqDetailDoctor",
-            data.bacSiPhuTrach
+            data.bacSiPhuTrach ||
+            data.tenBacSi ||
+            data.bacSi
         );
 
         setText(
             "ctqDetailRoom",
-            data.tenPhong
+            data.tenPhong ||
+            (data.maPhong ? `Phòng ${data.maPhong}` : "Chưa phân phòng")
         );
 
-        setText(
-            "ctqDetailStatus",
-            "Chờ thực hiện"
-        );
+        setText("ctqDetailStatus", "Chờ thực hiện");
 
         setText(
             "ctqDetailService",
-            data.dichVu
+            data.dichVu ||
+            data.tenDichVu ||
+            "Chưa có chỉ định"
         );
 
         const hasOrder =
-            data.dichVu &&
-            data.dichVu !== "Chưa có chỉ định";
+            data.maChiDinh != null &&
+            data.trangThai === "ChoThucHien";
 
-        startButton.disabled =
-            !hasOrder ||
-            data.trangThai !== "ChoCLS";
+        startButton.disabled = !hasOrder;
 
         if (!hasOrder) {
-            setNotice(
-                "Lượt khám này chưa có chỉ định CLS từ bác sĩ. " +
-                "Cần có chỉ định thật trước khi bắt đầu thực hiện."
-            );
+            setNotice("Chỉ định không còn ở trạng thái chờ thực hiện.");
         } else {
             setNotice("");
         }
@@ -694,51 +706,66 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function openPatient(item, button) {
         previousFocus = button;
-        currentPatient = null;
+        currentPatient = item;
         modalLoading = true;
 
-        setNotice("Đang tải thông tin bệnh nhân...");
+        setNotice("");
 
-        setText("ctqDetailName", item.hoTen);
-        setText(
-            "ctqDetailCode",
-            formatPatientCode(item.maBenhNhan)
-        );
+        patientModal.hidden = false;
+        closeModalButton.focus();
 
         startButton.disabled = true;
-        patientModal.hidden = false;
 
-        closeModalButton.focus();
+        setText("ctqDetailName", "Đang tải...");
+        setText("ctqDetailCode", "—");
+        setText("ctqDetailAppointment", item.maLichKham);
+        setText("ctqDetailDate", formatDate(item.ngayKham));
+        setText("ctqDetailBirthday", "Đang tải...");
+        setText("ctqDetailGender", "Đang tải...");
+        setText("ctqDetailDepartment", "Đang tải...");
+        setText("ctqDetailDoctor", "Đang tải...");
+        setText("ctqDetailRoom", "Đang tải...");
+        setText("ctqDetailStatus", "Đang tải...");
+        setText("ctqDetailService", item.tenDichVu || "Đang tải...");
 
         try {
             const data = await apiRequest(
-                `${LIST_API}/ho-so/` +
-                encodeURIComponent(item.maLichKham)
+                `${LIST_API}/ho-so/${encodeURIComponent(item.maLichKham)}`
             );
 
+            // Nếu modal đã đóng trong lúc API chạy thì không xử lý tiếp.
             if (patientModal.hidden) return;
 
-            if (data.trangThai !== "ChoCLS") {
-                setNotice(
-                    "Lượt khám đã thay đổi trạng thái. " +
-                    "Vui lòng tải lại danh sách."
-                );
+            currentPatient = {
+                ...data,
 
-                startButton.disabled = true;
-                return;
-            }
+                // Giữ nguyên thông tin của chỉ định đang được chọn.
+                maLichKham: item.maLichKham,
+                maChiDinh: item.maChiDinh,
+                maBenhNhan: item.maBenhNhan,
+                hoTen: item.hoTen || item.tenBenhNhan,
 
-            currentPatient = data;
-            fillPatientDetails(data);
+                tenDichVu: item.tenDichVu,
+                dichVu: item.tenDichVu,
+
+                maPhong: item.maPhong,
+                tenPhong: item.tenPhong,
+
+                trangThai: item.trangThai,
+
+                gioKham: item.gioKham,
+                ngayKham: item.ngayKham,
+                bacSiPhuTrach: item.bacSiPhuTrach
+            };
+
+            fillPatientDetails(currentPatient);
 
         } catch (error) {
-            console.error(
-                "Lỗi tải hồ sơ bệnh nhân:",
-                error
-            );
+            console.error("Lỗi tải hồ sơ bệnh nhân:", error);
 
-            setNotice(error.message);
-            startButton.disabled = true;
+            setNotice(
+                error.message || "Không thể tải thông tin bệnh nhân."
+            );
 
         } finally {
             modalLoading = false;
@@ -855,74 +882,64 @@ document.addEventListener("DOMContentLoaded", () => {
     // ChoCLS -> DangCLS
     // ============================================
 
-    startButton.addEventListener(
-        "click",
-        async () => {
-            if (
-                processing ||
-                modalLoading ||
-                !currentPatient ||
-                currentPatient.trangThai !== "ChoCLS"
-            ) {
-                return;
-            }
+    startButton.addEventListener("click", async () => {
+        if (
+            processing ||
+            modalLoading ||
+            !currentPatient ||
+            currentPatient.trangThai !== "ChoThucHien" ||
+            currentPatient.maChiDinh == null
+        ) {
+            return;
+        }
 
-            const patient = currentPatient;
+        const order = currentPatient;
 
-            const confirmed = await showConfirm(
-                "Xác nhận bắt đầu thực hiện cận lâm sàng " +
-                "cho bệnh nhân " + patient.hoTen + "?"
+        const confirmed = await showConfirm(
+            `Xác nhận bắt đầu thực hiện ${order.tenDichVu || "chỉ định CLS"} cho bệnh nhân ${order.hoTen || order.tenBenhNhan}?`
+        );
+
+        if (!confirmed) return;
+        if (processing) return;
+
+        processing = true;
+
+        startButton.disabled = true;
+        startButton.textContent = "Đang xử lý...";
+
+        try {
+            await apiRequest(
+                `${CLS_API}/` +
+                encodeURIComponent(order.maLichKham) +
+                `/chi-dinh/` +
+                encodeURIComponent(order.maChiDinh) +
+                `/bat-dau`,
+                "POST"
             );
 
-            if (!confirmed) return;
-            if (processing) return;
+            window.location.assign(
+                "/ChuyenTrach/nhap-ket-qua/" +
+                encodeURIComponent(order.maLichKham)
+            );
 
-            processing = true;
+        } catch (error) {
+            console.error("Lỗi bắt đầu CLS:", error);
+
+            setNotice(error.message);
+
+            await loadQueue();
+
+        } finally {
+            processing = false;
+
+            startButton.replaceChildren(
+                createIcon("fa-solid fa-stethoscope"),
+                document.createTextNode("Bắt đầu CLS")
+            );
 
             startButton.disabled = true;
-            startButton.textContent = "Đang xử lý...";
-
-            try {
-                await apiRequest(
-                    `${CLS_API}/` +
-                    encodeURIComponent(patient.maLichKham) +
-                    "/bat-dau",
-                    "POST"
-                );
-
-                // Chỉ chuyển trang khi cập nhật
-                // trạng thái MySQL thành công.
-                window.location.assign(
-                    "/ChuyenTrach/nhap-ket-qua/" +
-                    encodeURIComponent(
-                        patient.maLichKham
-                    )
-                );
-
-            } catch (error) {
-                console.error(
-                    "Lỗi bắt đầu CLS:",
-                    error
-                );
-
-                setNotice(error.message);
-
-                await loadQueue();
-
-            } finally {
-                processing = false;
-
-                startButton.replaceChildren(
-                    createIcon("fa-solid fa-stethoscope"),
-                    document.createTextNode(
-                        "Bắt đầu CLS"
-                    )
-                );
-
-                startButton.disabled = true;
-            }
         }
-    );
+    });
 
     // ============================================
     // 16. PHÍM ESC

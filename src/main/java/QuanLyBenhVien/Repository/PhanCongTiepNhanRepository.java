@@ -33,4 +33,17 @@ public interface PhanCongTiepNhanRepository
     findByMaNhanVienTiepNhanOrderByThoiGianBatDauDesc(
             Integer maNhanVienTiepNhan
     );
+
+    @Query("""
+    SELECT p.maNhanVienTiepNhan
+    FROM PhanCongTiepNhan p
+    WHERE p.maKhoa = :maKhoa
+      AND p.trangThai = 1
+      AND :thoiDiemHienTai >= p.thoiGianBatDau
+      AND :thoiDiemHienTai < p.thoiGianKetThuc
+    """)
+    List<Integer> findNhanVienDangTruc(
+            @Param("maKhoa") Integer maKhoa,
+            @Param("thoiDiemHienTai") LocalDateTime thoiDiemHienTai
+    );
 }

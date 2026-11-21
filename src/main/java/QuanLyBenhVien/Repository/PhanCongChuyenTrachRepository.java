@@ -21,6 +21,20 @@ public interface PhanCongChuyenTrachRepository
             Integer maNguoiDung
     );
 
+    // Tìm nhân viên được phân công đang trực tại thời điểm hiện tại
+    @Query("""
+        SELECT p.maNguoiDung
+        FROM PhanCongChuyenTrach p
+        WHERE p.ngayLamViec = :ngayLamViec
+          AND p.trangThai = 1
+          AND :gioHienTai >= p.gioBatDau
+          AND :gioHienTai < p.gioKetThuc
+        """)
+    List<Integer> findNhanVienDangTruc(
+            @Param("ngayLamViec") LocalDate ngayLamViec,
+            @Param("gioHienTai") LocalTime gioHienTai
+    );
+
     @Query("""
         SELECT COUNT(p) > 0
         FROM PhanCongChuyenTrach p
@@ -36,4 +50,6 @@ public interface PhanCongChuyenTrachRepository
             @Param("gioBatDau") LocalTime gioBatDau,
             @Param("gioKetThuc") LocalTime gioKetThuc
     );
+
+
 }

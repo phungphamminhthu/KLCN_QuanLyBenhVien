@@ -96,7 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUploadButton();
     }
 
-    resultImagesInput?.addEventListener("change", updateSelectedFiles);
+    resultImagesInput?.addEventListener("change", () => {
+        if (resultImagesInput.files.length > 10) {
+            showNotice("Mỗi lần tải lên tối đa 10 ảnh.", true);
+            resultImagesInput.value = "";
+        }
+        updateSelectedFiles();
+    });
 
     resultImageDropZone?.addEventListener("dragover", event => {
         event.preventDefault();
@@ -117,6 +123,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .filter(file => file.type.startsWith("image/"));
 
         if (!files.length) return;
+        if (files.length > 10) {
+            showNotice("Mỗi lần tải lên tối đa 10 ảnh.", true);
+            return;
+        }
 
         const transfer = new DataTransfer();
         files.forEach(file => transfer.items.add(file));
@@ -243,13 +253,25 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (saveLabBtn) {
-            saveLabBtn.disabled =
-                value || !editable || labOrders.length === 0;
+            saveLabBtn.disabled = value || !labOrders.some(
+                order => order.trangThai === "DangThucHien"
+            );
         }
 
         getLabInputs().forEach(input => {
-            input.disabled = value || !editable;
+            const order = labOrders.find(
+                item => String(item.maChiDinh) === input.dataset.orderId
+            );
+            input.disabled = value || order?.trangThai !== "DangThucHien";
         });
+
+        // Không tạo nút hoàn tất riêng cho từng dòng xét nghiệm.
+        if (finishBtn) {
+            const activeCount = labOrders.length + normalOrders.length;
+            finishBtn.hidden = activeCount === 0;
+            finishBtn.disabled = value || !editable || activeCount === 0;
+        }
+
         updateUploadButton();
     }
 
@@ -446,6 +468,16 @@ document.addEventListener("DOMContentLoaded", () => {
              return;
          }
 
+         if (files.length > 10) {
+             showNotice("Mỗi lần tải lên tối đa 10 ảnh.", true);
+             return;
+         }
+
+         if (files.some(file => !file.type.startsWith("image/"))) {
+             showNotice("Chỉ được tải lên tệp hình ảnh.", true);
+             return;
+         }
+
          const order = orders.find(
              item => String(item.maChiDinh) === String(selectedOrderId)
          );
@@ -620,7 +652,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 input.dataset.orderId = String(order.maChiDinh);
                 input.value = order.noiDungKetQua || "";
-                input.disabled = !editable;
+                input.disabled = order.trangThai !== "DangThucHien";
 
                 labSavedValues[String(order.maChiDinh)] =
                     input.value;
@@ -636,15 +668,20 @@ document.addEventListener("DOMContentLoaded", () => {
     // Lưu kết quả xét nghiệm
     if (saveLabBtn) {
         saveLabBtn.addEventListener("click", async () => {
-            if (busy || !editable || !labOrders.length) {
+            if (busy || !labOrders.some(
+                order => order.trangThai === "DangThucHien"
+            )) {
                 return;
             }
 
             const changes = getLabInputs().filter(input => {
                 const id = input.dataset.orderId;
+                const order = labOrders.find(
+                    item => String(item.maChiDinh) === id
+                );
 
-                return input.value !==
-                    (labSavedValues[id] ?? "");
+                return order?.trangThai === "DangThucHien" &&
+                    input.value !== (labSavedValues[id] ?? "");
             });
 
             if (!changes.length) {
@@ -1080,9 +1117,15 @@ document.addEventListener("DOMContentLoaded", () => {
             updateUploadButton();
 
             // Phân loại chỉ định xét nghiệm và dịch vụ khác
-            labOrders = orders.filter(isLabOrder);
+            // Chỉ đưa chỉ định đang thực hiện vào form thao tác.
+            // Danh sách orders gốc vẫn giữ toàn bộ để tổng hợp trạng thái lượt khám.
+            const activeOrders = orders.filter(
+                order => order.trangThai === "DangThucHien"
+            );
 
-            normalOrders = orders.filter(
+            labOrders = activeOrders.filter(isLabOrder);
+
+            normalOrders = activeOrders.filter(
                 order => !isLabOrder(order)
             );
 
@@ -1201,6 +1244,10 @@ document.addEventListener("DOMContentLoaded", () => {
             conclusion.disabled =
                 !editable || normalOrders.length === 0;
 
+            if (finishBtn) {
+                finishBtn.hidden = labOrders.length + normalOrders.length === 0;
+            }
+
             setBusy(false);
 
         } catch (error) {
@@ -1272,46 +1319,43 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
 
     finishBtn.addEventListener("click", async () => {
-        if (
-            busy ||
-            !editable ||
-            orders.length === 0
-        ) {
-            return;
-        }
+        const activeOrders = orders.filter(
+            order => order.trangThai === "DangThucHien"
+        );
+        if (busy || !editable || activeOrders.length === 0) return;
 
         if (hasUnsavedChanges()) {
             await showModal({
                 title: "Bạn chưa lưu kết quả",
-                message:
-                    "Vui lòng lưu tất cả kết quả vừa nhập " +
-                    "trước khi hoàn tất CLS.",
+                message: "Vui lòng lưu kết quả đang nhập trước khi hoàn tất CLS.",
                 confirmText: "Đã hiểu",
                 warning: true
             });
+            return;
+        }
 
+        if (hasUnsavedLabChanges()) {
+            showNotice("Vui lòng lưu kết quả xét nghiệm trước khi hoàn tất CLS.", true);
             return;
         }
 
         const confirmed = await showModal({
             title: "Xác nhận hoàn tất CLS",
-            message:
-                "Bạn đã lưu đầy đủ các chỉ định và muốn hoàn tất CLS " +
-                "để bác sĩ tiếp tục xử lý?",
+            message: `Sẽ hoàn tất ${activeOrders.length} chỉ định đang thực hiện. Các chỉ định đã hoàn thành sẽ không bị xử lý lại.`,
             confirmText: "Hoàn tất CLS"
         });
-
         if (!confirmed) return;
 
         setBusy(true);
-
         try {
-            await api("/hoan-tat", "POST");
+            // Hoàn tất từng MaChiDinh; backend sẽ kiểm tra toàn bộ lượt khám
+            // và chỉ chuyển về bác sĩ khi không còn chỉ định chưa xử lý.
+            for (const order of activeOrders) {
+                await api(`/chi-dinh/${encodeURIComponent(order.maChiDinh)}/hoan-tat`, "POST");
+            }
 
             allowNavigation = true;
-
             window.location.assign("/ChuyenTrach/dashboard");
-
         } catch (error) {
             showNotice(error.message, true);
             setBusy(false);

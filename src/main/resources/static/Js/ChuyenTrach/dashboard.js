@@ -148,21 +148,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getStatus(status) {
         switch (status) {
-            case "ChoCLS":
+            case "ChoThucHien":
                 return {
                     label: "Chờ thực hiện",
                     className: "ct-status ct-status-waiting"
                 };
 
-            case "DangCLS":
+            case "DangThucHien":
                 return {
-                    label: "Đang khám",
+                    label: "Đang thực hiện",
                     className: "ct-status ct-status-processing"
                 };
 
-            case "ChoKham":
+            case "DaHoanThanh":
                 return {
-                    label: "Đã khám chuyên trách",
+                    label: "Đã hoàn thành",
                     className: "ct-status ct-status-done"
                 };
 
@@ -179,43 +179,43 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
 
     function renderCards(rows) {
-        const choCLS = rows.filter(
-            item => item.trangThai === "ChoCLS"
+        const orders = rows.flatMap(item => item.chiDinh || []);
+
+        const choCLS = orders.filter(
+            order => order.trangThai === "ChoThucHien"
         ).length;
 
-        const dangCLS = rows.filter(
-            item => item.trangThai === "DangCLS"
+        const dangCLS = orders.filter(
+            order => order.trangThai === "DangThucHien"
         ).length;
 
-        // API hiện chỉ trả ChoCLS và DangCLS.
-        // Số đã hoàn thành chưa có API thống kê riêng.
         const cards = [
             {
                 color: "blue",
                 title: "Lượt CLS đang xử lý",
-                value: rows.length,
-                note: "Lượt khám",
+                value: orders.length,
+                note: "Chỉ định CLS",
                 icon: "fa-regular fa-calendar-check"
             },
             {
                 color: "teal",
                 title: "Chờ thực hiện",
                 value: choCLS,
-                note: "Bệnh nhân",
+                note: "Chỉ định",
                 icon: "fa-regular fa-clock"
             },
             {
                 color: "purple",
                 title: "Đang thực hiện",
                 value: dangCLS,
-                note: "Bệnh nhân",
+                note: "Chỉ định",
                 icon: "fa-solid fa-stethoscope"
             },
             {
                 color: "green",
                 title: "Đã hoàn thành",
                 value: "—",
-                note: "Chưa có thống kê",
+                note: "Chưa có thống kê riêng",
                 icon: "fa-regular fa-circle-check"
             }
         ];
@@ -251,30 +251,30 @@ document.addEventListener("DOMContentLoaded", () => {
             card.appendChild(content);
             card.appendChild(iconWrapper);
 
-            // Ô Đang thực hiện: mở lại một lượt DangCLS.
             if (index === 2 && dangCLS > 0) {
                 card.style.cursor = "pointer";
-                card.title = "Tiếp tục lượt khám đang thực hiện";
-
+                card.title = "Tiếp tục chỉ định đang thực hiện";
                 card.setAttribute("role", "button");
                 card.setAttribute("tabindex", "0");
 
-                const openDoingPatient = () => {
-                    const patient = rows.find(
-                        item => item.trangThai === "DangCLS"
+                const openDoingOrder = () => {
+                    const appointment = rows.find(item =>
+                        (item.chiDinh || []).some(
+                            order => order.trangThai === "DangThucHien"
+                        )
                     );
 
-                    if (patient) {
-                        openResultPage(patient.maLichKham);
+                    if (appointment) {
+                        openResultPage(appointment.maLichKham);
                     }
                 };
 
-                card.addEventListener("click", openDoingPatient);
+                card.addEventListener("click", openDoingOrder);
 
                 card.addEventListener("keydown", event => {
                     if (event.key === "Enter" || event.key === " ") {
                         event.preventDefault();
-                        openDoingPatient();
+                        openDoingOrder();
                     }
                 });
             }
@@ -395,12 +395,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // ============================================
 
     async function batDauCLS(item, button) {
-        if (item.trangThai !== "ChoCLS" || isProcessing) {
+        if (item.trangThai !== "ChoThucHien" || isProcessing) {
             return;
         }
 
         const confirmed = await showConfirmModal(
-            `Bạn có chắc chắn muốn bắt đầu khám chuyên trách cho bệnh nhân ${item.tenBenhNhan}?`
+            `Bạn có chắc chắn muốn bắt đầu thực hiện dịch vụ ${item.tenDichVu} cho bệnh nhân ${item.tenBenhNhan}?`
         );
 
         if (!confirmed) return;
@@ -411,25 +411,21 @@ document.addEventListener("DOMContentLoaded", () => {
         button.textContent = "Đang xử lý...";
 
         try {
-            // Cập nhật trạng thái thật trong MySQL.
             await apiRequest(
-                `/${item.maLichKham}/bat-dau`,
+                `/${item.maLichKham}/chi-dinh/${item.maChiDinh}/bat-dau`,
                 "POST"
             );
 
-            // Chỉ chuyển trang sau khi API thành công.
             openResultPage(item.maLichKham);
 
         } catch (error) {
-            console.error("Lỗi bắt đầu khám chuyên trách:", error);
+            console.error("Lỗi bắt đầu CLS:", error);
 
             button.disabled = false;
             button.textContent = "Thực hiện";
 
             window.alert(error.message);
 
-            // Trường hợp trạng thái đã thay đổi,
-            // tải lại danh sách để tránh dữ liệu cũ.
             await loadDashboard();
 
         } finally {
@@ -446,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (rows.length === 0) {
             showMessage(
-                "Không có bệnh nhân chờ khám chuyên trách hôm nay."
+                "Không có chỉ định CLS chờ thực hiện hôm nay."
             );
             return;
         }
@@ -481,49 +477,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
             addCell(row, index + 1);
 
-            addCell(
-                row,
-                item.maLichKham,
-                "ct-code-cell"
-            );
+            addCell(row, item.maLichKham, "ct-code-cell");
 
-            addCell(
-                row,
-                item.maBenhNhan
-            );
+            addCell(row, item.maBenhNhan);
 
-            addCell(
-                row,
-                item.tenBenhNhan,
-                "ct-name-cell"
-            );
+            addCell(row, item.tenBenhNhan, "ct-name-cell");
 
-            // Dịch vụ thật từ ChiDinhYTe.
             const serviceCell = document.createElement("td");
 
             serviceCell.appendChild(
                 element(
                     "span",
                     "ct-service-tag",
-                    item.dichVu || "Chưa có chỉ định"
+                    item.tenDichVu || "Chưa có dịch vụ"
                 )
             );
 
             row.appendChild(serviceCell);
 
-            // Bác sĩ phụ trách.
             addCell(
                 row,
                 item.bacSiPhuTrach || "Chưa có bác sĩ"
             );
 
-            // Giờ khám.
-            addCell(
-                row,
-                formatTime(item.gioKham)
-            );
+            addCell(row, formatTime(item.gioKham));
 
-            // Trạng thái.
             const status = getStatus(item.trangThai);
             const statusCell = document.createElement("td");
 
@@ -537,11 +515,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             row.appendChild(statusCell);
 
-            // Nút Thực hiện.
             const actionCell = document.createElement("td");
             const actionGroup = element("div", "ct-action-group");
 
-            if (item.trangThai === "ChoCLS") {
+            if (item.trangThai === "ChoThucHien") {
                 const button = element(
                     "button",
                     "ct-action-btn",
@@ -565,16 +542,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
         table.appendChild(thead);
         table.appendChild(tbody);
+
         wrapper.appendChild(table);
 
-        // Chân bảng.
         const footer = element("div", "ct-table-footer");
 
         footer.appendChild(
             element(
                 "div",
                 "ct-footer-left",
-                `Hiển thị ${rows.length}/${totalWaiting} bệnh nhân chờ CLS`
+                `Hiển thị ${rows.length}/${totalWaiting} chỉ định chờ CLS`
             )
         );
 
@@ -610,15 +587,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
             }
 
-            // Thống kê ChoCLS và DangCLS.
             renderCards(data);
 
-            // Dashboard chỉ hiển thị bệnh nhân đang chờ.
-            const waitingPatients = data.filter(
-                item => item.trangThai === "ChoCLS"
+            // Tách mỗi chỉ định thành một dòng độc lập.
+            const allOrders = data.flatMap(appointment =>
+                (appointment.chiDinh || []).map(order => ({
+                    ...appointment,
+                    ...order,
+                    maLichKham: appointment.maLichKham,
+                    maBenhNhan: appointment.maBenhNhan,
+                    tenBenhNhan: appointment.tenBenhNhan,
+                    bacSiPhuTrach: appointment.bacSiPhuTrach,
+                    gioKham: appointment.gioKham
+                }))
             );
 
-            waitingPatients.sort((a, b) => {
+            const waitingOrders = allOrders.filter(
+                item => item.trangThai === "ChoThucHien"
+            );
+
+            waitingOrders.sort((a, b) => {
                 const timeCompare = String(
                     a.gioKham || ""
                 ).localeCompare(
@@ -633,13 +621,12 @@ document.addEventListener("DOMContentLoaded", () => {
                        Number(b.maLichKham);
             });
 
-            // Chỉ lấy 5 bệnh nhân đầu tiên.
-            const displayedPatients =
-                waitingPatients.slice(0, MAX_DASHBOARD_ROWS);
+            const displayedOrders =
+                waitingOrders.slice(0, MAX_DASHBOARD_ROWS);
 
             renderTable(
-                displayedPatients,
-                waitingPatients.length
+                displayedOrders,
+                waitingOrders.length
             );
 
         } catch (error) {

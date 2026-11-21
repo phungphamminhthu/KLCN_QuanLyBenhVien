@@ -17,7 +17,9 @@ let danhSachChiDinh = [];
 
 let hoSoDangKhoa = false;
 
-
+// POLLING CẬN LÂM SÀNG
+let clsPollingTimer = null;
+let clsPollingDangChay = false;
 /* =====================================================
    DOM - DANH SÁCH BỆNH NHÂN
 ===================================================== */
@@ -1157,6 +1159,9 @@ async function hoanTatKham() {
 /* =====================================================
    CHUYỂN TAB
 ===================================================== */
+/* =====================================================
+   CHUYỂN TAB
+===================================================== */
 
 function chuyenTab(tab) {
 
@@ -1195,14 +1200,25 @@ function chuyenTab(tab) {
         );
     }
 
+    // Nếu chuyển sang tab CLS
     if (
         !laMedical &&
         lichKhamDangChon
     ) {
 
+        // Tải dữ liệu ngay lập tức
         loadDanhSachChiDinh(
             lichKhamDangChon
         );
+
+        // Bắt đầu tự động cập nhật
+        batPollingChiDinhCLS();
+
+    } else {
+
+        // Nếu chuyển về tab hồ sơ
+        // thì tạm dừng Polling
+        dungPollingChiDinhCLS();
     }
 }
 
@@ -1507,7 +1523,8 @@ async function taoChiDinh() {
 ===================================================== */
 
 async function loadDanhSachChiDinh(
-    maLichKham = lichKhamDangChon
+    maLichKham = lichKhamDangChon,
+    tuDongCapNhat = false
 ) {
 
     if (
@@ -1517,21 +1534,32 @@ async function loadDanhSachChiDinh(
         return;
     }
 
-    if (clinicalOrderLoading) {
+    // Chỉ hiển thị loading khi tải thủ công
+    if (
+        !tuDongCapNhat &&
+        clinicalOrderLoading
+    ) {
 
         clinicalOrderLoading.classList.remove(
             "hidden"
         );
     }
 
-    if (clinicalOrderEmpty) {
+    if (
+        !tuDongCapNhat &&
+        clinicalOrderEmpty
+    ) {
 
         clinicalOrderEmpty.classList.add(
             "hidden"
         );
     }
 
-    clinicalOrderBody.innerHTML = "";
+    // Không xóa bảng khi Polling
+    if (!tuDongCapNhat) {
+
+        clinicalOrderBody.innerHTML = "";
+    }
 
     try {
 
@@ -1540,28 +1568,54 @@ async function loadDanhSachChiDinh(
                 `${API_BASE}/${maLichKham}/chi-dinh`
             );
 
-        danhSachChiDinh =
+        const danhSachMoi =
             Array.isArray(data)
                 ? data
                 : [];
 
+        // Kiểm tra lịch khám có còn được chọn không
+        if (
+            Number(maLichKham) !==
+            Number(lichKhamDangChon)
+        ) {
+            return;
+        }
+
+        // Thay dữ liệu mới
+        danhSachChiDinh =
+            danhSachMoi;
+
+        // Render trạng thái mới
         renderDanhSachChiDinh();
 
     } catch (error) {
 
-        danhSachChiDinh = [];
+        // Polling không hiển thị Toast liên tục
+        if (!tuDongCapNhat) {
 
-        renderDanhSachChiDinh();
+            danhSachChiDinh = [];
 
-        showToast(
-            "Không thể tải chỉ định",
-            error.message,
-            true
+            renderDanhSachChiDinh();
+
+            showToast(
+                "Không thể tải chỉ định",
+                error.message,
+                true
+            );
+        }
+
+        console.error(
+            "Lỗi tải danh sách CLS:",
+            error
         );
 
     } finally {
 
-        if (clinicalOrderLoading) {
+        // Chỉ tắt loading khi tải thủ công
+        if (
+            !tuDongCapNhat &&
+            clinicalOrderLoading
+        ) {
 
             clinicalOrderLoading.classList.add(
                 "hidden"
@@ -1570,6 +1624,82 @@ async function loadDanhSachChiDinh(
     }
 }
 
+/* =====================================================
+   TỰ ĐỘNG CẬP NHẬT TRẠNG THÁI CLS
+===================================================== */
+
+function batPollingChiDinhCLS() {
+
+    // Không tạo nhiều interval trùng nhau
+    if (clsPollingTimer) {
+        return;
+    }
+
+    console.log("Bắt đầu polling CLS");
+
+    clsPollingTimer = setInterval(
+        async () => {
+
+            // Không kiểm tra nếu không có lịch khám
+            if (!lichKhamDangChon) {
+                return;
+            }
+
+            // Chỉ kiểm tra khi tab CLS đang mở
+            if (
+                !clinicalTabContent ||
+                !clinicalTabContent.classList.contains("active")
+            ) {
+                return;
+            }
+
+            // Tránh các request chạy chồng nhau
+            if (clsPollingDangChay) {
+                return;
+            }
+
+            clsPollingDangChay = true;
+
+            try {
+
+                await loadDanhSachChiDinh(
+                    lichKhamDangChon,
+                    true
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Lỗi tự động cập nhật CLS:",
+                    error
+                );
+
+            } finally {
+
+                clsPollingDangChay = false;
+            }
+
+        },
+        5000
+    );
+}
+
+
+function dungPollingChiDinhCLS() {
+
+    if (clsPollingTimer) {
+
+        clearInterval(
+            clsPollingTimer
+        );
+
+        clsPollingTimer = null;
+    }
+
+    clsPollingDangChay = false;
+
+    console.log("Đã dừng polling CLS");
+}
 
 /* =====================================================
    RENDER DANH SÁCH CHỈ ĐỊNH
@@ -1745,6 +1875,8 @@ function dongModal() {
     if (!examModal) {
         return;
     }
+
+    dungPollingChiDinhCLS();
 
     examModal.classList.add(
         "hidden"

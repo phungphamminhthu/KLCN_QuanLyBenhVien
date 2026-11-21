@@ -5,6 +5,9 @@ import QuanLyBenhVien.Entity.LichLamViec;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.Lock;
+
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -150,5 +153,18 @@ public interface LichLamViecRepository
             @Param("maBacSi") Integer maBacSi,
             @Param("ngayKham") LocalDate ngayKham,
             @Param("gioKham") LocalTime gioKham
+    );
+
+    // =========================================================
+    // KHÓA LỊCH LÀM VIỆC KHI ĐẶT LỊCH
+    // =========================================================
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT l
+    FROM LichLamViec l
+    WHERE l.maLichLamViec = :maLichLamViec
+""")
+    Optional<LichLamViec> findByIdForUpdate(
+            @Param("maLichLamViec") Integer maLichLamViec
     );
 }

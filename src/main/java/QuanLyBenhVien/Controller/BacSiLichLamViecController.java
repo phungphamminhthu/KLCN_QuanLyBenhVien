@@ -551,6 +551,72 @@ public class BacSiLichLamViecController {
     // LẤY CÁC KHUNG GIỜ KHÁM CỦA BÁC SĨ
     // GET /api/bac-si/lich-lam-viec/khung-gio
     // =========================================================
+    //    @GetMapping("/khung-gio")
+    //    public ResponseEntity<?> layKhungGioKham(
+    //            @RequestParam Integer maBacSi,
+    //            @RequestParam
+    //            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    //            LocalDate ngayKham) {
+    //
+    //        if (maBacSi == null || ngayKham == null) {
+    //            return ResponseEntity.badRequest()
+    //                    .body(Map.of(
+    //                            "message",
+    //                            "Vui lòng chọn bác sĩ và ngày khám."
+    //                    ));
+    //        }
+    //
+    //        List<LichLamViec> lichLamViec =
+    //                lichLamViecService.layLichLamViec(
+    //                        maBacSi,
+    //                        ngayKham,
+    //                        ngayKham
+    //                );
+    //
+    //        List<Map<String, Object>> result = new ArrayList<>();
+    //
+    //        NavigableMap<LocalTime, Long> thongKeTheoGio =
+    //                layThongKeLuotDatTheoGio(maBacSi, ngayKham);
+    //
+    //        for (LichLamViec lich : lichLamViec) {
+    //            LocalTime batDau = lich.getGioBatDau();
+    //            LocalTime ketThuc = lich.getGioKetThuc();
+    //
+    //            if (batDau == null
+    //                    || ketThuc == null
+    //                    || !batDau.isBefore(ketThuc)) {
+    //                continue;
+    //            }
+    //
+    //            while (!batDau.plusMinutes(THOI_LUONG_SLOT_PHUT)
+    //                    .isAfter(ketThuc)) {
+    //
+    //                LocalTime gioKetThucKhung =
+    //                        batDau.plusMinutes(THOI_LUONG_SLOT_PHUT);
+    //
+    //                long daDat = demLuotDatTrongKhungGio(
+    //                        thongKeTheoGio,
+    //                        batDau,
+    //                        gioKetThucKhung
+    //                );
+    //
+    //                Map<String, Object> item = new LinkedHashMap<>();
+    //
+    //                item.put("maLichLamViec", lich.getMaLichLamViec());
+    //                item.put("gioBatDau", batDau.toString());
+    //                item.put("gioKetThuc", gioKetThucKhung.toString());
+    //                item.put("daDat", daDat);
+    //                item.put("conTrong", Math.max(0L, SUC_CHUA_SLOT - daDat));
+    //                item.put("hetCho", daDat >= SUC_CHUA_SLOT);
+    //
+    //                result.add(item);
+    //
+    //                batDau = gioKetThucKhung;
+    //            }
+    //        }
+    //
+    //        return ResponseEntity.ok(result);
+    //    }
     @GetMapping("/khung-gio")
     public ResponseEntity<?> layKhungGioKham(
             @RequestParam Integer maBacSi,
@@ -566,56 +632,148 @@ public class BacSiLichLamViecController {
                     ));
         }
 
-        List<LichLamViec> lichLamViec =
-                lichLamViecService.layLichLamViec(
-                        maBacSi,
-                        ngayKham,
-                        ngayKham
-                );
+        try {
+            System.out.println("========== LẤY KHUNG GIỜ KHÁM ==========");
+            System.out.println("Bác sĩ: " + maBacSi);
+            System.out.println("Ngày khám: " + ngayKham);
 
-        List<Map<String, Object>> result = new ArrayList<>();
+            // 1. Lấy lịch làm việc của bác sĩ
+            List<LichLamViec> lichLamViec =
+                    lichLamViecService.layLichLamViec(
+                            maBacSi,
+                            ngayKham,
+                            ngayKham
+                    );
 
-        NavigableMap<LocalTime, Long> thongKeTheoGio =
-                layThongKeLuotDatTheoGio(maBacSi, ngayKham);
+            System.out.println("Số lịch làm việc: " + lichLamViec.size());
 
-        for (LichLamViec lich : lichLamViec) {
-            LocalTime batDau = lich.getGioBatDau();
-            LocalTime ketThuc = lich.getGioKetThuc();
+            // 2. Lấy thống kê lượt đặt trong ngày
+            NavigableMap<LocalTime, Long> thongKeTheoGio =
+                    layThongKeLuotDatTheoGio(maBacSi, ngayKham);
 
-            if (batDau == null
-                    || ketThuc == null
-                    || !batDau.isBefore(ketThuc)) {
-                continue;
+            if (thongKeTheoGio == null) {
+                thongKeTheoGio = new TreeMap<>();
             }
 
-            while (!batDau.plusMinutes(THOI_LUONG_SLOT_PHUT)
-                    .isAfter(ketThuc)) {
+            System.out.println("Thống kê lượt đặt: " + thongKeTheoGio);
 
-                LocalTime gioKetThucKhung =
-                        batDau.plusMinutes(THOI_LUONG_SLOT_PHUT);
+            List<Map<String, Object>> result = new ArrayList<>();
 
-                long daDat = demLuotDatTrongKhungGio(
-                        thongKeTheoGio,
-                        batDau,
-                        gioKetThucKhung
+            // 3. Xử lý từng lịch làm việc
+            for (LichLamViec lich : lichLamViec) {
+
+                LocalTime batDauCa = lich.getGioBatDau();
+                LocalTime ketThucCa = lich.getGioKetThuc();
+
+                System.out.println(
+                        "Xử lý lịch: "
+                                + lich.getMaLichLamViec()
+                                + " | "
+                                + batDauCa
+                                + " - "
+                                + ketThucCa
                 );
 
-                Map<String, Object> item = new LinkedHashMap<>();
+                // Kiểm tra lịch hợp lệ
+                if (batDauCa == null
+                        || ketThucCa == null
+                        || !batDauCa.isBefore(ketThucCa)) {
 
-                item.put("maLichLamViec", lich.getMaLichLamViec());
-                item.put("gioBatDau", batDau.toString());
-                item.put("gioKetThuc", gioKetThucKhung.toString());
-                item.put("daDat", daDat);
-                item.put("conTrong", Math.max(0L, SUC_CHUA_SLOT - daDat));
-                item.put("hetCho", daDat >= SUC_CHUA_SLOT);
+                    System.out.println("Bỏ qua lịch không hợp lệ.");
+                    continue;
+                }
 
-                result.add(item);
+                // Chỉ lấy lịch đang làm việc
+                if (!"DangLamViec".equals(lich.getTrangThai())) {
+                    System.out.println("Bỏ qua lịch không hoạt động.");
+                    continue;
+                }
 
-                batDau = gioKetThucKhung;
+                LocalTime gioBatDauSlot = batDauCa;
+
+                // 4. Tạo slot 30 phút
+                while (true) {
+
+                    LocalTime gioKetThucSlot =
+                            gioBatDauSlot.plusMinutes(THOI_LUONG_SLOT_PHUT);
+
+                    // =================================================
+                    // KIỂM TRA SLOT CÓ QUAY VÒNG QUA 00:00 KHÔNG
+                    // LocalTime không chứa thông tin ngày
+                    // =================================================
+                    if (!gioKetThucSlot.isAfter(gioBatDauSlot)) {
+                        System.out.println(
+                                "Dừng tạo slot: giờ đã vượt qua 00:00."
+                        );
+                        break;
+                    }
+
+                    // Slot phải nằm hoàn toàn trong ca làm việc
+                    if (gioKetThucSlot.isAfter(ketThucCa)) {
+                        System.out.println(
+                                "Dừng tạo slot: vượt giờ kết thúc ca."
+                        );
+                        break;
+                    }
+
+                    // Đếm lượt đặt trong slot
+                    long daDat = demLuotDatTrongKhungGio(
+                            thongKeTheoGio,
+                            gioBatDauSlot,
+                            gioKetThucSlot
+                    );
+
+                    int conTrong = (int) Math.max(
+                            0L,
+                            SUC_CHUA_SLOT - daDat
+                    );
+
+                    Map<String, Object> item = new LinkedHashMap<>();
+
+                    item.put("maLichLamViec", lich.getMaLichLamViec());
+                    item.put("gioBatDau", gioBatDauSlot.toString());
+                    item.put("gioKetThuc", gioKetThucSlot.toString());
+                    item.put("daDat", daDat);
+                    item.put("conTrong", conTrong);
+                    item.put("hetCho", daDat >= SUC_CHUA_SLOT);
+
+                    result.add(item);
+
+                    // Log slot
+                    System.out.println(
+                            "Slot: "
+                                    + gioBatDauSlot
+                                    + " - "
+                                    + gioKetThucSlot
+                                    + " | Đã đặt: "
+                                    + daDat
+                                    + " | Còn trống: "
+                                    + conTrong
+                                    + " | Hết chỗ: "
+                                    + (daDat >= SUC_CHUA_SLOT)
+                    );
+
+                    // Chuyển sang slot tiếp theo
+                    gioBatDauSlot = gioKetThucSlot;
+                }
             }
+
+            System.out.println("Tổng slot trả về: " + result.size());
+            System.out.println("=========================================");
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+
+            System.err.println("[KHUNG GIO KHAM] Lỗi: " + e.getMessage());
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                            "message",
+                            "Không thể lấy khung giờ khám."
+                    ));
         }
-
-        return ResponseEntity.ok(result);
     }
 
     // =========================================================

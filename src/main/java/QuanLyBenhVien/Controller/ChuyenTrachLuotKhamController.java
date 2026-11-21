@@ -44,7 +44,7 @@ public class ChuyenTrachLuotKhamController {
     }
 
     // =====================================================
-    // DANH SÁCH BỆNH NHÂN CLS TRONG NGÀY
+    // DANH SÁCH LƯỢT KHÁM CLS TRONG NGÀY
     // =====================================================
 
     @GetMapping("/hom-nay")
@@ -56,19 +56,19 @@ public class ChuyenTrachLuotKhamController {
 
         List<LichDangKyKham> danhSach = entityManager
                 .createQuery("""
-            SELECT DISTINCT l
-            FROM LichDangKyKham l
-            JOIN FETCH l.benhNhan b
-            JOIN FETCH b.nguoiDung
-            WHERE l.ngayKham = :ngay
-            AND EXISTS (
-                SELECT c.maChiDinh
-                FROM ChiDinhYTe c
-                WHERE c.hoSoBenhAn.lichDangKyKham = l
-                AND c.trangThai IN :trangThaiCLS
-            )
-            ORDER BY l.gioKham ASC, l.maLichKham ASC
-            """, LichDangKyKham.class)
+                    SELECT DISTINCT l
+                    FROM LichDangKyKham l
+                    JOIN FETCH l.benhNhan b
+                    JOIN FETCH b.nguoiDung
+                    WHERE l.ngayKham = :ngay
+                    AND EXISTS (
+                        SELECT c.maChiDinh
+                        FROM ChiDinhYTe c
+                        WHERE c.hoSoBenhAn.lichDangKyKham = l
+                        AND c.trangThai IN :trangThaiCLS
+                    )
+                    ORDER BY l.gioKham ASC, l.maLichKham ASC
+                """, LichDangKyKham.class)
                 .setParameter("ngay", homNay())
                 .setParameter(
                         "trangThaiCLS",
@@ -77,14 +77,12 @@ public class ChuyenTrachLuotKhamController {
                 .getResultList();
 
         return danhSach.stream().map(l -> {
+
             Map<String, Object> item = new LinkedHashMap<>();
 
             item.put("maLichKham", l.getMaLichKham());
             item.put("maBenhNhan", l.getBenhNhan().getMaBenhNhan());
-            item.put(
-                    "tenBenhNhan",
-                    l.getBenhNhan().getHoTen()
-            );
+            item.put("tenBenhNhan", l.getBenhNhan().getHoTen());
             item.put("ngayKham", l.getNgayKham().toString());
             item.put("gioKham", l.getGioKham().toString());
 
@@ -99,17 +97,43 @@ public class ChuyenTrachLuotKhamController {
 
             item.put("bacSiPhuTrach", tenBacSi);
 
+            // Lấy từng chỉ định còn trong luồng thực hiện CLS
             List<ChiDinhYTe> chiDinh = entityManager
                     .createQuery("""
                         SELECT c
                         FROM ChiDinhYTe c
                         JOIN FETCH c.dichVuYTe
                         WHERE c.hoSoBenhAn
-                               .lichDangKyKham.maLichKham = :maLichKham
-                        ORDER BY c.ngayChiDinh ASC
-                        """, ChiDinhYTe.class)
+                              .lichDangKyKham.maLichKham = :maLichKham
+                        AND c.trangThai IN :trangThai
+                        ORDER BY c.ngayChiDinh ASC, c.maChiDinh ASC
+                    """, ChiDinhYTe.class)
                     .setParameter("maLichKham", l.getMaLichKham())
+                    .setParameter(
+                            "trangThai",
+                            List.of("ChoThucHien", "DangThucHien")
+                    )
                     .getResultList();
+
+            // Trả về chi tiết từng chỉ định
+            List<Map<String, Object>> danhSachChiDinh =
+                    chiDinh.stream().map(c -> {
+
+                        Map<String, Object> cd = new LinkedHashMap<>();
+
+                        cd.put("maChiDinh", c.getMaChiDinh());
+                        cd.put("maDichVu", c.getDichVuYTe().getMaDichVu());
+                        cd.put(
+                                "tenDichVu",
+                                c.getDichVuYTe().getTenDichVu()
+                        );
+                        cd.put("maPhong", c.getMaPhong());
+                        cd.put("trangThai", c.getTrangThai());
+
+                        return cd;
+                    }).toList();
+
+            item.put("chiDinh", danhSachChiDinh);
 
             List<String> dichVu = chiDinh.stream()
                     .map(c -> c.getDichVuYTe().getTenDichVu())
@@ -117,6 +141,7 @@ public class ChuyenTrachLuotKhamController {
                     .distinct()
                     .toList();
 
+            // Giữ trường dichVu cũ để giảm ảnh hưởng Frontend
             item.put(
                     "dichVu",
                     dichVu.isEmpty()
@@ -124,85 +149,157 @@ public class ChuyenTrachLuotKhamController {
                             : String.join(", ", dichVu)
             );
 
+            // Trạng thái tổng chỉ mang tính hiển thị
             String trangThaiCLS;
 
             if (chiDinh.stream().anyMatch(
                     c -> "DangThucHien".equals(c.getTrangThai()))) {
-
                 trangThaiCLS = "DangCLS";
-
             } else if (chiDinh.stream().anyMatch(
                     c -> "ChoThucHien".equals(c.getTrangThai()))) {
-
                 trangThaiCLS = "ChoCLS";
-
             } else {
                 trangThaiCLS = "HoanThanhCLS";
             }
 
             item.put("trangThai", trangThaiCLS);
+
             return item;
+
         }).toList();
     }
 
     // =====================================================
-    // BẮT ĐẦU CLS: CHIDINHYTE: CHOTHUCHIEN - DANGTHUCHIEN
+    // BẮT ĐẦU MỘT CHỈ ĐỊNH CLS RIÊNG
+    // ChoThucHien -> DangThucHien
     // =====================================================
-    @PostMapping("/{maLichKham}/bat-dau")
+
+    @PostMapping("/{maLichKham}/chi-dinh/{maChiDinh}/bat-dau")
     @Transactional
     public Map<String, Object> batDau(
             @PathVariable Integer maLichKham,
+            @PathVariable Integer maChiDinh,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         kiemTraQuyen(user);
 
-        LichDangKyKham lich = entityManager.find(
-                LichDangKyKham.class,
-                maLichKham
+        kiemTraLichKhamHomNay(maLichKham);
+
+        ChiDinhYTe chiDinh = timChiDinh(
+                maLichKham,
+                maChiDinh
         );
 
-        if (lich == null ||
-                lich.getNgayKham() == null ||
-                !lich.getNgayKham().equals(homNay())) {
+        if (!"ChoThucHien".equals(chiDinh.getTrangThai())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Lượt khám không tồn tại hoặc không thuộc ngày hôm nay."
+                    "Chỉ định không ở trạng thái chờ thực hiện."
             );
         }
 
         int soLuong = entityManager.createQuery("""
-        UPDATE ChiDinhYTe c
-        SET c.trangThai = 'DangThucHien'
-        WHERE c.hoSoBenhAn.lichDangKyKham.maLichKham = :maLichKham
-          AND c.trangThai = 'ChoThucHien'
+            UPDATE ChiDinhYTe c
+            SET c.trangThai = 'DangThucHien'
+            WHERE c.maChiDinh = :maChiDinh
+              AND c.hoSoBenhAn.lichDangKyKham.maLichKham = :maLichKham
+              AND c.trangThai = 'ChoThucHien'
         """)
+                .setParameter("maChiDinh", maChiDinh)
                 .setParameter("maLichKham", maLichKham)
                 .executeUpdate();
 
-        if (soLuong == 0) {
+        if (soLuong != 1) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
-                    "Không có chỉ định CLS nào đang chờ thực hiện."
+                    "Không thể bắt đầu chỉ định CLS này."
             );
         }
 
         return Map.of(
-                "message", "Đã bắt đầu thực hiện cận lâm sàng.",
-                "trangThai", "DangCLS"
+                "message", "Đã bắt đầu chỉ định CLS.",
+                "maLichKham", maLichKham,
+                "maChiDinh", maChiDinh,
+                "trangThai", "DangThucHien"
         );
     }
 
     // =====================================================
-    // HOÀN THÀNH CLS, CHUYỂN VỀ BÁC SĨ: XET TREN CHIDINHYTE THOI
-    // DANGTHUCHIEN - DAHOANTHANH
+    // HOÀN THÀNH MỘT CHỈ ĐỊNH CLS RIÊNG
+    // DangThucHien -> DaHoanThanh
     // =====================================================
-    @PostMapping("/{maLichKham}/hoan-thanh")
+
+    @PostMapping("/{maLichKham}/chi-dinh/{maChiDinh}/hoan-thanh")
     @Transactional
     public Map<String, Object> hoanThanh(
             @PathVariable Integer maLichKham,
+            @PathVariable Integer maChiDinh,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
         kiemTraQuyen(user);
+
+        kiemTraLichKhamHomNay(maLichKham);
+
+        ChiDinhYTe chiDinh = timChiDinh(
+                maLichKham,
+                maChiDinh
+        );
+
+        if (!"DangThucHien".equals(chiDinh.getTrangThai())) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Chỉ định không ở trạng thái đang thực hiện."
+            );
+        }
+
+        // Kiểm tra chỉ định có kết quả đã hoàn thành hay chưa
+        Long soKetQua = entityManager.createQuery("""
+            SELECT COUNT(k)
+            FROM KetQuaDichVu k
+            WHERE k.chiDinhYTe.maChiDinh = :maChiDinh
+              AND k.trangThai = 'DaHoanThanh'
+        """, Long.class)
+                .setParameter("maChiDinh", maChiDinh)
+                .getSingleResult();
+
+        if (soKetQua == null || soKetQua == 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Chỉ định chưa có kết quả hoàn thành. "
+                            + "Vui lòng lưu kết quả trước."
+            );
+        }
+
+        int soLuong = entityManager.createQuery("""
+            UPDATE ChiDinhYTe c
+            SET c.trangThai = 'DaHoanThanh'
+            WHERE c.maChiDinh = :maChiDinh
+              AND c.hoSoBenhAn.lichDangKyKham.maLichKham = :maLichKham
+              AND c.trangThai = 'DangThucHien'
+        """)
+                .setParameter("maChiDinh", maChiDinh)
+                .setParameter("maLichKham", maLichKham)
+                .executeUpdate();
+
+        if (soLuong != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không thể hoàn thành chỉ định CLS này."
+            );
+        }
+
+        return Map.of(
+                "message", "Đã hoàn thành chỉ định CLS.",
+                "maLichKham", maLichKham,
+                "maChiDinh", maChiDinh,
+                "trangThai", "DaHoanThanh"
+        );
+    }
+
+    // =====================================================
+    // KIỂM TRA LỊCH KHÁM
+    // =====================================================
+
+    private void kiemTraLichKhamHomNay(Integer maLichKham) {
 
         LichDangKyKham lich = entityManager.find(
                 LichDangKyKham.class,
@@ -212,143 +309,41 @@ public class ChuyenTrachLuotKhamController {
         if (lich == null ||
                 lich.getNgayKham() == null ||
                 !lich.getNgayKham().equals(homNay())) {
+
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "Lượt khám không tồn tại hoặc không thuộc ngày hôm nay."
             );
         }
-
-        int soLuong = entityManager.createQuery("""
-        UPDATE ChiDinhYTe c
-        SET c.trangThai = 'DaHoanThanh'
-        WHERE c.hoSoBenhAn.lichDangKyKham.maLichKham = :maLichKham
-          AND c.trangThai = 'DangThucHien'
-        """)
-                .setParameter("maLichKham", maLichKham)
-                .executeUpdate();
-
-        if (soLuong == 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Không có chỉ định CLS nào đang thực hiện."
-            );
-        }
-
-        return Map.of(
-                "message", "Đã hoàn thành cận lâm sàng.",
-                "trangThai", "HoanThanhCLS"
-        );
     }
 
     // =====================================================
-    // CẬP NHẬT TRẠNG THÁI ĐỒNG BỘ 3 BẢNG
+    // KIỂM TRA CHỈ ĐỊNH THUỘC ĐÚNG LỊCH KHÁM
     // =====================================================
 
-    private Map<String, String> chuyenTrangThai(
+    private ChiDinhYTe timChiDinh(
             Integer maLichKham,
-            String trangThaiCu,
-            String trangThaiMoi,
-            String thongBao
+            Integer maChiDinh
     ) {
-        // Kiểm tra lượt khám phải tồn tại, đúng ngày và đúng trạng thái.
-        LichDangKyKham lich = entityManager.find(
-                LichDangKyKham.class,
-                maLichKham
-        );
 
-        if (lich == null ||
-                lich.getNgayKham() == null ||
-                !lich.getNgayKham().equals(homNay()) ||
-                !trangThaiCu.equals(lich.getTrangThai())) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Lượt khám không tồn tại, không thuộc ngày hôm nay "
-                            + "hoặc không còn ở trạng thái " + trangThaiCu + "."
-            );
-        }
-
-
-        // 1. Cập nhật LichDangKyKham
-        int soLich = entityManager.createQuery("""
-        UPDATE LichDangKyKham l
-        SET l.trangThai = :trangThaiMoi
-        WHERE l.maLichKham = :maLichKham
-          AND l.trangThai = :trangThaiCu
-          AND l.ngayKham = :ngay
-        """)
-                .setParameter("trangThaiMoi", trangThaiMoi)
+        List<ChiDinhYTe> danhSach = entityManager
+                .createQuery("""
+                    SELECT c
+                    FROM ChiDinhYTe c
+                    WHERE c.maChiDinh = :maChiDinh
+                    AND c.hoSoBenhAn.lichDangKyKham.maLichKham = :maLichKham
+                """, ChiDinhYTe.class)
+                .setParameter("maChiDinh", maChiDinh)
                 .setParameter("maLichKham", maLichKham)
-                .setParameter("trangThaiCu", trangThaiCu)
-                .setParameter("ngay", homNay())
-                .executeUpdate();
+                .getResultList();
 
-        if (soLich != 1) {
+        if (danhSach.isEmpty()) {
             throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Không thể cập nhật trạng thái lượt khám."
+                    HttpStatus.NOT_FOUND,
+                    "Không tìm thấy chỉ định thuộc lượt khám này."
             );
         }
 
-// 2. Cập nhật TiepNhanBenhNhan
-        int soTiepNhan = entityManager.createQuery("""
-        UPDATE TiepNhanBenhNhan t
-        SET t.trangThai = :trangThaiMoi
-        WHERE t.lichDangKyKham.maLichKham = :maLichKham
-          AND t.trangThai = :trangThaiCu
-        """)
-                .setParameter("trangThaiMoi", trangThaiMoi)
-                .setParameter("maLichKham", maLichKham)
-                .setParameter("trangThaiCu", trangThaiCu)
-                .executeUpdate();
-
-        if (soTiepNhan != 1) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Không thể cập nhật trạng thái tiếp nhận bệnh nhân."
-            );
-        }
-
-        // 3. Cập nhật HoSoBenhAn
-        int soHoSo;
-
-        if ("DangCLS".equals(trangThaiMoi)) {
-            // Hồ sơ vẫn giữ ChoCLS trong lúc nhân viên thực hiện CLS.
-            soHoSo = entityManager.createQuery("""
-            UPDATE HoSoBenhAn h
-            SET h.trangThai = 'ChoCLS'
-            WHERE h.lichDangKyKham.maLichKham = :maLichKham
-              AND h.trangThai = 'ChoCLS'
-            """)
-                    .setParameter("maLichKham", maLichKham)
-                    .executeUpdate();
-
-        } else if ("DangKham".equals(trangThaiMoi)) {
-            // Hoàn thành CLS, chuyển hồ sơ về bác sĩ tiếp tục khám.
-            soHoSo = entityManager.createQuery("""
-            UPDATE HoSoBenhAn h
-            SET h.trangThai = 'DangKham'
-            WHERE h.lichDangKyKham.maLichKham = :maLichKham
-              AND h.trangThai = 'ChoCLS'
-            """)
-                    .setParameter("maLichKham", maLichKham)
-                    .executeUpdate();
-
-        } else {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Trạng thái chuyển đổi không hợp lệ."
-            );
-        }
-
-        if (soHoSo != 1) {
-            throw new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "Không thể đồng bộ trạng thái hồ sơ bệnh án."
-            );
-        }
-        return Map.of(
-                "message", thongBao,
-                "trangThai", trangThaiMoi
-        );
+        return danhSach.get(0);
     }
 }

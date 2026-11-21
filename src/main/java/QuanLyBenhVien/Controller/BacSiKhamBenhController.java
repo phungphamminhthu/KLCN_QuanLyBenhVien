@@ -174,7 +174,7 @@ public class BacSiKhamBenhController {
                             .countByBacSi_MaBacSiAndNgayKhamAndTrangThai(
                                     maBacSi,
                                     homNay,
-                                    "DaKham"
+                                    "HoanTat"
                             );
 
             Map<String, Object> ketQua =
@@ -214,7 +214,7 @@ public class BacSiKhamBenhController {
                         lichDangKyKhamRepository
                                 .findByBacSi_MaBacSiAndTrangThaiOrderByNgayKhamDescGioKhamDesc(
                                         maBacSi,
-                                        "DaKham"
+                                        "HoanTat"
                                 );
 
             } else {
@@ -235,7 +235,7 @@ public class BacSiKhamBenhController {
                         lichDangKyKhamRepository
                                 .findByBacSi_MaBacSiAndTrangThaiAndNgayKhamBetweenOrderByNgayKhamDescGioKhamDesc(
                                         maBacSi,
-                                        "DaKham",
+                                        "HoanTat",
                                         tuNgay,
                                         denNgay
                                 );
@@ -1250,8 +1250,8 @@ public class BacSiKhamBenhController {
         }
     }
     // =========================================================
-// 22. XEM CHI TIẾT MỘT LẦN KHÁM TRONG LỊCH SỬ
-// =========================================================
+    // 22. XEM CHI TIẾT MỘT LẦN KHÁM TRONG LỊCH SỬ
+    // =========================================================
     @GetMapping("/{maLichKham}/lich-su-kham/{maHoSoBenhAn}")
     public ResponseEntity<?> xemChiTietLichSuKham(
             @PathVariable Integer maLichKham,

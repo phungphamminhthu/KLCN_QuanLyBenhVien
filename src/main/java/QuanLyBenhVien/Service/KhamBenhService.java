@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Service
@@ -32,6 +33,7 @@ public class KhamBenhService {
     private final ChiDinhYTeRepository chiDinhYTeRepository;
     private final KetQuaDichVuRepository ketQuaDichVuRepository;
     private final ChiTietKetQuaRepository chiTietKetQuaRepository;
+    private final PhanCongChuyenTrachRepository phanCongChuyenTrachRepository;
     private final JdbcTemplate jdbcTemplate;
 
 
@@ -63,6 +65,7 @@ public class KhamBenhService {
             BacSiRepository bacSiRepository,
             LichLamViecRepository lichLamViecRepository,
             ThongBaoService thongBaoService,
+            PhanCongChuyenTrachRepository phanCongChuyenTrachRepository,
             JdbcTemplate jdbcTemplate,
             PhongChuyenTrachRepository phongChuyenTrachRepository,
             AnhKetQuaDichVuRepository anhKetQuaDichVuRepository
@@ -84,6 +87,7 @@ public class KhamBenhService {
 
         this.lichLamViecRepository = lichLamViecRepository;
         this.thongBaoService = thongBaoService;
+        this.phanCongChuyenTrachRepository = phanCongChuyenTrachRepository;
 
         this.jdbcTemplate = jdbcTemplate;
         this.phongChuyenTrachRepository = phongChuyenTrachRepository;
@@ -634,6 +638,20 @@ public class KhamBenhService {
                 "CHI_DINH_CLS_CHO_THANH_TOAN"
         );
 
+        // Gửi thông báo cho nhân viên chuyên trách CLS đang trực
+        String noiDungThongBaoCLS =
+                "Bệnh nhân "
+                        + tenBenhNhan
+                        + " vừa được bác sĩ chỉ định "
+                        + danhSachDichVu.size()
+                        + " dịch vụ cận lâm sàng. "
+                        + "Vui lòng kiểm tra và xử lý các chỉ định CLS.";
+
+        guiThongBaoNhanVienChuyenTrachCLS(
+                lichKham,
+                noiDungThongBaoCLS
+        );
+
         return danhSachChiDinh;
     }
 
@@ -792,6 +810,20 @@ public class KhamBenhService {
         // 11. Gửi thông báo
         guiThongBaoChiDinhCLS(lichKham, dichVu);
 
+        // Gửi thông báo cho nhân viên chuyên trách đang trực
+        String tenBenhNhanCLS = lichKham.getBenhNhan().getHoTen();
+
+        String tenDichVuCLS = dichVu.getTenDichVu();
+
+        guiThongBaoNhanVienChuyenTrachCLS(
+                lichKham,
+                "Bệnh nhân "
+                        + tenBenhNhanCLS
+                        + " vừa được bác sĩ chỉ định dịch vụ "
+                        + tenDichVuCLS
+                        + ". Vui lòng kiểm tra và xử lý chỉ định CLS."
+        );
+
         String tenBenhNhan = "Bệnh nhân";
 
         if (lichKham.getBenhNhan() != null
@@ -850,6 +882,54 @@ public class KhamBenhService {
                         + ". Vui lòng kiểm tra thông tin.",
                 "CHI_DINH_CLS"
         );
+    }
+
+    // ===================================================
+    // GỬI THÔNG BÁO CHO NHÂN VIÊN CHUYÊN TRÁCH CLS ĐANG TRỰC
+    // ===================================================
+
+    private void guiThongBaoNhanVienChuyenTrachCLS(
+            LichDangKyKham lichKham,
+            String noiDung
+    ) {
+        if (lichKham == null
+                || lichKham.getBenhNhan() == null) {
+            return;
+        }
+
+        LocalDate ngayHienTai = LocalDate.now();
+        LocalTime gioHienTai = LocalTime.now();
+
+        // Tìm nhân viên được phân công trực tại thời điểm này
+        List<Integer> danhSachMaNguoiDung =
+                phanCongChuyenTrachRepository
+                        .findNhanVienDangTruc(
+                                ngayHienTai,
+                                gioHienTai
+                        );
+
+        if (danhSachMaNguoiDung == null
+                || danhSachMaNguoiDung.isEmpty()) {
+            return;
+        }
+
+        BenhNhan benhNhan = lichKham.getBenhNhan();
+
+        // Gửi thông báo đến nhân viên đang trực
+        for (Integer maNguoiDung : danhSachMaNguoiDung) {
+
+            if (maNguoiDung == null) {
+                continue;
+            }
+
+            thongBaoService.taoThongBaoVaGuiRealtime(
+                    maNguoiDung,
+                    benhNhan,
+                    "Có chỉ định CLS mới",
+                    noiDung,
+                    "CHI_DINH_CLS"
+            );
+        }
     }
 
     // =========================================================

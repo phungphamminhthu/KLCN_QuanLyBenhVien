@@ -199,6 +199,28 @@ function clsKhoaKeDon(message) {
     }
 }
 
+/* Cập nhật bảng trạng thái CLS tổng quan */
+function clsCapNhatTongQuanCLS(total, ready, pending, processing, checks) {
+    const text = clsEl("clinicalSummaryText");
+    const badge = clsEl("clinicalSummaryBadge");
+    if (!text || !badge) return;
+
+    const active = checks.filter(c => clsGiaTri(c.item, "trangThai", "TrangThai") !== "DaHuy");
+    if (total === 0 || active.length === 0) {
+        text.textContent = total === 0 ? "Lượt khám chưa có chỉ định cận lâm sàng." : "Các chỉ định đã được hủy.";
+        badge.textContent = total === 0 ? "Chưa có chỉ định" : "Đã hủy";
+    } else if (ready === active.length) {
+        text.textContent = `Tất cả ${ready} chỉ định đang hoạt động đã có kết quả.`;
+        badge.textContent = "Hoàn tất";
+    } else if (processing > 0) {
+        text.textContent = `Đã có kết quả ${ready}/${active.length}; ${processing} chỉ định đang thực hiện.`;
+        badge.textContent = "Đang thực hiện";
+    } else {
+        text.textContent = `Đã có kết quả ${ready}/${active.length}; còn ${active.length - ready} chỉ định chưa hoàn tất.`;
+        badge.textContent = "Chưa hoàn tất";
+    }
+}
+
 /* =========================================
    THÔNG TIN HỒ SƠ BỆNH NHÂN
 ========================================= */
@@ -565,199 +587,121 @@ function clsTenDichVu(item) {
    DANH SÁCH CLS - GOM NHÓM XÉT NGHIỆM
 ========================================= */
 
-async function clsTaiChiDinh() {
+async function clsTaiChiDinh(silent = false) {
     const loading = clsEl("clinicalLoading");
     const list = clsEl("clinicalList");
     const empty = clsEl("clinicalEmpty");
 
-    loading.classList.remove("hidden");
-    empty.classList.add("hidden");
-    list.replaceChildren();
-
-    clsKhoaKeDon("Đang kiểm tra kết quả các chỉ định...");
+    // Polling nền không bật loading và không xóa danh sách trước,
+    // tránh giao diện nhấp nháy mỗi 5 giây.
+    if (!silent) {
+        loading.classList.remove("hidden");
+        empty.classList.add("hidden");
+        list.replaceChildren();
+        clsKhoaKeDon("Đang kiểm tra kết quả các chỉ định...");
+    }
 
     try {
-        // 1. Tải danh sách chỉ định
         const data = await clsApi(
             `${CLS_API_BASE}/${clsMaLichKham}/chi-dinh`,
-            {
-                headers: clsHeaders()
-            }
+            { headers: clsHeaders() }
         );
 
         if (!Array.isArray(data)) {
-            throw new Error(
-                "Dữ liệu danh sách chỉ định không hợp lệ."
-            );
+            throw new Error("Dữ liệu danh sách chỉ định không hợp lệ.");
         }
 
         clsDanhSachChiDinh = data;
-
         const total = data.length;
 
-        let pending = 0;
-        let processing = 0;
-        let ready = 0;
+        // Kiểm tra API kết quả thực tế cho mọi chỉ định chưa hủy,
+        // không phụ thuộc status của danh sách có thể chưa đồng bộ.
+        const checks = await Promise.all(data.map(async item => {
+            const status = clsGiaTri(item, "trangThai", "TrangThai");
+            const id = clsGiaTri(item, "maChiDinh", "MaChiDinh");
 
-        // 2. Tải kết quả chi tiết từng xét nghiệm
-        const checks = await Promise.all(
-            data.map(async item => {
-                const status = clsGiaTri(
-                    item,
-                    "trangThai",
-                    "TrangThai"
+            if (status === "DaHuy" || !id) {
+                return { item, hasResult: false, ketQua: null };
+            }
+
+            try {
+                const result = await clsApi(
+                    `${CLS_API_BASE}/${clsMaLichKham}/chi-dinh/${id}/ket-qua`,
+                    { headers: clsHeaders() }
                 );
 
-                if (status === "ChoThucHien") {
-                    pending++;
-                } else if (status === "DangThucHien") {
-                    processing++;
+                const valid = result?.coKetQua === true &&
+                    clsGiaTri(result, "trangThai", "TrangThai") === "DaHoanThanh";
+
+                return { item, hasResult: valid, ketQua: valid ? result : null };
+            } catch (error) {
+                // Chưa có kết quả thường là trạng thái hợp lệ; tránh log lỗi liên tục khi polling.
+                if (!silent) {
+                    console.debug("Chỉ định chưa có kết quả:", id, error.message);
                 }
+                return { item, hasResult: false, ketQua: null };
+            }
+        }));
 
-                const id = clsGiaTri(
-                    item,
-                    "maChiDinh",
-                    "MaChiDinh"
-                );
+        const ready = checks.filter(check => check.hasResult).length;
+        const pending = checks.filter(check => !check.hasResult && [
+            "ChoThanhToan", "ChoThucHien"
+        ].includes(clsGiaTri(check.item, "trangThai", "TrangThai"))).length;
+        const processing = checks.filter(check => !check.hasResult &&
+            clsGiaTri(check.item, "trangThai", "TrangThai") === "DangThucHien").length;
 
-                if (status !== "DaHoanThanh" || !id) {
-                    return {
-                        item,
-                        hasResult: false,
-                        ketQua: null
-                    };
-                }
-
-                try {
-                    const result = await clsApi(
-                        `${CLS_API_BASE}/${clsMaLichKham}/chi-dinh/${id}/ket-qua`,
-                        {
-                            headers: clsHeaders()
-                        }
-                    );
-
-                    const valid =
-                        result?.coKetQua === true &&
-                        clsGiaTri(
-                            result,
-                            "trangThai",
-                            "TrangThai"
-                        ) === "DaHoanThanh";
-
-                    if (valid) {
-                        ready++;
-                    }
-
-                    return {
-                        item,
-                        hasResult: valid,
-                        ketQua: valid ? result : null
-                    };
-
-                } catch (error) {
-                    console.error(
-                        "Không thể tải kết quả:",
-                        id,
-                        error
-                    );
-
-                    return {
-                        item,
-                        hasResult: false,
-                        ketQua: null
-                    };
-                }
-            })
-        );
-
-        // 3. Cập nhật thống kê
         clsEl("totalOrders").textContent = total;
         clsEl("pendingOrders").textContent = pending;
         clsEl("processingOrders").textContent = processing;
         clsEl("completedOrders").textContent = ready;
+        clsCapNhatTongQuanCLS(total, ready, pending, processing, checks);
 
-        empty.classList.toggle(
-            "hidden",
-            total !== 0
-        );
+        empty.classList.toggle("hidden", total !== 0);
 
-        // 4. Gom các xét nghiệm theo nhóm
+        // Render từ dữ liệu vừa kiểm tra.
+        // silent vẫn render lại trạng thái, nhưng không bật loading.
+        list.replaceChildren();
+
         const nhomXetNghiem = new Map();
         const dichVuKhac = [];
 
         checks.forEach(check => {
             const { item } = check;
-
             const loai = String(
-                clsGiaTri(
-                    item,
-                    "loaiDichVu",
-                    "LoaiDichVu"
-                ) ||
-                clsGiaTri(
-                    item,
-                    "loaiChiDinh",
-                    "LoaiChiDinh"
-                ) ||
-                ""
-            ).trim()
-             .normalize("NFD")
-             .replace(/[\u0300-\u036f]/g, "")
-             .toLowerCase();
+                clsGiaTri(item, "loaiDichVu", "LoaiDichVu") ||
+                clsGiaTri(item, "loaiChiDinh", "LoaiChiDinh") || ""
+            ).trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
             if (loai !== "xet nghiem") {
                 dichVuKhac.push(check);
                 return;
             }
 
-            const tenNhom = String(
-                clsGiaTri(
-                    item,
-                    "nhomXetNghiem",
-                    "NhomXetNghiem"
-                ) ||
-                "XÉT NGHIỆM KHÁC"
-            ).trim() || "XÉT NGHIỆM KHÁC";
+            const tenNhom = String(clsGiaTri(item, "nhomXetNghiem", "NhomXetNghiem") ||
+                "XÉT NGHIỆM KHÁC").trim() || "XÉT NGHIỆM KHÁC";
 
-            if (!nhomXetNghiem.has(tenNhom)) {
-                nhomXetNghiem.set(tenNhom, []);
-            }
-
+            if (!nhomXetNghiem.has(tenNhom)) nhomXetNghiem.set(tenNhom, []);
             nhomXetNghiem.get(tenNhom).push(check);
         });
 
-        // 5. Hiển thị các nhóm thành 2 cột
         const grid = document.createElement("div");
         grid.className = "cls-result-grid";
 
         for (const [tenNhom, items] of nhomXetNghiem) {
             const box = document.createElement("section");
             box.className = "cls-result-group";
-
-            const soDaCo = items.filter(
-                check => check.hasResult
-            ).length;
+            const soDaCo = items.filter(check => check.hasResult).length;
 
             const title = document.createElement("div");
             title.className = "cls-result-group-title";
-
             title.innerHTML = `
-                <strong>
-                    <i class="fa-solid fa-flask-vial"></i>
-                    ${clsEscape(tenNhom)}
-                </strong>
-
-                <span>
-                    ${soDaCo}/${items.length}
-                </span>
+                <strong><i class="fa-solid fa-flask-vial"></i> ${clsEscape(tenNhom)}</strong>
+                <span>${soDaCo}/${items.length}</span>
             `;
-
             box.appendChild(title);
 
-            // Mỗi xét nghiệm là một dòng
             for (const check of items) {
                 const { item, hasResult, ketQua } = check;
-
                 const row = document.createElement("div");
                 row.className = "cls-result-row";
 
@@ -766,145 +710,60 @@ async function clsTaiChiDinh() {
                 ten.textContent = clsTenDichVu(item);
 
                 const giaTri = document.createElement("strong");
-
-                giaTri.className = hasResult
-                    ? "cls-result-value"
-                    : "cls-result-waiting";
-
-                const noiDung = clsGiaTri(
-                    ketQua,
-                    "noiDungKetQua",
-                    "NoiDungKetQua"
-                );
-
-                giaTri.textContent = hasResult
-                    ? String(noiDung ?? "—")
-                    : "Chờ kết quả";
-
+                giaTri.className = hasResult ? "cls-result-value" : "cls-result-waiting";
+                const noiDung = clsGiaTri(ketQua, "noiDungKetQua", "NoiDungKetQua");
+                giaTri.textContent = hasResult ? String(noiDung ?? "—") : "Chờ kết quả";
                 row.appendChild(ten);
                 row.appendChild(giaTri);
 
-                // Có kết quả thì bấm dòng để xem chi tiết
                 if (hasResult) {
-                    const maChiDinh = clsGiaTri(
-                        item,
-                        "maChiDinh",
-                        "MaChiDinh"
-                    );
-
+                    const maChiDinh = clsGiaTri(item, "maChiDinh", "MaChiDinh");
                     row.classList.add("cls-result-clickable");
                     row.setAttribute("role", "button");
                     row.setAttribute("tabindex", "0");
                     row.title = "Bấm để xem chi tiết kết quả";
-
-                    const moChiTiet = () => {
-                        clsXemKetQua(
-                            maChiDinh,
-                            clsTenDichVu(item)
-                        );
-                    };
-
-                    row.addEventListener(
-                        "click",
-                        moChiTiet
-                    );
-
-                    row.addEventListener(
-                        "keydown",
-                        event => {
-                            if (
-                                event.key === "Enter" ||
-                                event.key === " "
-                            ) {
-                                event.preventDefault();
-                                moChiTiet();
-                            }
+                    const moChiTiet = () => clsXemKetQua(maChiDinh, clsTenDichVu(item));
+                    row.addEventListener("click", moChiTiet);
+                    row.addEventListener("keydown", event => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            moChiTiet();
                         }
-                    );
+                    });
                 }
-
                 box.appendChild(row);
             }
-
             grid.appendChild(box);
         }
 
-        if (nhomXetNghiem.size > 0) {
-            list.appendChild(grid);
-        }
+        if (nhomXetNghiem.size > 0) list.appendChild(grid);
 
-        // 6. Dịch vụ khác: giữ nút xem kết quả
         dichVuKhac.forEach(({ item, hasResult }) => {
-            const id = clsGiaTri(
-                item,
-                "maChiDinh",
-                "MaChiDinh"
-            );
-
-            const status = clsGiaTri(
-                item,
-                "trangThai",
-                "TrangThai"
-            );
-
-            const statusClass = hasResult
-                ? "completed"
-                : status === "DangThucHien"
-                    ? "processing"
-                    : "";
-
-            const statusName = hasResult
-                ? "Đã có kết quả"
-                : status === "DaHoanThanh"
-                    ? "Đang xác minh kết quả"
-                    : clsTenTrangThai(status);
-
+            const id = clsGiaTri(item, "maChiDinh", "MaChiDinh");
+            const status = clsGiaTri(item, "trangThai", "TrangThai");
+            const statusClass = hasResult ? "completed" : status === "DangThucHien" ? "processing" : "";
+            const statusName = hasResult ? "Đã có kết quả" :
+                status === "DaHoanThanh" ? "Đang xác minh kết quả" : clsTenTrangThai(status);
             const box = document.createElement("div");
             box.className = "clinical-item";
-
-            const room = clsGiaTri(
-                item,
-                "maPhong",
-                "MaPhong"
-            );
-
-            const date = clsGiaTri(
-                item,
-                "ngayChiDinh",
-                "NgayChiDinh"
-            );
-
-            const type = clsGiaTri(
-                item,
-                "loaiChiDinh",
-                "LoaiChiDinh"
-            );
+            const roomName = clsGiaTri(item, "tenPhong", "TenPhong", "tenPhongChuyenTrach", "TenPhongChuyenTrach", "phong.tenPhong", "Phong.TenPhong", "tenPhongThucHien", "TenPhongThucHien");
+            const roomId = clsGiaTri(item, "maPhong", "MaPhong");
+            const room = roomName || (roomId ? `Phòng ${roomId}` : "");
+            const date = clsGiaTri(item, "ngayChiDinh", "NgayChiDinh");
+            const type = clsGiaTri(item, "loaiChiDinh", "LoaiChiDinh");
 
             box.innerHTML = `
                 <div class="clinical-item-header">
                     <div>
-                        <div class="clinical-item-title">
-                            ${clsEscape(clsTenDichVu(item))}
-                        </div>
-
+                        <div class="clinical-item-title">${clsEscape(clsTenDichVu(item))}</div>
                         <div class="clinical-item-meta">
-                            ${clsEscape(type || "")}
-                            ${room ? ` • Phòng ${clsEscape(room)}` : ""}
-                            ${date ? ` • ${clsEscape(clsNgay(date))}` : ""}
+                            ${clsEscape(type || "")}${room ? ` • ${clsEscape(room)}` : ""}${date ? ` • ${clsEscape(clsNgay(date))}` : ""}
                         </div>
                     </div>
-
-                    <span class="clinical-status ${statusClass}">
-                        ${clsEscape(statusName)}
-                    </span>
+                    <span class="clinical-status ${statusClass}">${clsEscape(statusName)}</span>
                 </div>
-
                 <div class="clinical-item-actions">
-                    <button
-                        type="button"
-                        class="clinical-result-button"
-                        ${hasResult ? "" : "disabled"}
-                    >
+                    <button type="button" class="clinical-result-button" ${hasResult ? "" : "disabled"}>
                         <i class="fa-solid fa-file-medical"></i>
                         ${hasResult ? "Xem kết quả" : "Chưa có kết quả"}
                     </button>
@@ -912,96 +771,46 @@ async function clsTaiChiDinh() {
             `;
 
             if (hasResult) {
-                box.querySelector(".clinical-result-button")
-                    .addEventListener("click", () => {
-                        clsXemKetQua(
-                            id,
-                            clsTenDichVu(item)
-                        );
-                    });
+                box.querySelector(".clinical-result-button").addEventListener("click", () =>
+                    clsXemKetQua(id, clsTenDichVu(item))
+                );
             }
-
             list.appendChild(box);
         });
 
-        // 7. Kiểm tra điều kiện kê đơn
-        const allReady =
-            total > 0 &&
-            ready === total &&
-            !clsHoSoHoanTat;
-
-        const badge = clsEl("clinicalSummaryBadge");
-
-        badge.className =
-            `clinical-summary-badge ${
-                allReady ? "completed" : "pending"
-            }`;
+        // Có thể kê đơn khi không còn chỉ định nào đang chờ hoặc thực hiện,
+        // và các chỉ định đang hoạt động đều đã có kết quả.
+        const conDangXuLy = checks.some(check => {
+            const status = clsGiaTri(check.item, "trangThai", "TrangThai");
+            return status !== "DaHuy" && !check.hasResult;
+        });
 
         if (total === 0) {
-            badge.textContent = "Chưa chỉ định";
-
-            clsEl("clinicalSummaryText").textContent =
-                "Chưa có chỉ định cận lâm sàng trong lượt khám này.";
-
-            clsKhoaKeDon(
-                "Không có chỉ định CLS. Quay lại trang khám để kê đơn nếu cần."
-            );
-
-        } else if (allReady) {
-            badge.textContent = "Đã có đủ kết quả";
-
-            clsEl("clinicalSummaryText").textContent =
-                `Đã có kết quả của ${ready}/${total} chỉ định.`;
-
-            clsCoTheKeDon = true;
-
-            clsEl("btnGoPrescription").disabled = false;
-
-            clsEl("prescriptionButtonIcon")
-                ?.classList.replace(
-                    "fa-lock",
-                    "fa-prescription-bottle-medical"
-                );
-
-            clsEl("prescriptionLockMessage").textContent =
-                "Đã đủ kết quả cận lâm sàng. Có thể trở về kê đơn.";
-
+            clsKhoaKeDon("Chưa có chỉ định cận lâm sàng.");
+        } else if (conDangXuLy) {
+            clsKhoaKeDon(`Đã có kết quả ${ready}/${total} chỉ định. Chưa đủ điều kiện kê đơn.`);
         } else {
-            badge.textContent = "Đang chờ kết quả";
-
-            clsEl("clinicalSummaryText").textContent =
-                `Đã có kết quả ${ready}/${total} chỉ định. Chưa đủ điều kiện kê đơn.`;
-
-            clsKhoaKeDon(
-                "Còn chỉ định chưa hoàn thành hoặc chưa có kết quả hợp lệ."
-            );
+            clsCoTheKeDon = true;
+            const button = clsEl("btnGoPrescription");
+            if (button) button.disabled = false;
+            clsEl("prescriptionButtonIcon")?.classList.replace("fa-lock", "fa-prescription-bottle-medical");
+            if (clsEl("prescriptionLockMessage")) {
+                clsEl("prescriptionLockMessage").textContent = `Đã có kết quả ${ready}/${total} chỉ định. Có thể kê đơn.`;
+            }
         }
 
     } catch (error) {
-        console.error(error);
-
-        clsDanhSachChiDinh = [];
-        list.replaceChildren();
-
-        empty.classList.remove("hidden");
-
-        const message = empty.querySelector("p");
-
-        if (message) {
-            message.textContent = error.message;
+        if (!silent) {
+            clsThongBao(error.message, true);
         }
-
-        clsKhoaKeDon(
-            "Không thể xác minh trạng thái cận lâm sàng."
-        );
-
-        clsThongBao(error.message, true);
-
+        console.error("Lỗi tải danh sách CLS:", error);
     } finally {
-        loading.classList.add("hidden");
+        if (!silent) loading.classList.add("hidden");
     }
 }
 
+// Không polling/render lại toàn bộ trang liên tục.
+// Dữ liệu được tải khi mở trang, bấm Làm mới hoặc quay lại màn hình.
 
 /* =========================================
    MODAL XEM KẾT QUẢ
@@ -1392,8 +1201,6 @@ async function clsXemKetQua(
         console.log("anhKetQua:", images);
         console.log("Số chỉ số:", rows.length);
         console.log("Có hình ảnh:", hasImages);
-        console.log("HTML bảng chỉ số:", table);
-
         // Nếu kết quả có hình ảnh thì không hiển thị bảng chỉ số.
         // Nếu không có hình ảnh thì hiển thị bảng khi có chỉ số.
         const table = (!hasImages && rows.length > 0)
@@ -1432,6 +1239,8 @@ async function clsXemKetQua(
                 </section>
             `
             : "";
+
+        console.log("HTML bảng chỉ số:", table);
 
         // Tải ảnh kết quả từ API
         const htmlAnh = await clsRenderAnhKetQua(
@@ -1544,6 +1353,7 @@ async function clsXemKetQua(
         }
     }
 }
+
 
 
 /* =========================================
@@ -1678,6 +1488,7 @@ async function clsKhoiTao() {
     }
 
     clsGanSuKien();
+    clsDaKhoiTao = true;
 
     clsEl("pageLoading")
         .classList.remove("hidden");
@@ -1704,3 +1515,21 @@ document.addEventListener(
     "DOMContentLoaded",
     clsKhoiTao
 );
+
+
+
+// Khi bác sĩ quay lại tab/trang đang được giữ trong bộ nhớ trình duyệt,
+// tải lại dữ liệu CLS một lần (không polling và không reload toàn trang).
+let clsDaKhoiTao = false;
+
+window.addEventListener("pageshow", event => {
+    if (event.persisted && clsDaKhoiTao && clsMaLichKham) {
+        clsTaiChiDinh();
+    }
+});
+
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && clsDaKhoiTao && clsMaLichKham) {
+        clsTaiChiDinh();
+    }
+});
