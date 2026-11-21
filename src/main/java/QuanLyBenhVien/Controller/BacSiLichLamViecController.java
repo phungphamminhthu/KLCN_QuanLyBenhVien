@@ -551,6 +551,76 @@ public class BacSiLichLamViecController {
     // LẤY CÁC KHUNG GIỜ KHÁM CỦA BÁC SĨ
     // GET /api/bac-si/lich-lam-viec/khung-gio
     // =========================================================
+//    @GetMapping("/khung-gio")
+//    public ResponseEntity<?> layKhungGioKham(
+//            @RequestParam Integer maBacSi,
+//            @RequestParam
+//            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+//            LocalDate ngayKham) {
+//
+//        if (maBacSi == null || ngayKham == null) {
+//            return ResponseEntity.badRequest()
+//                    .body(Map.of(
+//                            "message",
+//                            "Vui lòng chọn bác sĩ và ngày khám."
+//                    ));
+//        }
+//
+//        List<LichLamViec> lichLamViec =
+//                lichLamViecService.layLichLamViec(
+//                        maBacSi,
+//                        ngayKham,
+//                        ngayKham
+//                );
+//
+//        List<Map<String, Object>> result = new ArrayList<>();
+//
+//        NavigableMap<LocalTime, Long> thongKeTheoGio =
+//                layThongKeLuotDatTheoGio(maBacSi, ngayKham);
+//
+//        for (LichLamViec lich : lichLamViec) {
+//            LocalTime batDau = lich.getGioBatDau();
+//            LocalTime ketThuc = lich.getGioKetThuc();
+//
+//            if (batDau == null
+//                    || ketThuc == null
+//                    || !batDau.isBefore(ketThuc)) {
+//                continue;
+//            }
+//
+//            while (!batDau.plusMinutes(THOI_LUONG_SLOT_PHUT)
+//                    .isAfter(ketThuc)) {
+//
+//                LocalTime gioKetThucKhung =
+//                        batDau.plusMinutes(THOI_LUONG_SLOT_PHUT);
+//
+//                long daDat = demLuotDatTrongKhungGio(
+//                        thongKeTheoGio,
+//                        batDau,
+//                        gioKetThucKhung
+//                );
+//
+//                Map<String, Object> item = new LinkedHashMap<>();
+//
+//                item.put("maLichLamViec", lich.getMaLichLamViec());
+//                item.put("gioBatDau", batDau.toString());
+//                item.put("gioKetThuc", gioKetThucKhung.toString());
+//                item.put("daDat", daDat);
+//                item.put("conTrong", Math.max(0L, SUC_CHUA_SLOT - daDat));
+//                item.put("hetCho", daDat >= SUC_CHUA_SLOT);
+//
+//                result.add(item);
+//
+//                batDau = gioKetThucKhung;
+//            }
+//        }
+//
+//        return ResponseEntity.ok(result);
+//    }
+    // =========================================================
+// LẤY KHUNG GIỜ KHÁM CỦA BÁC SĨ
+// GET /api/bac-si/lich-lam-viec/khung-gio
+// =========================================================
     @GetMapping("/khung-gio")
     public ResponseEntity<?> layKhungGioKham(
             @RequestParam Integer maBacSi,
@@ -558,64 +628,127 @@ public class BacSiLichLamViecController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate ngayKham) {
 
-        if (maBacSi == null || ngayKham == null) {
-            return ResponseEntity.badRequest()
+        long start = System.currentTimeMillis();
+
+        try {
+            if (maBacSi == null || ngayKham == null) {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("message",
+                                "Vui lòng chọn bác sĩ và ngày khám."));
+            }
+
+            System.out.println("[KHUNG-GIO] Bắt đầu");
+            System.out.println("[KHUNG-GIO] Bác sĩ: " + maBacSi);
+            System.out.println("[KHUNG-GIO] Ngày: " + ngayKham);
+
+            // Bước 1: Lấy lịch làm việc
+            long startLich = System.currentTimeMillis();
+
+            List<LichLamViec> lichLamViec =
+                    lichLamViecService.layLichLamViec(
+                            maBacSi,
+                            ngayKham,
+                            ngayKham
+                    );
+
+            System.out.println(
+                    "[KHUNG-GIO] Lấy lịch hoàn tất: "
+                            + lichLamViec.size()
+                            + " lịch, "
+                            + (System.currentTimeMillis() - startLich)
+                            + " ms"
+            );
+
+            if (lichLamViec.isEmpty()) {
+                return ResponseEntity.ok(List.of());
+            }
+
+            // Bước 2: Lấy thống kê lượt đặt 1 lần
+            long startThongKe = System.currentTimeMillis();
+
+            NavigableMap<LocalTime, Long> thongKeTheoGio =
+                    layThongKeLuotDatTheoGio(maBacSi, ngayKham);
+
+            System.out.println(
+                    "[KHUNG-GIO] Thống kê hoàn tất: "
+                            + thongKeTheoGio.size()
+                            + " mốc giờ, "
+                            + (System.currentTimeMillis() - startThongKe)
+                            + " ms"
+            );
+
+            // Bước 3: Sinh slot
+            List<Map<String, Object>> result = new ArrayList<>();
+
+            for (LichLamViec lich : lichLamViec) {
+
+                LocalTime batDau = lich.getGioBatDau();
+                LocalTime ketThuc = lich.getGioKetThuc();
+
+                if (batDau == null
+                        || ketThuc == null
+                        || !batDau.isBefore(ketThuc)) {
+                    continue;
+                }
+
+                while (batDau.plusMinutes(THOI_LUONG_SLOT_PHUT)
+                        .isAfter(ketThuc) == false) {
+
+                    LocalTime gioKetThucKhung =
+                            batDau.plusMinutes(THOI_LUONG_SLOT_PHUT);
+
+                    long daDat = demLuotDatTrongKhungGio(
+                            thongKeTheoGio,
+                            batDau,
+                            gioKetThucKhung
+                    );
+
+                    int conTrong = (int) Math.max(
+                            0L,
+                            SUC_CHUA_SLOT - daDat
+                    );
+
+                    Map<String, Object> item = new LinkedHashMap<>();
+
+                    item.put("maLichLamViec",
+                            lich.getMaLichLamViec());
+                    item.put("gioBatDau", batDau.toString());
+                    item.put("gioKetThuc",
+                            gioKetThucKhung.toString());
+                    item.put("daDat", daDat);
+                    item.put("conTrong", conTrong);
+                    item.put("hetCho", daDat >= SUC_CHUA_SLOT);
+
+                    result.add(item);
+
+                    batDau = gioKetThucKhung;
+                }
+            }
+
+            System.out.println(
+                    "[KHUNG-GIO] Tổng slot trả về: "
+                            + result.size()
+            );
+
+            System.out.println(
+                    "[KHUNG-GIO] Tổng thời gian: "
+                            + (System.currentTimeMillis() - start)
+                            + " ms"
+            );
+
+            return ResponseEntity.ok(result);
+
+        } catch (Exception e) {
+
+            System.err.println("[KHUNG-GIO] LỖI:");
+            e.printStackTrace();
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                             "message",
-                            "Vui lòng chọn bác sĩ và ngày khám."
+                            "Không thể lấy khung giờ khám."
                     ));
         }
-
-        List<LichLamViec> lichLamViec =
-                lichLamViecService.layLichLamViec(
-                        maBacSi,
-                        ngayKham,
-                        ngayKham
-                );
-
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        NavigableMap<LocalTime, Long> thongKeTheoGio =
-                layThongKeLuotDatTheoGio(maBacSi, ngayKham);
-
-        for (LichLamViec lich : lichLamViec) {
-            LocalTime batDau = lich.getGioBatDau();
-            LocalTime ketThuc = lich.getGioKetThuc();
-
-            if (batDau == null
-                    || ketThuc == null
-                    || !batDau.isBefore(ketThuc)) {
-                continue;
-            }
-
-            while (!batDau.plusMinutes(THOI_LUONG_SLOT_PHUT)
-                    .isAfter(ketThuc)) {
-
-                LocalTime gioKetThucKhung =
-                        batDau.plusMinutes(THOI_LUONG_SLOT_PHUT);
-
-                long daDat = demLuotDatTrongKhungGio(
-                        thongKeTheoGio,
-                        batDau,
-                        gioKetThucKhung
-                );
-
-                Map<String, Object> item = new LinkedHashMap<>();
-
-                item.put("maLichLamViec", lich.getMaLichLamViec());
-                item.put("gioBatDau", batDau.toString());
-                item.put("gioKetThuc", gioKetThucKhung.toString());
-                item.put("daDat", daDat);
-                item.put("conTrong", Math.max(0L, SUC_CHUA_SLOT - daDat));
-                item.put("hetCho", daDat >= SUC_CHUA_SLOT);
-
-                result.add(item);
-
-                batDau = gioKetThucKhung;
-            }
-        }
-
-        return ResponseEntity.ok(result);
     }
 
     // =========================================================
