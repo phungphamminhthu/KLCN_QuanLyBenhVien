@@ -151,7 +151,8 @@ public class BenhNhanApiController {
             response.put("message", "Tạo hồ sơ bệnh nhân thành công.");
             response.put("MaBenhNhan", saved.getMaBenhNhan());
             response.put("HoTen", saved.getHoTen());
-            response.put("MoiQuanHe", saved.getMoiQuanHe());
+            //response.put("MoiQuanHe", saved.getMoiQuanHe());
+            response.put("MoiQuanHe", chuanHoaMoiQuanHe(saved));
             response.put("LaHoSoMacDinh", saved.getLaHoSoMacDinh());
 
             return ResponseEntity.ok(response);
@@ -209,7 +210,8 @@ public class BenhNhanApiController {
 
                     item.put("MaBenhNhan", benhNhan.getMaBenhNhan());
                     item.put("HoTen", benhNhan.getHoTen());
-                    item.put("MoiQuanHe", benhNhan.getMoiQuanHe());
+                    //item.put("MoiQuanHe", benhNhan.getMoiQuanHe());
+                    item.put("MoiQuanHe", chuanHoaMoiQuanHe(benhNhan));
                     item.put("LaHoSoMacDinh", benhNhan.getLaHoSoMacDinh());
                     item.put("NgaySinh", benhNhan.getNgaySinh());
                     item.put("GioiTinh", benhNhan.getGioiTinh());
@@ -226,5 +228,27 @@ public class BenhNhanApiController {
         response.put("data", ketQua);
 
         return ResponseEntity.ok(response);
+    }
+
+    // ============================================
+    // CHUẨN HÓA MỐI QUAN HỆ
+    // ============================================
+    private String chuanHoaMoiQuanHe(BenhNhan benhNhan) {
+        String moiQuanHe = benhNhan.getMoiQuanHe();
+
+        if (moiQuanHe == null || moiQuanHe.isBlank()) {
+            return moiQuanHe;
+        }
+
+        return switch (moiQuanHe.trim().toLowerCase()) {
+            case "banthan" -> "Bản thân";
+            case "vo" -> "Vợ";
+            case "chong" -> "Chồng";
+            case "con" -> "Con";
+            case "cha" -> "Cha";
+            case "me" -> "Mẹ";
+            case "khac" -> "Khác";
+            default -> moiQuanHe;
+        };
     }
 }

@@ -562,14 +562,14 @@ public class TiepNhanDashboardService {
 
     private void guiThongBaoDaGoi(Integer maLichKham) {
         String sql = """
-        SELECT
-            bn.MaNguoiDung,
-            bn.MaBenhNhan,
-            bn.MaBenhNhan,
-            COALESCE(
-                NULLIF(TRIM(p.TenPhong), ''),
-                'theo hướng dẫn của nhân viên tiếp nhận'
-            ) AS TenPhong
+                SELECT
+                    bn.MaNguoiDung,
+                    bn.MaBenhNhan,
+                    bn.HoTen,
+                    COALESCE(
+                        NULLIF(TRIM(p.TenPhong), ''),
+                        'theo hướng dẫn của nhân viên tiếp nhận'
+                    ) AS TenPhong
         FROM LichDangKyKham lk
         JOIN BenhNhan bn
             ON bn.MaBenhNhan = lk.MaBenhNhan
