@@ -154,12 +154,7 @@ public class ChuyenTrachDangThucHienController {
 
             WHERE l.NgayKham = ?
 
-              AND l.TrangThai = 'DangCLS'
-
-              AND cd.TrangThai IN (
-                  'ChoThucHien',
-                  'DangThucHien'
-              )
+              AND cd.TrangThai = 'DangThucHien'
 
             GROUP BY
                 l.MaLichKham,
@@ -255,7 +250,7 @@ public class ChuyenTrachDangThucHienController {
 
                     row.put(
                             "trangThai",
-                            "DangCLS"
+                            "DangThucHien"
                     );
 
                     return row;

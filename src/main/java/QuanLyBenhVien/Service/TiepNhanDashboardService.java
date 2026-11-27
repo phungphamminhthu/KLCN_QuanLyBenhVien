@@ -476,11 +476,11 @@ public class TiepNhanDashboardService {
 
     // =========================================================
     // GỌI BỆNH NHÂN
-    // ChoGoi -> DaGoi
+    // ChoGoi -> DaGoi (đồng bộ LichDangKyKham và SoThuTu)
     // Chỉ gửi thông báo khi chuyển trạng thái lần đầu.
     // =========================================================
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public boolean updateTrangThaiHangDoi(
             String maLichKham,
             String trangThaiMoi
@@ -524,6 +524,13 @@ public class TiepNhanDashboardService {
 
         // Trường hợp chuyển trạng thái thành công lần đầu.
         if (soDongCapNhat > 0) {
+            // Đồng bộ trạng thái SoThuTu liên kết trong cùng transaction.
+            // Nếu thiếu liên kết hoặc cập nhật thất bại, ném lỗi để rollback toàn bộ.
+            dongBoTrangThaiSoThuTuDaGoi(
+                    id,
+                    caTruc.maKhoa(),
+                    homNay
+            );
 
             // Tạo thông báo cho bệnh nhân.
             guiThongBaoDaGoi(id);
@@ -532,6 +539,7 @@ public class TiepNhanDashboardService {
         }
 
         // Nếu đã DaGoi thì cho phép nhân viên gọi lại,
+        // đồng bộ SoThuTu nếu đang bị lệch,
         // nhưng tuyệt đối không tạo thêm thông báo.
         String sqlKiemTra = """
             SELECT MaLichKham
@@ -554,7 +562,139 @@ public class TiepNhanDashboardService {
                 hienTai
         );
 
-        return !lichDaGoi.isEmpty();
+        if (lichDaGoi.isEmpty()) {
+            return false;
+        }
+
+        // Đảm bảo SoThuTu liên kết cũng ở trạng thái DaGoi khi gọi lại.
+        dongBoTrangThaiSoThuTuDaGoi(
+                id,
+                caTruc.maKhoa(),
+                homNay
+        );
+
+        return true;
+    }
+
+    // =========================================================
+    // ĐỒNG BỘ TRẠNG THÁI SỐ THỨ TỰ LIÊN KẾT -> DaGoi
+    // Chạy trong cùng transaction với cập nhật LichDangKyKham.
+    // =========================================================
+
+    private void dongBoTrangThaiSoThuTuDaGoi(
+            Integer maLichKham,
+            Integer maKhoa,
+            LocalDate ngayKham
+    ) {
+        String sqlLayMaSoThuTu = """
+            SELECT MaSoThuTu
+            FROM lichdangkykham
+            WHERE MaLichKham = ?
+              AND MaKhoa = ?
+              AND NgayKham = ?
+            """;
+
+        List<Integer> danhSachMaSoThuTu = jdbcTemplate.query(
+                sqlLayMaSoThuTu,
+                (rs, rowNum) -> {
+                    int maSoThuTu = rs.getInt("MaSoThuTu");
+                    return rs.wasNull() ? null : maSoThuTu;
+                },
+                maLichKham,
+                maKhoa,
+                ngayKham
+        );
+
+        if (danhSachMaSoThuTu.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không tìm thấy lịch khám để đồng bộ số thứ tự."
+            );
+        }
+
+        Integer maSoThuTu = danhSachMaSoThuTu.get(0);
+
+        if (maSoThuTu == null || maSoThuTu <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Lịch khám không có số thứ tự liên kết hợp lệ. "
+                            + "Không thể cập nhật trạng thái gọi."
+            );
+        }
+
+        String sqlKiemTraSoThuTu = """
+            SELECT TrangThai
+            FROM sothutu
+            WHERE MaSoThuTu = ?
+              AND MaKhoa = ?
+              AND NgayCapSo = ?
+            FOR UPDATE
+            """;
+
+        List<String> danhSachTrangThai = jdbcTemplate.query(
+                sqlKiemTraSoThuTu,
+                (rs, rowNum) -> rs.getString("TrangThai"),
+                maSoThuTu,
+                maKhoa,
+                ngayKham
+        );
+
+        if (danhSachTrangThai.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không tìm thấy số thứ tự liên kết hợp lệ theo khoa và ngày khám. "
+                            + "Không thể cập nhật trạng thái gọi."
+            );
+        }
+
+        String trangThaiHienTai = danhSachTrangThai.get(0);
+
+        if ("DaGoi".equals(trangThaiHienTai)) {
+            return;
+        }
+
+        boolean trangThaiChoPhepChuyen =
+                trangThaiHienTai == null
+                        || trangThaiHienTai.isBlank()
+                        || "ChoGoi".equals(trangThaiHienTai)
+                        || "DangCho".equals(trangThaiHienTai)
+                        || "ChoKham".equals(trangThaiHienTai);
+
+        if (!trangThaiChoPhepChuyen) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Trạng thái số thứ tự hiện tại không hợp lệ "
+                            + "để chuyển sang Đã gọi."
+            );
+        }
+
+        String sqlCapNhatSoThuTu = """
+            UPDATE sothutu
+            SET TrangThai = 'DaGoi'
+            WHERE MaSoThuTu = ?
+              AND MaKhoa = ?
+              AND NgayCapSo = ?
+              AND (
+                  TrangThai IS NULL
+                  OR TRIM(TrangThai) = ''
+                  OR TrangThai IN ('ChoGoi', 'DangCho', 'ChoKham')
+              )
+            """;
+
+        int soDongCapNhat = jdbcTemplate.update(
+                sqlCapNhatSoThuTu,
+                maSoThuTu,
+                maKhoa,
+                ngayKham
+        );
+
+        if (soDongCapNhat != 1) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Không thể cập nhật trạng thái số thứ tự liên kết. "
+                            + "Vui lòng làm mới dữ liệu và thử lại."
+            );
+        }
     }
     // =========================================================
     // GỬI THÔNG BÁO BỆNH NHÂN ĐÃ ĐẾN LƯỢT

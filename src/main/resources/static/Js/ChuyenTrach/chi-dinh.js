@@ -93,14 +93,18 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (!response.ok) {
+            let serverMessage = "";
             let message =
                 `Yêu cầu thất bại (HTTP ${response.status}).`;
 
             try {
                 const data = await response.json();
-                message = data.detail ||
-                          data.message ||
-                          message;
+                serverMessage = data.detail ||
+                                data.message ||
+                                "";
+                if (serverMessage) {
+                    message = serverMessage;
+                }
             } catch (_) {}
 
             if ([401, 403].includes(response.status)) {
@@ -108,9 +112,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Phiên đăng nhập không hợp lệ hoặc không có quyền.";
             }
 
-            if (response.status === 409) {
+            if (response.status === 409 && !serverMessage) {
                 message =
-                    "Trạng thái lượt khám đã thay đổi. Vui lòng làm mới.";
+                    "Trạng thái chỉ định đã thay đổi. Vui lòng làm mới.";
             }
 
             throw new Error(message);
@@ -199,6 +203,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function orderStatus(status) {
         switch (status) {
+            case "ChoThanhToan":
+                return {
+                    text: "Chờ thanh toán",
+                    css: "other"
+                };
+
             case "ChoThucHien":
                 return {
                     text: "Chờ thực hiện",
@@ -641,18 +651,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         modalAction.hidden = true;
 
-        // Chỉ cho thao tác khi chỉ định chưa hoàn thành
-        if (item.trangThaiChiDinh !== "DaHoanThanh") {
-            if (item.trangThaiLuotKham === "ChoCLS") {
-                modalAction.hidden = false;
-                modalAction.textContent = "Bắt đầu CLS";
+        // Xác định quyền thao tác theo trạng thái gốc của ChiDinhYTe
+        if (item.trangThaiChiDinh === "ChoThucHien") {
+            modalAction.hidden = false;
+            modalAction.textContent = "Bắt đầu CLS";
 
-            } else if (
-                item.trangThaiLuotKham === "DangCLS"
-            ) {
-                modalAction.hidden = false;
-                modalAction.textContent = "Nhập kết quả";
-            }
+        } else if (item.trangThaiChiDinh === "DangThucHien") {
+            modalAction.hidden = false;
+            modalAction.textContent = "Nhập kết quả";
         }
 
         modal.hidden = false;
@@ -766,13 +772,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const item = selectedOrder;
 
-        // Ca đã DangCLS: mở trang nhập kết quả.
-        if (item.trangThaiLuotKham === "DangCLS") {
+        // Chỉ định đang DangThucHien: mở trang nhập kết quả.
+        if (item.trangThaiChiDinh === "DangThucHien") {
             window.location.assign(resultUrl(item));
             return;
         }
 
-        if (item.trangThaiLuotKham !== "ChoCLS") {
+        if (item.trangThaiChiDinh !== "ChoThucHien") {
             return;
         }
 
@@ -789,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             await apiRequest(
-                `${CLS_API}/${encodeURIComponent(item.maLichKham)}/bat-dau`,
+                `${CLS_API}/${encodeURIComponent(item.maLichKham)}/chi-dinh/${encodeURIComponent(item.maChiDinh)}/bat-dau`,
                 "POST"
             );
 

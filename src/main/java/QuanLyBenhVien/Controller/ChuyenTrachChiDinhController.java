@@ -26,6 +26,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/chuyen-trach/danh-sach-chi-dinh")
 public class ChuyenTrachChiDinhController {
 
+    private static final Set<String> TRANG_THAI_MAC_DINH = Set.of(
+            "ChoThucHien",
+            "DangThucHien",
+            "DaHoanThanh"
+    );
+
     @PersistenceContext
     private EntityManager em;
 
@@ -387,11 +393,17 @@ public class ChuyenTrachChiDinhController {
                     );
                 })
                 .filter(row -> {
-                    if (trangThai.isBlank()) return true;
-
-                    return trangThai.equals(
-                            String.valueOf(row.get("trangThaiChiDinh"))
+                    String trangThaiChiDinh = String.valueOf(
+                            row.get("trangThaiChiDinh")
                     );
+
+                    // Danh sách công việc mặc định không đưa chỉ định ChoThanhToan
+                    // vào nhóm đủ điều kiện thực hiện CLS.
+                    if (trangThai.isBlank()) {
+                        return TRANG_THAI_MAC_DINH.contains(trangThaiChiDinh);
+                    }
+
+                    return trangThai.equals(trangThaiChiDinh);
                 })
                 .collect(Collectors.toList());
 

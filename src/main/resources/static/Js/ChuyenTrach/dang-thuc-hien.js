@@ -90,8 +90,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ============================================
-    // 4. ĐỊNH DẠNG NGÀY
+    // 4. ĐỊNH DẠNG NGÀY VÀ TRẠNG THÁI
     // ============================================
+
+    function getStatusLabel(status) {
+        switch (status) {
+            case 'ChoThanhToan':
+                return 'Chờ thanh toán';
+
+            case 'ChoThucHien':
+                return 'Chờ thực hiện';
+
+            case 'DangThucHien':
+            case 'DangCLS':
+                return 'Đang thực hiện';
+
+            case 'DaHoanThanh':
+                return 'Đã hoàn thành';
+
+            default:
+                return status || 'Chưa xác định';
+        }
+    }
 
     function formatDate(value) {
         if (!value) {
@@ -372,7 +392,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const status = createElement(
                 'span',
-                'Đang thực hiện',
+                getStatusLabel(row.trangThai || 'DangThucHien'),
                 'ctdoing-status'
             );
 

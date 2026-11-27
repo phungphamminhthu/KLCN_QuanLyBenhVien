@@ -247,6 +247,7 @@ public class BenhNhanApiController {
             case "con" -> "Con";
             case "cha" -> "Cha";
             case "me" -> "Mẹ";
+            case "anhchiem" -> "Anh/Chị/Em";
             case "khac" -> "Khác";
             default -> moiQuanHe;
         };

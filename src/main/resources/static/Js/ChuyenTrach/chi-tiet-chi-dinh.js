@@ -71,16 +71,21 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         if (!response.ok) {
+            let serverMessage = "";
             let message =
                 `Yêu cầu thất bại (HTTP ${response.status}).`;
 
             try {
                 const errorData = await response.json();
 
-                message =
+                serverMessage =
                     errorData.detail ||
                     errorData.message ||
-                    message;
+                    "";
+
+                if (serverMessage) {
+                    message = serverMessage;
+                }
 
             } catch (_) {
                 // Giữ thông báo mặc định.
@@ -95,14 +100,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     "hoặc bạn không có quyền thực hiện.";
             }
 
-            if (response.status === 404) {
+            if (response.status === 404 && !serverMessage) {
                 message =
                     "Không tìm thấy chỉ định hoặc lượt khám.";
             }
 
-            if (response.status === 409) {
+            if (response.status === 409 && !serverMessage) {
                 message =
-                    "Trạng thái lượt khám đã thay đổi. " +
+                    "Trạng thái chỉ định đã thay đổi. " +
                     "Vui lòng tải lại dữ liệu.";
             }
 
@@ -283,53 +288,46 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================================
-    // 7. TRẠNG THÁI CHỈ ĐỊNH VÀ LƯỢT KHÁM
+    // 7. TRẠNG THÁI CHỈ ĐỊNH CLS
     // =====================================================
 
     function getClsStatus(data) {
-        const trangThaiLuotKham =
-            data.trangThaiLuotKham;
-
         const trangThaiChiDinh =
             data.trangThaiChiDinh;
 
-        // Chỉ định đã hoàn thành được ưu tiên
-        // khi hiển thị trạng thái của chỉ định này.
-        if (trangThaiChiDinh === "DaHoanThanh") {
-            return {
-                label: "Đã hoàn thành",
-                className: "done"
-            };
-        }
+        switch (trangThaiChiDinh) {
+            case "ChoThanhToan":
+                return {
+                    label: "Chờ thanh toán",
+                    className: "other"
+                };
 
-        if (trangThaiLuotKham === "ChoCLS") {
-            return {
-                label: "Chờ thực hiện",
-                className: "waiting"
-            };
-        }
+            case "ChoThucHien":
+                return {
+                    label: "Chờ thực hiện",
+                    className: "waiting"
+                };
 
-        if (trangThaiLuotKham === "DangCLS") {
-            return {
-                label: "Đang thực hiện",
-                className: "doing"
-            };
-        }
+            case "DangThucHien":
+                return {
+                    label: "Đang thực hiện",
+                    className: "doing"
+                };
 
-        if (trangThaiLuotKham === "ChoKham") {
-            return {
-                label: "Chờ bác sĩ",
-                className: "other"
-            };
-        }
+            case "DaHoanThanh":
+                return {
+                    label: "Đã hoàn thành",
+                    className: "done"
+                };
 
-        return {
-            label:
-                trangThaiLuotKham ||
-                trangThaiChiDinh ||
-                "Chưa xác định",
-            className: "other"
-        };
+            default:
+                return {
+                    label:
+                        trangThaiChiDinh ||
+                        "Chưa xác định",
+                    className: "other"
+                };
+        }
     }
 
     function getResultUrl(data) {
@@ -361,14 +359,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 status.className;
         }
 
-        const isCompleted =
-            data.trangThaiChiDinh === "DaHoanThanh";
-
-        // Chỉ hiện nút bắt đầu CLS khi lượt khám
-        // đang ChoCLS và chỉ định chưa hoàn thành.
+        // Chỉ hiện nút bắt đầu CLS khi chỉ định đang ChoThucHien.
         const canStart =
-            data.trangThaiLuotKham === "ChoCLS" &&
-            !isCompleted;
+            data.trangThaiChiDinh === "ChoThucHien";
 
         if (startClsButton) {
             startClsButton.hidden = !canStart;
@@ -376,11 +369,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 isStartingCls || !canStart;
         }
 
-        // DangCLS: cho phép tiếp tục nhập kết quả
-        // của chỉ định chưa hoàn thành.
+        // DangThucHien: cho phép tiếp tục nhập kết quả của chỉ định.
         const canEnterResult =
-            data.trangThaiLuotKham === "DangCLS" &&
-            !isCompleted;
+            data.trangThaiChiDinh === "DangThucHien";
 
         if (resultLink) {
             resultLink.hidden = !canEnterResult;
@@ -696,12 +687,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Kiểm tra lại trạng thái trên dữ liệu
         // đang hiển thị. Backend sẽ kiểm tra
         // chính thức khi gọi API POST.
-        if (
-            data.trangThaiLuotKham !== "ChoCLS" ||
-            data.trangThaiChiDinh === "DaHoanThanh"
-        ) {
+        if (data.trangThaiChiDinh !== "ChoThucHien") {
             showError(
-                "Lượt khám không còn ở trạng thái " +
+                "Chỉ định không còn ở trạng thái " +
                 "cho phép bắt đầu CLS."
             );
 
@@ -742,7 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =====================================================
     // 17. THỰC HIỆN CLS
-    // ChoCLS -> DangCLS
+    // ChoThucHien -> DangThucHien
     // =====================================================
 
     async function startCls() {
@@ -755,17 +743,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const data = currentDetail;
 
-        if (
-            data.trangThaiLuotKham !== "ChoCLS" ||
-            data.trangThaiChiDinh === "DaHoanThanh"
-        ) {
+        if (data.trangThaiChiDinh !== "ChoThucHien") {
             if (confirmDialog.open) {
                 confirmDialog.close();
             }
 
             showError(
                 "Không thể bắt đầu CLS vì trạng thái " +
-                "chỉ định hoặc lượt khám không phù hợp."
+                "chỉ định không phù hợp."
             );
 
             return;
@@ -788,14 +773,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         try {
-            // API có sẵn trong
+            // Gọi đúng API bắt đầu từng chỉ định CLS trong
             // ChuyenTrachLuotKhamController.
-            // Backend kiểm tra ChoCLS và cập nhật DangCLS.
+            // Backend kiểm tra ChoThucHien và cập nhật DangThucHien.
 
             const result = await apiRequest(
                 API_LUOT_KHAM +
                 "/" +
                 encodeURIComponent(data.maLichKham) +
+                "/chi-dinh/" +
+                encodeURIComponent(data.maChiDinh) +
                 "/bat-dau",
                 "POST"
             );
@@ -804,10 +791,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // để tránh chuyển trang khi dữ liệu bất thường.
             if (
                 result.trangThai &&
-                result.trangThai !== "DangCLS"
+                result.trangThai !== "DangThucHien"
             ) {
                 throw new Error(
-                    "API không xác nhận trạng thái DangCLS."
+                    "API không xác nhận trạng thái đang thực hiện CLS."
                 );
             }
 

@@ -44,12 +44,15 @@ public class ChuyenTrachThongKeController {
 
         LocalDate ngay = LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"));
 
-        // Một dòng cho MỖI lượt khám; chỉ tính lượt có chỉ định CLS.
-        // Không đếm những lượt ChoKham chưa từng có chỉ định.
+        // Một dòng cho MỖI lượt khám; chỉ tính lượt có chỉ định CLS đủ điều kiện.
+        // Không đếm những lượt chỉ có chỉ định ChoThanhToan hoặc chưa có chỉ định.
         String sql = """
                 SELECT l.MaLichKham,
-                       l.TrangThai AS TrangThaiLuotKham,
                        COUNT(*) AS TongChiDinh,
+                       SUM(CASE WHEN cd.TrangThai = 'DangThucHien'
+                                THEN 1 ELSE 0 END) AS ChiDinhDangThucHien,
+                       SUM(CASE WHEN cd.TrangThai = 'ChoThucHien'
+                                THEN 1 ELSE 0 END) AS ChiDinhChoThucHien,
                        SUM(CASE WHEN cd.TrangThai = 'DaHoanThanh'
                                 THEN 1 ELSE 0 END) AS ChiDinhHoanThanh
                   FROM LichDangKyKham l
@@ -59,7 +62,7 @@ public class ChuyenTrachThongKeController {
                     ON cd.MaHoSoBenhAn = hs.MaHoSoBenhAn
                  WHERE l.NgayKham = ?
                    AND cd.TrangThai IN ('ChoThucHien', 'DangThucHien', 'DaHoanThanh')
-                 GROUP BY l.MaLichKham, l.TrangThai
+                 GROUP BY l.MaLichKham
                 """;
 
         List<Map<String, Object>> luotKham = jdbcTemplate.queryForList(
@@ -71,17 +74,19 @@ public class ChuyenTrachThongKeController {
         int daHoanThanh = 0;
 
         for (Map<String, Object> luot : luotKham) {
-            String trangThai = String.valueOf(luot.get("TrangThaiLuotKham"));
             int tongChiDinh = ((Number) luot.get("TongChiDinh")).intValue();
+            int soChiDinhDangThucHien = ((Number) luot.get("ChiDinhDangThucHien")).intValue();
+            int soChiDinhChoThucHien = ((Number) luot.get("ChiDinhChoThucHien")).intValue();
             int soChiDinhHoanThanh = ((Number) luot.get("ChiDinhHoanThanh")).intValue();
 
-            // CLS chỉ hoàn thành khi TẤT CẢ chỉ định liên quan đã hoàn thành.
+            // CLS chỉ hoàn thành khi TẤT CẢ chỉ định đủ điều kiện đã hoàn thành.
+            // Ưu tiên DangThucHien trước ChoThucHien theo quy tắc tổng hợp hiện tại.
             if (tongChiDinh > 0 && tongChiDinh == soChiDinhHoanThanh) {
                 daHoanThanh++;
-            } else if ("ChoCLS".equals(trangThai)) {
-                choThucHien++;
-            } else if ("DangCLS".equals(trangThai)) {
+            } else if (soChiDinhDangThucHien > 0) {
                 dangThucHien++;
+            } else if (soChiDinhChoThucHien > 0) {
+                choThucHien++;
             }
         }
 

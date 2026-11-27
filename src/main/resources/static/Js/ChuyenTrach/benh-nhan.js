@@ -172,7 +172,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function statusInfo(value) {
         switch (value) {
+            case "ChoThanhToan":
+                return {
+                    label: "Chờ thanh toán",
+                    className: "ct-patient-status",
+                    icon: "fa-solid fa-hourglass-half"
+                };
+
             case "ChoCLS":
+            case "ChoThucHien":
                 return {
                     label: "Chờ thực hiện",
                     className: "ct-patient-status waiting",
@@ -180,6 +188,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
             case "DangCLS":
+            case "DangThucHien":
                 return {
                     label: "Đang thực hiện",
                     className: "ct-patient-status doing",
@@ -187,8 +196,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
             case "HoanThanhCLS":
+            case "DaHoanThanh":
                 return {
-                    label: "Hoàn thành",
+                    label: "Đã hoàn thành",
                     className: "ct-patient-status done",
                     icon: "fa-solid fa-check"
                 };

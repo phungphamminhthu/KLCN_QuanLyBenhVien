@@ -148,6 +148,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getStatus(status) {
         switch (status) {
+            case "ChoThanhToan":
+                return {
+                    label: "Chờ thanh toán",
+                    className: "ct-status"
+                };
+
             case "ChoThucHien":
                 return {
                     label: "Chờ thực hiện",

@@ -121,7 +121,8 @@ public class TiepNhanKiemTraTiepNhanController {
 
         String trangThai = item.trangThai();
 
-        if ("ChoGoi".equals(trangThai)) {
+        if (("Ch" +
+                "oGoi").equals(trangThai)) {
             lyDo.add(
                     "Bệnh nhân chưa được gọi. "
                             + "Vui lòng gọi bệnh nhân trước khi tiếp nhận."

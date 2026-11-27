@@ -135,13 +135,21 @@ public class ChuyenTrachBenhNhanController {
     ) {
         Map<String, Object> row = new LinkedHashMap<>();
 
-        List<String> dichVu = chiDinhs.stream()
+        // Chỉ tổng hợp từ các chỉ định đủ điều kiện CLS,
+        // không để chỉ định ChoThanhToan làm sai trạng thái tổng hợp.
+        List<ChiDinhYTe> chiDinhHopLe = chiDinhs.stream()
+                .filter(c -> "ChoThucHien".equals(c.getTrangThai())
+                        || "DangThucHien".equals(c.getTrangThai())
+                        || "DaHoanThanh".equals(c.getTrangThai()))
+                .toList();
+
+        List<String> dichVu = chiDinhHopLe.stream()
                 .map(c -> c.getDichVuYTe().getTenDichVu())
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
-        List<Integer> maPhong = chiDinhs.stream()
+        List<Integer> maPhong = chiDinhHopLe.stream()
                 .map(ChiDinhYTe::getMaPhong)
                 .filter(Objects::nonNull)
                 .distinct()
@@ -154,19 +162,21 @@ public class ChuyenTrachBenhNhanController {
 
         String trangThaiCLS;
 
-        if (chiDinhs.isEmpty()) {
-            trangThaiCLS = "ChuaCoCLS";
-        } else if (chiDinhs.stream().anyMatch(
+        if (chiDinhHopLe.isEmpty()) {
+            boolean coChoThanhToan = chiDinhs.stream().anyMatch(
+                    c -> "ChoThanhToan".equals(c.getTrangThai()));
+            trangThaiCLS = coChoThanhToan ? "ChoThanhToan" : "ChuaCoCLS";
+        } else if (chiDinhHopLe.stream().anyMatch(
                 c -> "DangThucHien".equals(c.getTrangThai()))) {
             trangThaiCLS = "DangCLS";
-        } else if (chiDinhs.stream().anyMatch(
+        } else if (chiDinhHopLe.stream().anyMatch(
                 c -> "ChoThucHien".equals(c.getTrangThai()))) {
             trangThaiCLS = "ChoCLS";
-        } else if (chiDinhs.stream().allMatch(
+        } else if (chiDinhHopLe.stream().allMatch(
                 c -> "DaHoanThanh".equals(c.getTrangThai()))) {
             trangThaiCLS = "HoanThanhCLS";
         } else {
-            trangThaiCLS = "ChoCLS";
+            trangThaiCLS = "ChuaCoCLS";
         }
 
 

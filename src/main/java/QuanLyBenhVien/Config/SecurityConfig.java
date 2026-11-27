@@ -153,7 +153,9 @@ public class SecurityConfig {
                         // Bệnh nhân và bác sĩ được xem lịch làm việc / khung giờ
                         .requestMatchers(
                                 HttpMethod.GET,
+                                "/api/bac-si/danh-sach",
                                 "/api/bac-si/lich-lam-viec/danh-sach",
+                                "/api/bac-si/lich-lam-viec/danh-sach-tat-ca",
                                 "/api/bac-si/lich-lam-viec/khung-gio"
                         ).hasAnyRole("BENHNHAN", "BACSI")
 

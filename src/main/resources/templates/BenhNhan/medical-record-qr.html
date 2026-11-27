@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -538,20 +537,46 @@
         }).format(amount) + " đ";
     }
 
-    function formatStatus(value) {
-        const statuses = {
-            chokham: "Chờ khám",
-            datiepnhan: "Đã tiếp nhận",
-            dangkham: "Đang khám",
-            chocls: "Chờ cận lâm sàng",
-            dangcls: "Đang cận lâm sàng",
-            hoantat: "Hoàn tất",
-            dahuy: "Đã hủy",
-            khongden: "Không đến"
-        };
+    function normalizeEnum(value) {
+        return String(value ?? "").normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+    }
 
-        const key = String(value || "").replace(/\s/g, "").toLowerCase();
-        return statuses[key] || textValue(value);
+    function mapEnum(value, mapping) {
+        return mapping[normalizeEnum(value)] || textValue(value);
+    }
+
+    function formatStatusHoSo(value) {
+        return mapEnum(value, {
+            chokham: "Chờ khám", datiepnhan: "Đã tiếp nhận", tiepnhan: "Đã tiếp nhận",
+            dangkham: "Đang khám", chocls: "Chờ cận lâm sàng", dangcls: "Đang thực hiện cận lâm sàng",
+            hoantat: "Hoàn tất", dahoanthanh: "Đã hoàn thành", hoanthanh: "Hoàn thành",
+            dahuy: "Đã hủy", khongden: "Không đến"
+        });
+    }
+
+    function formatStatusChiDinh(value) {
+        return mapEnum(value, {
+            chothuchien: "Chờ thực hiện", chothanhtoan: "Chờ thanh toán",
+            dangthuchien: "Đang thực hiện", dangcls: "Đang thực hiện",
+            hoantat: "Hoàn tất", dahoanthanh: "Đã hoàn thành", hoanthanh: "Hoàn thành", dahuy: "Đã hủy"
+        });
+    }
+
+    function formatStatusHoaDon(value) {
+        return mapEnum(value, {
+            chuathanhtoan: "Chưa thanh toán", chothanhtoan: "Chờ thanh toán",
+            dathanhtoan: "Đã thanh toán", hoantat: "Đã hoàn tất", dahuy: "Đã hủy"
+        });
+    }
+
+    function formatLoaiHoaDon(value) {
+        return mapEnum(value, { phikham: "Phí khám", canlamsang: "Cận lâm sàng", thuoc: "Tiền thuốc", tienthuoc: "Tiền thuốc" });
+    }
+
+    function formatLoaiChiDinh(value) {
+        return mapEnum(value, { xetnghiem: "Xét nghiệm", chandoanhinhanh: "Chẩn đoán hình ảnh", thamdothuchucnang: "Thăm dò chức năng", khac: "Khác" });
     }
 
     function makeField(label, value) {
@@ -624,7 +649,7 @@
         setText("recordTime",
             getValue(d, "gioKham", "GioKham"));
         setText("recordStatus",
-            formatStatus(getValue(d, "trangThai", "TrangThai")));
+            formatStatusHoSo(getValue(d, "trangThai", "TrangThai")));
 
         setText("doctor", getValue(d, "tenBacSi", "TenBacSi"));
         setText("department", getValue(d, "tenKhoa", "TenKhoa"));
@@ -651,9 +676,9 @@
             makeItem(
                 getValue(item, "tenDichVu", "TenDichVu") || `Chỉ định ${index + 1}`,
                 [
-                    { label: "Loại chỉ định", value: getValue(item, "loaiChiDinh", "LoaiChiDinh") },
+                    { label: "Loại chỉ định", value: formatLoaiChiDinh(getValue(item, "loaiChiDinh", "LoaiChiDinh")) },
                     { label: "Ngày chỉ định", value: formatDate(getValue(item, "ngayChiDinh", "NgayChiDinh")) },
-                    { label: "Trạng thái", value: formatStatus(getValue(item, "trangThai", "TrangThai")) },
+                    { label: "Trạng thái", value: formatStatusChiDinh(getValue(item, "trangThai", "TrangThai")) },
                     { label: "Đơn giá", value: formatMoney(getValue(item, "donGia", "DonGia")) }
                 ]
             )
@@ -738,8 +763,8 @@
                 ),
                 [
                     { label: "Ngày lập", value: formatDate(getValue(item, "ngayLapHoaDon", "NgayLapHoaDon")) },
-                    { label: "Loại hóa đơn", value: getValue(item, "loaiHoaDon", "LoaiHoaDon") },
-                    { label: "Trạng thái", value: getValue(item, "trangThai", "TrangThai") },
+                    { label: "Loại hóa đơn", value: formatLoaiHoaDon(getValue(item, "loaiHoaDon", "LoaiHoaDon")) },
+                    { label: "Trạng thái", value: formatStatusHoaDon(getValue(item, "trangThai", "TrangThai")) },
                     { label: "Tổng hóa đơn", value: formatMoney(getValue(item, "tongTien", "TongTien")) }
                 ]
             )
