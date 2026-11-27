@@ -91,6 +91,24 @@ public class ThongBaoService {
                 .countByNguoiDung_MaNguoiDungAndDaDocFalse(maNguoiDung);
     }
 
+    @Transactional(readOnly = true)
+    public boolean daCoThongBaoChuaDoc(
+            List<Integer> maNguoiDungList,
+            String loaiThongBao,
+            String tuKhoaNoiDung
+    ) {
+        if (maNguoiDungList == null || maNguoiDungList.isEmpty()) {
+            return false;
+        }
+
+        return thongBaoRepository
+                .existsByNguoiDung_MaNguoiDungInAndLoaiThongBaoAndDaDocFalseAndNoiDungContaining(
+                        maNguoiDungList,
+                        loaiThongBao,
+                        tuKhoaNoiDung
+                );
+    }
+
     @Transactional
     public boolean danhDauDaDoc(
             Integer maNguoiDung, Integer maThongBao) {

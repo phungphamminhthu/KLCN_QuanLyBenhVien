@@ -172,6 +172,7 @@ function clsTrangKham() {
 
 function clsTenTrangThai(status) {
     const names = {
+        ChoThanhToan: "Chờ thanh toán",
         ChoThucHien: "Chờ thực hiện",
         DangThucHien: "Đang thực hiện",
         DaHoanThanh: "Đã hoàn thành"

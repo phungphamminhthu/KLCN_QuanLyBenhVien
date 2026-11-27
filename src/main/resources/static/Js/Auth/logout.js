@@ -1,3 +1,97 @@
+(function () {
+    "use strict";
+
+    // =====================================================
+    // DỌN PHIÊN ĐĂNG NHẬP & XỬ LÝ TẬP TRUNG HTTP 401
+    // =====================================================
+
+    const PUBLIC_AUTH_APIS = [
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/check-email",
+        "/api/auth/forgot-password",
+        "/api/auth/reset-password",
+        "/api/auth/verify-otp"
+    ];
+
+    function clearAuthStorage() {
+        const keys = [
+            "Token",
+            "token",
+            "MaNguoiDung",
+            "TenDangNhap",
+            "HoTen",
+            "Email",
+            "VaiTro",
+            "AnhDaiDien"
+        ];
+
+        keys.forEach(function (key) {
+            localStorage.removeItem(key);
+            sessionStorage.removeItem(key);
+        });
+
+        sessionStorage.removeItem("thongBaoChoKhamSauDangNhap");
+    }
+
+    function isProtectedApiRequest(input) {
+        try {
+            const rawUrl = typeof input === "string"
+                ? input
+                : (input && typeof input.url === "string" ? input.url : "");
+
+            if (!rawUrl) {
+                return false;
+            }
+
+            const parsed = new URL(rawUrl, window.location.origin);
+
+            if (parsed.origin !== window.location.origin) {
+                return false;
+            }
+
+            const path = parsed.pathname;
+
+            if (!path.startsWith("/api/")) {
+                return false;
+            }
+
+            return !PUBLIC_AUTH_APIS.some(function (prefix) {
+                return path === prefix || path.startsWith(prefix + "/");
+            });
+        } catch (_) {
+            return false;
+        }
+    }
+
+    window.qlbvClearAuthStorage = clearAuthStorage;
+
+    if (typeof window.fetch === "function" && !window.__qlbvAuthFetchPatched) {
+        window.__qlbvAuthFetchPatched = true;
+        const nativeFetch = window.fetch.bind(window);
+        let isRedirectingOn401 = false;
+
+        window.fetch = async function (input, init) {
+            const response = await nativeFetch(input, init);
+
+            // Chỉ tự động đăng xuất và chuyển về /auth/login khi nhận 401 (hết phiên / token không hợp lệ).
+            // Không tự động đăng xuất khi nhận 403 (đã đăng nhập nhưng không đủ quyền).
+            if (
+                response.status === 401 &&
+                isProtectedApiRequest(input) &&
+                !isRedirectingOn401 &&
+                window.location.pathname !== "/auth/login"
+            ) {
+                isRedirectingOn401 = true;
+                clearAuthStorage();
+                window.location.replace("/auth/login");
+            }
+
+            return response;
+        };
+    }
+})();
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const LogoutButton =
@@ -132,34 +226,9 @@ document.addEventListener("DOMContentLoaded", function () {
         "click",
         function () {
 
-            // ==============================
-            // XÓA LOCAL STORAGE
-            // ==============================
-
-            localStorage.removeItem("Token");
-            localStorage.removeItem("MaNguoiDung");
-            localStorage.removeItem("TenDangNhap");
-            localStorage.removeItem("HoTen");
-            localStorage.removeItem("Email");
-            localStorage.removeItem("VaiTro");
-            localStorage.removeItem("AnhDaiDien");
-
-
-            // ==============================
-            // XÓA SESSION STORAGE
-            // ==============================
-
-            sessionStorage.removeItem("Token");
-            sessionStorage.removeItem("MaNguoiDung");
-            sessionStorage.removeItem("TenDangNhap");
-            sessionStorage.removeItem("HoTen");
-            sessionStorage.removeItem("Email");
-            sessionStorage.removeItem("VaiTro");
-            sessionStorage.removeItem("AnhDaiDien");
-            sessionStorage.removeItem(
-                "thongBaoChoKhamSauDangNhap"
-            );
-
+            if (typeof window.qlbvClearAuthStorage === "function") {
+                window.qlbvClearAuthStorage();
+            }
 
             // ==============================
             // VỀ TRANG LOGIN

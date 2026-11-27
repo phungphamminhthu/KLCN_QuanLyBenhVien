@@ -21,6 +21,15 @@ public class JwtService {
             @Value("${jwt.secret}") String Secret,
             @Value("${jwt.expiration}") long Expiration) {
 
+        if (Secret == null
+                || Secret.isBlank()
+                || Secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                    "Cấu hình jwt.secret không hợp lệ hoặc thiếu (tối thiểu 32 ký tự). "
+                            + "Hãy cấu hình biến môi trường JWT_SECRET hoặc jwt.secret trong application-local.properties."
+            );
+        }
+
         this.Secret = Secret;
         this.Expiration = Expiration;
     }
@@ -78,15 +87,20 @@ public class JwtService {
         return getClaims(Token).getSubject();
     }
 
-    // Kiểm tra JWT có hợp lệ không
+    // Kiểm tra JWT có hợp lệ không (bao gồm kiểm tra tài khoản còn hoạt động)
     public boolean isTokenValid(
             String Token,
             CustomUserDetails UserDetails) {
 
+        if (UserDetails == null || !UserDetails.isEnabled()) {
+            return false;
+        }
+
         String TenDangNhap =
                 extractTenDangNhap(Token);
 
-        return TenDangNhap.equals(
+        return TenDangNhap != null
+                && TenDangNhap.equals(
                 UserDetails.getUsername()
         )
                 && !isTokenExpired(Token);

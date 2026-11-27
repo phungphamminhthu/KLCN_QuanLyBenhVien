@@ -34,6 +34,14 @@ document.addEventListener(
 
         let currentPage = 1;
 
+        let selectedNotifyMedicine = null;
+
+        let isSendingNotify = false;
+
+        const notifiedMedicineIds = new Set();
+
+        let stockToastTimer = null;
+
 
         /* =================================================
            DOM
@@ -96,6 +104,24 @@ document.addEventListener(
 
         const closeStockDetailButton =
             document.getElementById("closeStockDetailButton");
+
+        const notifyAdminModal =
+            document.getElementById("notifyAdminModal");
+
+        const closeNotifyAdmin =
+            document.getElementById("closeNotifyAdmin");
+
+        const cancelNotifyAdminButton =
+            document.getElementById("cancelNotifyAdminButton");
+
+        const confirmNotifyAdminButton =
+            document.getElementById("confirmNotifyAdminButton");
+
+        const notifyAdminMessage =
+            document.getElementById("notifyAdminMessage");
+
+        const stockNotifyToast =
+            document.getElementById("stockNotifyToast");
 
 
         /* =================================================
@@ -1591,17 +1617,45 @@ document.addEventListener(
 
                     <td>
 
-                        <button
-                            type="button"
-                            class="
-                                action-button
-                                stock-detail-button
-                            "
-                            data-id="${item.maThuoc}">
+                        <div class="stock-action-group">
 
-                            Xem chi tiết
+                            <button
+                                type="button"
+                                class="
+                                    action-button
+                                    stock-detail-button
+                                "
+                                data-id="${item.maThuoc}">
 
-                        </button>
+                                Xem chi tiết
+
+                            </button>
+
+                            ${
+                                status.code === "SAP_HET"
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="
+                                                action-button
+                                                stock-notify-button
+                                                ${notifiedMedicineIds.has(Number(item.maThuoc)) ? "sent" : ""}
+                                            "
+                                            data-id="${item.maThuoc}"
+                                            ${notifiedMedicineIds.has(Number(item.maThuoc)) ? "disabled" : ""}>
+
+                                            ${
+                                                notifiedMedicineIds.has(Number(item.maThuoc))
+                                                    ? "Đã thông báo"
+                                                    : "Thông báo Admin"
+                                            }
+
+                                        </button>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
 
                     </td>
 
@@ -2111,6 +2165,195 @@ document.addEventListener(
 
 
         /* =================================================
+           THÔNG BÁO THUỐC SẮP HẾT ĐẾN ADMIN
+        ================================================= */
+
+        function showStockToast(
+            message,
+            type = "success"
+        ) {
+            if (!stockNotifyToast) {
+                alert(message);
+                return;
+            }
+
+            stockNotifyToast.textContent = message;
+            stockNotifyToast.className = "stock-toast " + type;
+            stockNotifyToast.style.display = "block";
+
+            if (stockToastTimer) {
+                clearTimeout(stockToastTimer);
+            }
+
+            stockToastTimer = setTimeout(function () {
+                stockNotifyToast.style.display = "none";
+            }, 4000);
+        }
+
+        function openNotifyAdminModal(id) {
+            const item = danhSachThuoc.find(function (medicine) {
+                return Number(medicine.maThuoc) === Number(id);
+            });
+
+            if (!item) {
+                showStockToast("Không tìm thấy thông tin thuốc.", "error");
+                return;
+            }
+
+            const status = getStockStatus(item);
+
+            if (status.code !== "SAP_HET") {
+                showStockToast(
+                    "Chỉ có thể gửi thông báo đối với thuốc đang ở trạng thái Sắp hết.",
+                    "warning"
+                );
+                return;
+            }
+
+            selectedNotifyMedicine = item;
+
+            const maHienThi =
+                "TH" + String(item.maThuoc ?? "").padStart(3, "0");
+            const tenThuoc = item.tenThuoc || "-";
+            const donVi = item.donViTinh || "-";
+            const ton = Number(item.soLuongTon ?? 0);
+            const toiThieu = Number(item.soLuongToiThieu ?? 0);
+
+            if (notifyAdminMessage) {
+                notifyAdminMessage.textContent =
+                    `Thuốc ${tenThuoc} hiện có số lượng tồn kho thấp hơn hoặc bằng ngưỡng cảnh báo theo quy tắc của hệ thống. ` +
+                    `Bạn có muốn gửi thông báo đến Admin để xem xét bổ sung thuốc không?`;
+            }
+
+            setText("notifyMaThuoc", maHienThi);
+            setText("notifyTenThuoc", tenThuoc);
+            setText("notifyDonVi", donVi);
+            setText(
+                "notifyTonKho",
+                donVi !== "-"
+                    ? `${formatNumber(ton)} ${donVi}`
+                    : formatNumber(ton)
+            );
+            setText("notifyTonToiThieu", formatNumber(toiThieu));
+
+            if (confirmNotifyAdminButton) {
+                confirmNotifyAdminButton.disabled = false;
+                confirmNotifyAdminButton.textContent = "Xác nhận gửi";
+            }
+
+            if (notifyAdminModal) {
+                notifyAdminModal.style.display = "flex";
+            }
+        }
+
+        function closeNotifyAdminModal() {
+            if (isSendingNotify) {
+                return;
+            }
+
+            selectedNotifyMedicine = null;
+
+            if (notifyAdminModal) {
+                notifyAdminModal.style.display = "none";
+            }
+        }
+
+        async function submitNotifyAdmin() {
+            if (!selectedNotifyMedicine || isSendingNotify) {
+                return;
+            }
+
+            const medicineId = Number(selectedNotifyMedicine.maThuoc);
+            const medicineName = selectedNotifyMedicine.tenThuoc || "-";
+
+            isSendingNotify = true;
+
+            if (confirmNotifyAdminButton) {
+                confirmNotifyAdminButton.disabled = true;
+                confirmNotifyAdminButton.textContent = "Đang gửi...";
+            }
+
+            try {
+                const response = await fetch(
+                    `${KHO_API_URL}/thong-bao-sap-het/${encodeURIComponent(medicineId)}`,
+                    {
+                        method: "POST",
+                        headers: getHeaders(),
+                        credentials: "same-origin"
+                    }
+                );
+
+                let data = {};
+
+                try {
+                    data = await response.json();
+                } catch (_) {
+                    data = {};
+                }
+
+                if (response.status === 401) {
+                    throw new Error(
+                        data.message ||
+                        "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
+                    );
+                }
+
+                if (response.status === 403) {
+                    throw new Error(
+                        data.message ||
+                        "Bạn không có quyền gửi thông báo tồn kho đến Admin."
+                    );
+                }
+
+                if (response.status === 409) {
+                    notifiedMedicineIds.add(medicineId);
+                    isSendingNotify = false;
+                    closeNotifyAdminModal();
+                    renderTable();
+                    showStockToast(
+                        data.message ||
+                        `Thông báo cho thuốc ${medicineName} đã được gửi đến Admin và đang chờ xem xét.`,
+                        "warning"
+                    );
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Không thể gửi thông báo thuốc sắp hết đến Admin."
+                    );
+                }
+
+                notifiedMedicineIds.add(medicineId);
+                isSendingNotify = false;
+                closeNotifyAdminModal();
+                renderTable();
+                showStockToast(
+                    data.message ||
+                    `Đã gửi thông báo cảnh báo tồn kho thuốc ${medicineName} đến Admin.`,
+                    "success"
+                );
+
+            } catch (error) {
+                console.error("LỖI GỬI THÔNG BÁO ADMIN:", error);
+                isSendingNotify = false;
+
+                if (confirmNotifyAdminButton) {
+                    confirmNotifyAdminButton.disabled = false;
+                    confirmNotifyAdminButton.textContent = "Xác nhận gửi";
+                }
+
+                showStockToast(
+                    error.message ||
+                    "Không thể gửi thông báo đến Admin. Vui lòng thử lại.",
+                    "error"
+                );
+            }
+        }
+
+
+        /* =================================================
            LOADING
         ================================================= */
 
@@ -2299,6 +2542,20 @@ document.addEventListener(
             stockTableBody.addEventListener(
                 "click",
                 function (event) {
+
+                    const notifyButton =
+                        event.target.closest(
+                            ".stock-notify-button"
+                        );
+
+                    if (notifyButton) {
+                        if (!notifyButton.disabled) {
+                            openNotifyAdminModal(
+                                notifyButton.dataset.id
+                            );
+                        }
+                        return;
+                    }
 
                     const button =
                         event.target.closest(
@@ -2516,6 +2773,42 @@ document.addEventListener(
         }
 
 
+        if (closeNotifyAdmin) {
+            closeNotifyAdmin.addEventListener(
+                "click",
+                closeNotifyAdminModal
+            );
+        }
+
+
+        if (cancelNotifyAdminButton) {
+            cancelNotifyAdminButton.addEventListener(
+                "click",
+                closeNotifyAdminModal
+            );
+        }
+
+
+        if (confirmNotifyAdminButton) {
+            confirmNotifyAdminButton.addEventListener(
+                "click",
+                submitNotifyAdmin
+            );
+        }
+
+
+        if (notifyAdminModal) {
+            notifyAdminModal.addEventListener(
+                "click",
+                function (event) {
+                    if (event.target === notifyAdminModal) {
+                        closeNotifyAdminModal();
+                    }
+                }
+            );
+        }
+
+
         /* =================================================
            ESC ĐÓNG MODAL
         ================================================= */
@@ -2530,6 +2823,7 @@ document.addEventListener(
                 ) {
 
                     closeDetailModal();
+                    closeNotifyAdminModal();
                 }
             }
         );

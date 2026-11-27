@@ -9,17 +9,23 @@ import QuanLyBenhVien.Repository.KhoThuocRepository;
 import QuanLyBenhVien.Repository.NguoiDungRepository;
 import QuanLyBenhVien.Repository.ThuocRepository;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional
 public class KhoThuocService {
+
+    public static final String LOAI_CANH_BAO_TON_KHO_THUOC = "CANH_BAO_TON_KHO_THUOC";
 
     private final KhoThuocRepository khoThuocRepository;
     private final ThuocRepository thuocRepository;
@@ -590,6 +596,166 @@ public class KhoThuocService {
 
         // 2. Cập nhật số thông báo chưa đọc qua WebSocket.
         guiCapNhatThongBaoRealtime();
+    }
+
+    // =====================================================
+    // DƯỢC SĨ THÔNG BÁO THUỐC SẮP HẾT ĐẾN ADMIN
+    // =====================================================
+
+    public Map<String, Object> thongBaoThuocSapHetDenAdmin(
+            Integer maThuoc,
+            String tenDangNhap
+    ) {
+        if (maThuoc == null || maThuoc <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Mã thuốc không hợp lệ."
+            );
+        }
+
+        NguoiDung nguoiGui = nguoiDungRepository
+                .findByTenDangNhap(tenDangNhap)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED,
+                        "Không tìm thấy tài khoản đăng nhập."
+                ));
+
+        if (Boolean.FALSE.equals(nguoiGui.getTrangThai())) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Tài khoản hiện không hoạt động."
+            );
+        }
+
+        String vaiTroGui = nguoiGui.getVaiTro() != null
+                ? nguoiGui.getVaiTro().getTenVaiTro()
+                : null;
+
+        if (!"DUOCSI".equalsIgnoreCase(vaiTroGui)) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Chỉ Dược sĩ mới được phép gửi thông báo thuốc sắp hết."
+            );
+        }
+
+        Thuoc thuoc = thuocRepository
+                .findById(maThuoc)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Không tìm thấy thuốc có mã: " + maThuoc
+                ));
+
+        List<KhoThuoc> danhSachLo = khoThuocRepository
+                .findByThuoc_MaThuocOrderByHanSuDungAsc(maThuoc);
+
+        if (danhSachLo == null || danhSachLo.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Thuốc \"" + thuoc.getTenThuoc() + "\" chưa có dữ liệu tồn kho."
+            );
+        }
+
+        int tongTonKho = 0;
+        int tongTonToiThieu = 0;
+
+        for (KhoThuoc lo : danhSachLo) {
+            if (lo.getSoLuongTon() != null && lo.getSoLuongTon() > 0) {
+                tongTonKho += lo.getSoLuongTon();
+            }
+
+            if (lo.getSoLuongToiThieu() != null && lo.getSoLuongToiThieu() > 0) {
+                tongTonToiThieu += lo.getSoLuongToiThieu();
+            }
+        }
+
+        if (tongTonKho <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Thuốc \"" + thuoc.getTenThuoc()
+                            + "\" hiện đang ở trạng thái hết hàng, không thuộc trạng thái sắp hết."
+            );
+        }
+
+        if (tongTonToiThieu <= 0 || tongTonKho > tongTonToiThieu) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Thuốc \"" + thuoc.getTenThuoc()
+                            + "\" hiện còn đủ hàng, chưa đạt ngưỡng cảnh báo tồn kho."
+            );
+        }
+
+        List<NguoiDung> danhSachAdmin = nguoiDungRepository
+                .timNguoiDungTheoNhieuVaiTro(List.of("ADMIN"));
+
+        if (danhSachAdmin == null || danhSachAdmin.isEmpty()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Hiện không có tài khoản Admin đang hoạt động để nhận thông báo."
+            );
+        }
+
+        String maThuocHienThi = String.format("TH%03d", thuoc.getMaThuoc());
+
+        List<Integer> adminIds = danhSachAdmin.stream()
+                .map(NguoiDung::getMaNguoiDung)
+                .toList();
+
+        if (thongBaoService.daCoThongBaoChuaDoc(
+                adminIds,
+                LOAI_CANH_BAO_TON_KHO_THUOC,
+                "(" + maThuocHienThi + ")")) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Thông báo cảnh báo cho thuốc " + thuoc.getTenThuoc()
+                            + " (" + maThuocHienThi + ") đã được gửi đến Admin và đang chờ xem xét."
+            );
+        }
+
+        String donVi = (thuoc.getDonViTinh() != null && !thuoc.getDonViTinh().isBlank())
+                ? thuoc.getDonViTinh().trim()
+                : "";
+
+        String tonKhoText = donVi.isEmpty()
+                ? String.valueOf(tongTonKho)
+                : tongTonKho + " " + donVi;
+
+        String tenDuocSi = (nguoiGui.getHoTen() != null && !nguoiGui.getHoTen().isBlank())
+                ? nguoiGui.getHoTen().trim()
+                : "";
+
+        String nguoiDeNghi = tenDuocSi.isEmpty()
+                ? "Dược sĩ"
+                : "Dược sĩ " + tenDuocSi;
+
+        String tieuDe = "Cảnh báo tồn kho thuốc";
+        String noiDung = "Thuốc " + thuoc.getTenThuoc()
+                + " (" + maThuocHienThi + ") đang có số lượng tồn kho thấp. "
+                + "Tồn kho hiện tại: " + tonKhoText + ". "
+                + "Tồn kho tối thiểu: " + tongTonToiThieu + ". "
+                + nguoiDeNghi + " đề nghị Admin xem xét bổ sung thuốc.";
+
+        for (NguoiDung admin : danhSachAdmin) {
+            thongBaoService.taoThongBao(
+                    admin.getMaNguoiDung(),
+                    tieuDe,
+                    noiDung,
+                    LOAI_CANH_BAO_TON_KHO_THUOC
+            );
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("success", true);
+        result.put("message", "Đã gửi thông báo cảnh báo tồn kho thuốc "
+                + thuoc.getTenThuoc() + " (" + maThuocHienThi + ") đến Admin.");
+        result.put("maThuoc", thuoc.getMaThuoc());
+        result.put("maThuocHienThi", maThuocHienThi);
+        result.put("tenThuoc", thuoc.getTenThuoc());
+        result.put("donViTinh", donVi);
+        result.put("soLuongTon", tongTonKho);
+        result.put("soLuongToiThieu", tongTonToiThieu);
+        result.put("soAdminNhan", danhSachAdmin.size());
+
+        return result;
     }
 
 }

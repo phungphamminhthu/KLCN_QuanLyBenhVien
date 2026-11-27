@@ -4,12 +4,15 @@ import QuanLyBenhVien.DTO.KhoThuocRequest;
 import QuanLyBenhVien.DTO.KhoThuocResponse;
 import QuanLyBenhVien.Service.KhoThuocService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/kho-thuoc")
@@ -245,5 +248,52 @@ public class KhoThuocController {
         return ResponseEntity.ok(
                 "Đã tạo thông báo xuất file thuốc hết hạn."
         );
+    }
+
+    // =====================================================
+    // DƯỢC SĨ GỬI THÔNG BÁO THUỐC SẮP HẾT ĐẾN ADMIN
+    // =====================================================
+    @PostMapping("/thong-bao-sap-het/{maThuoc}")
+    public ResponseEntity<Map<String, Object>> thongBaoThuocSapHet(
+            @PathVariable Integer maThuoc
+    ) {
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Phiên đăng nhập không hợp lệ hoặc đã hết hạn."
+                    ));
+        }
+
+        try {
+            Map<String, Object> result =
+                    khoThuocService.thongBaoThuocSapHetDenAdmin(
+                            maThuoc,
+                            authentication.getName()
+                    );
+
+            return ResponseEntity.ok(result);
+
+        } catch (ResponseStatusException ex) {
+            String message = ex.getReason() != null
+                    ? ex.getReason()
+                    : "Không thể gửi thông báo thuốc sắp hết.";
+            boolean isDuplicate =
+                    ex.getStatusCode().value() == HttpStatus.CONFLICT.value();
+
+            return ResponseEntity.status(ex.getStatusCode())
+                    .body(Map.of(
+                            "success", false,
+                            "duplicate", isDuplicate,
+                            "message", message
+                    ));
+        }
     }
 }

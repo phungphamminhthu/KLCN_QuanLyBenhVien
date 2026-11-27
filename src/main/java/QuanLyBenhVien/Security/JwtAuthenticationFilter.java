@@ -1,22 +1,33 @@
 package QuanLyBenhVien.Security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.http.HttpMethod;
 
 import java.io.IOException;
 
 @Component
 public class JwtAuthenticationFilter
         extends OncePerRequestFilter {
+
+    public static final String AUTH_ERROR_CODE_ATTR = "qlbv.auth.error.code";
+    public static final String AUTH_ERROR_MESSAGE_ATTR = "qlbv.auth.error.message";
+
+    private static final Logger log =
+            LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
     private final JwtService JwtService;
     private final CustomUserDetailsService CustomUserDetailsService;
@@ -42,50 +53,42 @@ public class JwtAuthenticationFilter
             HttpServletResponse Response,
             FilterChain FilterChain)
             throws ServletException, IOException {
-        System.out.println(
-                "JWT FILTER: " + Request.getMethod()
-                        + " " + Request.getRequestURI()
-        );
 
         String Authorization = Request.getHeader("Authorization");
 
-        System.out.println("======================================");
-        System.out.println("REQUEST: "
-                + Request.getMethod()
-                + " "
-                + Request.getRequestURI());
-
-        System.out.println("Authorization type: "
-                + (Authorization == null
-                ? "NONE"
-                : Authorization.startsWith("Bearer ")
-                ? "BEARER"
-                : Authorization.startsWith("Apikey ")
-                ? "SEPAY_API_KEY"
-                : "OTHER"));
-
-        // Không có token
+        // Không có Bearer token → để SecurityFilterChain quyết định (permitAll hoặc 401)
         if (Authorization == null
                 || !Authorization.startsWith("Bearer ")) {
-
-            System.out.println("JWT: KHÔNG CÓ TOKEN");
 
             FilterChain.doFilter(Request, Response);
             return;
         }
 
-        String Token = Authorization.substring(7);
+        String Token = Authorization.substring(7).trim();
+
+        if (Token.isEmpty()) {
+            SecurityContextHolder.clearContext();
+            setAuthError(
+                    Request,
+                    "TOKEN_INVALID",
+                    "Token xác thực không hợp lệ."
+            );
+            FilterChain.doFilter(Request, Response);
+            return;
+        }
 
         try {
-
             String TenDangNhap =
                     JwtService.extractTenDangNhap(Token);
 
-            System.out.println("Username từ JWT: "
-                    + TenDangNhap);
-
-            if (TenDangNhap != null
-                    && SecurityContextHolder
+            if (TenDangNhap == null || TenDangNhap.isBlank()) {
+                SecurityContextHolder.clearContext();
+                setAuthError(
+                        Request,
+                        "TOKEN_INVALID",
+                        "Token xác thực không hợp lệ."
+                );
+            } else if (SecurityContextHolder
                     .getContext()
                     .getAuthentication() == null) {
 
@@ -96,23 +99,20 @@ public class JwtAuthenticationFilter
                                                 TenDangNhap
                                         );
 
-                System.out.println(
-                        "Authorities từ UserDetails: "
-                                + UserDetails.getAuthorities()
-                );
-
-                boolean TokenValid =
-                        JwtService.isTokenValid(
-                                Token,
-                                UserDetails
-                        );
-
-                System.out.println(
-                        "Token valid: "
-                                + TokenValid
-                );
-
-                if (TokenValid) {
+                if (!UserDetails.isEnabled()) {
+                    SecurityContextHolder.clearContext();
+                    setAuthError(
+                            Request,
+                            "ACCOUNT_DISABLED",
+                            "Tài khoản đã bị khóa hoặc vô hiệu hóa."
+                    );
+                    log.warn(
+                            "Từ chối JWT vì tài khoản bị khóa: {} {} (user={})",
+                            Request.getMethod(),
+                            Request.getRequestURI(),
+                            TenDangNhap
+                    );
+                } else if (JwtService.isTokenValid(Token, UserDetails)) {
 
                     UsernamePasswordAuthenticationToken Authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -131,66 +131,79 @@ public class JwtAuthenticationFilter
                             .setAuthentication(
                                     Authentication
                             );
-
-                    System.out.println(
-                            "===== JWT AUTH SUCCESS ====="
-                    );
-
-                    System.out.println(
-                            "Username: "
-                                    + TenDangNhap
-                    );
-
-                    System.out.println(
-                            "Authorities: "
-                                    + UserDetails.getAuthorities()
+                } else {
+                    SecurityContextHolder.clearContext();
+                    setAuthError(
+                            Request,
+                            "TOKEN_INVALID",
+                            "Token xác thực không hợp lệ."
                     );
                 }
             }
 
-        } catch (Exception Exception) {
-
-            System.out.println(
-                    "===== JWT ERROR ====="
+        } catch (ExpiredJwtException ex) {
+            SecurityContextHolder.clearContext();
+            setAuthError(
+                    Request,
+                    "TOKEN_EXPIRED",
+                    "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại."
             );
-
-            System.out.println(
-                    "Request: "
-                            + Request.getMethod()
-                            + " "
-                            + Request.getRequestURI()
+            log.debug(
+                    "JWT hết hạn cho request {} {}",
+                    Request.getMethod(),
+                    Request.getRequestURI()
             );
-
-            System.out.println(
-                    "Error: "
-                            + Exception.getMessage()
+        } catch (JwtException | IllegalArgumentException ex) {
+            SecurityContextHolder.clearContext();
+            setAuthError(
+                    Request,
+                    "TOKEN_INVALID",
+                    "Token xác thực không hợp lệ."
             );
-
-            Exception.printStackTrace();
+            log.debug(
+                    "JWT không hợp lệ cho request {} {}: {}",
+                    Request.getMethod(),
+                    Request.getRequestURI(),
+                    ex.getMessage()
+            );
+        } catch (UsernameNotFoundException ex) {
+            SecurityContextHolder.clearContext();
+            setAuthError(
+                    Request,
+                    "TOKEN_INVALID",
+                    "Tài khoản không tồn tại hoặc không hợp lệ."
+            );
+            log.warn(
+                    "Không tìm thấy tài khoản từ JWT cho request {} {}",
+                    Request.getMethod(),
+                    Request.getRequestURI()
+            );
+        } catch (Exception ex) {
+            SecurityContextHolder.clearContext();
+            setAuthError(
+                    Request,
+                    "UNAUTHORIZED",
+                    "Xác thực không thành công. Vui lòng đăng nhập lại."
+            );
+            log.warn(
+                    "Lỗi xác thực JWT cho request {} {}: {}",
+                    Request.getMethod(),
+                    Request.getRequestURI(),
+                    ex.getMessage()
+            );
         }
-
-        System.out.println(
-                "Authentication hiện tại: "
-                        + SecurityContextHolder
-                        .getContext()
-                        .getAuthentication()
-        );
-
-        System.out.println("======================================");
-
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-
-        System.out.println("===== SECURITY DEBUG =====");
-        System.out.println("URI: " + Request.getRequestURI());
-        System.out.println("Authenticated: " +
-                (auth != null && auth.isAuthenticated()));
-        System.out.println("Authorities: " +
-                (auth != null ? auth.getAuthorities() : null));
-        System.out.println("==========================");
 
         FilterChain.doFilter(
                 Request,
                 Response
         );
+    }
+
+    private void setAuthError(
+            HttpServletRequest request,
+            String code,
+            String message) {
+        request.setAttribute(AUTH_ERROR_CODE_ATTR, code);
+        request.setAttribute(AUTH_ERROR_MESSAGE_ATTR, message);
     }
 }

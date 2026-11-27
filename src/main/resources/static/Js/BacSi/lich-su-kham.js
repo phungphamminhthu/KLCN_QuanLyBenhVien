@@ -8,6 +8,12 @@ const API_BASE = "/api/bac-si/kham-benh";
 let danhSachLichSu = [];
 let danhSachBenhNhan = [];
 let benhNhanDangChon = null;
+let vitalsRequestVersion = 0;
+let sectionRequestVersion = 0;
+let clsImageObjectUrls = [];
+let clsImageAbortController = null;
+let clsLightboxEscapeHandler = null;
+let danhSachChiDinhHienTai = [];
 
 
 
@@ -393,7 +399,11 @@ function gomLichSuTheoBenhNhan(danhSach) {
                 const timeB =
                     taoThoiGianLichKham(b);
 
-                return timeB - timeA;
+                if (timeB !== timeA) {
+                    return timeB - timeA;
+                }
+
+                return (Number(b.maLichKham) || 0) - (Number(a.maLichKham) || 0);
             }
         );
 
@@ -634,11 +644,19 @@ function timKiemBenhNhan() {
                         ""
                     );
 
+                const maBenhNhanHienThi =
+                    formatPatientCode(
+                        patient.maBenhNhan
+                    ).toLowerCase();
+
                 return (
                     hoTen.includes(
                         keyword
                     ) ||
                     maBenhNhan.includes(
+                        keyword
+                    ) ||
+                    maBenhNhanHienThi.includes(
                         keyword
                     )
                 );
@@ -779,28 +797,97 @@ function hienThiSoDo(id, giaTri) {
             : String(giaTri);
 }
 
-function hienThiChiSoSucKhoe(benhNhan) {
-    const lichKham = benhNhan?.lanKhamGanNhat;
-
-    hienThiSoDo("detailCanNang", lichKham?.canNang);
-    hienThiSoDo("detailChieuCao", lichKham?.chieuCao);
-    hienThiSoDo("detailHuyetApTamThu", lichKham?.huyetApTamThu);
-    hienThiSoDo("detailHuyetApTamTruong", lichKham?.huyetApTamTruong);
+function renderChiSoTuHoSo(duLieu, ngayKham) {
+    hienThiSoDo("detailCanNang", duLieu?.canNang);
+    hienThiSoDo("detailChieuCao", duLieu?.chieuCao);
+    hienThiSoDo("detailHuyetApTamThu", duLieu?.huyetApTamThu);
+    hienThiSoDo("detailHuyetApTamTruong", duLieu?.huyetApTamTruong);
 
     const vitalsDate = document.getElementById("vitalsDate");
 
     if (vitalsDate) {
         const coSoDo = [
-            lichKham?.canNang,
-            lichKham?.chieuCao,
-            lichKham?.huyetApTamThu,
-            lichKham?.huyetApTamTruong
-        ].some(value => value !== null && value !== undefined);
+            duLieu?.canNang,
+            duLieu?.chieuCao,
+            duLieu?.huyetApTamThu,
+            duLieu?.huyetApTamTruong
+        ].some(value =>
+            value !== null &&
+            value !== undefined &&
+            value !== ""
+        );
 
         vitalsDate.textContent =
-            coSoDo && lichKham?.ngayKham
-                ? "Ngày khám: " + formatDate(lichKham.ngayKham)
+            coSoDo && ngayKham
+                ? "Ngày khám: " + formatDate(ngayKham)
                 : "Chưa có số đo";
+    }
+}
+
+async function hienThiChiSoSucKhoe(benhNhan) {
+    const version = ++vitalsRequestVersion;
+    const lichKham = benhNhan?.lanKhamGanNhat;
+
+    if (!lichKham || lichKham.maLichKham == null) {
+        renderChiSoTuHoSo(null, null);
+        return;
+    }
+
+    if (lichKham._daTaiChiSo) {
+        renderChiSoTuHoSo(lichKham, lichKham.ngayKham);
+        return;
+    }
+
+    hienThiSoDo("detailCanNang", null);
+    hienThiSoDo("detailChieuCao", null);
+    hienThiSoDo("detailHuyetApTamThu", null);
+    hienThiSoDo("detailHuyetApTamTruong", null);
+
+    const vitalsDate = document.getElementById("vitalsDate");
+
+    if (vitalsDate) {
+        vitalsDate.textContent = "Đang tải số đo...";
+    }
+
+    try {
+        const hoSo = await apiFetch(
+            `${API_BASE}/${lichKham.maLichKham}/ho-so`
+        );
+
+        if (
+            version !== vitalsRequestVersion ||
+            !benhNhanDangChon ||
+            Number(benhNhanDangChon.maBenhNhan) !== Number(benhNhan.maBenhNhan)
+        ) {
+            return;
+        }
+
+        lichKham.canNang = hoSo?.canNang ?? null;
+        lichKham.chieuCao = hoSo?.chieuCao ?? null;
+        lichKham.huyetApTamThu = hoSo?.huyetApTamThu ?? null;
+        lichKham.huyetApTamTruong = hoSo?.huyetApTamTruong ?? null;
+        lichKham._daTaiChiSo = true;
+
+        renderChiSoTuHoSo(
+            lichKham,
+            hoSo?.ngayKham || lichKham.ngayKham
+        );
+    } catch (error) {
+        console.error("Lỗi tải chỉ số sức khỏe:", error);
+
+        if (
+            version !== vitalsRequestVersion ||
+            !benhNhanDangChon ||
+            Number(benhNhanDangChon.maBenhNhan) !== Number(benhNhan.maBenhNhan)
+        ) {
+            return;
+        }
+
+        renderChiSoTuHoSo(null, null);
+
+        if (vitalsDate) {
+            vitalsDate.textContent = "Không thể tải số đo";
+        }
     }
 }
 
@@ -811,6 +898,7 @@ function hienThiChiSoSucKhoe(benhNhan) {
 
 function quayLaiDanhSachBenhNhan() {
 
+    vitalsRequestVersion++;
     benhNhanDangChon =
         null;
 
@@ -846,6 +934,8 @@ function hienThiCacLanKham() {
     if (!benhNhanDangChon) {
         return;
     }
+
+    datMucDangMo(btnShowVisits);
 
     moNoiDungHoSo(
         "Các lần khám",
@@ -888,12 +978,16 @@ function hienThiCacLanKham() {
 
 function taoHtmlLanKham(item) {
 
+    const maLichHienThi = item.maLichKham != null
+        ? `LK${String(item.maLichKham).padStart(6, "0")}`
+        : "";
+
     return `
 
         <button
             type="button"
             class="visit-item"
-            onclick="xemChiTietLanKham(${item.maLichKham})"
+            onclick="xemChiTietLanKham(${Number(item.maLichKham)})"
         >
 
             <div class="visit-date">
@@ -905,6 +999,7 @@ function taoHtmlLanKham(item) {
                 </strong>
 
                 <span>
+                    <i class="fa-regular fa-clock"></i>
                     ${formatTime(
                         item.gioKham
                     )}
@@ -915,14 +1010,22 @@ function taoHtmlLanKham(item) {
 
             <div class="visit-summary">
 
-                <strong>
-                    ${escapeHtml(
-                        item.lyDoKham ||
-                        "Khám bệnh"
-                    )}
-                </strong>
+                <div class="visit-summary-top">
+                    <strong>
+                        ${escapeHtml(
+                            item.lyDoKham ||
+                            "Khám bệnh"
+                        )}
+                    </strong>
 
-                <span>
+                    ${
+                        maLichHienThi
+                            ? `<span class="lsk-code-pill">${escapeHtml(maLichHienThi)}</span>`
+                            : ""
+                    }
+                </div>
+
+                <span class="visit-summary-sub">
                     ${escapeHtml(
                         item.chanDoan ||
                         "Bấm để xem chi tiết hồ sơ khám"
@@ -930,6 +1033,11 @@ function taoHtmlLanKham(item) {
                 </span>
 
             </div>
+
+
+            <span class="badge-completed visit-status-badge">
+                ${escapeHtml(formatTrangThaiLichKham(item.trangThai))}
+            </span>
 
 
             <i
@@ -949,6 +1057,12 @@ async function xemChiTietLanKham(
     maLichKham
 ) {
 
+    if (!benhNhanDangChon || !timLanKham(maLichKham)) {
+        return;
+    }
+
+    const version = ++sectionRequestVersion;
+
     try {
 
         sectionDetailContent.innerHTML =
@@ -961,6 +1075,10 @@ async function xemChiTietLanKham(
             await apiFetch(
                 `${API_BASE}/${maLichKham}/ho-so`
             );
+
+        if (version !== sectionRequestVersion) {
+            return;
+        }
 
 
         sectionDetailTitle.textContent =
@@ -1060,6 +1178,28 @@ async function xemChiTietLanKham(
 
                     </div>
 
+                    ${
+                        data.tenKhoa
+                            ? `
+                                <div>
+                                    <span>Chuyên khoa</span>
+                                    <strong>${escapeHtml(data.tenKhoa)}</strong>
+                                </div>
+                            `
+                            : ""
+                    }
+
+                    ${
+                        data.tenBacSi
+                            ? `
+                                <div>
+                                    <span>Bác sĩ khám</span>
+                                    <strong>${escapeHtml(data.tenBacSi)}</strong>
+                                </div>
+                            `
+                            : ""
+                    }
+
 
                 </div>
 
@@ -1114,13 +1254,7 @@ async function xemChiTietLanKham(
                 </div>
 
 
-                <div
-                    style="
-                        margin-top: 18px;
-                        display: flex;
-                        justify-content: flex-start;
-                    "
-                >
+                <div class="section-detail-footer">
 
                     <button
                         type="button"
@@ -1144,15 +1278,31 @@ async function xemChiTietLanKham(
 
     } catch (error) {
 
+        if (version !== sectionRequestVersion) {
+            return;
+        }
+
         console.error(error);
 
 
-        sectionDetailContent.innerHTML =
-            taoEmptySection(
+        sectionDetailContent.innerHTML = `
+            ${taoEmptySection(
                 "fa-solid fa-triangle-exclamation",
                 "Không thể tải hồ sơ",
                 error.message
-            );
+            )}
+
+            <div class="section-detail-footer section-detail-footer-padded">
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    onclick="hienThiCacLanKham()"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Quay lại các lần khám
+                </button>
+            </div>
+        `;
 
 
         showToast(
@@ -1208,6 +1358,7 @@ function hienThiKetQuaCanLamSang() {
         return;
     }
 
+    datMucDangMo(btnShowClinicalResults);
 
     moNoiDungHoSo(
         "Kết quả cận lâm sàng",
@@ -1238,12 +1389,17 @@ function hienThiKetQuaCanLamSang() {
         <div class="visit-list">
 
             ${list.map(
-                item => `
+                item => {
+                    const maLichHienThi = item.maLichKham != null
+                        ? `LK${String(item.maLichKham).padStart(6, "0")}`
+                        : "";
+
+                    return `
 
                     <button
                         type="button"
                         class="visit-item"
-                        onclick="xemCanLamSangTheoLanKham(${item.maLichKham})"
+                        onclick="xemCanLamSangTheoLanKham(${Number(item.maLichKham)})"
                     >
 
                         <div class="visit-date">
@@ -1255,6 +1411,7 @@ function hienThiKetQuaCanLamSang() {
                             </strong>
 
                             <span>
+                                <i class="fa-regular fa-clock"></i>
                                 ${formatTime(
                                     item.gioKham
                                 )}
@@ -1265,14 +1422,22 @@ function hienThiKetQuaCanLamSang() {
 
                         <div class="visit-summary">
 
-                            <strong>
-                                ${escapeHtml(
-                                    item.lyDoKham ||
-                                    "Khám bệnh"
-                                )}
-                            </strong>
+                            <div class="visit-summary-top">
+                                <strong>
+                                    ${escapeHtml(
+                                        item.lyDoKham ||
+                                        "Khám bệnh"
+                                    )}
+                                </strong>
 
-                            <span>
+                                ${
+                                    maLichHienThi
+                                        ? `<span class="lsk-code-pill">${escapeHtml(maLichHienThi)}</span>`
+                                        : ""
+                                }
+                            </div>
+
+                            <span class="visit-summary-sub">
                                 Xem các chỉ định và kết quả cận lâm sàng
                             </span>
 
@@ -1285,7 +1450,8 @@ function hienThiKetQuaCanLamSang() {
 
                     </button>
 
-                `
+                `;
+                }
             ).join("")}
 
         </div>
@@ -1301,6 +1467,14 @@ async function xemCanLamSangTheoLanKham(
     maLichKham
 ) {
 
+    if (!benhNhanDangChon || !timLanKham(maLichKham)) {
+        return;
+    }
+
+    const version = ++sectionRequestVersion;
+    donDepAnhKetQuaCLS();
+    danhSachChiDinhHienTai = [];
+
     try {
 
         sectionDetailContent.innerHTML =
@@ -1314,11 +1488,17 @@ async function xemCanLamSangTheoLanKham(
                 `${API_BASE}/${maLichKham}/chi-dinh`
             );
 
+        if (version !== sectionRequestVersion) {
+            return;
+        }
+
 
         const list =
             Array.isArray(data)
                 ? data
                 : [];
+
+        danhSachChiDinhHienTai = list;
 
 
         sectionDetailTitle.textContent =
@@ -1337,18 +1517,30 @@ async function xemCanLamSangTheoLanKham(
                     lanKham.ngayKham
                 )} - ${formatTime(
                     lanKham.gioKham
-                )}`
+                )} • ${list.length} chỉ định`
                 : "Danh sách chỉ định cận lâm sàng";
 
 
         if (list.length === 0) {
 
-            sectionDetailContent.innerHTML =
-                taoEmptySection(
+            sectionDetailContent.innerHTML = `
+                ${taoEmptySection(
                     "fa-solid fa-flask",
                     "Không có chỉ định",
                     "Lần khám này không có chỉ định cận lâm sàng."
-                );
+                )}
+
+                <div class="section-detail-footer section-detail-footer-padded">
+                    <button
+                        type="button"
+                        class="btn-secondary"
+                        onclick="hienThiKetQuaCanLamSang()"
+                    >
+                        <i class="fa-solid fa-arrow-left"></i>
+                        Quay lại các lần khám
+                    </button>
+                </div>
+            `;
 
             return;
         }
@@ -1369,11 +1561,7 @@ async function xemCanLamSangTheoLanKham(
             </div>
 
 
-            <div
-                style="
-                    margin-top: 18px;
-                "
-            >
+            <div class="section-detail-footer section-detail-footer-padded">
 
                 <button
                     type="button"
@@ -1394,15 +1582,31 @@ async function xemCanLamSangTheoLanKham(
 
     } catch (error) {
 
+        if (version !== sectionRequestVersion) {
+            return;
+        }
+
         console.error(error);
 
 
-        sectionDetailContent.innerHTML =
-            taoEmptySection(
+        sectionDetailContent.innerHTML = `
+            ${taoEmptySection(
                 "fa-solid fa-triangle-exclamation",
                 "Không thể tải cận lâm sàng",
                 error.message
-            );
+            )}
+
+            <div class="section-detail-footer section-detail-footer-padded">
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    onclick="hienThiKetQuaCanLamSang()"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Quay lại các lần khám
+                </button>
+            </div>
+        `;
 
 
         showToast(
@@ -1416,6 +1620,22 @@ async function xemCanLamSangTheoLanKham(
    HIỂN THỊ MỘT CHỈ ĐỊNH CLS
 ===================================================== */
 
+function layClassTrangThaiChiDinh(trangThai) {
+    switch (trangThai) {
+        case "DaHoanThanh":
+            return "done";
+
+        case "DangThucHien":
+            return "processing";
+
+        case "ChoThanhToan":
+            return "unpaid";
+
+        default:
+            return "waiting";
+    }
+}
+
 function taoHtmlChiDinh(
     maLichKham,
     chiDinh
@@ -1426,19 +1646,29 @@ function taoHtmlChiDinh(
         chiDinh.dichVuYTe?.tenDichVu ||
         "Dịch vụ cận lâm sàng";
 
+    const loaiDichVu =
+        chiDinh.loaiDichVu ||
+        chiDinh.loaiChiDinh ||
+        "";
+
     const trangThai =
         chiDinh.trangThai || "";
 
-    const daHoanThanh =
-        trangThai === "DaHoanThanh";
+    const statusClass =
+        layClassTrangThaiChiDinh(trangThai);
+
+    const metaParts = [
+        loaiDichVu,
+        chiDinh.ngayChiDinh ? formatDateTime(chiDinh.ngayChiDinh) : ""
+    ].filter(Boolean);
 
     return `
         <button
             type="button"
             class="clinical-result-item"
             onclick="xemKetQuaChiDinh(
-                ${maLichKham},
-                ${chiDinh.maChiDinh}
+                ${Number(maLichKham)},
+                ${Number(chiDinh.maChiDinh)}
             )"
         >
 
@@ -1460,26 +1690,19 @@ function taoHtmlChiDinh(
                 </strong>
 
                 <span>
-                    ${formatDateTime(
-                        chiDinh.ngayChiDinh
-                    )}
+                    ${escapeHtml(metaParts.join(" • ") || "---")}
                 </span>
 
             </div>
 
 
             <span
-                class="
-                    result-status
-                    ${daHoanThanh
-                        ? ""
-                        : "waiting"}
-                "
+                class="result-status ${statusClass}"
             >
 
-                ${formatTrangThaiChiDinh(
+                ${escapeHtml(formatTrangThaiChiDinh(
                     trangThai
-                )}
+                ))}
 
             </span>
 
@@ -1494,6 +1717,275 @@ function taoHtmlChiDinh(
 
 
 /* =====================================================
+   HÌNH ẢNH KẾT QUẢ CẬN LÂM SÀNG (TỪ API SẴN CÓ)
+===================================================== */
+
+function dongLightboxAnhCLS() {
+    document.getElementById("lskImageLightbox")?.remove();
+
+    if (clsLightboxEscapeHandler) {
+        document.removeEventListener("keydown", clsLightboxEscapeHandler);
+        clsLightboxEscapeHandler = null;
+    }
+}
+
+function donDepAnhKetQuaCLS() {
+    if (clsImageAbortController) {
+        clsImageAbortController.abort();
+        clsImageAbortController = null;
+    }
+
+    clsImageObjectUrls.forEach(url => {
+        URL.revokeObjectURL(url);
+    });
+
+    clsImageObjectUrls = [];
+    dongLightboxAnhCLS();
+}
+
+function moAnhPhongToCLS(src, tenAnh) {
+    dongLightboxAnhCLS();
+
+    const overlay = document.createElement("div");
+    overlay.id = "lskImageLightbox";
+    overlay.className = "lsk-image-lightbox";
+
+    overlay.innerHTML = `
+        <div class="lsk-image-lightbox-content">
+            <button type="button"
+                    class="lsk-image-lightbox-close"
+                    aria-label="Đóng ảnh">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <img src="${escapeAttribute(src)}"
+                 alt="${escapeAttribute(tenAnh)}">
+
+            <div class="lsk-image-lightbox-caption">
+                ${escapeHtml(tenAnh)}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", event => {
+        if (
+            event.target === overlay ||
+            event.target.closest(".lsk-image-lightbox-close")
+        ) {
+            dongLightboxAnhCLS();
+        }
+    });
+
+    clsLightboxEscapeHandler = event => {
+        if (event.key === "Escape") {
+            dongLightboxAnhCLS();
+        }
+    };
+
+    document.addEventListener("keydown", clsLightboxEscapeHandler);
+}
+
+async function taiMotAnhKetQuaCLS(maLichKham, maChiDinh, maAnh, signal) {
+    const token = layToken();
+    const headers = {};
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const url =
+        `${API_BASE}/${encodeURIComponent(maLichKham)}` +
+        `/chi-dinh/${encodeURIComponent(maChiDinh)}` +
+        `/ket-qua/anh/${encodeURIComponent(maAnh)}`;
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers,
+        signal
+    });
+
+    if (!response.ok) {
+        throw new Error(`Không tải được ảnh (HTTP ${response.status})`);
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.size) {
+        throw new Error("Ảnh không có dữ liệu.");
+    }
+
+    return URL.createObjectURL(blob);
+}
+
+function taoLinkFileAnToan(fileURL) {
+    if (!fileURL || typeof fileURL !== "string") {
+        return "";
+    }
+
+    try {
+        const parsed = new URL(fileURL, window.location.origin);
+
+        if (!["http:", "https:"].includes(parsed.protocol)) {
+            return "";
+        }
+
+        // Chỉ mở trực tiếp nếu là URL đầy đủ hoặc đường dẫn hợp lệ, tránh key R2 thô
+        if (!/^https?:\/\//i.test(fileURL.trim()) && !fileURL.trim().startsWith("/")) {
+            return "";
+        }
+
+        return `
+            <div class="lsk-file-attachment">
+                <a
+                    href="${escapeAttribute(parsed.href)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn-view lsk-file-link"
+                >
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                    Xem file kết quả
+                </a>
+            </div>
+        `;
+    } catch (_) {
+        return "";
+    }
+}
+
+async function taiVaHienThiAnhKetQuaCLS(
+    container,
+    danhSachAnh,
+    maLichKham,
+    maChiDinh,
+    expectedVersion,
+    expectedBenhNhanId
+) {
+    if (!container || !Array.isArray(danhSachAnh) || danhSachAnh.length === 0) {
+        return;
+    }
+
+    const controller = new AbortController();
+    clsImageAbortController = controller;
+    const localUrls = [];
+
+    const isStale = () =>
+        controller.signal.aborted ||
+        expectedVersion !== sectionRequestVersion ||
+        !benhNhanDangChon ||
+        Number(benhNhanDangChon.maBenhNhan) !== expectedBenhNhanId ||
+        !container.isConnected;
+
+    try {
+        const ketQuaAnh = await Promise.all(
+            danhSachAnh.map(async (anh, index) => {
+                const maAnh = anh?.maAnh ?? anh?.MaAnh;
+                const tenAnh = anh?.tenFile || anh?.TenFile || `Hình ảnh ${index + 1}`;
+
+                if (maAnh === null || maAnh === undefined) {
+                    return { tenAnh, error: "Không tìm thấy mã ảnh." };
+                }
+
+                try {
+                    const objectUrl = await taiMotAnhKetQuaCLS(
+                        maLichKham,
+                        maChiDinh,
+                        maAnh,
+                        controller.signal
+                    );
+
+                    localUrls.push(objectUrl);
+
+                    return { tenAnh, src: objectUrl };
+                } catch (error) {
+                    if (error.name === "AbortError") {
+                        throw error;
+                    }
+
+                    console.error("Lỗi tải ảnh kết quả CLS:", maAnh, error);
+                    return { tenAnh, error: error.message || "Không tải được ảnh." };
+                }
+            })
+        );
+
+        if (isStale()) {
+            localUrls.forEach(url => URL.revokeObjectURL(url));
+            return;
+        }
+
+        localUrls.forEach(url => clsImageObjectUrls.push(url));
+
+        container.innerHTML = `
+            <div class="lsk-image-grid">
+                ${ketQuaAnh.map(anh => `
+                    <div class="lsk-image-card">
+                        ${
+                            anh.src
+                                ? `
+                                    <button type="button"
+                                            class="lsk-image-button"
+                                            data-image-src="${escapeAttribute(anh.src)}"
+                                            data-image-name="${escapeAttribute(anh.tenAnh)}">
+                                        <img src="${escapeAttribute(anh.src)}"
+                                             alt="${escapeAttribute(anh.tenAnh)}"
+                                             loading="lazy">
+                                        <span class="lsk-image-zoom">
+                                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                                            Phóng to
+                                        </span>
+                                    </button>
+                                `
+                                : `
+                                    <div class="lsk-image-error">
+                                        <i class="fa-regular fa-image"></i>
+                                        <span>${escapeHtml(anh.error)}</span>
+                                    </div>
+                                `
+                        }
+                        <div class="lsk-image-name" title="${escapeAttribute(anh.tenAnh)}">
+                            ${escapeHtml(anh.tenAnh)}
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+            <p class="lsk-image-note">
+                <i class="fa-solid fa-circle-info"></i>
+                Nhấn vào hình ảnh để xem kích thước lớn hơn.
+            </p>
+        `;
+
+        container.querySelectorAll(".lsk-image-button").forEach(button => {
+            button.addEventListener("click", () => {
+                moAnhPhongToCLS(
+                    button.dataset.imageSrc,
+                    button.dataset.imageName
+                );
+            });
+        });
+    } catch (error) {
+        localUrls.forEach(url => URL.revokeObjectURL(url));
+
+        if (error.name === "AbortError" || isStale()) {
+            return;
+        }
+
+        console.error("Lỗi hiển thị danh sách ảnh kết quả CLS:", error);
+        container.innerHTML = `
+            <div class="lsk-image-error lsk-image-error-inline">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Không thể tải hình ảnh kết quả cận lâm sàng.</span>
+            </div>
+        `;
+    } finally {
+        if (clsImageAbortController === controller) {
+            clsImageAbortController = null;
+        }
+    }
+}
+
+
+/* =====================================================
    XEM KẾT QUẢ MỘT CHỈ ĐỊNH
 ===================================================== */
 
@@ -1501,6 +1993,23 @@ async function xemKetQuaChiDinh(
     maLichKham,
     maChiDinh
 ) {
+
+    if (!benhNhanDangChon || !timLanKham(maLichKham)) {
+        return;
+    }
+
+    const expectedBenhNhanId = Number(benhNhanDangChon.maBenhNhan);
+    const version = ++sectionRequestVersion;
+    donDepAnhKetQuaCLS();
+
+    const chiDinhInfo = danhSachChiDinhHienTai.find(
+        item => Number(item.maChiDinh) === Number(maChiDinh)
+    );
+
+    const tenDichVu =
+        chiDinhInfo?.tenDichVu ||
+        chiDinhInfo?.dichVuYTe?.tenDichVu ||
+        `Chỉ định #${maChiDinh}`;
 
     try {
 
@@ -1515,15 +2024,30 @@ async function xemKetQuaChiDinh(
                 `${API_BASE}/${maLichKham}/chi-dinh/${maChiDinh}/ket-qua`
             );
 
+        if (
+            version !== sectionRequestVersion ||
+            !benhNhanDangChon ||
+            Number(benhNhanDangChon.maBenhNhan) !== expectedBenhNhanId
+        ) {
+            return;
+        }
+
 
         /* =================================================
-           CHƯA CÓ KẾT QUẢ
+           CHƯA CÓ KẾT QUẢ HOẶC CHƯA HOÀN TẤT
         ================================================= */
 
         if (
             !data ||
-            data.coKetQua === false
+            data.coKetQua === false ||
+            (data.trangThai && data.trangThai !== "DaHoanThanh")
         ) {
+
+            sectionDetailTitle.textContent =
+                "Chi tiết kết quả cận lâm sàng";
+
+            sectionDetailDescription.textContent =
+                tenDichVu;
 
             sectionDetailContent.innerHTML = `
 
@@ -1534,23 +2058,19 @@ async function xemKetQuaChiDinh(
                 )}
 
 
-                <div
-                    style="
-                        padding: 0 20px 20px;
-                    "
-                >
+                <div class="section-detail-footer section-detail-footer-padded">
 
                     <button
                         type="button"
                         class="btn-secondary"
-                        onclick="xemCanLamSangTheoLanKham(${maLichKham})"
+                        onclick="xemCanLamSangTheoLanKham(${Number(maLichKham)})"
                     >
 
                         <i
                             class="fa-solid fa-arrow-left"
                         ></i>
 
-                        Quay lại
+                        Quay lại danh sách chỉ định
 
                     </button>
 
@@ -1570,39 +2090,46 @@ async function xemKetQuaChiDinh(
                 ? data.chiTiet
                 : [];
 
+        const danhSachAnh =
+            Array.isArray(data.anhKetQua)
+                ? data.anhKetQua.filter(item => item != null)
+                : [];
+
+        const lanKham = timLanKham(maLichKham);
 
         sectionDetailTitle.textContent =
-            "Chi tiết kết quả cận lâm sàng";
+            tenDichVu;
 
 
         sectionDetailDescription.textContent =
-            `Kết quả chỉ định #${maChiDinh}`;
+            lanKham
+                ? `Lần khám ${formatDate(lanKham.ngayKham)} • Chỉ định #${maChiDinh}`
+                : `Kết quả chỉ định #${maChiDinh}`;
 
 
         sectionDetailContent.innerHTML = `
 
             <div class="result-detail">
 
+                <div class="result-detail-header">
+                    <div>
+                        <h4>${escapeHtml(tenDichVu)}</h4>
+                        <span>
+                            ${
+                                data.maKetQua != null
+                                    ? `Mã kết quả: KQ${String(data.maKetQua).padStart(6, "0")} • `
+                                    : ""
+                            }Ngày có kết quả: ${escapeHtml(formatDateTime(data.ngayCoKetQua))}
+                        </span>
+                    </div>
+
+                    <span class="result-status ${layClassTrangThaiChiDinh(data.trangThai)}">
+                        ${escapeHtml(formatTrangThaiChiDinh(data.trangThai))}
+                    </span>
+                </div>
+
 
                 <div class="result-detail-grid">
-
-
-                    ${taoResultDetailItem(
-                        "Ngày có kết quả",
-                        formatDateTime(
-                            data.ngayCoKetQua
-                        ),
-                        false
-                    )}
-
-
-                    ${taoResultDetailItem(
-                        "Trạng thái",
-                        formatTrangThaiChiDinh(
-                            data.trangThai
-                        ),
-                        false
-                    )}
 
 
                     ${taoResultDetailItem(
@@ -1624,70 +2151,61 @@ async function xemKetQuaChiDinh(
 
                 ${
                     chiTiet.length > 0
-                        ? taoBangChiTietKetQua(
-                            chiTiet
-                        )
-                        : ""
-                }
-
-
-                ${
-                    data.fileURL
                         ? `
-
-                            <div
-                                style="
-                                    margin-top: 18px;
-                                "
-                            >
-
-                                <a
-                                    href="${escapeAttribute(
-                                        data.fileURL
-                                    )}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="btn-view"
-                                    style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 7px;
-                                        text-decoration: none;
-                                    "
-                                >
-
-                                    <i
-                                        class="fa-solid fa-file-arrow-down"
-                                    ></i>
-
-                                    Xem file kết quả
-
-                                </a>
-
+                            <div class="lsk-subsection">
+                                <div class="lsk-subsection-header">
+                                    <h4>
+                                        <i class="fa-solid fa-chart-simple"></i>
+                                        Chi tiết chỉ số xét nghiệm
+                                    </h4>
+                                    <span class="lsk-count-badge">${chiTiet.length} chỉ số</span>
+                                </div>
+                                ${taoBangChiTietKetQua(chiTiet)}
                             </div>
-
                         `
                         : ""
                 }
 
 
-                <div
-                    style="
-                        margin-top: 18px;
-                    "
-                >
+                ${
+                    danhSachAnh.length > 0
+                        ? `
+                            <div class="lsk-subsection lsk-result-images">
+                                <div class="lsk-subsection-header">
+                                    <h4>
+                                        <i class="fa-solid fa-images"></i>
+                                        Hình ảnh kết quả
+                                    </h4>
+                                    <span class="lsk-count-badge">${danhSachAnh.length} ảnh</span>
+                                </div>
+                                <div id="lskResultImagesContainer">
+                                    <div class="lsk-images-loading">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        <span>Đang tải ${danhSachAnh.length} hình ảnh kết quả...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `
+                        : ""
+                }
+
+
+                ${taoLinkFileAnToan(data.fileURL)}
+
+
+                <div class="section-detail-footer">
 
                     <button
                         type="button"
                         class="btn-secondary"
-                        onclick="xemCanLamSangTheoLanKham(${maLichKham})"
+                        onclick="xemCanLamSangTheoLanKham(${Number(maLichKham)})"
                     >
 
                         <i
                             class="fa-solid fa-arrow-left"
                         ></i>
 
-                        Quay lại
+                        Quay lại danh sách chỉ định
 
                     </button>
 
@@ -1697,17 +2215,47 @@ async function xemKetQuaChiDinh(
             </div>
         `;
 
+        if (danhSachAnh.length > 0) {
+            const imagesContainer =
+                document.getElementById("lskResultImagesContainer");
+
+            void taiVaHienThiAnhKetQuaCLS(
+                imagesContainer,
+                danhSachAnh,
+                maLichKham,
+                maChiDinh,
+                version,
+                expectedBenhNhanId
+            );
+        }
+
     } catch (error) {
+
+        if (version !== sectionRequestVersion) {
+            return;
+        }
 
         console.error(error);
 
 
-        sectionDetailContent.innerHTML =
-            taoEmptySection(
+        sectionDetailContent.innerHTML = `
+            ${taoEmptySection(
                 "fa-solid fa-triangle-exclamation",
                 "Không thể tải kết quả",
                 error.message
-            );
+            )}
+
+            <div class="section-detail-footer section-detail-footer-padded">
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    onclick="xemCanLamSangTheoLanKham(${Number(maLichKham)})"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Quay lại danh sách chỉ định
+                </button>
+            </div>
+        `;
 
 
         showToast(
@@ -1875,6 +2423,8 @@ function hienThiDonThuoc() {
         return;
     }
 
+    datMucDangMo(btnShowPrescriptions);
+
     moNoiDungHoSo(
         "Đơn thuốc",
         `Chọn lần khám để xem đơn thuốc của ${benhNhanDangChon.hoTen}`
@@ -1893,7 +2443,12 @@ function hienThiDonThuoc() {
 
     sectionDetailContent.innerHTML = `
         <div class="visit-list">
-            ${list.map(item => `
+            ${list.map(item => {
+                const maLichHienThi = item.maLichKham != null
+                    ? `LK${String(item.maLichKham).padStart(6, "0")}`
+                    : "";
+
+                return `
                 <button
                     type="button"
                     class="visit-item"
@@ -1901,19 +2456,30 @@ function hienThiDonThuoc() {
                 >
                     <div class="visit-date">
                         <strong>${formatDate(item.ngayKham)}</strong>
-                        <span>${formatTime(item.gioKham)}</span>
+                        <span>
+                            <i class="fa-regular fa-clock"></i>
+                            ${formatTime(item.gioKham)}
+                        </span>
                     </div>
 
                     <div class="visit-summary">
-                        <strong>
-                            ${escapeHtml(item.lyDoKham || "Khám bệnh")}
-                        </strong>
-                        <span>Xem đơn thuốc của lần khám</span>
+                        <div class="visit-summary-top">
+                            <strong>
+                                ${escapeHtml(item.lyDoKham || "Khám bệnh")}
+                            </strong>
+                            ${
+                                maLichHienThi
+                                    ? `<span class="lsk-code-pill">${escapeHtml(maLichHienThi)}</span>`
+                                    : ""
+                            }
+                        </div>
+                        <span class="visit-summary-sub">Xem đơn thuốc của lần khám</span>
                     </div>
 
                     <i class="fa-solid fa-chevron-right visit-arrow"></i>
                 </button>
-            `).join("")}
+            `;
+            }).join("")}
         </div>
     `;
 }
@@ -1923,6 +2489,8 @@ async function xemDonThuocTheoLanKham(maLichKham) {
         return;
     }
 
+    const version = ++sectionRequestVersion;
+
     sectionDetailContent.innerHTML =
         taoLoadingSection("Đang tải đơn thuốc...");
 
@@ -1931,12 +2499,18 @@ async function xemDonThuocTheoLanKham(maLichKham) {
             `${API_BASE}/${maLichKham}/don-thuoc`
         );
 
+        if (version !== sectionRequestVersion) {
+            return;
+        }
+
         sectionDetailTitle.textContent = "Chi tiết đơn thuốc";
 
         const lanKham = timLanKham(maLichKham);
 
         sectionDetailDescription.textContent =
-            `Lần khám ${formatDate(lanKham.ngayKham)}`;
+            lanKham
+                ? `Lần khám ${formatDate(lanKham.ngayKham)} - ${formatTime(lanKham.gioKham)}`
+                : "Thông tin đơn thuốc";
 
         if (!data || data.coDonThuoc === false) {
             sectionDetailContent.innerHTML = `
@@ -1946,10 +2520,11 @@ async function xemDonThuocTheoLanKham(maLichKham) {
                     "Lần khám này chưa được kê đơn thuốc."
                 )}
 
-                <div style="margin-top:18px">
+                <div class="section-detail-footer section-detail-footer-padded">
                     <button type="button"
                             class="btn-secondary"
                             onclick="hienThiDonThuoc()">
+                        <i class="fa-solid fa-arrow-left"></i>
                         Quay lại các lần khám
                     </button>
                 </div>
@@ -1962,22 +2537,27 @@ async function xemDonThuocTheoLanKham(maLichKham) {
                 ? data.danhSachThuoc
                 : [];
 
+        const maDonHienThi = data.maDonThuoc != null
+            ? `DT${String(data.maDonThuoc).padStart(6, "0")}`
+            : "---";
+
         sectionDetailContent.innerHTML = `
             <div class="visit-detail">
 
+                <div class="visit-detail-header">
+                    <div>
+                        <h3>Đơn thuốc ${escapeHtml(maDonHienThi)}</h3>
+                        <p>Ngày kê thuốc: ${escapeHtml(formatDateTime(data.ngayKeThuoc))}</p>
+                    </div>
+
+                    ${
+                        data.trangThai
+                            ? `<span class="badge-completed">${escapeHtml(formatTrangThaiDonThuoc(data.trangThai))}</span>`
+                            : ""
+                    }
+                </div>
+
                 <div class="medical-record-grid">
-                    ${taoMedicalRecordItem(
-                        "Mã đơn thuốc",
-                        data.maDonThuoc,
-                        false
-                    )}
-
-                    ${taoMedicalRecordItem(
-                        "Ngày kê thuốc",
-                        formatDateTime(data.ngayKeThuoc),
-                        false
-                    )}
-
                     ${taoMedicalRecordItem(
                         "Chẩn đoán",
                         data.chanDoan,
@@ -1991,54 +2571,61 @@ async function xemDonThuocTheoLanKham(maLichKham) {
                     )}
                 </div>
 
-                <h3 style="margin:24px 0 14px">
-                    Danh sách thuốc
-                </h3>
+                <div class="lsk-subsection">
+                    <div class="lsk-subsection-header">
+                        <h4>
+                            <i class="fa-solid fa-pills"></i>
+                            Danh sách thuốc
+                        </h4>
+                        <span class="lsk-count-badge">${danhSachThuoc.length} loại thuốc</span>
+                    </div>
 
-                ${
-                    danhSachThuoc.length > 0
-                        ? `
-                            <div class="table-wrapper">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>STT</th>
-                                            <th>Tên thuốc</th>
-                                            <th>Số lượng</th>
-                                            <th>Đơn vị</th>
-                                            <th>Liều dùng</th>
-                                            <th>Thời gian dùng</th>
-                                            <th>Hướng dẫn</th>
-                                        </tr>
-                                    </thead>
-
-                                    <tbody>
-                                        ${danhSachThuoc.map((thuoc, index) => `
+                    ${
+                        danhSachThuoc.length > 0
+                            ? `
+                                <div class="table-wrapper lsk-table-box">
+                                    <table class="lsk-drug-table">
+                                        <thead>
                                             <tr>
-                                                <td>${index + 1}</td>
-                                                <td>${escapeHtml(thuoc.tenThuoc || "---")}</td>
-                                                <td>${escapeHtml(thuoc.soLuong ?? "---")}</td>
-                                                <td>${escapeHtml(thuoc.donViTinh || "---")}</td>
-                                                <td>${escapeHtml(thuoc.lieuDung || "---")}</td>
-                                                <td>${escapeHtml(thuoc.thoiGianDung ?? "---")}</td>
-                                                <td>${escapeHtml(thuoc.huongDanSuDung || "---")}</td>
+                                                <th>STT</th>
+                                                <th>Tên thuốc</th>
+                                                <th>Số lượng</th>
+                                                <th>Đơn vị</th>
+                                                <th>Liều dùng</th>
+                                                <th>Thời gian dùng</th>
+                                                <th>Hướng dẫn</th>
                                             </tr>
-                                        `).join("")}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `
-                        : taoEmptySection(
-                            "fa-solid fa-pills",
-                            "Không có chi tiết thuốc",
-                            "Đơn thuốc chưa có thuốc trong danh sách."
-                        )
-                }
+                                        </thead>
 
-                <div style="margin-top:18px">
+                                        <tbody>
+                                            ${danhSachThuoc.map((thuoc, index) => `
+                                                <tr>
+                                                    <td>${index + 1}</td>
+                                                    <td class="lsk-drug-name">${escapeHtml(thuoc.tenThuoc || "---")}</td>
+                                                    <td class="lsk-drug-qty">${escapeHtml(thuoc.soLuong ?? "---")}</td>
+                                                    <td>${escapeHtml(thuoc.donViTinh || "---")}</td>
+                                                    <td>${escapeHtml(thuoc.lieuDung || "---")}</td>
+                                                    <td>${escapeHtml(thuoc.thoiGianDung ?? "---")}</td>
+                                                    <td>${escapeHtml(thuoc.huongDanSuDung || "---")}</td>
+                                                </tr>
+                                            `).join("")}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `
+                            : taoEmptySection(
+                                "fa-solid fa-pills",
+                                "Không có chi tiết thuốc",
+                                "Đơn thuốc chưa có thuốc trong danh sách."
+                            )
+                    }
+                </div>
+
+                <div class="section-detail-footer">
                     <button type="button"
                             class="btn-secondary"
                             onclick="hienThiDonThuoc()">
+                        <i class="fa-solid fa-arrow-left"></i>
                         Quay lại các lần khám
                     </button>
                 </div>
@@ -2048,14 +2635,30 @@ async function xemDonThuocTheoLanKham(maLichKham) {
 
     } catch (error) {
 
+        if (version !== sectionRequestVersion) {
+            return;
+        }
+
         console.error(error);
 
-        sectionDetailContent.innerHTML =
-            taoEmptySection(
+        sectionDetailContent.innerHTML = `
+            ${taoEmptySection(
                 "fa-solid fa-triangle-exclamation",
                 "Không thể tải đơn thuốc",
                 error.message
-            );
+            )}
+
+            <div class="section-detail-footer section-detail-footer-padded">
+                <button
+                    type="button"
+                    class="btn-secondary"
+                    onclick="hienThiDonThuoc()"
+                >
+                    <i class="fa-solid fa-arrow-left"></i>
+                    Quay lại các lần khám
+                </button>
+            </div>
+        `;
 
         showToast(
             "Lỗi tải đơn thuốc",
@@ -2066,6 +2669,22 @@ async function xemDonThuocTheoLanKham(maLichKham) {
 }
 
 /* =====================================================
+   ĐÁNH DẤU MỤC ĐANG MỞ
+===================================================== */
+
+function datMucDangMo(activeButton) {
+    [
+        btnShowVisits,
+        btnShowClinicalResults,
+        btnShowPrescriptions
+    ].forEach(btn => {
+        if (!btn) return;
+        btn.classList.toggle("active", btn === activeButton);
+    });
+}
+
+
+/* =====================================================
    MỞ NỘI DUNG HỒ SƠ
 ===================================================== */
 
@@ -2073,6 +2692,9 @@ function moNoiDungHoSo(
     title,
     description
 ) {
+
+    sectionRequestVersion++;
+    donDepAnhKetQuaCLS();
 
     if (!patientSectionDetail) {
         return;
@@ -2124,6 +2746,11 @@ function moNoiDungHoSo(
 ===================================================== */
 
 function dongNoiDungHoSo() {
+
+    sectionRequestVersion++;
+    donDepAnhKetQuaCLS();
+    danhSachChiDinhHienTai = [];
+    datMucDangMo(null);
 
     if (!patientSectionDetail) {
         return;
@@ -2236,31 +2863,6 @@ function taoLoadingSection(message) {
     `;
 }
 /* =====================================================
-   LOADING
-===================================================== */
-
-function hienThiLoading(isLoading) {
-
-    if (!loadingState) {
-        return;
-    }
-
-    if (isLoading) {
-
-        loadingState.classList.remove(
-            "hidden"
-        );
-
-    } else {
-
-        loadingState.classList.add(
-            "hidden"
-        );
-    }
-}
-
-
-/* =====================================================
    FORMAT MÃ BỆNH NHÂN
 ===================================================== */
 
@@ -2334,10 +2936,10 @@ function formatDateTime(value) {
     }
 
     const stringValue =
-        String(value);
+        String(value).replace(" ", "T");
 
     if (!stringValue.includes("T")) {
-        return stringValue;
+        return formatDate(stringValue);
     }
 
     const parts =
@@ -2359,6 +2961,9 @@ function formatTrangThaiChiDinh(trangThai) {
 
     switch (trangThai) {
 
+        case "ChoThanhToan":
+            return "Chờ thanh toán";
+
         case "ChoThucHien":
             return "Chờ thực hiện";
 
@@ -2377,6 +2982,44 @@ function formatTrangThaiChiDinh(trangThai) {
 /* =====================================================
    FORMAT TRẠNG THÁI KẾT QUẢ
 ===================================================== */
+
+function formatTrangThaiLichKham(trangThai) {
+
+    switch (trangThai) {
+
+        case "HoanTat":
+        case "DaKham":
+            return "Đã khám";
+
+        case "DangKham":
+            return "Đang khám";
+
+        case "ChoCLS":
+            return "Chờ CLS";
+
+        default:
+            return trangThai || "Đã khám";
+    }
+}
+
+function formatTrangThaiDonThuoc(trangThai) {
+
+    switch (trangThai) {
+
+        case "ChoLayThuoc":
+            return "Chờ lấy thuốc";
+
+        case "DaCapThuoc":
+        case "DaHoanThanh":
+            return "Đã cấp thuốc";
+
+        case "DaHuy":
+            return "Đã hủy";
+
+        default:
+            return trangThai || "---";
+    }
+}
 
 function formatTrangThaiKetQua(trangThai) {
 
@@ -2837,4 +3480,6 @@ window.xemCanLamSangTheoLanKham =
 
 window.xemKetQuaChiDinh =
     xemKetQuaChiDinh;
+window.hienThiDonThuoc =
+    hienThiDonThuoc;
 window.xemDonThuocTheoLanKham = xemDonThuocTheoLanKham;

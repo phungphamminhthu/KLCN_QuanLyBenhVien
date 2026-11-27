@@ -103,15 +103,19 @@ async function apiFetch(url, options = {}) {
         headers
     });
 
-    if (response.status === 401 || response.status === 403) {
+    if (response.status === 401) {
         localStorage.removeItem("token");
         localStorage.removeItem("Token");
         sessionStorage.removeItem("token");
         sessionStorage.removeItem("Token");
 
-        window.location.href = "/login";
+        window.location.replace("/auth/login");
 
         throw new Error("Phiên đăng nhập đã hết hạn.");
+    }
+
+    if (response.status === 403) {
+        throw new Error("Bạn không có quyền truy cập chức năng này.");
     }
 
     let data = null;

@@ -37,4 +37,10 @@ public interface ThongBaoRepository
     int danhDauTatCaDaDoc(
             @Param("maNguoiDung") Integer maNguoiDung
     );
+
+    boolean existsByNguoiDung_MaNguoiDungInAndLoaiThongBaoAndDaDocFalseAndNoiDungContaining(
+            List<Integer> maNguoiDungList,
+            String loaiThongBao,
+            String noiDung
+    );
 }

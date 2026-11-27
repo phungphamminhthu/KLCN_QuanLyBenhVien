@@ -1296,16 +1296,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
 
 
-            if (
-                Response.status === 401
-                ||
-                Response.status === 403
-            ) {
+            if (Response.status === 401) {
 
-                window.location.href =
-                    "/auth/login";
+                window.location.replace(
+                    "/auth/login"
+                );
 
                 return;
+            }
+
+            if (Response.status === 403) {
+
+                throw new Error(
+                    "Bạn không có quyền xem danh sách tài khoản."
+                );
             }
 
 

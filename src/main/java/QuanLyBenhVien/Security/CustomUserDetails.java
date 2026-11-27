@@ -62,7 +62,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return NguoiDung.getTrangThai();
+        return Boolean.TRUE.equals(NguoiDung.getTrangThai());
     }
 
     public Integer getMaNguoiDung() {

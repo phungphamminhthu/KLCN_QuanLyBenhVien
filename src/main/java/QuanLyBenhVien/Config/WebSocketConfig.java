@@ -4,6 +4,8 @@ package QuanLyBenhVien.Config;
 import QuanLyBenhVien.Security.CustomUserDetails;
 import QuanLyBenhVien.Security.CustomUserDetailsService;
 import QuanLyBenhVien.Security.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -106,8 +108,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                     String token = authorization.substring(7).trim();
 
-                    String username =
-                            jwtService.extractTenDangNhap(token);
+                    String username;
+                    try {
+                        username = jwtService.extractTenDangNhap(token);
+                    } catch (ExpiredJwtException ex) {
+                        throw new IllegalArgumentException(
+                                "JWT đã hết hạn"
+                        );
+                    } catch (JwtException | IllegalArgumentException ex) {
+                        throw new IllegalArgumentException(
+                                "JWT không hợp lệ"
+                        );
+                    }
 
                     if (username == null || username.isBlank()) {
                         throw new IllegalArgumentException(
@@ -118,6 +130,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     CustomUserDetails userDetails =
                             (CustomUserDetails) userDetailsService
                                     .loadUserByUsername(username);
+
+                    if (!userDetails.isEnabled()) {
+                        throw new IllegalArgumentException(
+                                "Tài khoản đã bị khóa hoặc vô hiệu hóa."
+                        );
+                    }
 
                     if (!jwtService.isTokenValid(token, userDetails)) {
                         throw new IllegalArgumentException(

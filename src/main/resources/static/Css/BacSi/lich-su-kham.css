@@ -1988,3 +1988,487 @@ tbody tr:hover {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* =========================================================
+   CẢI THIỆN UI/UX 3 KHU VỰC HỒ SƠ & HÌNH ẢNH KẾT QUẢ CLS
+========================================================= */
+
+.patient-section-card.active {
+    background: #f4f8ff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.patient-section-card.active .patient-section-icon {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.patient-section-card.active .patient-section-arrow {
+    color: #2563eb;
+}
+
+/* Danh sách lần khám dạng card rõ ràng */
+.visit-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 22px 22px;
+}
+
+.visit-item {
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #e5eaf1;
+    border-radius: 10px;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.visit-item:last-child {
+    border-bottom: 1px solid #e5eaf1;
+}
+
+.visit-item:hover {
+    background: #f8fbff;
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+.visit-date {
+    min-width: 112px;
+    flex-shrink: 0;
+    padding: 9px 11px;
+    border-radius: 8px;
+    background: #eff6ff;
+    border: 1px solid #dbeafe;
+    text-align: center;
+}
+
+.visit-date strong {
+    display: block;
+    color: #1d4ed8;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.visit-date span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-top: 4px;
+    color: #475569;
+    font-size: 12px;
+}
+
+.visit-summary {
+    flex: 1;
+    min-width: 0;
+}
+
+.visit-summary-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.visit-summary-top strong {
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.visit-summary-sub {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.lsk-code-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f1f5f9;
+    color: #475569;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.visit-status-badge {
+    flex-shrink: 0;
+}
+
+/* Danh sách chỉ định CLS dạng card */
+.clinical-result-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 22px 6px;
+}
+
+.clinical-result-item {
+    padding: 14px 16px;
+    background: #ffffff;
+    border: 1px solid #e5eaf1;
+    border-radius: 10px;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.clinical-result-item:last-child {
+    border-bottom: 1px solid #e5eaf1;
+}
+
+.clinical-result-item:hover {
+    background: #f8fbff;
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.06);
+}
+
+.result-status.done {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.result-status.processing {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.result-status.unpaid {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Header & phân khu chi tiết kết quả / đơn thuốc */
+.result-detail-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #edf1f5;
+}
+
+.result-detail-header h4 {
+    margin: 0 0 5px;
+    color: #1e293b;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.result-detail-header > div > span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.lsk-subsection {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid #edf1f5;
+}
+
+.lsk-subsection-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.lsk-subsection-header h4 {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #1e293b;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.lsk-subsection-header h4 i {
+    color: #2563eb;
+}
+
+.lsk-count-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Bảng đơn thuốc */
+.lsk-table-box {
+    border: 1px solid #e5eaf1;
+    border-radius: 10px;
+    overflow-x: auto;
+    background: #ffffff;
+}
+
+.lsk-drug-table th {
+    white-space: nowrap;
+}
+
+.lsk-drug-name {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.lsk-drug-qty {
+    font-weight: 600;
+    color: #1d4ed8;
+    text-align: center;
+}
+
+/* Footer nút quay lại nhất quán */
+.section-detail-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #edf1f5;
+}
+
+.section-detail-footer-padded {
+    margin-top: 0;
+    padding: 16px 22px 22px;
+    border-top: none;
+}
+
+/* Gallery hình ảnh kết quả CLS */
+.lsk-images-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    border-radius: 9px;
+    background: #f8fafc;
+    border: 1px solid #e5eaf1;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.lsk-image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.lsk-image-card {
+    min-width: 0;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #e5eaf1;
+    border-radius: 10px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lsk-image-card:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.lsk-image-button {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 165px;
+    padding: 0;
+    overflow: hidden;
+    border: none;
+    border-radius: 8px;
+    background: #f1f5f9;
+    cursor: zoom-in;
+}
+
+.lsk-image-button img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.25s ease;
+}
+
+.lsk-image-button:hover img {
+    transform: scale(1.04);
+}
+
+.lsk-image-zoom {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    color: #ffffff;
+    background: rgba(15, 23, 42, 0.72);
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.lsk-image-button:hover .lsk-image-zoom {
+    opacity: 1;
+}
+
+.lsk-image-name {
+    margin-top: 8px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lsk-image-note {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.lsk-image-error {
+    height: 165px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #dc2626;
+    text-align: center;
+    font-size: 12px;
+}
+
+.lsk-image-error-inline {
+    height: auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.lsk-file-attachment {
+    margin-top: 16px;
+}
+
+.lsk-file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    text-decoration: none;
+}
+
+/* Lightbox phóng to ảnh CLS */
+.lsk-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.9);
+}
+
+.lsk-image-lightbox-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 94vw;
+    max-height: 94vh;
+}
+
+.lsk-image-lightbox-content img {
+    display: block;
+    max-width: 90vw;
+    max-height: 82vh;
+    object-fit: contain;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.lsk-image-lightbox-close {
+    position: absolute;
+    top: -42px;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.lsk-image-lightbox-caption {
+    margin-top: 12px;
+    color: #ffffff;
+    font-size: 13px;
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .visit-list,
+    .clinical-result-list {
+        padding: 14px;
+    }
+
+    .visit-item,
+    .clinical-result-item {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .visit-date {
+        min-width: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: left;
+    }
+
+    .visit-date span {
+        margin-top: 0;
+    }
+
+    .lsk-image-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .lsk-image-button,
+    .lsk-image-error {
+        height: 130px;
+    }
+
+    .lsk-image-lightbox {
+        padding: 12px;
+    }
+}

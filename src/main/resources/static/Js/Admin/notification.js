@@ -196,6 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
             medicine: "💊",
             thuoc: "💊",
             stock: "📦",
+            canh_bao_ton_kho_thuoc: "⚠️",
             category: "🗂️",
             danhmuc: "🗂️",
             add: "➕",
